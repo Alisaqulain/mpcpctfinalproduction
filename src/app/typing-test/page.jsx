@@ -1,9 +1,9 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { getLessonById, getLessonContent } from "@/lib/learningData";
 
-export default function TypingTest() {
+function TypingTestForm() {
   const searchParams = useSearchParams();
   const lessonId = searchParams.get("lesson");
   const language = searchParams.get("language") || "english";
@@ -353,5 +353,20 @@ export default function TypingTest() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TypingTest() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <TypingTestForm />
+    </Suspense>
   );
 }

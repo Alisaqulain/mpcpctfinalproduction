@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const items = [
   { label: "Learning", img: "/lp.jpg" },
@@ -134,11 +135,13 @@ const App = () => {
   key={label}
   className="w-[105%] sm:w-72 h-auto md:h-64 rounded-xl overflow-hidden shadow-md border-4 md:border-8 border-[#290c52] bg-white cursor-pointer transform transition-transform duration-300 hover:scale-105"
 >
-  <div className="h-20 w-full md:h-48 md:w-full">
-    <img
+  <div className="h-20 w-full md:h-48 md:w-full relative">
+    <Image
       src={img}
       alt={label + " icon"}
-      className="h-full w-full object-cover"
+      fill
+      sizes="(max-width: 768px) 100vw, 288px"
+      className="object-cover"
     />
   </div>
   <div className={colorClass + " text-white text-center py-1 md:py-4 text-[10px] md:text-lg font-semibold md:font-bold"}>
@@ -179,7 +182,7 @@ const App = () => {
                                           <a href="/profile" className="mt-4 block mx-auto bg-red-600 text-white py-2 px-4 rounded hover:scale-105 transition-transform text-center">Go to Profile</a>
                   </div>
                   <div className="mt-auto">
-                    <img src="/mpc.png" alt="MPCPCT Logo" className="w-16 h-16 md:w-20 md:h-20 mx-auto" />
+                    <Image src="/mpc.png" alt="MPCPCT Logo" width={80} height={80} className="w-16 h-16 md:w-20 md:h-20 mx-auto" />
                     <p className="text-center text-xs md:text-[13px] text-gray-600 mt-1">MPCPCT - Empowering Education</p>
                   </div>
                 </div>
@@ -268,9 +271,11 @@ const App = () => {
                     </div>
 
                     <div className="mt-auto">
-                      <img
+                      <Image
                         src="/mpc.png"
                         alt="MPCPCT Logo"
+                        width={80}
+                        height={80}
                         className="w-16 h-16 md:w-20 md:h-20 mx-auto"
                       />
                       <p className="text-center text-xs md:text-[13px] text-gray-600 mt-1">
