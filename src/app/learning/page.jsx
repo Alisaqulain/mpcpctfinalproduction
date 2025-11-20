@@ -349,8 +349,8 @@ export default function TypingTutor() {
               }}
               className={`cursor-pointer py-2 rounded-md ${
                 selectedSection === section.id 
-                  ? "w-full bg-white text-[#290c52] font-bold pl-2" 
-                  : "border-none pl-2"
+                  ? "w-[500] bg-white text-[#290c52] font-bold pl-2" 
+                  : "w-[190px] border-none pl-2"
               }`}
             >
               {section.lessonNumber}.{section.name}

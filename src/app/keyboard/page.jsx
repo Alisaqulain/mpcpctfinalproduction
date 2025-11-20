@@ -32,11 +32,81 @@ function KeyboardApp() {
   const [endTime, setEndTime] = useState(null);
   const [userName, setUserName] = useState("User");
   const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+  const [currentRowIndex, setCurrentRowIndex] = useState(0);
+  const [isRowAnimating, setIsRowAnimating] = useState(false);
 
   // Default home row keys if no lesson
   const defaultKeys = ["A", "S", "D", "F", "Space", "J", "K", "L", ";", "Space"];
   const [highlightedKeys, setHighlightedKeys] = useState(defaultKeys);
   const [keyStatus, setKeyStatus] = useState(Array(defaultKeys.length).fill(null));
+
+  // Function to organize keys into rows: 4 alphabets + 1 space + 4 alphabets + 1 space
+  const organizeKeysIntoRows = (keys) => {
+    const rows = [];
+    const nonSpaceKeys = keys.filter(k => k !== "Space");
+    
+    // Organize into rows: 4 alphabets + space + 4 alphabets + space
+    for (let i = 0; i < nonSpaceKeys.length; i += 8) {
+      const rowKeys = [];
+      
+      // First 4 alphabets
+      for (let j = 0; j < 4 && i + j < nonSpaceKeys.length; j++) {
+        rowKeys.push(nonSpaceKeys[i + j]);
+      }
+      
+      // First space
+      rowKeys.push("Space");
+      
+      // Next 4 alphabets
+      for (let j = 4; j < 8 && i + j < nonSpaceKeys.length; j++) {
+        rowKeys.push(nonSpaceKeys[i + j]);
+      }
+      
+      // Second space
+      rowKeys.push("Space");
+      
+      rows.push(rowKeys);
+    }
+    
+    return rows;
+  };
+
+  // Get current row keys based on progress
+  const getCurrentRowKeys = () => {
+    const rows = organizeKeysIntoRows(highlightedKeys);
+    if (rows.length === 0) return [];
+    
+    return rows[Math.min(currentRowIndex, rows.length - 1)] || rows[0] || [];
+  };
+
+  // Update current row index based on progress
+  useEffect(() => {
+    const rows = organizeKeysIntoRows(highlightedKeys);
+    if (rows.length === 0) return;
+    
+    // Count how many non-space keys have been typed
+    let nonSpaceTyped = 0;
+    for (let i = 0; i < currentIndex && i < highlightedKeys.length; i++) {
+      if (highlightedKeys[i] !== "Space") {
+        nonSpaceTyped++;
+      }
+    }
+    
+    // Each row has 8 alphabets, so calculate which row we're on
+    const rowIndex = Math.floor(nonSpaceTyped / 8);
+    const newRowIndex = Math.min(rowIndex, rows.length - 1);
+    
+    if (newRowIndex !== currentRowIndex) {
+      // Trigger animation when row changes
+      setIsRowAnimating(true);
+      setCurrentRowIndex(newRowIndex);
+      
+      // Reset animation after it completes
+      setTimeout(() => {
+        setIsRowAnimating(false);
+      }, 600); // Match animation duration
+    }
+  }, [currentIndex, highlightedKeys, currentRowIndex]);
 
   // Fetch lesson content and extract keys
   useEffect(() => {
@@ -385,18 +455,18 @@ function KeyboardApp() {
 
   const getKeyWidth = (key) => {
     switch (key) {
-      case "Backspace": return "w-[145px]";
-      case "Tab": return "w-[110px]";
-      case "Caps": return "w-[90px]";
-      case "Enter": return "w-[145px]";
-      case "Shift": return "w-[142px]";
+      case "Backspace": return "w-[170px]";
+      case "Tab": return "w-[130px]";
+      case "Caps": return "w-[105px]";
+      case "Enter": return "w-[170px]";
+      case "Shift": return "w-[165px]";
       case "Ctrl":
       case "Alt":
       case "Win":
-      case "Menu": return "w-[60px]";
-      case "\\": return "w-[80px]";
+      case "Menu": return "w-[70px]";
+      case "\\": return "w-[95px]";
       case "Space": return "flex-1";
-      default: return "w-[45px]";
+      default: return "w-[55px]";
     }
   };
 
@@ -547,6 +617,8 @@ function KeyboardApp() {
 
   const resetStats = () => {
     setCurrentIndex(0);
+    setCurrentRowIndex(0);
+    setIsRowAnimating(false);
     setAccuracy(100);
     setKeyStatus(Array(highlightedKeys.length).fill(null));
     setTimer(180);
@@ -595,6 +667,8 @@ function KeyboardApp() {
   useEffect(() => {
     setKeyStatus(Array(highlightedKeys.length).fill(null));
     setCurrentIndex(0);
+    setCurrentRowIndex(0);
+    setIsRowAnimating(false);
   }, [highlightedKeys]);
 
   const formatClock = (seconds) => {
@@ -623,6 +697,36 @@ function KeyboardApp() {
 
       {/* Mobile-only elements */}
       <style jsx>{`
+        @keyframes slideInRight {
+          0% {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          100% {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes slideInRightKey {
+          0% {
+            transform: translateX(100px);
+            opacity: 0;
+          }
+          100% {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        .animate-slide-in-right {
+          animation: slideInRight 0.6s ease-out;
+        }
+        
+        .animate-slide-in-right-key {
+          animation: slideInRightKey 0.4s ease-out forwards;
+        }
+        
         @media (max-width: 767px) {
           .mobile-scale {
             transform: scale(0.8);
@@ -671,23 +775,111 @@ function KeyboardApp() {
 
       {/* Left Section */}
       <div className="flex-1 flex flex-col items-center gap-6 mobile-stack">
-        <div className="flex gap-2 flex-wrap justify-center mobile-tight-gap">
-          {highlightedKeys.map((key, index) => (
-            <div
-              key={index}
-              className={`${
-                key === "Space" ? "w-28 h-10 mt-2 mobile-space-key" : "w-16 h-14 mobile-small-key"
-              } rounded flex items-center justify-center text-xl font-semibold mobile-small-text
-                ${index === currentIndex ? "border-yellow-400 border-2" : ""}
-                ${key === "J" ? "md:ml-10" : ""}
-                ${keyStatus[index] === 'correct' ? "bg-green-600 border-green-600" :
-                  keyStatus[index] === 'wrong' ? "bg-red-600 border-red-600" :
-                  isDarkMode ? "bg-white text-black border-white" : "bg-white text-black border-black"} 
-                border`}
-            >
-              {key === "Space" ? "Space" : key}
-            </div>
-          ))}
+        <div 
+          key={`row-${currentRowIndex}`}
+          className={`flex flex-wrap justify-center mobile-tight-gap relative overflow-hidden ${
+            isRowAnimating ? 'animate-slide-in-right' : ''
+          }`}
+        >
+          {(() => {
+            const currentRowKeys = getCurrentRowKeys();
+            const rows = organizeKeysIntoRows(highlightedKeys);
+            const nonSpaceKeys = highlightedKeys.filter(k => k !== "Space");
+            
+            // Calculate starting index for current row
+            const nonSpaceStartIndex = currentRowIndex * 8;
+            
+            // Map display key to original index
+            const getOriginalIndex = (displayKeyIdx) => {
+              if (currentRowKeys[displayKeyIdx] === "Space") {
+                return -1; // Display-only space
+              }
+              
+              // Calculate which non-space key this is in the row
+              // Row structure: [0,1,2,3,Space,4,5,6,7,Space]
+              let keyPosition;
+              if (displayKeyIdx < 4) {
+                keyPosition = displayKeyIdx; // First 4 keys
+              } else if (displayKeyIdx > 4 && displayKeyIdx < 9) {
+                keyPosition = displayKeyIdx - 1; // Next 4 keys (skip first space)
+              } else {
+                return -1; // Second space or invalid
+              }
+              
+              const nonSpaceKeyIndex = nonSpaceStartIndex + keyPosition;
+              if (nonSpaceKeyIndex >= nonSpaceKeys.length) return -1;
+              
+              // Find this key in original highlightedKeys
+              let nonSpaceCount = 0;
+              for (let i = 0; i < highlightedKeys.length; i++) {
+                if (highlightedKeys[i] !== "Space") {
+                  if (nonSpaceCount === nonSpaceKeyIndex) {
+                    return i;
+                  }
+                  nonSpaceCount++;
+                }
+              }
+              return -1;
+            };
+            
+            return currentRowKeys.map((key, displayIdx) => {
+              const originalIndex = getOriginalIndex(displayIdx);
+              const isCurrentKey = originalIndex === currentIndex;
+              const keyStatusForThisKey = originalIndex >= 0 ? keyStatus[originalIndex] : null;
+              
+              // Check if this key is currently being pressed
+              const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
+              
+              // Add gap after Space (before G) - displayIdx 5 is G
+              const hasGapAfterSpace = displayIdx === 5 && currentRowKeys[4] === "Space";
+              
+              // Margin classes based on position
+              let marginClass = "";
+              if (displayIdx === 0) {
+                marginClass = ""; // First key, no margin
+              } else if (hasGapAfterSpace) {
+                marginClass = "md:ml-8 ml-6"; // Large gap after Space (before G)
+              } else {
+                marginClass = "md:ml-2 ml-1.5"; // Normal gap for all other keys
+              }
+              
+              return (
+                <div
+                  key={`${currentRowIndex}-${displayIdx}`}
+                  className={`
+                    ${key === "Space" ? "w-28 h-10 mt-2 mobile-space-key" : "w-16 h-14 mobile-small-key"}
+                    rounded flex items-center justify-center text-xl font-semibold mobile-small-text
+                    ${marginClass}
+                    transition-all duration-150
+                    ${isRowAnimating ? 'animate-slide-in-right-key' : ''}
+                    ${
+                      isCurrentKey && key === "Space"
+                        ? "bg-blue-600 border-blue-400 border-2 text-white"
+                        : isCurrentKey
+                        ? "bg-blue-600 border-blue-400 border-2 text-white"
+                        : isPressed && key === "Space"
+                        ? "bg-pink-500 text-white border-pink-300 border-2 scale-95"
+                        : isPressed
+                        ? "bg-yellow-500 text-black border-yellow-300 border-2 scale-95"
+                        : keyStatusForThisKey === "correct"
+                        ? "bg-green-600 border-green-600"
+                        : keyStatusForThisKey === "wrong"
+                        ? "bg-red-600 border-red-600"
+                        : isDarkMode
+                        ? "bg-white text-black border-white"
+                        : "bg-white text-black border-black"
+                    }
+                    border
+                  `}
+                  style={isRowAnimating ? {
+                    animationDelay: `${displayIdx * 0.05}s`
+                  } : {}}
+                >
+                  {key === "Space" ? "Space" : key}
+                </div>
+              );
+            });
+          })()}
         </div>
 
         <div className="flex items-center gap-4 mt-2 mobile-tight-gap mobile-small-text">
@@ -747,7 +939,7 @@ function KeyboardApp() {
 
         {/* Keyboard */}
         {keyboard && (
-          <div className={`relative mt-4 p-4 border border-gray-600 rounded-3xl shadow-md ${
+          <div className={`relative mt-4 p-5 border border-gray-600 rounded-3xl shadow-md ${
             isDarkMode ? "bg-black" : "bg-gray-200"
           } mobile-scale`}>
             
@@ -782,16 +974,19 @@ function KeyboardApp() {
                 )}
               </div>
             )}
+            
+            {/* Full Keyboard Layout */}
             {keys.map((row, rowIndex) => (
-              <div key={rowIndex} className="flex mb-2">
+              <div key={rowIndex} className="flex mb-2.5">
                 {row.map((key, keyIndex) => {
-                  const isPressed = pressedKey === key;
+                  // Check if space key is pressed (handle both "Space" and " " normalization)
+                  const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
                   const isCurrentKey = highlightedKeys[currentIndex] === key;
                   return (
                     <div
                       key={keyIndex}
-                      className={`h-12 ${getKeyWidth(key)} mx-0.5 rounded text-sm flex items-center justify-center 
-                        border 
+                      className={`h-14 ${getKeyWidth(key)} mx-1 rounded text-base flex items-center justify-center 
+                        border transition-all duration-150
                         ${
                           key === "Backspace" ? "text-red-500" :
                           key === "Enter" ? "text-green-500" :
@@ -803,8 +998,8 @@ function KeyboardApp() {
                           isDarkMode ? "text-white border-gray-600" : "text-black border-gray-400"
                         }
                         ${
-                          isPressed ? "bg-white text-black" :
-                          isCurrentKey ? "bg-yellow-400" :
+                          isPressed ? (key === "Space" ? "bg-pink-500 text-white border-pink-300 border-2 scale-95" : "bg-white text-black border-2 scale-95") :
+                          isCurrentKey ? "bg-yellow-400 text-black border-yellow-300 border-2" :
                           hand ? (isDarkMode ? "bg-gray-800/70" : "bg-white/70") :
                           (isDarkMode ? "bg-gray-800" : "bg-white")
                         }`}
