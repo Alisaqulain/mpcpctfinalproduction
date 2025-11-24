@@ -679,11 +679,22 @@ function KeyboardApp() {
 
   return (
     <div
-      className={`min-h-screen p-4 flex flex-col md:flex-row gap-6 ${
-        isDarkMode ? "bg-gradient-to-br from-black to-gray-900 text-white" : "bg-white text-black"
+      className={`fixed inset-0 w-full h-full overflow-y-auto ${
+        isDarkMode ? "bg-gradient-to-br from-black to-gray-900" : "bg-white"
       }`}
-      tabIndex={0}
+      style={{
+        minHeight: '100dvh', // Dynamic viewport height for mobile
+      }}
     >
+      <div
+        className={`p-4 flex flex-col md:flex-row gap-6 w-full min-h-full ${
+          isDarkMode ? "text-white" : "text-black"
+        }`}
+        style={{
+          minHeight: '100dvh',
+        }}
+        tabIndex={0}
+      >
       {/* Hidden input for mobile keyboard */}
       <input
         type="text"
@@ -757,6 +768,107 @@ function KeyboardApp() {
           }
           .hand-overlay {
             display: none !important;
+          }
+        }
+        
+        @media (max-width: 767px) and (orientation: landscape),
+               (max-height: 500px) and (orientation: landscape) {
+          html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: fixed;
+          }
+          /* Force keyboard container to be smaller */
+          .keyboard-container.mobile-scale,
+          .mobile-scale.keyboard-container {
+            transform: scale(1) !important;
+            transform-origin: top center !important;
+            width: 100% !important;
+            margin-left: 0 !important;
+            padding: 2px !important;
+            max-width: 100% !important;
+            margin-top: 0 !important;
+            border-radius: 10 !important;
+          }
+          /* Remove border radius from keyboard keys */
+          .keyboard-container.mobile-scale .flex > div {
+            border-radius: 0 !important;
+          }
+          /* Hide hand images in landscape mobile view */
+          .keyboard-container.mobile-scale .hand-overlay {
+            display: none !important;
+          }
+          .mobile-small-key {
+            width: 30px !important;
+            height: 30px !important;
+            font-size: 0.8rem !important;
+          }
+          .mobile-space-key {
+            width: 90px !important;
+            height: 20px !important;
+            font-size: 0.8rem !important;
+          }
+          /* Keyboard keys in landscape - use specific class selector */
+          .keyboard-container.mobile-scale .flex > div,
+          .keyboard-container.mobile-scale .flex > div.h-14 {
+            height: 69px !important;
+            min-height: 16px !important;
+            max-height: 39px !important;
+            font-size: 0.4rem !important;
+            margin-left: 0.5px !important;
+            margin-right: 0.5px !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+          }
+          /* Override all width classes with attribute selector */
+          .keyboard-container.mobile-scale .flex > div[class*="w-"] {
+            width: 22px !important;
+            min-width: 22px !important;
+          }
+          /* Special keys - smaller widths */
+          .keyboard-container.mobile-scale .flex > div[class*="170px"] {
+            width: 45px !important;
+          }
+          /* Increase Backspace and Enter button size in landscape */
+          .keyboard-container.mobile-scale .flex > div.text-red-500[class*="170px"],
+          .keyboard-container.mobile-scale .flex > div.text-green-500[class*="170px"] {
+            width: 70px !important;
+            min-width: 70px !important;
+            height: 39px !important;
+            min-height: 39px !important;
+            max-height: 39px !important;
+            font-size: 0.5rem !important;
+          }
+          .keyboard-container.mobile-scale .flex > div[class*="130px"] {
+            width: 65px !important;
+          }
+          .keyboard-container.mobile-scale .flex > div[class*="105px"] {
+            width: 88px !important;
+          }
+          .keyboard-container.mobile-scale .flex > div[class*="165px"] {
+            width: 98px !important;
+          }
+          .keyboard-container.mobile-scale .flex > div[class*="70px"] {
+            width: 40px !important;
+          }
+          .keyboard-container.mobile-scale .flex > div[class*="95px"] {
+            width: 45px !important;
+          }
+          .keyboard-container.mobile-scale .flex > div[class*="55px"] {
+            width: 46px !important;
+          }
+          /* Space key */
+          .keyboard-container.mobile-scale .flex > div[class*="flex-1"] {
+            flex: 1 1 auto !important;
+            min-width: 30px !important;
+            width: auto !important;
+          }
+          /* Row spacing */
+          .keyboard-container.mobile-scale .flex {
+            margin-bottom: 1px !important;
           }
         }
       `}</style>
@@ -847,7 +959,7 @@ function KeyboardApp() {
                 <div
                   key={`${currentRowIndex}-${displayIdx}`}
                   className={`
-                    ${key === "Space" ? "w-28 h-10 mt-2 mobile-space-key" : "w-16 h-14 mobile-small-key"}
+                    ${key === "Space" ? "w-28 h-10 md:w-35 md:h-11 mt-2 mobile-space-key" : "w-16 h-14 mobile-small-key"}
                     rounded flex items-center justify-center text-xl font-semibold mobile-small-text
                     ${marginClass}
                     transition-all duration-150
@@ -858,11 +970,11 @@ function KeyboardApp() {
                         : isCurrentKey
                         ? "bg-blue-600 border-blue-400 border-2 text-white"
                         : isPressed && key === "Space"
-                        ? "bg-pink-500 text-white border-pink-300 border-2 scale-95"
+                        ? "bg-red-600 text-white border-red-400 border-2 scale-95"
                         : isPressed
-                        ? "bg-yellow-500 text-black border-yellow-300 border-2 scale-95"
+                        ? "bg-red-600 text-white border-red-400 border-2 scale-95"
                         : keyStatusForThisKey === "correct"
-                        ? "bg-green-600 border-green-600"
+                        ? "bg-green-300 border-green-600 text-green-800"
                         : keyStatusForThisKey === "wrong"
                         ? "bg-red-600 border-red-600"
                         : isDarkMode
@@ -939,7 +1051,7 @@ function KeyboardApp() {
 
         {/* Keyboard */}
         {keyboard && (
-          <div className={`relative mt-4 p-5 border border-gray-600 rounded-3xl shadow-md ${
+          <div className={`relative mt-4 p-5 border border-gray-600 rounded-3xl shadow-md keyboard-container ${
             isDarkMode ? "bg-black" : "bg-gray-200"
           } mobile-scale`}>
             
@@ -1121,6 +1233,7 @@ function KeyboardApp() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

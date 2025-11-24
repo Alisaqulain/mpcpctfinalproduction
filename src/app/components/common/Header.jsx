@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 
 export default function Header() {
@@ -97,9 +97,9 @@ export default function Header() {
             MPCPCT
           </h1>
           <p className="text-[12px] sm:text-sm md:text-2xl lg:text-3xl text-gray-600 font-semibold">
-            <span className="hidden md:inline">(</span>
+            <span className="hidden md:inline"></span>
             To Help in typing & computer proficiency
-            <span className="hidden md:inline">)</span>
+            <span className="hidden md:inline"></span>
           </p>
         </div>
 
@@ -116,9 +116,9 @@ export default function Header() {
 
       {/* Desktop Navigation */}
       <nav className="hidden md:block bg-[#290c52] text-white">
-        <div className="flex items-center justify-between px-4 py-2 md:py-4 relative">
-          <ul className="flex flex-wrap justify-start space-x-4 md:space-x-18">
-            <li className="hover:bg-blue-700 px-3 py-1 rounded"><a href="/">Home</a></li>
+        <div className="flex items-center justify-between px-4 py-2 md:py-5 relative">
+          <ul className="flex flex-nowrap justify-start items-center space-x-2 md:space-x-12 ">
+            <li className="hover:bg-blue-700 px-3 py-1 rounded ml-0 md:ml-10 md:justify-start"><a href="/">Home</a></li>
             <li className="relative">
               <button
                 onClick={() => toggleDropdown("course")}
@@ -220,8 +220,8 @@ export default function Header() {
           <div className="flex items-center space-x-4 ml-4">
             {isAuthenticated ? (
               <>
-                <a href="/profile" className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors text-xs">
-                  Profile
+                <a href="/profile" className="text-white hover:text-blue-300 transition-colors" title="Profile">
+                  <FaUserCircle size={24} />
                 </a>
                 <button
                   onClick={handleLogout}
@@ -316,8 +316,8 @@ export default function Header() {
         <div className="flex justify-center items-center mt-10 px-4 space-x-2">
           {isAuthenticated ? (
             <>
-              <a href="/profile" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
-                Profile
+              <a href="/profile" className="text-white hover:text-blue-300 transition-colors" title="Profile">
+                <FaUserCircle size={28} />
               </a>
               <button
                 onClick={handleLogout}
@@ -337,11 +337,11 @@ export default function Header() {
 
       {/* Highlight Bar */}
       <div className="bg-pink-200 relative overflow-hidden h-14">
-        <div className="absolute left-0 md:left-63 top-1/2 transform -translate-y-1/2 z-10">
+        <div className="absolute left-0 md:left-4  top-1/2 transform -translate-y-1/2 z-10">
           <span className="bg-black text-white text-xs px-2 py-2 rounded">HIGHLIGHTS</span>
         </div>
         <div className="flex items-center whitespace-nowrap text-md font-semibold text-gray-800">
-          <div className="w-full md:w-[50%] py-4 mx-auto">
+          <div className="w-full md:w-[85%] py-4 mx-auto">
             <span className="w-full md:w-[50%] py-2">
               <marquee behavior="scroll" direction="left">
                 • CPCT Scorecard is valid for 07 years from the date of exam <span className="pl-15">• Basic Computer & Typing skill are important for data entry</span> <span className="">\ IT Operator</span> <span className="">\ Assistant Grade 3</span> <span className="">\ Shorthand</span> <span className="">\ Typist</span> and other similar positions in the departments <span className="">\ corporation and agencies under government of India.</span>

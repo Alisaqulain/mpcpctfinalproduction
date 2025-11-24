@@ -124,7 +124,7 @@ export default function ExamSection() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-1/4 py-2 text-[10px] md:text-sm font-medium transition-colors duration-300 border-l border-gray-300 ${
+              className={`w-1/4 py-4 text-[10px] md:text-[16px] font-medium transition-colors duration-300 border-l border-gray-300 ${
                 activeTab === tab.id
                   ? "bg-[#290c52] text-white"
                   : "bg-transparent text-gray-700 hover:bg-gray-100"

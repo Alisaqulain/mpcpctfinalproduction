@@ -679,9 +679,9 @@ export default function CPCTPage() {
 
 
         {/* Question Panel */}
-      <div className="flex-grow p-4 overflow-auto bg-white-50 mt-0 md:mt-0 relative">
+      <div className="flex-grow p-4 overflow-auto bg-white-50 mt-0 md:mt-0 relativeaaaaaaaaaaaaaa">
   {/* Fixed Top Bar */}
-  <div className="bg-[#290c52] text-white text-sm px-4 py-3 rounded-t flex justify-between flex-wrap gap-2 sticky top-[-20px] md:top-0 z-10">
+  <div className="bg-[#290c52] text-white text-sm px-4 py-3 rounded-t flex justify-between flex-wrap gap-2 sticky top-[-20px] md:top-0 z-10 mb-0 md:">
     <span>Question Type: MCQ</span>
     <div className="flex items-center gap-2">
       <p>View in:</p>
@@ -956,13 +956,14 @@ export default function CPCTPage() {
       </>
     )}
   </div>
+  
 </div>
 
         {/* Footer */}
         <div className="flex justify-between items-center bg-white-50 px-4 py-3 border-t flex-wrap gap-2">
           <div className="space-x-2">
             <button 
-              className="px-4 py-2 absolute md:relative mb-[-30] ml-38 md:ml-0 md:mb-0 bg-blue-600 text-white rounded text-sm whitespace-nowrap"
+              className="px-4 py-2 absolute md:relative mb-[-30] ml-38 md:ml-0 md:mb-0 bg-purple-600 text-white rounded text-sm whitespace-nowrap"
               onClick={() => {
                 // Mark current question for review
                 if (currentQuestion && currentQuestion._id) {
@@ -1025,7 +1026,7 @@ export default function CPCTPage() {
           </div>
           <div className="space-x-20 md:space-x-2">
             <button 
-              className="bg-blue-400 hover:bg-blue-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap disabled:opacity-50"
+              className="bg-blue-900 hover:bg-blue-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap disabled:opacity-50"
               disabled={currentQuestionIndex === 0 && section === sections[0]?.name}
               onClick={() => {
                 if (currentQuestionIndex > 0) {
@@ -1054,7 +1055,7 @@ export default function CPCTPage() {
               Previous
             </button>
             <button 
-              className={`bg-green-600 hover:bg-cyan-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap ${isLastQuestion() ? 'bg-orange-600 hover:bg-orange-700' : ''}`}
+              className={`bg-green-600 hover:bg-cyan-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap ${isLastQuestion() ? 'bg-green-600' : ''}`}
               onClick={() => {
                 if (isLastQuestion()) {
                   // On last question of section, submit section
@@ -1094,7 +1095,7 @@ export default function CPCTPage() {
                 }
               }}
             >
-              {isLastQuestion() ? "Submit" : "Save & Next"}
+              {isLastQuestion() ? " Save & Next" : "Save & Next"}
             </button>
           </div>
           <button className="bg-green-800 hover:bg-cyan-700 text-white px-12 py-2 ml-2 text-[13px] rounded w-full md:hidden">

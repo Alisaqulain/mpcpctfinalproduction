@@ -338,14 +338,12 @@ export default function TypingTutor() {
     <div className="min-h-screen bg-white p-4 md:p-6 font-sans">
       {/* Header */}
       <div className="bg-[#290c52] text-yellow-400 p-3 md:p-4 rounded-t-lg shadow-md mb-4">
-        <h1 className="text-lg md:text-2xl font-bold text-center">Skill Test Configuration</h1>
+        <h1 className="text-lg md:text-2xl font-bold text-center">Skill Test</h1>
       </div>
 
       {/* Settings Section - Top Row */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 md:p-6 mb-4">
-        <h2 className="text-base md:text-xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-gray-300">
-          Test Settings
-        </h2>
+       
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {/* Language Selection */}
           <div className="bg-gradient-to-br from-[#290c52]/10 to-[#290c52]/20 p-4 rounded-lg border-2 border-[#290c52]/30">
@@ -485,12 +483,28 @@ export default function TypingTutor() {
           <div className="w-full md:w-80 border-r border-gray-300 bg-white p-4">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-sm md:text-base font-semibold text-gray-700">Available Exercises</h3>
-              <button
-                onClick={() => setShowUploadForm(!showUploadForm)}
-                className="bg-[#290c52] hover:bg-[#3d1470] text-white px-3 py-1 rounded text-xs font-semibold transition-colors"
-              >
-                {showUploadForm ? 'Cancel' : '+ Upload'}
-              </button>
+              <div className="flex items-center gap-2">
+                {selectedExercise && selectedExercise.isUserExercise && (
+                  <button
+                    onClick={() => {
+                      if (selectedExercise) {
+                        handleDeleteExercise(selectedExercise);
+                      }
+                    }}
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold transition-colors flex items-center gap-1"
+                    title="Delete selected exercise"
+                  >
+                    <span>🗑️</span>
+                    <span>Delete</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowUploadForm(!showUploadForm)}
+                  className="bg-[#290c52] hover:bg-[#3d1470] text-white px-3 py-1 rounded text-xs font-semibold transition-colors"
+                >
+                  {showUploadForm ? 'Cancel' : '+ Upload'}
+                </button>
+              </div>
             </div>
             
             {/* Upload Form */}
@@ -767,9 +781,9 @@ export default function TypingTutor() {
               <h3 className="text-base md:text-lg font-semibold text-gray-800">Exam Description</h3>
               <a
                 href={selected ? `/typing?exercise=${selected}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}&duration=${duration}&backspace=${backspace}` : '#'}
-                className={`w-full md:w-auto px-6 py-3 rounded-lg text-sm md:text-base font-semibold shadow-md transition-all text-center ${
+                className={`w-full md:w-auto px-10 md:px-60 py-3 rounded-lg  text-sm md:text-base font-semibold shadow-md transition-all text-center mr-0 md:mr-28 ${
                   selected 
-                    ? 'bg-[#290c52] text-white hover:bg-[#3d1470] transform hover:scale-105' 
+                    ? 'bg-green-600 text-white hover:bg-[#3d1470] transform hover:scale-105' 
                     : 'bg-gray-400 text-white cursor-not-allowed'
                 }`}
                 onClick={(e) => {

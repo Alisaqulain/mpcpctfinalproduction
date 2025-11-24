@@ -120,18 +120,18 @@ const App = () => {
     >
       <div className="min-h-screen bg-opacity-60">
         <div className="p-4">
-          <div className="text-center mt-4 md:mt-10">
+          <div className="text-center md:text-left ml-0 md:ml-37 md:justify-center mt-4 md:mt-10">
             <p className="text-2xl md:text-5xl font-bold">
               Empower Your Future with MPCPCT
             </p>
-            <p className="text-sm md:text-lg mt-2 md:mt-4">
+            <p className="text-sm md:text-lg ml-0 md:ml-28 md:justify-center mt-2 md:mt-4">
               Learn typing and computer skills interactively to prepare for
               government roles
             </p>
           </div>
 
           <div className="flex flex-col lg:flex-row justify-between gap-4 md:gap-6 relative">
-            <div className="flex justify-center mt-10 md:mt-20 animate-fadeInUp gap-4 md:gap-8 lg:gap-x-8 lg:gap-y-6 w-full">
+            <div className="flex justify-center ml-0 md:ml-28 md:justify-start mt-10 md:mt-20 animate-fadeInUp gap-4 md:gap-8 lg:gap-x-8 lg:gap-y-6 w-full">
               {items.map(({ label, img }) => {
                 let colorClass = "bg-red-600";
                 if (label === "Learning") colorClass = "bg-green-800";
@@ -213,7 +213,7 @@ const App = () => {
               </div>
             ) : (
               <>
-                <span className="text-pink-300 font-semibold text-[20px] border-l border-[#290c52] bg-[#290c52] pt-4 md:pt-10 pb-0 md:pb-6 text-center w-full lg:w-48 absolute right-0 lg:right-[-16px] z-10 top-[155px] rounded-tl-lg rounded-tr-lg md:rounded-none lg:top-[-148px]">
+                <span className="text-pink-300 font-semibold text-[20px] border-l border-[#290c52] bg-[#290c52] pt-4 md:pt-7 pb-0 md:pb-6 text-center w-full lg:w-48 absolute right-0 lg:right-[-16px] z-10 top-[155px] rounded-tl-lg rounded-tr-lg md:rounded-none lg:top-[-148px]">
                   Welcome Back
                 </span>
 
@@ -334,7 +334,7 @@ const App = () => {
             )}
           </div>
 
-          <div className="mt-18 md:mt-30 w-full bg-pink-100 bg-opacity-70 text-black p-4 rounded shadow text-sm">
+          <div className="mt-18 md:mt-35 w-full bg-pink-100 bg-opacity-70 text-black p-4 rounded shadow text-sm">
             <div className="text-center">
               <p className="text-2xl md:text-5xl pt-3 md:pt-5 font-semibold">
                 Welcome to our website<br />

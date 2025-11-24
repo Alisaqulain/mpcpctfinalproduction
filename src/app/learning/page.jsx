@@ -235,106 +235,130 @@ export default function TypingTutor() {
       )}
 
       {/* Top Settings Section */}
-    <div className="grid grid-cols-3 gap-1 md:gap-4">
-  {/* Language Selection */}
-  <div className="bg-[#290c52] p-[6px] md:p-4 rounded shadow-md text-white">
-    <h2 className="font-bold text-[9px] md:text-lg mb-2 border-b border-white pb-1">
-      1. Select Typing Language
-    </h2>
-    <div className="grid grid-cols-2 gap-1 text-black mb-2">
-            {languages.main.map((lang) => (
-        <label
-                key={lang.id}
-          className="bg-white px-1 py-1 rounded flex items-center gap-1 w-full"
-        >
-          <input
-            type="radio"
-            name="mainLanguage"
-            className="w-3 h-3"
-                  value={lang.name}
-                  checked={selectedLanguage === lang.name}
-                  onChange={(e) => handleLanguageChange(e.target.value)}
-                />
-                <p className="text-[8px] md:text-sm">{lang.name}</p>
-        </label>
-      ))}
-    </div>
-          {languages.main.find(lang => lang.name === selectedLanguage)?.subLanguages.length > 0 && (
-    <div className="grid grid-cols-2 gap-1 text-black">
-              {languages.main.find(lang => lang.name === selectedLanguage)?.subLanguages.map((subLang) => (
-          <label
-                  key={subLang.id}
-                  className="bg-white px-1 py-1 rounded flex items-center gap-1 w-full"
-          >
-            <input
-              type="radio"
-              name="subLanguage"
-              className="w-3 h-3"
-                    value={subLang.name}
-                    checked={selectedSubLanguage === subLang.name}
-                    onChange={(e) => handleSubLanguageChange(e.target.value)}
+      <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 md:p-6">
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          {/* Language Selection */}
+          <div className="bg-gradient-to-br from-[#290c52]/10 to-[#290c52]/20 p-4 rounded-lg border-2 border-[#290c52]/30">
+            <h3 className="font-bold text-sm md:text-base mb-3 text-gray-800 flex items-center gap-2">
+              <span className="bg-[#290c52] text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">1</span>
+              Select Typing Language
+            </h3>
+            <div className="space-y-2 mb-3">
+              <div className="text-xs md:text-sm font-medium text-gray-700 mb-1">Main Language:</div>
+              <div className="grid grid-cols-2 gap-2">
+                {languages.main.map((lang) => (
+                  <label
+                    key={lang.id}
+                    className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all ${
+                      selectedLanguage === lang.name
+                        ? "bg-[#290c52] text-white shadow-md"
+                        : "bg-white hover:bg-[#290c52]/10 border border-gray-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="mainLanguage"
+                      className="w-4 h-4"
+                      value={lang.name}
+                      checked={selectedLanguage === lang.name}
+                      onChange={(e) => handleLanguageChange(e.target.value)}
+                    />
+                    <span className="text-xs md:text-sm font-medium">{lang.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            {languages.main.find(lang => lang.name === selectedLanguage)?.subLanguages.length > 0 && (
+              <div className="space-y-2 mt-3 pt-3 border-t border-[#290c52]/30">
+                <div className="text-xs md:text-sm font-medium text-gray-700 mb-1">Script Type:</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {languages.main.find(lang => lang.name === selectedLanguage)?.subLanguages.map((subLang) => (
+                    <label
+                      key={subLang.id}
+                      className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all ${
+                        selectedSubLanguage === subLang.name
+                          ? "bg-[#290c52] text-white shadow-md"
+                          : "bg-white hover:bg-[#290c52]/10 border border-gray-300"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="subLanguage"
+                        className="w-4 h-4"
+                        value={subLang.name}
+                        checked={selectedSubLanguage === subLang.name}
+                        onChange={(e) => handleSubLanguageChange(e.target.value)}
+                      />
+                      <span className="text-xs md:text-sm font-medium">{subLang.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Duration */}
+          <div className="bg-gradient-to-br from-[#290c52]/10 to-[#290c52]/20 p-4 rounded-lg border-2 border-[#290c52]/30">
+            <h3 className="font-bold text-sm md:text-base mb-3 text-gray-800 flex items-center gap-2">
+              <span className="bg-[#290c52] text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">2</span>
+              Select Duration (Minutes)
+            </h3>
+            <div className="grid grid-cols-3 gap-2">
+              {settings.durations.map((time) => (
+                <label
+                  key={time}
+                  className={`p-2 rounded text-center font-medium cursor-pointer transition-all border-2 ${
+                    duration === time
+                      ? "bg-[#290c52] text-white border-[#290c52] shadow-md transform scale-105"
+                      : "bg-white hover:bg-[#290c52]/10 border-gray-300"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="duration"
+                    value={time}
+                    className="hidden"
+                    onChange={() => setDuration(time)}
+                    checked={duration === time}
                   />
-                  <p className="text-[7px] md:text-sm">{subLang.name}</p>
-          </label>
+                  <span className="text-xs md:text-sm">{time}M</span>
+                </label>
               ))}
-    </div>
-          )}
-  </div>
+            </div>
+          </div>
 
-  {/* Duration */}
-  <div className="bg-[#290c52] p-[6px] md:p-4 rounded shadow-md text-white">
-    <h2 className="font-bold text-[9px] md:text-lg mb-2 border-b border-white pb-1">
-      2. Select Duration in Minutes
-    </h2>
-    <div className="grid grid-cols-3 gap-1 mt-4">
-            {settings.durations.map((time) => (
-        <label
-          key={time}
-          className={`px-1 py-1 rounded text-center font-medium cursor-pointer bg-white text-black border border-gray-400 text-[8px] md:text-base ${
-            duration === time ? "bg-blue-200" : ""
-          }`}
-        >
-          <input
-            type="radio"
-            name="duration"
-            value={time}
-            className="mr-1"
-            onChange={() => setDuration(time)}
-            checked={duration === time}
-          />
-          {time}M
-        </label>
-      ))}
-    </div>
-  </div>
-
-  {/* Backspace */}
-  <div className="bg-[#290c52] p-[6px] md:p-4 rounded shadow-md text-white">
-    <h2 className="font-bold text-[11px] md:text-lg mb-2 border-b border-white pb-1">
-      3. Backspace
-    </h2>
-    <div className="grid grid-cols-2 gap-1 mt-4">
-            {settings.backspaceOptions.map((option) => (
-        <label
-          key={option}
-          className={`px-1 py-1 rounded text-center font-medium cursor-pointer bg-white text-black border border-gray-400 text-[8px] md:text-base ${
-            backspace === option ? "bg-blue-200" : ""
-          }`}
-        >
-          <input
-            type="radio"
-            name="backspace"
-            value={option}
-            className="mr-1"
-            onChange={() => setBackspace(option)}
-            checked={backspace === option}
-          />
-          {option}
-        </label>
-      ))}
-    </div>
-  </div>
-</div>
+          {/* Backspace */}
+          <div className="bg-gradient-to-br from-[#290c52]/10 to-[#290c52]/20 p-4 rounded-lg border-2 border-[#290c52]/30">
+            <h3 className="font-bold text-sm md:text-base mb-3 text-gray-800 flex items-center gap-2">
+              <span className="bg-[#290c52] text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">3</span>
+              Backspace Option
+            </h3>
+            <div className="grid grid-cols-2 gap-2">
+              {settings.backspaceOptions.map((option) => (
+                <label
+                  key={option}
+                  className={`p-3 rounded text-center font-medium cursor-pointer transition-all border-2 ${
+                    backspace === option
+                      ? "bg-[#290c52] text-white border-[#290c52] shadow-md transform scale-105"
+                      : "bg-white hover:bg-[#290c52]/10 border-gray-300"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="backspace"
+                    value={option}
+                    className="hidden"
+                    onChange={() => setBackspace(option)}
+                    checked={backspace === option}
+                  />
+                  <span className="text-xs md:text-sm font-semibold">{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Main Content Section */}
       <div className="flex flex-row min-h-screen bg-blue-200 bg-[url('/bg.jpg')]">
@@ -359,7 +383,7 @@ export default function TypingTutor() {
         </div>
 
         {/* Content Area */}
-        <div className="bg-white p-6 shadow-md w-[60%] md:w-[70%] mx-auto mt-5 mr-2 md:mr-0">
+        <div className="bg-white p-6 shadow-md w-[60%] md:w-[70%] mx-auto mt-5 mr-2 md:mr-25">
           {currentSection && (
             <>
           <h2 className="text-center font-bold italic mb-4 text-md md:text-5xl">

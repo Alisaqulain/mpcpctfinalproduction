@@ -25,6 +25,46 @@ function SignupForm() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [fieldErrors, setFieldErrors] = useState({});
 
+  // List of all Indian states
+  const indianStates = [
+    "Andhra Pradesh",
+    "Arunachal Pradesh",
+    "Assam",
+    "Bihar",
+    "Chhattisgarh",
+    "Goa",
+    "Gujarat",
+    "Haryana",
+    "Himachal Pradesh",
+    "Jharkhand",
+    "Karnataka",
+    "Kerala",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Manipur",
+    "Meghalaya",
+    "Mizoram",
+    "Nagaland",
+    "Odisha",
+    "Punjab",
+    "Rajasthan",
+    "Sikkim",
+    "Tamil Nadu",
+    "Telangana",
+    "Tripura",
+    "Uttar Pradesh",
+    "Uttarakhand",
+    "West Bengal",
+    "Andaman and Nicobar Islands",
+    "Chandigarh",
+    "Dadra and Nagar Haveli and Daman and Diu",
+    "Delhi",
+    "Jammu and Kashmir",
+    "Ladakh",
+    "Lakshadweep",
+    "Puducherry"
+  ];
+
   // Check if user is already logged in
   useEffect(() => {
     const checkAuth = async () => {
@@ -205,7 +245,6 @@ function SignupForm() {
             { id: "name", label: "Full Name", type: "text" },
             { id: "email", label: "Email", type: "email" },
             { id: "phoneNumber", label: "Phone Number", type: "tel" },
-            { id: "states", label: "State", type: "text" },
             { id: "city", label: "City", type: "text" },
           ].map((field) => (
             <div key={field.id} className="relative">
@@ -238,6 +277,59 @@ function SignupForm() {
               )}
             </div>
           ))}
+
+          {/* State Dropdown */}
+          <div className="relative">
+            <select
+              id="states"
+              name="states"
+              value={formData.states}
+              onChange={handleInputChange}
+              className={`px-4 py-3 w-full bg-white border-2 ${
+                fieldErrors.states ? "border-red-500" : "border-gray-600"
+              } rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 transition-all duration-300 appearance-none cursor-pointer ${
+                !formData.states ? "text-gray-400" : "text-gray-900"
+              }`}
+              required
+            >
+              <option value="" disabled>
+                
+              </option>
+              {indianStates.map((state) => (
+                <option key={state} value={state}>
+                  {state}
+                </option>
+              ))}
+            </select>
+            <label
+              htmlFor="states"
+              className={`absolute left-3 bg-white px-1 text-sm transition-all duration-300 pointer-events-none ${
+                formData.states
+                  ? "-top-2.5 text-blue-600"
+                  : "top-3 text-base text-gray-600"
+              }`}
+            >
+              State
+            </label>
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+            {fieldErrors.states && (
+              <p className="mt-1 text-xs text-red-600">{fieldErrors.states}</p>
+            )}
+          </div>
 
           {/* Profile Upload */}
           <div className="relative">
