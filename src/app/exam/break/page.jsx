@@ -7,36 +7,47 @@ function BreakScreenContent() {
   const [userName, setUserName] = useState("User");
   const [breakComplete, setBreakComplete] = useState(false);
   const searchParams = useSearchParams();
-  const nextSection = searchParams.get("next") || "/exam/english-ty";
+  const nextSectionParam = searchParams.get("next");
+  const sectionParam = searchParams.get("section");
+  
+  // Determine next section URL
+  let nextSection = "/exam_mode";
+  if (nextSectionParam) {
+    nextSection = nextSectionParam;
+    if (sectionParam) {
+      nextSection += `?section=${encodeURIComponent(sectionParam)}`;
+    }
+  } else if (sectionParam) {
+    nextSection = `/exam_mode?section=${encodeURIComponent(sectionParam)}`;
+  }
 
-  // Fetch user name
+  // Fetch user name - load from localStorage first, then try API
   useEffect(() => {
+    // First, try localStorage (faster)
+    const userDataStr = localStorage.getItem('examUserData');
+    if (userDataStr) {
+      try {
+        const userData = JSON.parse(userDataStr);
+        if (userData.name) {
+          setUserName(userData.name);
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+    
+    // Then try API to get updated name
     const fetchUserName = async () => {
       try {
-        // First try to get from API
         const res = await fetch('/api/profile', { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           if (data.user?.name) {
             setUserName(data.user.name);
-            return;
           }
         }
       } catch (error) {
         console.error('Failed to fetch user profile:', error);
-      }
-      
-      // Fallback to localStorage
-      const userDataStr = localStorage.getItem('examUserData');
-      if (userDataStr) {
-        try {
-          const userData = JSON.parse(userDataStr);
-          if (userData.name) {
-            setUserName(userData.name);
-          }
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-        }
       }
     };
     
@@ -102,13 +113,8 @@ function BreakScreenContent() {
         </div>
 
         <button 
-          onClick={handleNextSection}
-          disabled={!breakComplete}
-          className={`mt-6 px-5 py-2 rounded text-white ${
-            breakComplete 
-              ? "bg-[#290c52] cursor-pointer hover:bg-blue-700" 
-              : "bg-gray-400 cursor-not-allowed opacity-60"
-          }`}
+          onClick={() => window.location.href = nextSection}
+          className="mt-6 px-5 py-2 rounded text-white bg-[#290c52] cursor-pointer hover:bg-blue-700"
         >
           Start Next Section
         </button>

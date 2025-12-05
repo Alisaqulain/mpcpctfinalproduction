@@ -6,14 +6,17 @@ export default function AdminPanel() {
   const router = useRouter();
   const [exams, setExams] = useState([]);
   const [sections, setSections] = useState([]);
+  const [parts, setParts] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [selectedExam, setSelectedExam] = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
+  const [selectedPart, setSelectedPart] = useState(null);
   const [activeTab, setActiveTab] = useState('exams');
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [showExamForm, setShowExamForm] = useState(false);
   const [showSectionForm, setShowSectionForm] = useState(false);
+  const [showPartForm, setShowPartForm] = useState(false);
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -70,10 +73,20 @@ export default function AdminPanel() {
     setSections(data.sections || []);
   };
 
-  const fetchQuestions = async (examId, sectionId) => {
+  const fetchParts = async (examId, sectionId) => {
+    const url = new URL(window.location.origin + '/api/admin/parts');
+    if (examId) url.searchParams.set('examId', examId);
+    if (sectionId) url.searchParams.set('sectionId', sectionId);
+    const res = await fetch(url.toString());
+    const data = await res.json();
+    setParts(data.parts || []);
+  };
+
+  const fetchQuestions = async (examId, sectionId, partId) => {
     const url = new URL(window.location.origin + '/api/admin/questions');
     if (examId) url.searchParams.set('examId', examId);
     if (sectionId) url.searchParams.set('sectionId', sectionId);
+    if (partId) url.searchParams.set('partId', partId);
     const res = await fetch(url.toString());
     const data = await res.json();
     console.log('📥 Fetched questions:', data.questions?.length || 0);
@@ -176,9 +189,59 @@ export default function AdminPanel() {
     }
   };
 
-  const handleSaveQuestion = async (formData) => {
+  const handleSavePart = async (formData) => {
     if (!selectedExam || !selectedSection) {
       alert('Please select an exam and section first');
+      return;
+    }
+    setSaving(true);
+    try {
+      // Generate a unique ID from the part name
+      const partId = formData.id || formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      
+      // Get current parts count for default values
+      const currentPartsCount = parts.length;
+      
+      const res = await fetch('/api/admin/parts', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ 
+          examId: selectedExam,
+          sectionId: selectedSection,
+          name: formData.name,
+          id: partId,
+          order: parseInt(formData.order) || currentPartsCount
+        })
+      });
+      
+      let data;
+      const text = await res.text();
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError);
+        alert(`Error creating part: Server returned invalid response (${res.status} ${res.statusText})`);
+        return;
+      }
+      
+      if (res.ok) {
+        await fetchParts(selectedExam, selectedSection);
+        setShowPartForm(false);
+      } else {
+        alert(`Error creating part: ${data.error || 'Unknown error'}`);
+        console.error('Part creation error:', data);
+      }
+    } catch (error) {
+      console.error('Error saving part:', error);
+      alert(`Error creating part: ${error.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveQuestion = async (formData) => {
+    if (!selectedExam || !selectedSection || !selectedPart) {
+      alert('Please select an exam, section, and part first');
       return;
     }
     setSaving(true);
@@ -192,6 +255,7 @@ export default function AdminPanel() {
         id: questionId,
         examId: selectedExam, 
         sectionId: selectedSection,
+        partId: selectedPart,
         questionType: formData.questionType || 'MCQ',
         isFree: formData.isFree === true || formData.isFree === 'true'
       };
@@ -314,7 +378,7 @@ export default function AdminPanel() {
         if (data.question) {
           console.log('✅ Saved question imageUrl:', data.question.imageUrl);
         }
-        await fetchQuestions(selectedExam, selectedSection);
+        await fetchQuestions(selectedExam, selectedSection, selectedPart);
         setShowQuestionForm(false);
         setEditingQuestion(null); // Clear editing state
       } else {
@@ -336,7 +400,7 @@ export default function AdminPanel() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isFree: newStatus })
     });
-    if (res.ok) fetchQuestions(selectedExam, selectedSection);
+    if (res.ok) fetchQuestions(selectedExam, selectedSection, selectedPart);
   };
 
   if (isCheckingAuth) {
@@ -478,12 +542,12 @@ export default function AdminPanel() {
           {/* Instructions */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-800">
-              <strong>How to use:</strong> Select an Exam → Select a Section → View/Add Questions
+              <strong>How to use:</strong> Select an Exam → Select a Section → Select a Part → View/Add Questions
             </p>
           </div>
 
-          {/* Three Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Four Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Exams Column */}
             <div className="bg-white border rounded-lg shadow-sm">
               <div className="bg-gray-50 border-b px-4 py-3 flex justify-between items-center">
@@ -510,9 +574,11 @@ export default function AdminPanel() {
                           }`} 
                           onClick={() => { 
                             setSelectedExam(exam._id); 
-                            setSelectedSection(null); 
-                            fetchSections(exam._id); 
-                            fetchQuestions(exam._id, null); 
+                            setSelectedSection(null);
+                            setSelectedPart(null);
+                            fetchSections(exam._id);
+                            setParts([]);
+                            setQuestions([]);
                           }}
                         >
                           <div className="font-medium">{exam.title}</div>
@@ -561,11 +627,60 @@ export default function AdminPanel() {
                               : 'bg-white hover:bg-gray-50 border-gray-200'
                           }`} 
                           onClick={() => { 
-                            setSelectedSection(sec._id); 
-                            fetchQuestions(selectedExam, sec._id); 
+                            setSelectedSection(sec._id);
+                            setSelectedPart(null);
+                            fetchParts(selectedExam, sec._id);
+                            setQuestions([]);
                           }}
                         >
                           <div className="font-medium">{sec.name}</div>
+                        </button>
+              </li>
+            ))}
+          </ul>
+                )}
+              </div>
+        </div>
+
+            {/* Parts Column */}
+            <div className="bg-white border rounded-lg shadow-sm">
+              <div className="bg-gray-50 border-b px-4 py-3 flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-800">Parts</h3>
+                <button 
+                  onClick={() => {
+                    if (!selectedExam || !selectedSection) {
+                      alert('Please select an exam and section first');
+                      return;
+                    }
+                    setShowPartForm(true);
+                  }} 
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+                  disabled={!selectedExam || !selectedSection}
+                >
+                  + Add Part
+                </button>
+          </div>
+              <div className="p-4">
+                {!selectedSection ? (
+                  <p className="text-gray-500 text-center py-8">Select a section to view parts</p>
+                ) : parts.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No parts yet. Click "+ Add Part" to create one.</p>
+                ) : (
+                  <ul className="space-y-2">
+            {parts.map(part => (
+              <li key={part._id}>
+                        <button 
+                          className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                            selectedPart === part._id 
+                              ? 'bg-purple-600 text-white border-purple-600' 
+                              : 'bg-white hover:bg-gray-50 border-gray-200'
+                          }`} 
+                          onClick={() => { 
+                            setSelectedPart(part._id);
+                            fetchQuestions(selectedExam, selectedSection, part._id);
+                          }}
+                        >
+                          <div className="font-medium">{part.name}</div>
                         </button>
               </li>
             ))}
@@ -580,21 +695,21 @@ export default function AdminPanel() {
                 <h3 className="text-lg font-semibold text-gray-800">Questions</h3>
                 <button 
                   onClick={() => {
-                    if (!selectedExam || !selectedSection) {
-                      alert('Please select an exam and section first');
+                    if (!selectedExam || !selectedSection || !selectedPart) {
+                      alert('Please select an exam, section, and part first');
                       return;
                     }
                     setShowQuestionForm(true);
                   }} 
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
-                  disabled={!selectedExam || !selectedSection}
+                  disabled={!selectedExam || !selectedSection || !selectedPart}
                 >
                   + Add Question
                 </button>
           </div>
               <div className="p-4">
-                {!selectedSection ? (
-                  <p className="text-gray-500 text-center py-8">Select a section to view questions</p>
+                {!selectedPart ? (
+                  <p className="text-gray-500 text-center py-8">Select a part to view questions</p>
                 ) : questions.length === 0 ? (
                   <p className="text-gray-500 text-center py-8">No questions yet. Click "+ Add Question" to create one.</p>
                 ) : (
@@ -755,6 +870,13 @@ export default function AdminPanel() {
             <SectionFormModal 
               onSave={handleSaveSection} 
               onClose={() => setShowSectionForm(false)} 
+              saving={saving}
+            />
+          )}
+          {showPartForm && (
+            <PartFormModal 
+              onSave={handleSavePart} 
+              onClose={() => setShowPartForm(false)} 
               saving={saving}
             />
           )}
@@ -1839,6 +1961,89 @@ function ExamFormModal({ onSave, onClose, saving }) {
   );
 }
 
+function PartFormModal({ onSave, onClose, saving }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    id: '',
+    order: ''
+  });
+
+  // Auto-generate ID from name
+  const handleNameChange = (name) => {
+    const generatedId = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    setFormData({...formData, name, id: generatedId});
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="border-b px-6 py-4 flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Add New Part</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Part Name *</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              className="w-full border rounded-lg px-4 py-2"
+              placeholder="e.g., Part 1, Part A"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">Name of the part within this section</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Part ID</label>
+            <input
+              type="text"
+              value={formData.id}
+              onChange={(e) => setFormData({...formData, id: e.target.value})}
+              className="w-full border rounded-lg px-4 py-2"
+              placeholder="Auto-generated from name"
+            />
+            <p className="text-xs text-gray-500 mt-1">Auto-generated from name if left empty</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Order</label>
+            <input
+              type="number"
+              value={formData.order}
+              onChange={(e) => setFormData({...formData, order: parseInt(e.target.value) || 0})}
+              className="w-full border rounded-lg px-4 py-2"
+              placeholder="0"
+            />
+            <p className="text-xs text-gray-500 mt-1">Display order (optional)</p>
+          </div>
+          <div className="flex gap-3 pt-4">
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium disabled:bg-gray-400"
+            >
+              {saving ? 'Saving...' : 'Create Part'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              className="px-6 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function SectionFormModal({ onSave, onClose, saving }) {
   const [formData, setFormData] = useState({
     name: '',
@@ -1853,7 +2058,7 @@ function SectionFormModal({ onSave, onClose, saving }) {
     setFormData({...formData, name, id: autoId || formData.id});
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e) => { 
     e.preventDefault();
     onSave(formData);
   };

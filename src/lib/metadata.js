@@ -4,9 +4,9 @@
  */
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mpcpct.com';
-const siteName = 'MPCPCT - MPCPCT.com | Best CPCT, RSCIT, CCC Exam Practice Platform in Indore';
-const defaultDescription = 'MPCPCT - The leading online platform for CPCT, RSCIT, and CCC exam preparation in Indore, Madhya Pradesh. MPCPCT offers comprehensive typing practice in Hindi & English, real-time results, expert guidance, and government job exam preparation. Join thousands of students using MPCPCT to master typing skills for Data Entry Operator, IT Operator, Assistant Grade 3, Shorthand, and Typist positions. Visit MPCPCT.com today!';
-const defaultKeywords = 'MPCPCT, MPCPCT.com, MPCPCT Indore, MPCPCT login, MPCPCT signup, MPCPCT exam, MPCPCT practice, MPCPCT typing, MPCPCT CPCT, MPCPCT RSCIT, MPCPCT CCC, CPCT exam Indore, RSCIT exam Indore, CCC exam Indore, CPCT coaching Indore, RSCIT classes Indore, CCC classes Indore, computer proficiency certificate test Indore, typing practice Indore, Hindi typing Indore, English typing Indore, government exam preparation Indore, online exam practice Indore, Madhya Pradesh CPCT, data entry operator Indore, IT operator Indore, assistant grade 3 Indore, shorthand Indore, typist Indore, government job preparation Indore, CPCT practice test Indore, RSCIT online exam Indore, CCC mock test Indore, typing speed test Indore, Hindi typing practice Indore, English typing practice Indore, government job typing test Indore, best typing institute Indore, CPCT training center Indore';
+const siteName = 'MPCPCT - MPCPCT.com | Best CPCT, RSCIT, CCC Exam Practice Platform in Indore, Madhya Pradesh';
+const defaultDescription = 'MPCPCT - The #1 online platform for CPCT, RSCIT, and CCC exam preparation in Indore, Madhya Pradesh, India. Master typing in Hindi & English with real-time results, expert guidance, and comprehensive government job exam preparation. Join thousands of students from Indore, Bhopal, Gwalior, Jabalpur, and across MP using MPCPCT to prepare for Data Entry Operator, IT Operator, Assistant Grade 3, Shorthand, and Typist positions. Best CPCT coaching in Indore. Visit MPCPCT.com today!';
+const defaultKeywords = 'MPCPCT, MPCPCT.com, MPCPCT Indore, MPCPCT Madhya Pradesh, MPCPCT MP, CPCT exam Indore, CPCT coaching Indore, CPCT classes Indore, CPCT preparation Indore, CPCT practice test Indore, CPCT online exam Indore, CPCT mock test Indore, CPCT training Indore, CPCT institute Indore, RSCIT exam Indore, RSCIT coaching Indore, RSCIT classes Indore, RSCIT preparation Indore, RSCIT online exam Indore, RSCIT mock test Indore, CCC exam Indore, CCC coaching Indore, CCC classes Indore, CCC preparation Indore, CCC online exam Indore, CCC mock test Indore, typing practice Indore, Hindi typing Indore, English typing Indore, typing speed test Indore, typing classes Indore, typing institute Indore, typing coaching Indore, Hindi typing practice Indore, English typing practice Indore, government job preparation Indore, government exam Indore, government job typing test Indore, data entry operator Indore, data entry operator exam Indore, IT operator Indore, IT operator exam Indore, assistant grade 3 Indore, assistant grade 3 exam Indore, shorthand Indore, shorthand exam Indore, typist Indore, typist exam Indore, computer proficiency certificate test Indore, online exam practice Indore, Madhya Pradesh CPCT, MP CPCT exam, Madhya Pradesh government exam, MP government job, Indore government job, Bhopal CPCT, Gwalior CPCT, Jabalpur CPCT, Ujjain CPCT, MP government exam preparation, Indore competitive exam, MP competitive exam, best typing institute Indore, best CPCT coaching Indore, best RSCIT coaching Indore, best CCC coaching Indore, CPCT training center Indore, typing speed test online Indore, Hindi typing speed test Indore, English typing speed test Indore, government job exam preparation Indore, MP government job exam, Indore typing classes, MP typing classes, online typing practice Indore, CPCT exam date Indore, RSCIT exam date Indore, CCC exam date Indore, CPCT syllabus Indore, RSCIT syllabus Indore, CCC syllabus Indore';
 
 export const defaultMetadata = {
   metadataBase: new URL(siteUrl),
@@ -119,9 +119,9 @@ export function generatePageMetadata({
 
 export const pageMetadata = {
   home: generatePageMetadata({
-    title: 'MPCPCT - MPCPCT.com | Best CPCT, RSCIT, CCC Exam Practice Platform in Indore',
-    description: 'MPCPCT - The #1 platform for CPCT, RSCIT, and CCC exam preparation. Master typing in Hindi & English with MPCPCT. Practice typing tests, skill assessments, and government job exam preparation. Join thousands of students using MPCPCT in Indore, Madhya Pradesh. Visit MPCPCT.com now!',
-    keywords: 'MPCPCT, MPCPCT.com, MPCPCT Indore, MPCPCT login, MPCPCT signup, MPCPCT exam, MPCPCT practice, MPCPCT typing, CPCT practice Indore, RSCIT online exam Indore, CCC preparation Indore, typing speed test Indore, Hindi typing practice Indore, government job typing test Indore, best CPCT coaching Indore, RSCIT classes Indore, CCC training Indore',
+    title: 'MPCPCT - MPCPCT.com | Best CPCT, RSCIT, CCC Exam Practice Platform in Indore, Madhya Pradesh',
+    description: 'MPCPCT - The #1 online platform for CPCT, RSCIT, and CCC exam preparation in Indore, Madhya Pradesh, India. Master typing in Hindi & English with real-time results, expert guidance, and comprehensive government job exam preparation. Join thousands of students from Indore, Bhopal, Gwalior, Jabalpur, and across MP using MPCPCT to prepare for Data Entry Operator, IT Operator, Assistant Grade 3, Shorthand, and Typist positions. Best CPCT coaching in Indore. Visit MPCPCT.com now!',
+    keywords: 'MPCPCT Indore, MPCPCT Madhya Pradesh, CPCT exam Indore, CPCT coaching Indore, CPCT classes Indore, CPCT preparation Indore, RSCIT exam Indore, RSCIT coaching Indore, CCC exam Indore, CCC coaching Indore, typing practice Indore, Hindi typing Indore, English typing Indore, typing speed test Indore, government job preparation Indore, data entry operator Indore, IT operator Indore, assistant grade 3 Indore, shorthand Indore, typist Indore, MP government exam, Indore competitive exam, best typing institute Indore, CPCT training center Indore, online typing practice Indore, CPCT exam date Indore, RSCIT exam date Indore, CCC exam date Indore, Bhopal CPCT, Gwalior CPCT, Jabalpur CPCT, Ujjain CPCT, MP government job exam',
     path: '/',
   }),
   about: generatePageMetadata({
@@ -137,21 +137,21 @@ export const pageMetadata = {
     path: '/contact-us',
   }),
   learning: generatePageMetadata({
-    title: 'Learning Mode - Practice Typing & Computer Skills',
-    description: 'Learn typing and computer proficiency skills at your own pace. Practice with interactive lessons, bilingual support (Hindi & English), and track your progress.',
-    keywords: 'typing practice, computer skills learning, Hindi typing tutorial, English typing practice, interactive learning',
+    title: 'Learning Mode - Practice Typing & Computer Skills in Indore, MP',
+    description: 'Learn typing and computer proficiency skills at your own pace in Indore, Madhya Pradesh. Practice with interactive lessons, bilingual support (Hindi & English), and track your progress. Best typing learning platform in Indore for CPCT, RSCIT, and CCC exam preparation.',
+    keywords: 'typing practice Indore, computer skills learning Indore, Hindi typing tutorial Indore, English typing practice Indore, interactive learning Indore, typing classes Indore, typing coaching Indore, Hindi typing classes Indore, English typing classes Indore, typing institute Indore, computer proficiency training Indore, CPCT learning Indore, RSCIT learning Indore, CCC learning Indore, typing course Indore',
     path: '/learning',
   }),
   skillTest: generatePageMetadata({
-    title: 'Skill Test - Test Your Typing Speed & Accuracy',
-    description: 'Test your typing speed and accuracy with MPCPCT skill tests. Get instant results, detailed analytics, and improve your performance for CPCT, RSCIT, and CCC exams.',
-    keywords: 'typing speed test, typing accuracy test, WPM test, skill assessment, typing test online',
+    title: 'Skill Test - Test Your Typing Speed & Accuracy in Indore, MP',
+    description: 'Test your typing speed and accuracy with MPCPCT skill tests in Indore, Madhya Pradesh. Get instant results, detailed analytics, and improve your performance for CPCT, RSCIT, and CCC exams. Best typing speed test platform in Indore for government job preparation.',
+    keywords: 'typing speed test Indore, typing accuracy test Indore, WPM test Indore, skill assessment Indore, typing test online Indore, Hindi typing speed test Indore, English typing speed test Indore, typing speed test MP, government job typing test Indore, CPCT typing test Indore, RSCIT typing test Indore, CCC typing test Indore, typing speed test online Indore, typing practice test Indore',
     path: '/skill_test',
   }),
   exam: generatePageMetadata({
-    title: 'Exam Mode - CPCT, RSCIT, CCC Practice Exams',
-    description: 'Practice real exam scenarios for CPCT, RSCIT, and CCC. Simulate actual exam conditions, get detailed results, and boost your confidence for government job exams.',
-    keywords: 'CPCT exam practice, RSCIT mock test, CCC practice exam, government exam preparation, online exam simulator',
+    title: 'Exam Mode - CPCT, RSCIT, CCC Practice Exams in Indore, MP',
+    description: 'Practice real exam scenarios for CPCT, RSCIT, and CCC exams in Indore, Madhya Pradesh. Simulate actual exam conditions, get detailed results, and boost your confidence for MP government job exams. Best online exam simulator for CPCT, RSCIT, and CCC preparation in Indore.',
+    keywords: 'CPCT exam practice Indore, RSCIT mock test Indore, CCC practice exam Indore, CPCT online exam Indore, RSCIT online exam Indore, CCC online exam Indore, government exam preparation Indore, MP government exam, online exam simulator Indore, CPCT practice test Indore, RSCIT practice test Indore, CCC practice test Indore, CPCT mock test Indore, RSCIT mock test Indore, CCC mock test Indore, government job exam Indore, MP competitive exam',
     path: '/exam',
   }),
   pricing: generatePageMetadata({

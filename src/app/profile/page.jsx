@@ -322,8 +322,10 @@ export default function ProfilePage() {
                 <div className="bg-white rounded-lg p-3 border border-purple-200">
                   <p className="text-sm text-gray-700">
                     <span className="font-semibold">How it works:</span> Share your referral code or link with friends. 
-                    When they sign up and purchase a subscription using your code, both you and your friend get 
-                    <span className="font-bold text-purple-600"> 1 month free</span> added to your subscriptions!
+                    When they sign up and purchase a subscription using your code, they get 
+                    <span className="font-bold text-purple-600"> 1 month free</span>! 
+                    If you have a paid course and 3 people purchase using your referral, you'll also get 
+                    <span className="font-bold text-purple-600"> 1 month free</span>!
                   </p>
                 </div>
 

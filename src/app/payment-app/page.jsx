@@ -357,7 +357,7 @@ function PaymentAppContent() {
                 </p>
               )}
               <p className="text-xs text-center text-gray-500">
-                Using a referral code gives you and the referrer 1 month free!
+                Using a referral code gives you 1 month free! If the referrer has a paid course and gets 3 referrals, they'll also get 1 month free.
               </p>
             </div>
 

@@ -212,153 +212,127 @@ export default function TypingTutor() {
       {stats && (
         <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-lg mb-4">
           <div className="flex flex-wrap justify-between items-center">
-            <div className="text-center">
-              <div className="text-2xl font-bold">{stats.totalLessons}</div>
-              <div className="text-sm">Total Lessons</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">{stats.sections}</div>
-              <div className="text-sm">Sections</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">{stats.totalTime}</div>
-              <div className="text-sm">Total Time</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">
-                {Object.values(stats.difficultyBreakdown).reduce((a, b) => a + b, 0)}
-              </div>
-              <div className="text-sm">Available</div>
-            </div>
-          </div>
+  <h1 className="text-2xl font-bold text-center w-full text-yellow-400">Learning</h1>
+</div>
+
         </div>
       )}
 
       {/* Top Settings Section */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 md:p-6">
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          {/* Language Selection */}
-          <div className="bg-gradient-to-br from-[#290c52]/10 to-[#290c52]/20 p-4 rounded-lg border-2 border-[#290c52]/30">
-            <h3 className="font-bold text-sm md:text-base mb-3 text-gray-800 flex items-center gap-2">
-              <span className="bg-[#290c52] text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">1</span>
-              Select Typing Language
-            </h3>
-            <div className="space-y-2 mb-3">
-              <div className="text-xs md:text-sm font-medium text-gray-700 mb-1">Main Language:</div>
-              <div className="grid grid-cols-2 gap-2">
-                {languages.main.map((lang) => (
-                  <label
-                    key={lang.id}
-                    className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all ${
-                      selectedLanguage === lang.name
-                        ? "bg-[#290c52] text-white shadow-md"
-                        : "bg-white hover:bg-[#290c52]/10 border border-gray-300"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="mainLanguage"
-                      className="w-4 h-4"
-                      value={lang.name}
-                      checked={selectedLanguage === lang.name}
-                      onChange={(e) => handleLanguageChange(e.target.value)}
-                    />
-                    <span className="text-xs md:text-sm font-medium">{lang.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            {languages.main.find(lang => lang.name === selectedLanguage)?.subLanguages.length > 0 && (
-              <div className="space-y-2 mt-3 pt-3 border-t border-[#290c52]/30">
-                <div className="text-xs md:text-sm font-medium text-gray-700 mb-1">Script Type:</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {languages.main.find(lang => lang.name === selectedLanguage)?.subLanguages.map((subLang) => (
-                    <label
-                      key={subLang.id}
-                      className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all ${
-                        selectedSubLanguage === subLang.name
-                          ? "bg-[#290c52] text-white shadow-md"
-                          : "bg-white hover:bg-[#290c52]/10 border border-gray-300"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="subLanguage"
-                        className="w-4 h-4"
-                        value={subLang.name}
-                        checked={selectedSubLanguage === subLang.name}
-                        onChange={(e) => handleSubLanguageChange(e.target.value)}
-                      />
-                      <span className="text-xs md:text-sm font-medium">{subLang.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+      <div className="bg-white border border-[#290c52] rounded-lg shadow-md p-4 md:p-6">
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-          {/* Duration */}
-          <div className="bg-gradient-to-br from-[#290c52]/10 to-[#290c52]/20 p-4 rounded-lg border-2 border-[#290c52]/30">
-            <h3 className="font-bold text-sm md:text-base mb-3 text-gray-800 flex items-center gap-2">
-              <span className="bg-[#290c52] text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">2</span>
-              Select Duration (Minutes)
-            </h3>
-            <div className="grid grid-cols-3 gap-2">
-              {settings.durations.map((time) => (
-                <label
-                  key={time}
-                  className={`p-2 rounded text-center font-medium cursor-pointer transition-all border-2 ${
-                    duration === time
-                      ? "bg-[#290c52] text-white border-[#290c52] shadow-md transform scale-105"
-                      : "bg-white hover:bg-[#290c52]/10 border-gray-300"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="duration"
-                    value={time}
-                    className="hidden"
-                    onChange={() => setDuration(time)}
-                    checked={duration === time}
-                  />
-                  <span className="text-xs md:text-sm">{time}M</span>
-                </label>
-              ))}
-            </div>
-          </div>
+    {/* 1. Language Selection */}
+    <div className="bg-[#290c52] p-4 rounded-lg border border-[#ffffff40]">
+      <h3 className="font-bold text-sm mb-3 text-white flex items-center gap-2">
+        <span className="bg-yellow-400 text-[#290c52] rounded-full w-6 h-6 flex items-center justify-center text-xs">1</span>
+        Select Typing Language
+      </h3>
 
-          {/* Backspace */}
-          <div className="bg-gradient-to-br from-[#290c52]/10 to-[#290c52]/20 p-4 rounded-lg border-2 border-[#290c52]/30">
-            <h3 className="font-bold text-sm md:text-base mb-3 text-gray-800 flex items-center gap-2">
-              <span className="bg-[#290c52] text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">3</span>
-              Backspace Option
-            </h3>
-            <div className="grid grid-cols-2 gap-2">
-              {settings.backspaceOptions.map((option) => (
-                <label
-                  key={option}
-                  className={`p-3 rounded text-center font-medium cursor-pointer transition-all border-2 ${
-                    backspace === option
-                      ? "bg-[#290c52] text-white border-[#290c52] shadow-md transform scale-105"
-                      : "bg-white hover:bg-[#290c52]/10 border-gray-300"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="backspace"
-                    value={option}
-                    className="hidden"
-                    onChange={() => setBackspace(option)}
-                    checked={backspace === option}
-                  />
-                  <span className="text-xs md:text-sm font-semibold">{option}</span>
-                </label>
-              ))}
-            </div>
+      <div className="grid grid-cols-2 gap-2">
+        {languages.main.map((lang) => (
+          <label
+            key={lang.id}
+            className="flex items-center gap-2 p-2 rounded cursor-pointer bg-white border border-gray-300 hover:bg-gray-100 transition-all"
+          >
+            <input
+              type="radio"
+              name="mainLanguage"
+              className="w-4 h-4"
+              value={lang.name}
+              checked={selectedLanguage === lang.name}
+              onChange={(e) => handleLanguageChange(e.target.value)}
+            />
+            <span className="text-xs md:text-sm font-medium text-[#290c52]">{lang.name}</span>
+          </label>
+        ))}
+      </div>
+
+      {/* Sub Languages */}
+      {languages.main.find(lang => lang.name === selectedLanguage)?.subLanguages.length > 0 && (
+        <div className="mt-4 pt-3 border-t border-white/40">
+          <div className="text-xs md:text-sm font-medium text-white mb-2">Script Type:</div>
+
+          <div className="grid grid-cols-2 gap-2">
+            {languages.main.find(lang => lang.name === selectedLanguage)?.subLanguages.map((subLang) => (
+              <label
+                key={subLang.id}
+                className="flex items-center gap-2 p-2 rounded cursor-pointer bg-white border border-gray-300 hover:bg-gray-100 transition-all"
+              >
+                <input
+                  type="radio"
+                  name="subLanguage"
+                  className="w-4 h-4"
+                  value={subLang.name}
+                  checked={selectedSubLanguage === subLang.name}
+                  onChange={(e) => handleSubLanguageChange(e.target.value)}
+                />
+                <span className="text-xs md:text-sm font-medium text-[#290c52]">{subLang.name}</span>
+              </label>
+            ))}
           </div>
         </div>
+      )}
+    </div>
+
+    {/* 2. Duration */}
+    <div className="bg-[#290c52] p-4 rounded-lg border border-[#ffffff40]">
+      <h3 className="font-bold text-sm mb-3 text-white flex items-center gap-2">
+        <span className="bg-yellow-400 text-[#290c52] rounded-full w-6 h-6 flex items-center justify-center text-xs">2</span>
+        Select Duration (Minutes)
+      </h3>
+
+      <div className="grid grid-cols-3 gap-2">
+        {settings.durations.map((time) => (
+          <label
+            key={time}
+            className="flex items-center justify-center gap-2 p-2 rounded cursor-pointer bg-white border border-gray-300 hover:bg-gray-100 transition-all"
+          >
+            <input
+              type="radio"
+              name="duration"
+              className="w-4 h-4"
+              value={time}
+              checked={duration === time}
+              onChange={() => setDuration(time)}
+            />
+            <span className="text-xs md:text-sm font-semibold text-[#290c52]">{time}M</span>
+          </label>
+        ))}
       </div>
+    </div>
+
+    {/* 3. Backspace */}
+    <div className="bg-[#290c52] p-4 rounded-lg border border-[#ffffff40]">
+      <h3 className="font-bold text-sm mb-3 text-white flex items-center gap-2">
+        <span className="bg-yellow-400 text-[#290c52] rounded-full w-6 h-6 flex items-center justify-center text-xs">3</span>
+        Backspace Option
+      </h3>
+
+      <div className="grid grid-cols-2 gap-2">
+        {settings.backspaceOptions.map((option) => (
+          <label
+            key={option}
+            className="flex items-center justify-center gap-2 p-2 rounded cursor-pointer bg-white border border-gray-300 hover:bg-gray-100 transition-all"
+          >
+            <input
+              type="radio"
+              name="backspace"
+              className="w-4 h-4"
+              value={option}
+              checked={backspace === option}
+              onChange={() => setBackspace(option)}
+            />
+            <span className="text-xs md:text-sm font-semibold text-[#290c52]">{option}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
 
       {/* Main Content Section */}
       <div className="flex flex-row min-h-screen bg-blue-200 bg-[url('/bg.jpg')]">
@@ -377,7 +351,7 @@ export default function TypingTutor() {
                   : "w-[190px] border-none pl-2"
               }`}
             >
-              {section.lessonNumber}.{section.name}
+              <span className="text-yellow-400">{section.lessonNumber}.</span>{section.name}
             </p>
           ))}
         </div>
@@ -479,7 +453,7 @@ export default function TypingTutor() {
                       href={`/tips/home?lesson=${selectedCheckbox.id}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}`}
                       className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors text-sm text-center block"
                     >
-                      ⌨️ Start Keyboard Practice (With Hand Guide)
+                      ⌨️ Start 
                     </a>
                   </div>
                 </div>

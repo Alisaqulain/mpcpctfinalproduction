@@ -45,73 +45,93 @@ export async function POST(request) {
       return NextResponse.json({ error: "Subscription not found" }, { status: 404 });
     }
 
-    // Update referred user - add 1 month to subscription
+    // Update referred user - add 1 month to subscription (always give this)
     const oneMonthInMs = 30 * 24 * 60 * 60 * 1000;
     const newEndDate = new Date(Math.max(new Date(subscription.endDate).getTime(), Date.now()) + oneMonthInMs);
     subscription.endDate = newEndDate;
     await subscription.save();
 
-    // Update referrer - add 1 month to their subscription
-    // First check for "all" type subscription, then check for same type
+    // Update user's referredBy
+    currentUser.referredBy = referrer._id;
+    await currentUser.save();
+
+    // Create referral record first (before counting)
+    const referralRecord = await Referral.create({
+      referrerId: referrer._id,
+      referredUserId: currentUser._id,
+      referralCode: referralCode.toUpperCase(),
+      status: "completed",
+      referrerRewardMonths: 0, // Will be updated if referrer gets reward
+      referredRewardMonths: 1,
+      subscriptionId: subscription._id
+    });
+
+    // Check if referrer has a paid course (active subscription that's not a referral reward)
+    let referrerHasPaidCourse = false;
     let referrerSubscription = await Subscription.findOne({
       userId: referrer._id,
       type: "all",
       status: "active",
-      endDate: { $gt: new Date() }
+      endDate: { $gt: new Date() },
+      plan: { $ne: "referral_reward" } // Exclude referral rewards as "paid"
     });
 
     if (!referrerSubscription) {
       referrerSubscription = await Subscription.findOne({
         userId: referrer._id,
-        type: subscription.type,
         status: "active",
-        endDate: { $gt: new Date() }
+        endDate: { $gt: new Date() },
+        plan: { $ne: "referral_reward" } // Exclude referral rewards as "paid"
       });
     }
 
     if (referrerSubscription) {
+      referrerHasPaidCourse = true;
+    }
+
+    // Count completed referrals for this referrer
+    const completedReferralsCount = await Referral.countDocuments({
+      referrerId: referrer._id,
+      status: "completed"
+    });
+
+    let referrerRewardGiven = false;
+    let referrerRewardMonths = 0;
+
+    // Only give referrer reward if they have paid course AND this is their 3rd referral
+    if (referrerHasPaidCourse && completedReferralsCount === 3) {
+      // Give referrer 1 month free
       const referrerNewEndDate = new Date(Math.max(new Date(referrerSubscription.endDate).getTime(), Date.now()) + oneMonthInMs);
       referrerSubscription.endDate = referrerNewEndDate;
       await referrerSubscription.save();
-    } else {
-      // Create new subscription for referrer if they don't have one
-      // Use "all" type to match the unified subscription model
-      const referrerEndDate = new Date();
-      referrerEndDate.setDate(referrerEndDate.getDate() + 30);
-      await Subscription.create({
-        userId: referrer._id,
-        type: subscription.type === "all" ? "all" : subscription.type,
-        status: "active",
-        startDate: new Date(),
-        endDate: referrerEndDate,
-        plan: "referral_reward",
-        price: 0,
-        paymentId: `REF_${Date.now()}`
-      });
+      referrerRewardGiven = true;
+      referrerRewardMonths = 1;
+
+      // Update referral record with referrer reward
+      referralRecord.referrerRewardMonths = 1;
+      await referralRecord.save();
     }
 
-    // Update user's referredBy
-    currentUser.referredBy = referrer._id;
-    await currentUser.save();
-
-    // Create referral record
-    await Referral.create({
-      referrerId: referrer._id,
-      referredUserId: currentUser._id,
-      referralCode: referralCode.toUpperCase(),
-      status: "completed",
-      referrerRewardMonths: 1,
-      referredRewardMonths: 1,
-      subscriptionId: subscription._id
-    });
-
     // Update referrer's reward count
-    referrer.referralRewards = (referrer.referralRewards || 0) + 1;
+    referrer.referralRewards = completedReferralsCount;
     await referrer.save();
+
+    // Prepare response message
+    let message = "Referral code applied! You got 1 month free!";
+    if (referrerRewardGiven) {
+      message += " The referrer also got 1 month free for reaching 3 referrals!";
+    } else if (referrerHasPaidCourse) {
+      const remainingReferrals = 3 - completedReferralsCount;
+      if (remainingReferrals > 0) {
+        message += ` The referrer needs ${remainingReferrals} more ${remainingReferrals === 1 ? 'referral' : 'referrals'} to get 1 month free.`;
+      }
+    }
 
     return NextResponse.json({ 
       success: true, 
-      message: "Referral code applied! Both you and the referrer got 1 month free!"
+      message: message,
+      referrerRewardGiven,
+      referrerRewardMonths
     });
   } catch (error) {
     console.error("Referral apply error:", error);

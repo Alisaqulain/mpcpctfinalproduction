@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { getLessonById, getLessonContent } from "@/lib/learningData";
+import { calculateCPCTMetricsFromText } from "@/lib/cpctFormulas";
 
 function TypingTestForm() {
   const searchParams = useSearchParams();
@@ -126,18 +127,14 @@ function TypingTestForm() {
             setIsCompleted(true);
             setIsStarted(false);
             
-            // Calculate WPM and accuracy
+            // Calculate CPCT metrics
             const timeInMinutes = (endTimeStamp - startTime) / 60000;
-            const wordsTyped = userInput ? userInput.trim().split(/\s+/).length : 0;
-            const wpmCalculated = timeInMinutes > 0 ? Math.round(wordsTyped / timeInMinutes) : 0;
-            setWpm(wpmCalculated);
-            
-            const totalTyped = userInput.length || 1;
-            const accuracyCalculated = Math.max(0, Math.min(100, Math.round(((totalTyped - errors.length) / totalTyped) * 100)));
-            setAccuracy(accuracyCalculated);
+            const cpctMetrics = calculateCPCTMetricsFromText(userInput || "", content, timeInMinutes);
+            setWpm(Math.round(cpctMetrics.nwpm)); // Display NWPM
+            setAccuracy(Math.round(cpctMetrics.accuracy)); // Display CPCT Accuracy
             
             // Save result to database
-            saveTypingResult(endTimeStamp, startTime, wpmCalculated, accuracyCalculated, userInput);
+            saveTypingResult(endTimeStamp, startTime, cpctMetrics.gwpm, cpctMetrics.accuracy, userInput);
             
             return 0;
           }
@@ -208,29 +205,32 @@ function TypingTestForm() {
       setIsCompleted(true);
       setIsStarted(false);
 
-      // Calculate WPM and accuracy
+      // Calculate CPCT metrics
       const timeInMinutes = (endTimeStamp - startTime) / 60000;
-      const wordsTyped = value ? value.trim().split(/\s+/).length : 0;
-      const wpmCalculated = timeInMinutes > 0 ? Math.round(wordsTyped / timeInMinutes) : 0;
-      setWpm(wpmCalculated);
-
-      const accuracyCalculated = Math.round(((content.length - newErrors.length) / content.length) * 100);
-      setAccuracy(accuracyCalculated);
+      const cpctMetrics = calculateCPCTMetricsFromText(value || "", content, timeInMinutes);
+      setWpm(Math.round(cpctMetrics.nwpm)); // Display NWPM
+      setAccuracy(Math.round(cpctMetrics.accuracy)); // Display CPCT Accuracy
       
       // Save result to database
-      saveTypingResult(endTimeStamp, startTime, wpmCalculated, accuracyCalculated, value);
+      saveTypingResult(endTimeStamp, startTime, cpctMetrics.gwpm, cpctMetrics.accuracy, value);
     }
   };
 
-  const saveTypingResult = async (endTime, startTime, grossWpm, accuracy, typedText) => {
+  const saveTypingResult = async (endTime, startTime, gwpm, accuracy, typedText) => {
     try {
-      // Calculate statistics
+      // Calculate statistics using CPCT formulas
       const timeTaken = Math.round((endTime - startTime) / 1000); // in seconds
       const timeInMinutes = timeTaken / 60;
-      const wordsTyped = typedText.trim().split(/\s+/).filter(w => w).length;
-      const correctWords = Math.round((accuracy / 100) * wordsTyped);
-      const wrongWords = wordsTyped - correctWords;
-      const netSpeed = Math.round((correctWords / timeInMinutes) || 0);
+      
+      // Use CPCT formulas to calculate metrics
+      const cpctMetrics = calculateCPCTMetricsFromText(typedText || "", content, timeInMinutes);
+      
+      // Extract values from CPCT metrics
+      const grossSpeed = Math.round(cpctMetrics.gwpm);
+      const netSpeed = Math.round(cpctMetrics.nwpm);
+      const correctWords = cpctMetrics.netWords;
+      const wrongWords = cpctMetrics.grossWords - cpctMetrics.netWords;
+      const totalWords = cpctMetrics.grossWords;
       
       // Calculate errors in format "THGe [The]"
       const errorStrings = [];
@@ -272,12 +272,12 @@ function TypingTestForm() {
         subLanguage: subLanguage || "",
         duration: duration,
         backspaceEnabled: backspaceEnabled,
-        grossSpeed: grossWpm,
+        grossSpeed: grossSpeed,
         netSpeed: netSpeed,
-        totalWords: wordsTyped,
+        totalWords: totalWords,
         correctWords: correctWords,
         wrongWords: wrongWords,
-        accuracy: accuracy,
+        accuracy: Math.round(cpctMetrics.accuracy),
         timeTaken: timeTaken,
         backspaceCount: backspaceCount,
         errors: errorStrings,

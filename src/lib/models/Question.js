@@ -4,6 +4,7 @@ const QuestionSchema = new mongoose.Schema(
   {
     examId: { type: String, required: true, index: true },
     sectionId: { type: String, required: true, index: true },
+    partId: { type: String, index: true }, // Optional for backward compatibility
     id: { type: String, required: true, unique: true },
     questionType: { type: String, enum: ['MCQ', 'TYPING'], default: 'MCQ' },
     // MCQ fields

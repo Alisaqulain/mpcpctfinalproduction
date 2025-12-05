@@ -27,9 +27,19 @@ export default function RootLayout({ children }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#290c52" />
         <meta name="geo.region" content="IN-MP" />
-        <meta name="geo.placename" content="Indore" />
+        <meta name="geo.placename" content="Indore, Madhya Pradesh, India" />
         <meta name="geo.position" content="22.7196;75.8577" />
         <meta name="ICBM" content="22.7196, 75.8577" />
+        <meta name="location" content="Indore, Madhya Pradesh, India" />
+        <meta name="locality" content="Indore" />
+        <meta name="region" content="Madhya Pradesh" />
+        <meta name="country" content="India" />
+        <meta name="language" content="en-IN, hi-IN" />
+        <meta name="distribution" content="India" />
+        <meta name="target" content="all" />
+        <meta name="audience" content="all" />
+        <meta name="coverage" content="worldwide" />
+        <meta name="rating" content="general" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/logo2.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/logo2.png" />

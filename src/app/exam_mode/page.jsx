@@ -1,7 +1,8 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
-export default function CPCTPage() {
+function ExamModeContent() {
   const [section, setSection] = useState("");
   const [timeLeft, setTimeLeft] = useState(75 * 60);
   const [isSoundOn, setIsSoundOn] = useState(true);
@@ -10,7 +11,10 @@ export default function CPCTPage() {
   const [userName, setUserName] = useState("User");
   const [examData, setExamData] = useState(null);
   const [sections, setSections] = useState([]);
-  const [questions, setQuestions] = useState({});
+  const [parts, setParts] = useState([]);
+  const [selectedPart, setSelectedPart] = useState(null);
+  const [questions, setQuestions] = useState({}); // questions[sectionName] = array of questions
+  const [questionsByPart, setQuestionsByPart] = useState({}); // questionsByPart[sectionName][partName] = array of questions
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [visitedQuestions, setVisitedQuestions] = useState(new Set());
@@ -24,6 +28,7 @@ export default function CPCTPage() {
   const [allSectionsCompleted, setAllSectionsCompleted] = useState(false);
   const audioRef = useRef(null);
   const loggedImageQuestions = useRef(new Set()); // Track which questions we've already logged
+  const searchParams = useSearchParams();
 
   // Save answers to localStorage whenever they change
   useEffect(() => {
@@ -73,12 +78,22 @@ export default function CPCTPage() {
           if (data.success && data.data) {
             setExamData(data.data.exam);
             setSections(data.data.sections || []);
+            setParts(data.data.parts || []);
             
-            // Organize questions by section
+            // Organize questions by section and part
             const questionsBySection = {};
+            const questionsByPartData = {}; // Store questions organized by section and part
             const unmatchedQuestions = [];
             
             data.data.sections.forEach(sec => {
+              // Get parts for this section
+              const sectionParts = (data.data.parts || []).filter(p => {
+                const pSectionId = String(p.sectionId).trim();
+                const secIdStr = String(sec.id).trim();
+                const secIdObj = String(sec._id).trim();
+                return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
+              });
+              
               // Match questions by sectionId (can be _id string or section id)
               const sectionQuestions = data.data.allQuestions.filter(q => {
                 const qSectionId = String(q.sectionId).trim();
@@ -91,9 +106,97 @@ export default function CPCTPage() {
                        qSectionId === sec.id;
                 return matches;
               });
-              questionsBySection[sec.name] = sectionQuestions;
-              console.log(`Section "${sec.name}" (id: ${sec.id}, _id: ${sec._id}): ${sectionQuestions.length} questions`);
-              sectionQuestions.forEach((q, idx) => {
+              
+              // If section has parts, organize questions by part
+              if (sectionParts.length > 0) {
+                // Sort parts by order
+                sectionParts.sort((a, b) => (a.order || 0) - (b.order || 0));
+                
+                // Group questions by part
+                const questionsByPart = {};
+                sectionParts.forEach(part => {
+                  const partQuestions = sectionQuestions.filter(q => {
+                    if (!q.partId) {
+                      console.log(`  Question ${q._id} has no partId`);
+                      return false;
+                    }
+                    const qPartId = String(q.partId).trim();
+                    // partId in questions is stored as ObjectId string, so compare with part._id
+                    const partIdObj = String(part._id).trim();
+                    // Also try comparing with part.id in case some questions use the custom ID
+                    const partIdStr = String(part.id).trim();
+                    const matches = qPartId === partIdObj || qPartId === partIdStr || qPartId === part._id.toString();
+                    if (!matches) {
+                      console.log(`  Question ${q._id} partId="${q.partId}" does NOT match part "${part.name}" (_id: ${part._id}, id: ${part.id})`);
+                    }
+                    return matches;
+                  });
+                  questionsByPart[part.name] = partQuestions;
+                  console.log(`  Part "${part.name}" (id: ${part.id}, _id: ${part._id}, order: ${part.order}): ${partQuestions.length} questions`);
+                  if (partQuestions.length === 0) {
+                    console.warn(`  ⚠️ WARNING: Part "${part.name}" has no questions! Check if questions have partId="${part._id}" or partId="${part.id}"`);
+                  }
+                  if (partQuestions.length > 0) {
+                    partQuestions.forEach((q, idx) => {
+                      console.log(`    Question ${idx + 1}: partId="${q.partId}" matches part._id="${part._id}"`);
+                    });
+                  }
+                });
+                
+                // Also include questions without partId (for backward compatibility)
+                const questionsWithoutPart = sectionQuestions.filter(q => !q.partId);
+                if (questionsWithoutPart.length > 0) {
+                  questionsByPart['_no_part'] = questionsWithoutPart;
+                  console.log(`  Questions without part: ${questionsWithoutPart.length}`);
+                }
+                
+                // Store questions by part for this section
+                const sectionQuestionsByPart = {};
+                sectionParts.forEach(part => {
+                  if (questionsByPart[part.name]) {
+                    sectionQuestionsByPart[part.name] = questionsByPart[part.name];
+                  }
+                });
+                if (questionsByPart['_no_part']) {
+                  sectionQuestionsByPart['_no_part'] = questionsByPart['_no_part'];
+                }
+                
+                // Store questions organized by part for this section
+                questionsByPartData[sec.name] = sectionQuestionsByPart;
+                
+                // Flatten all questions from all parts for the section (in part order) - for backward compatibility
+                const allSectionQuestions = [];
+                sectionParts.forEach(part => {
+                  if (questionsByPart[part.name]) {
+                    allSectionQuestions.push(...questionsByPart[part.name]);
+                  }
+                });
+                if (questionsByPart['_no_part']) {
+                  allSectionQuestions.push(...questionsByPart['_no_part']);
+                }
+                
+                questionsBySection[sec.name] = allSectionQuestions;
+                console.log(`Section "${sec.name}" (id: ${sec.id}, _id: ${sec._id}): ${allSectionQuestions.length} total questions across ${sectionParts.length} parts`);
+                // Log questions from all parts
+                allSectionQuestions.forEach((q, idx) => {
+                  const isImageQ = q.question_en === '[Image Question]';
+                  const hasImg = q.imageUrl && typeof q.imageUrl === 'string' && q.imageUrl.trim() !== '';
+                  console.log(`  Question ${idx + 1}: sectionId="${q.sectionId}", partId="${q.partId || 'none'}", question_en="${q.question_en?.substring(0, 30)}...", imageUrl: ${q.imageUrl || 'undefined'}, isImageQuestion: ${isImageQ}, hasImageUrl: ${hasImg}`);
+                  if (isImageQ && !hasImg) {
+                    console.warn(`    ⚠️ WARNING: Question ${idx + 1} is an image question but has no imageUrl!`);
+                    console.warn(`    Question ID: ${q._id}`);
+                    console.warn(`    Section: ${sec.name}`);
+                    console.warn(`    Please edit this question in the admin panel and upload an image.`);
+                    console.warn(`    Question Object:`, JSON.parse(JSON.stringify(q)));
+                  } else if (isImageQ && hasImg) {
+                    console.log(`    ✅ Question ${idx + 1} is an image question WITH imageUrl: ${q.imageUrl}`);
+                  }
+                });
+              } else {
+                // No parts, just use all section questions
+                questionsBySection[sec.name] = sectionQuestions;
+                console.log(`Section "${sec.name}" (id: ${sec.id}, _id: ${sec._id}): ${sectionQuestions.length} questions (no parts)`);
+                sectionQuestions.forEach((q, idx) => {
                 const isImageQ = q.question_en === '[Image Question]';
                 const hasImg = q.imageUrl && typeof q.imageUrl === 'string' && q.imageUrl.trim() !== '';
                 console.log(`  Question ${idx + 1}: sectionId="${q.sectionId}" (type: ${typeof q.sectionId}), question_en="${q.question_en?.substring(0, 30)}...", imageUrl: ${q.imageUrl || 'undefined'}, isImageQuestion: ${isImageQ}, hasImageUrl: ${hasImg}`);
@@ -107,6 +210,7 @@ export default function CPCTPage() {
                   console.log(`    ✅ Question ${idx + 1} is an image question WITH imageUrl: ${q.imageUrl}`);
                 }
               });
+              }
             });
             
             // Find unmatched questions
@@ -161,11 +265,41 @@ export default function CPCTPage() {
             loggedImageQuestions.current.clear();
             
             setQuestions(questionsBySection);
+            setQuestionsByPart(questionsByPartData);
             
-            // Set first section as default
+            // Set section - check URL parameter first, then default to first section
             if (data.data.sections.length > 0) {
-              const firstSectionName = data.data.sections[0].name;
-              setSection(firstSectionName);
+              const sectionParam = searchParams?.get('section');
+              let targetSectionName = data.data.sections[0].name;
+              
+              // If section parameter exists, use it
+              if (sectionParam) {
+                const foundSection = data.data.sections.find(s => s.name === sectionParam);
+                if (foundSection) {
+                  targetSectionName = foundSection.name;
+                }
+              }
+              
+              setSection(targetSectionName);
+              
+              // Set first part as default if section has parts
+              const targetSection = data.data.sections.find(s => s.name === targetSectionName) || data.data.sections[0];
+              const targetSectionParts = (data.data.parts || []).filter(p => {
+                const pSectionId = String(p.sectionId).trim();
+                const secIdStr = String(targetSection.id).trim();
+                const secIdObj = String(targetSection._id).trim();
+                return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === targetSection._id.toString();
+              });
+              if (targetSectionParts.length > 0) {
+                targetSectionParts.sort((a, b) => (a.order || 0) - (b.order || 0));
+                const firstPartName = targetSectionParts[0].name;
+                setSelectedPart(firstPartName);
+                console.log('Set default part to:', firstPartName, 'for section:', targetSectionName);
+                console.log('QuestionsByPart for this section:', questionsByPartData[targetSectionName]);
+              } else {
+                setSelectedPart(null);
+              }
+              
               // Mark first question of first section as visited
               const firstQuestion = questionsBySection[firstSectionName]?.[0];
               if (firstQuestion?._id) {
@@ -239,7 +373,7 @@ export default function CPCTPage() {
     };
 
     loadExamData();
-  }, []);
+  }, [searchParams]);
 
   // Load tick sound after user interaction
   useEffect(() => {
@@ -283,16 +417,92 @@ export default function CPCTPage() {
     return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
   };
 
-  // Get current question based on section and index
+  // Get current question based on section, part, and index
   const getCurrentQuestion = useCallback(() => {
-    if (!section || !questions[section] || questions[section].length === 0) {
+    if (!section) return null;
+    
+    // If part is selected and section has parts, filter by part
+    if (selectedPart && questionsByPart[section] && questionsByPart[section][selectedPart]) {
+      const partQuestions = questionsByPart[section][selectedPart];
+      if (partQuestions.length === 0) return null;
+      return partQuestions[currentQuestionIndex] || partQuestions[0];
+    }
+    
+    // Otherwise, use all questions in section (backward compatibility)
+    const sectionQuestions = questions[section] || [];
+    if (sectionQuestions.length === 0) {
       return null;
     }
-    const question = questions[section][currentQuestionIndex] || questions[section][0];
+    const question = sectionQuestions[currentQuestionIndex] || sectionQuestions[0];
     return question;
-  }, [section, currentQuestionIndex, questions]);
+  }, [section, selectedPart, currentQuestionIndex, questions, questionsByPart]);
+  
+  // Get questions for current section and part
+  const getCurrentQuestions = useCallback(() => {
+    if (!section) {
+      console.log('getCurrentQuestions: No section selected');
+      return [];
+    }
+    
+    // If part is selected and section has parts, return part questions
+    if (selectedPart && questionsByPart[section]) {
+      console.log('getCurrentQuestions: Looking for part', selectedPart, 'in section', section);
+      console.log('getCurrentQuestions: Available parts in section:', Object.keys(questionsByPart[section] || {}));
+      if (questionsByPart[section][selectedPart]) {
+        console.log('getCurrentQuestions: Found', questionsByPart[section][selectedPart].length, 'questions for part', selectedPart);
+        return questionsByPart[section][selectedPart];
+      } else {
+        console.log('getCurrentQuestions: No questions found for part', selectedPart);
+      }
+    }
+    
+    // Otherwise, return all questions in section
+    const allQuestions = questions[section] || [];
+    console.log('getCurrentQuestions: Returning all', allQuestions.length, 'questions for section', section);
+    return allQuestions;
+  }, [section, selectedPart, questions, questionsByPart]);
 
   const currentQuestion = getCurrentQuestion();
+  const currentQuestions = getCurrentQuestions();
+
+  // Get parts for current section
+  const getCurrentSectionParts = useCallback(() => {
+    if (!section) return [];
+    return parts.filter(p => {
+      const pSectionId = String(p.sectionId).trim();
+      const currentSec = sections.find(s => s.name === section);
+      if (!currentSec) return false;
+      const secIdStr = String(currentSec.id).trim();
+      const secIdObj = String(currentSec._id).trim();
+      return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === currentSec._id.toString();
+    }).sort((a, b) => (a.order || 0) - (b.order || 0));
+  }, [section, parts, sections]);
+
+  const currentSectionParts = getCurrentSectionParts();
+
+  // Check if we're on the last question of current part
+  const isLastQuestionInPart = useCallback(() => {
+    if (!section || !selectedPart || !currentQuestions || currentQuestions.length === 0) return false;
+    return currentQuestionIndex === currentQuestions.length - 1;
+  }, [section, selectedPart, currentQuestions, currentQuestionIndex]);
+
+  // Check if we're on the last part of current section
+  const isLastPartInSection = useCallback(() => {
+    if (!section || currentSectionParts.length === 0) return false;
+    if (!selectedPart) return false;
+    const currentPartIndex = currentSectionParts.findIndex(p => p.name === selectedPart);
+    return currentPartIndex === currentSectionParts.length - 1;
+  }, [section, selectedPart, currentSectionParts]);
+
+  // Get next part in current section
+  const getNextPart = useCallback(() => {
+    if (!section || currentSectionParts.length === 0 || !selectedPart) return null;
+    const currentPartIndex = currentSectionParts.findIndex(p => p.name === selectedPart);
+    if (currentPartIndex < currentSectionParts.length - 1) {
+      return currentSectionParts[currentPartIndex + 1];
+    }
+    return null;
+  }, [section, selectedPart, currentSectionParts]);
 
   // Log image question warnings only once per question
   useEffect(() => {
@@ -344,11 +554,13 @@ export default function CPCTPage() {
 
   // Check if we're on the last question of the last section
   const isLastQuestion = () => {
-    if (!section || !questions[section] || sections.length === 0) return false;
+    if (!section || !currentQuestions || sections.length === 0) return false;
     const currentSectionIndex = sections.findIndex(s => s.name === section);
     const isLastSection = currentSectionIndex === sections.length - 1;
-    const isLastQuestionInSection = currentQuestionIndex === (questions[section]?.length || 0) - 1;
-    return isLastSection && isLastQuestionInSection;
+    const isLastQuestionInSection = currentQuestionIndex === (currentQuestions.length || 0) - 1;
+    // Also check if we're on last part of last section
+    const isLastPart = isLastPartInSection();
+    return isLastSection && isLastQuestionInSection && isLastPart;
   };
 
   // Calculate statistics from all questions
@@ -429,31 +641,25 @@ export default function CPCTPage() {
       return newSet;
     });
 
-    // Check if all sections are completed
-    const allCompleted = sections.every(sec => {
+    // Check if all CPCT MCQ sections are completed (excluding typing sections)
+    const cpctSections = sections.filter(sec => 
+      sec.name !== "English Typing" && sec.name !== "हिंदी टाइपिंग"
+    );
+    const allCpctCompleted = cpctSections.every(sec => {
       const isCompleted = sec.name === section || completedSections.has(sec.name);
       return isCompleted;
     });
 
-    if (allCompleted) {
-      setAllSectionsCompleted(true);
-      // Redirect to result page after a short delay
+    if (allCpctCompleted) {
+      // All CPCT MCQ sections done, redirect to exam result page
       setTimeout(() => {
         window.location.href = "/exam/exam-result";
-      }, 1000);
+      }, 500);
     } else {
-      // Start break timer before next section
-      setIsBreakActive(true);
-      setBreakTimeLeft(60);
-      const breakInterval = setInterval(() => {
-        setBreakTimeLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(breakInterval);
-            return 0;
-          }
-          return prev - 1;
-          });
-      }, 1000);
+      // Redirect to exam result page (which shows section summary), then to break page
+      setTimeout(() => {
+        window.location.href = `/exam/exam-result?section=${encodeURIComponent(section)}`;
+      }, 500);
     }
   };
 
@@ -503,9 +709,34 @@ export default function CPCTPage() {
               <>
                 <h2 className="font-bold mb-2 text-white-50 text-center bg-[#290c52] text-[12px] text-white py-2">{section}</h2>
                 <h2 className="font-bold mb-2 text-white-50">Choose a Question</h2>
-                <div className="grid grid-cols-4 gap-2 mb-4">
-                  {questions[section] && questions[section].length > 0 ? (
-                    questions[section].map((q, i) => {
+              {/* Parts Nav (Desktop Sidebar) - Show if current section has parts */}
+              {currentSectionParts.length > 0 && (
+                <div className="mb-3">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs font-semibold text-gray-700 w-full">Parts:</span>
+                    {currentSectionParts.map((part) => (
+                      <button
+                        key={part._id}
+                        onClick={() => {
+                          setSelectedPart(part.name);
+                          setCurrentQuestionIndex(0);
+                        }}
+                        className={`${
+                          selectedPart === part.name
+                            ? "bg-blue-600 text-white"
+                            : "bg-white text-blue-700 border border-gray-300"
+                        } px-2 py-1 text-xs rounded`}
+                      >
+                        {part.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-4 gap-2 mb-4">
+                {currentQuestions && currentQuestions.length > 0 ? (
+                  currentQuestions.map((q, i) => {
                       const isAnswered = selectedAnswers[q._id] !== undefined;
                       const isCurrent = i === currentQuestionIndex;
                       return (
@@ -596,6 +827,18 @@ export default function CPCTPage() {
                       setSection(sec.name);
                       setCurrentQuestionIndex(0);
                       setShowSectionDropdown(false);
+                      // Reset selected part and set first part if available
+                      const sectionParts = parts.filter(p => {
+                        const pSectionId = String(p.sectionId).trim();
+                        const secIdStr = String(sec.id).trim();
+                        const secIdObj = String(sec._id).trim();
+                        return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
+                      }).sort((a, b) => (a.order || 0) - (b.order || 0));
+                      if (sectionParts.length > 0) {
+                        setSelectedPart(sectionParts[0].name);
+                      } else {
+                        setSelectedPart(null);
+                      }
                       // Mark first question of selected section as visited
                       const firstQuestion = questions[sec.name]?.[0];
                       if (firstQuestion?._id) {
@@ -622,43 +865,79 @@ export default function CPCTPage() {
         </div>
 
         {/* Section Nav (Desktop) */}
-        <div className="hidden lg:flex border-b px-4 py-0 border-y-gray-200 bg-[#fff] text-xs overflow-x-auto">
-          {sections.map((sec) => (
-            <button
-              key={sec._id}
-              onClick={() => {
-                setSection(sec.name);
-                setCurrentQuestionIndex(0);
-                // Mark first question of selected section as visited
-                const firstQuestion = questions[sec.name]?.[0];
-                if (firstQuestion?._id) {
-                  setVisitedQuestions(prev => {
-                    const newSet = new Set([...prev, firstQuestion._id]);
-                    localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                    return newSet;
-                  });
-                }
-              }}
-              className={`${
-                section === sec.name
-                  ? "bg-[#290c52] text-white border-gray-300"
-                  : "bg-white text-blue-700 border-r border-gray-300 px-4"
-              } px-2 py-3 whitespace-nowrap`}
-            >
-              {sec.name}
-            </button>
-          ))}
-          <div className="ml-auto flex items-center gap-2 whitespace-nowrap">
-            <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
-              {isSoundOn ? "🔊" : "🔇"}
-            </button>
-            <span className="text-lg">Time Left: <b className="bg-blue-400 text-black px-3 mr-5">{formatTime(timeLeft)}</b></span>
+        <div className="hidden lg:flex flex-col border-b border-y-gray-200 bg-[#fff]">
+          <div className="flex text-xs overflow-x-auto">
+            {sections.map((sec) => (
+              <button
+                key={sec._id}
+                onClick={() => {
+                  setSection(sec.name);
+                  setCurrentQuestionIndex(0);
+                  // Reset selected part and set first part if available
+                  const sectionParts = parts.filter(p => {
+                    const pSectionId = String(p.sectionId).trim();
+                    const secIdStr = String(sec.id).trim();
+                    const secIdObj = String(sec._id).trim();
+                    return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
+                  }).sort((a, b) => (a.order || 0) - (b.order || 0));
+                  if (sectionParts.length > 0) {
+                    setSelectedPart(sectionParts[0].name);
+                  } else {
+                    setSelectedPart(null);
+                  }
+                  // Mark first question of selected section as visited
+                  const firstQuestion = questions[sec.name]?.[0];
+                  if (firstQuestion?._id) {
+                    setVisitedQuestions(prev => {
+                      const newSet = new Set([...prev, firstQuestion._id]);
+                      localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                      return newSet;
+                    });
+                  }
+                }}
+                className={`${
+                  section === sec.name
+                    ? "bg-[#290c52] text-white border-gray-300"
+                    : "bg-white text-blue-700 border-r border-gray-300 px-4"
+                } px-2 py-3 whitespace-nowrap`}
+              >
+                {sec.name}
+              </button>
+            ))}
+            <div className="ml-auto flex items-center gap-2 whitespace-nowrap">
+              <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
+                {isSoundOn ? "🔊" : "🔇"}
+              </button>
+              <span className="text-lg">Time Left: <b className="bg-blue-400 text-black px-3 mr-5">{formatTime(timeLeft)}</b></span>
+            </div>
           </div>
           
+          {/* Parts Nav (Desktop) - Show below sections if current section has parts */}
+          {section && currentSectionParts.length > 0 && (
+            <div className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50">
+              <span className="px-4 py-2 font-semibold text-gray-700 whitespace-nowrap">Parts:</span>
+              {currentSectionParts.map((part) => (
+                <button
+                  key={part._id}
+                  onClick={() => {
+                    setSelectedPart(part.name);
+                    setCurrentQuestionIndex(0);
+                  }}
+                  className={`${
+                    selectedPart === part.name
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-blue-700 hover:bg-gray-100 border-r border-gray-300"
+                  } px-3 py-2 whitespace-nowrap`}
+                >
+                  {part.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-        {section && questions[section] && questions[section].length > 0 && (
+        {section && currentQuestions && currentQuestions.length > 0 && (
           <div className="flex gap-2 h-20 overflow-x-auto md:hidden ml-5">
-            {questions[section].map((q, i) => {
+            {currentQuestions.map((q, i) => {
               const isAnswered = selectedAnswers[q._id] !== undefined;
               const isCurrent = i === currentQuestionIndex;
               return (
@@ -699,7 +978,7 @@ export default function CPCTPage() {
   {/* Scrollable Content */}
   <div className="border border-gray-300 rounded-b">
     <div className="bg-white-50 px-4 py-3 border-b text-sm font-semibold flex flex-col sm:flex-row justify-between">
-      <span>Question No. {currentQuestionIndex + 1} {questions[section] && `of ${questions[section].length}`}</span>
+      <span>Question No. {currentQuestionIndex + 1} {currentQuestions && `of ${currentQuestions.length}`}</span>
       <span className="mt-1 sm:mt-0">
         Marks for correct answer: {currentQuestion?.marks || 1} | Negative Marks: <span className="text-red-500">{currentQuestion?.negativeMarks || 0}</span>
       </span>
@@ -711,38 +990,14 @@ export default function CPCTPage() {
       </div>
     ) : !currentQuestion ? (
       <div className="p-8 text-center">
-        <p>No questions available for this section.</p>
+        {section && currentSectionParts.length > 0 && selectedPart ? (
+          <p>No questions available for part "{selectedPart}" in section "{section}". Please add questions to this part in the admin panel.</p>
+        ) : (
+          <p>No questions available for this section.</p>
+        )}
       </div>
     ) : (
       <>
-        {/* Break Modal */}
-        {isBreakActive && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
-              <h2 className="text-2xl font-bold mb-4 text-[#290c52]">Break Time</h2>
-              <p className="text-lg mb-4">Section "{section}" completed successfully!</p>
-              <p className="text-3xl font-bold text-blue-600 mb-4">{formatTime(breakTimeLeft)}</p>
-              <p className="text-gray-600 mb-4">Take a 1 minute break before the next section</p>
-              {breakTimeLeft === 0 && (
-                <button
-                  onClick={() => {
-                    setIsBreakActive(false);
-                    setBreakTimeLeft(60);
-                    // Move to next incomplete section
-                    const nextSection = sections.find(sec => !completedSections.has(sec.name));
-                    if (nextSection) {
-                      setSection(nextSection.name);
-                      setCurrentQuestionIndex(0);
-                    }
-                  }}
-                  className="bg-[#290c52] hover:bg-cyan-700 text-white px-6 py-2 rounded"
-                >
-                  Continue to Next Section
-                </button>
-              )}
-            </div>
-          </div>
-        )}
 
         {currentQuestion.passage_en || currentQuestion.passage_hi ? (
           <div className="flex flex-col lg:flex-row p-4 gap-x-6 gap-y-10">
@@ -970,16 +1225,36 @@ export default function CPCTPage() {
                   setMarkedForReview(prev => new Set([...prev, currentQuestion._id]));
                 }
                 
+                // Check if we're on last question of last part of last section
                 if (isLastQuestion()) {
                   // On last question, redirect to result page
                   window.location.href = "/exam/exam-result";
+                } else if (isLastQuestionInPart() && isLastPartInSection()) {
+                  // On last question of last part, go to section summary
+                  handleSubmitSection();
+                } else if (isLastQuestionInPart()) {
+                  // On last question of current part, move to next part
+                  const nextPart = getNextPart();
+                  if (nextPart) {
+                    setSelectedPart(nextPart.name);
+                    setCurrentQuestionIndex(0);
+                    // Mark first question of next part as visited
+                    const nextPartQuestions = questionsByPart[section]?.[nextPart.name] || [];
+                    if (nextPartQuestions.length > 0 && nextPartQuestions[0]?._id) {
+                      setVisitedQuestions(prev => {
+                        const newSet = new Set([...prev, nextPartQuestions[0]._id]);
+                        localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                        return newSet;
+                      });
+                    }
+                  }
                 } else {
-                  // Mark for review and move to next question
-                  if (currentQuestion && questions[section] && currentQuestionIndex < questions[section].length - 1) {
+                  // Mark for review and move to next question in current part
+                  if (currentQuestion && currentQuestions && currentQuestionIndex < currentQuestions.length - 1) {
                     const nextIndex = currentQuestionIndex + 1;
                     setCurrentQuestionIndex(nextIndex);
                     // Mark next question as visited
-                    const nextQuestion = questions[section][nextIndex];
+                    const nextQuestion = currentQuestions[nextIndex];
                     if (nextQuestion?._id) {
                       setVisitedQuestions(prev => {
                         const newSet = new Set([...prev, nextQuestion._id]);
@@ -987,28 +1262,11 @@ export default function CPCTPage() {
                         return newSet;
                       });
                     }
-                  } else if (sections.length > 0) {
-                    // Move to next section
-                    const currentSectionIndex = sections.findIndex(s => s.name === section);
-                    if (currentSectionIndex < sections.length - 1) {
-                      const nextSection = sections[currentSectionIndex + 1];
-                      setSection(nextSection.name);
-                      setCurrentQuestionIndex(0);
-                      // Mark next section's first question as visited
-                      const nextQuestion = questions[nextSection.name]?.[0];
-                      if (nextQuestion?._id) {
-                        setVisitedQuestions(prev => {
-                          const newSet = new Set([...prev, nextQuestion._id]);
-                          localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                          return newSet;
-                        });
-                      }
-                    }
                   }
                 }
               }}
             >
-              {isLastQuestion() ? "Mark for Review & Submit" : "Mark for Review & Next"}
+              {isLastQuestion() ? "Mark for Review & Submit" : (isLastQuestionInPart() && isLastPartInSection() ? "Mark for Review & Submit Section" : "Mark for Review & Next")}
             </button>
             <button 
               className="px-4 py-2 bg-red-500 text-white rounded text-sm whitespace-nowrap"
@@ -1057,16 +1315,36 @@ export default function CPCTPage() {
             <button 
               className={`bg-green-600 hover:bg-cyan-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap ${isLastQuestion() ? 'bg-green-600' : ''}`}
               onClick={() => {
+                // Check if we're on last question of last part of last section
                 if (isLastQuestion()) {
-                  // On last question of section, submit section
+                  // On last question of last part of last section, submit section
                   handleSubmitSection();
+                } else if (isLastQuestionInPart() && isLastPartInSection()) {
+                  // On last question of last part, go to section summary
+                  handleSubmitSection();
+                } else if (isLastQuestionInPart()) {
+                  // On last question of current part, move to next part
+                  const nextPart = getNextPart();
+                  if (nextPart) {
+                    setSelectedPart(nextPart.name);
+                    setCurrentQuestionIndex(0);
+                    // Mark first question of next part as visited
+                    const nextPartQuestions = questionsByPart[section]?.[nextPart.name] || [];
+                    if (nextPartQuestions.length > 0 && nextPartQuestions[0]?._id) {
+                      setVisitedQuestions(prev => {
+                        const newSet = new Set([...prev, nextPartQuestions[0]._id]);
+                        localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                        return newSet;
+                      });
+                    }
+                  }
                 } else {
-                  // Save answer and move to next question
-                  if (currentQuestion && questions[section] && currentQuestionIndex < questions[section].length - 1) {
+                  // Save answer and move to next question in current part
+                  if (currentQuestion && currentQuestions && currentQuestionIndex < currentQuestions.length - 1) {
                     const nextIndex = currentQuestionIndex + 1;
                     setCurrentQuestionIndex(nextIndex);
                     // Mark next question as visited
-                    const nextQuestion = questions[section][nextIndex];
+                    const nextQuestion = currentQuestions[nextIndex];
                     if (nextQuestion?._id) {
                       setVisitedQuestions(prev => {
                         const newSet = new Set([...prev, nextQuestion._id]);
@@ -1074,28 +1352,11 @@ export default function CPCTPage() {
                         return newSet;
                       });
                     }
-                  } else if (sections.length > 0) {
-                    // Move to next section
-                    const currentSectionIndex = sections.findIndex(s => s.name === section);
-                    if (currentSectionIndex < sections.length - 1) {
-                      const nextSection = sections[currentSectionIndex + 1];
-                      setSection(nextSection.name);
-                      setCurrentQuestionIndex(0);
-                      // Mark next section's first question as visited
-                      const nextQuestion = questions[nextSection.name]?.[0];
-                      if (nextQuestion?._id) {
-                        setVisitedQuestions(prev => {
-                          const newSet = new Set([...prev, nextQuestion._id]);
-                          localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                          return newSet;
-                        });
-                      }
-                    }
                   }
                 }
               }}
             >
-              {isLastQuestion() ? " Save & Next" : "Save & Next"}
+              {isLastQuestion() || (isLastQuestionInPart() && isLastPartInSection()) ? "Save & Submit Section" : "Save & Next"}
             </button>
           </div>
           <button className="bg-green-800 hover:bg-cyan-700 text-white px-12 py-2 ml-2 text-[13px] rounded w-full md:hidden">
@@ -1140,9 +1401,34 @@ export default function CPCTPage() {
             <>
               <h2 className="font-bold mb-2 text-white-50 text-center bg-[#290c52] text-[12px] text-white py-2">{section}</h2>
               <h2 className="font-bold mb-2 text-white-50">Choose a Question</h2>
+              {/* Parts Nav (Mobile) - Show if current section has parts */}
+              {currentSectionParts.length > 0 && (
+                <div className="mb-3">
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    <span className="text-xs font-semibold text-gray-700 whitespace-nowrap">Parts:</span>
+                    {currentSectionParts.map((part) => (
+                      <button
+                        key={part._id}
+                        onClick={() => {
+                          setSelectedPart(part.name);
+                          setCurrentQuestionIndex(0);
+                        }}
+                        className={`${
+                          selectedPart === part.name
+                            ? "bg-blue-600 text-white"
+                            : "bg-white text-blue-700 border border-gray-300"
+                        } px-3 py-1 text-xs rounded whitespace-nowrap`}
+                      >
+                        {part.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-4 gap-2 mb-4">
-                {questions[section] && questions[section].length > 0 ? (
-                  questions[section].map((q, i) => {
+                {currentQuestions && currentQuestions.length > 0 ? (
+                  currentQuestions.map((q, i) => {
                     const isAnswered = selectedAnswers[q._id] !== undefined;
                     const isCurrent = i === currentQuestionIndex;
                       return (
@@ -1180,5 +1466,17 @@ export default function CPCTPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CPCTPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#290c52]"></div>
+      </div>
+    }>
+      <ExamModeContent />
+    </Suspense>
   );
 }

@@ -12,7 +12,7 @@ export function OrganizationSchema({ siteUrl }) {
     "url": siteUrl,
     "logo": `${siteUrl}/logo2.png`,
     "image": `${siteUrl}/logo2.png`,
-    "description": "MPCPCT - The leading online platform for CPCT, RSCIT, and CCC exam preparation in Indore, Madhya Pradesh. MPCPCT offers comprehensive typing practice in Hindi & English, real-time results, expert guidance, and government job exam preparation.",
+    "description": "MPCPCT - The #1 online platform for CPCT, RSCIT, and CCC exam preparation in Indore, Madhya Pradesh, India. MPCPCT offers comprehensive typing practice in Hindi & English, real-time results, expert guidance, and government job exam preparation for Data Entry Operator, IT Operator, Assistant Grade 3, Shorthand, and Typist positions. Best CPCT coaching in Indore, MP.",
     "brand": {
       "@type": "Brand",
       "name": "MPCPCT"
@@ -32,6 +32,52 @@ export function OrganizationSchema({ siteUrl }) {
       },
       "availableLanguage": ["en", "hi"]
     },
+    "areaServed": [
+      {
+        "@type": "City",
+        "name": "Indore",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Bhopal",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Gwalior",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Jabalpur",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Ujjain",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
+        "@type": "State",
+        "name": "Madhya Pradesh"
+      }
+    ],
     // Add social media links when available
     // "sameAs": [
     //   "https://www.facebook.com/mpcpct",
@@ -61,7 +107,7 @@ export function WebSiteSchema({ siteUrl }) {
     "name": "MPCPCT",
     "alternateName": "MPCPCT.com",
     "url": siteUrl,
-    "description": "MPCPCT - Practice CPCT, RSCIT, and CCC exams with bilingual support. Master typing skills for government jobs with MPCPCT.",
+    "description": "MPCPCT - Practice CPCT, RSCIT, and CCC exams with bilingual support in Indore, Madhya Pradesh. Master typing skills for government jobs in MP with MPCPCT. Best online exam practice platform in Indore for CPCT, RSCIT, and CCC preparation.",
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
@@ -168,7 +214,7 @@ export function LocalBusinessSchema({ siteUrl }) {
     "url": siteUrl,
     "logo": `${siteUrl}/logo2.png`,
     "image": `${siteUrl}/logo2.png`,
-    "description": "Best CPCT, RSCIT, and CCC exam preparation platform in Indore, Madhya Pradesh. Practice typing in Hindi & English, get real-time results, comprehensive learning materials, and expert guidance.",
+    "description": "Best CPCT, RSCIT, and CCC exam preparation platform in Indore, Madhya Pradesh, India. Practice typing in Hindi & English, get real-time results, comprehensive learning materials, and expert guidance. Join thousands of students from Indore, Bhopal, Gwalior, Jabalpur, and across MP using MPCPCT for government job exam preparation.",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Indore",
@@ -199,14 +245,52 @@ export function LocalBusinessSchema({ siteUrl }) {
       "opens": "00:00",
       "closes": "23:59"
     },
-    "areaServed": {
-      "@type": "City",
-      "name": "Indore",
-      "containedIn": {
+    "areaServed": [
+      {
+        "@type": "City",
+        "name": "Indore",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Bhopal",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Gwalior",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Jabalpur",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Ujjain",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
         "@type": "State",
         "name": "Madhya Pradesh"
       }
-    }
+    ]
   };
 
   return (
@@ -227,14 +311,52 @@ export function ServiceSchema({ siteUrl }) {
       "name": "MPCPCT",
       "url": siteUrl
     },
-    "areaServed": {
-      "@type": "City",
-      "name": "Indore",
-      "containedIn": {
+    "areaServed": [
+      {
+        "@type": "City",
+        "name": "Indore",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Bhopal",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Gwalior",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Jabalpur",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Ujjain",
+        "containedIn": {
+          "@type": "State",
+          "name": "Madhya Pradesh"
+        }
+      },
+      {
         "@type": "State",
         "name": "Madhya Pradesh"
       }
-    },
+    ],
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
       "name": "Exam Preparation Services",

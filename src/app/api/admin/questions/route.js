@@ -23,9 +23,11 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const examId = searchParams.get('examId');
   const sectionId = searchParams.get('sectionId');
+  const partId = searchParams.get('partId');
   const filter = {};
   if (examId) filter.examId = examId;
   if (sectionId) filter.sectionId = sectionId;
+  if (partId) filter.partId = partId;
   // Fetch questions - Mongoose will include all fields by default
   const questions = await Question.find(filter).sort({ createdAt: -1 });
   
@@ -90,9 +92,10 @@ export async function POST(req) {
       }
     }
     
-    // Ensure examId and sectionId are strings
+    // Ensure examId, sectionId, and partId are strings
     if (body.examId) body.examId = String(body.examId);
     if (body.sectionId) body.sectionId = String(body.sectionId);
+    if (body.partId) body.partId = String(body.partId);
     
     // Log imageUrl for debugging
     console.log('📷 POST request body keys:', Object.keys(body));
@@ -132,6 +135,7 @@ export async function POST(req) {
       const questionData = {
         examId: String(body.examId),
         sectionId: String(body.sectionId),
+        partId: body.partId ? String(body.partId) : undefined,
         id: String(body.id),
         questionType: body.questionType || 'MCQ',
         question_en: body.question_en,
@@ -318,9 +322,10 @@ export async function PUT(req) {
       }
     }
     
-    // Ensure examId and sectionId are strings
+    // Ensure examId, sectionId, and partId are strings
     if (body.examId) body.examId = String(body.examId);
     if (body.sectionId) body.sectionId = String(body.sectionId);
+    if (body.partId) body.partId = String(body.partId);
     
     // Log imageUrl for debugging
     console.log('📷 PUT request body:', JSON.stringify(body, null, 2));

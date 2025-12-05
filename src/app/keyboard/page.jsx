@@ -36,9 +36,10 @@ function KeyboardApp() {
   const [isRowAnimating, setIsRowAnimating] = useState(false);
   const [showRotatePrompt, setShowRotatePrompt] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
+  const [keyDifficulties, setKeyDifficulties] = useState({}); // Track wrong attempts per key
 
   // Default home row keys if no lesson
-  const defaultKeys = ["A", "S", "D", "F", "Space", "J", "K", "L", ";", "Space"];
+  const defaultKeys = ["A", "S", "D", "F", "Space", "J", "K", "L", ";"];
   const [highlightedKeys, setHighlightedKeys] = useState(defaultKeys);
   const [keyStatus, setKeyStatus] = useState(Array(defaultKeys.length).fill(null));
 
@@ -46,6 +47,11 @@ function KeyboardApp() {
   const organizeKeysIntoRows = (keys) => {
     const rows = [];
     const nonSpaceKeys = keys.filter(k => k !== "Space");
+    
+    // If we have 4 or fewer keys, don't add any spaces - just return them as-is
+    if (nonSpaceKeys.length <= 4) {
+      return [nonSpaceKeys];
+    }
     
     // Organize into rows: 4 alphabets + space + 4 alphabets + space
     for (let i = 0; i < nonSpaceKeys.length; i += 8) {
@@ -56,16 +62,26 @@ function KeyboardApp() {
         rowKeys.push(nonSpaceKeys[i + j]);
       }
       
-      // First space
-      rowKeys.push("Space");
+      // Check if there are more keys after the first 4
+      const remainingKeys = nonSpaceKeys.length - (i + 4);
       
-      // Next 4 alphabets
-      for (let j = 4; j < 8 && i + j < nonSpaceKeys.length; j++) {
-        rowKeys.push(nonSpaceKeys[i + j]);
+      // Only add first space if we have more than 4 keys total in this row
+      if (remainingKeys > 0 && rowKeys.length === 4) {
+        rowKeys.push("Space");
       }
       
-      // Second space
-      rowKeys.push("Space");
+      // Next 4 alphabets
+      let hasSecondGroup = false;
+      for (let j = 4; j < 8 && i + j < nonSpaceKeys.length; j++) {
+        rowKeys.push(nonSpaceKeys[i + j]);
+        hasSecondGroup = true;
+      }
+      
+      // Only add second space if we have keys in the second group AND there might be more rows
+      // (Don't add trailing space at the end)
+      if (hasSecondGroup && (i + 8) < nonSpaceKeys.length) {
+        rowKeys.push("Space");
+      }
       
       rows.push(rowKeys);
     }
@@ -163,7 +179,10 @@ function KeyboardApp() {
               for (let i = 0; i < contentToUse.length; i++) {
                 const char = contentToUse[i];
                 if (char === ' ') {
-                  keys.push("Space");
+                  // Only add space if it's not at the beginning or end (avoid trailing spaces)
+                  if (i > 0 && i < contentToUse.length - 1) {
+                    keys.push("Space");
+                  }
                 } else if (languageKey === 'hindi') {
                   // For Hindi, include all Unicode characters (Hindi, Devanagari, etc.)
                   // Also include English characters and common punctuation
@@ -180,6 +199,10 @@ function KeyboardApp() {
                     keys.push(char.toUpperCase());
                   }
                 }
+              }
+              // Remove any trailing Space keys
+              while (keys.length > 0 && keys[keys.length - 1] === "Space") {
+                keys.pop();
               }
               // Limit to reasonable number of keys (20-30 for Hindi, 50 for English)
               const maxKeys = languageKey === 'hindi' ? 30 : 50;
@@ -216,7 +239,10 @@ function KeyboardApp() {
                   for (let i = 0; i < contentToUse.length; i++) {
                     const char = contentToUse[i];
                     if (char === ' ') {
-                      keys.push("Space");
+                      // Only add space if it's not at the beginning or end (avoid trailing spaces)
+                      if (i > 0 && i < contentToUse.length - 1) {
+                        keys.push("Space");
+                      }
                     } else if (languageKey === 'hindi') {
                       if (char.match(/[\u0900-\u097F\u0020-\u007E\u00A0-\u00FF]/)) {
                         keys.push(char);
@@ -226,6 +252,10 @@ function KeyboardApp() {
                         keys.push(char.toUpperCase());
                       }
                     }
+                  }
+                  // Remove any trailing Space keys
+                  while (keys.length > 0 && keys[keys.length - 1] === "Space") {
+                    keys.pop();
                   }
                   const maxKeys = languageKey === 'hindi' ? 30 : 50;
                   const keysToUse = keys.length > 0 ? keys.slice(0, maxKeys) : defaultKeys;
@@ -492,9 +522,9 @@ function KeyboardApp() {
     switch (key) {
       case "Backspace": return "w-[170px]";
       case "Tab": return "w-[130px]";
-      case "Caps": return "w-[105px]";
+      case "Caps": return "w-[118px]";
       case "Enter": return "w-[170px]";
-      case "Shift": return "w-[165px]";
+      case "Shift": return "w-[175px]";
       case "Ctrl":
       case "Alt":
       case "Win":
@@ -604,6 +634,14 @@ function KeyboardApp() {
       newKeyStatus[currentIndex] = isCorrect ? 'correct' : 'wrong';
       setKeyStatus(newKeyStatus);
       
+      // Track key difficulties (wrong attempts)
+      if (!isCorrect && expectedKey) {
+        setKeyDifficulties(prev => ({
+          ...prev,
+          [expectedKey]: (prev[expectedKey] || 0) + 1
+        }));
+      }
+      
       // Set start time on first key press
       if (!startTime && currentIndex === 0) {
         setStartTime(Date.now());
@@ -663,6 +701,7 @@ function KeyboardApp() {
     setIsCompleted(false);
     setStartTime(null);
     setEndTime(null);
+    setKeyDifficulties({});
     setLeftHandImage(keyToHandImage["resting"].left);
     setRightHandImage(keyToHandImage["resting"].right);
     if (isMobile && inputRef.current) {
@@ -698,6 +737,147 @@ function KeyboardApp() {
     }
   }, [currentIndex, highlightedKeys.length, isCompleted, startTime]);
 
+  // Save result data to localStorage when completed and redirect
+  useEffect(() => {
+    const saveAndRedirect = async () => {
+      if (isCompleted && startTime && endTime) {
+        const timeTaken = (endTime - startTime) / 1000;
+        const finalCorrectCount = totalCount;
+        const finalWpm = timeTaken > 0 ? Math.round((finalCorrectCount / timeTaken) * 60) : 0;
+        const finalAccuracy = totalCount > 0 ? Math.round((finalCorrectCount / totalCount) * 100) : 100;
+        const netSpeed = Math.round(finalWpm * (finalAccuracy / 100));
+        
+        // Get ALL unique keys that were practiced with their difficulty levels
+        // Count frequency of each key (how many times it appeared in the sequence)
+        const keyFrequency = {};
+        highlightedKeys.forEach(key => {
+          const keyName = key === "Space" ? "Space" : key;
+          keyFrequency[keyName] = (keyFrequency[keyName] || 0) + 1;
+        });
+        
+        // Get all unique keys and their difficulties
+        // keyDifficulties already contains the total error count for each key
+        const uniqueKeys = [...new Set(highlightedKeys)];
+        
+        // Create data with all unique keys, showing frequency and total difficulty
+        let difficultKeysData = uniqueKeys.map(key => {
+          const keyName = key === "Space" ? "Space" : key;
+          const difficulty = keyDifficulties[key] || 0; // Total errors for this key
+          const frequency = keyFrequency[keyName] || 1; // How many times this key appeared
+          
+          return {
+            key: keyName,
+            difficulty: difficulty,
+            frequency: frequency, // How many times this key appeared in practice
+            // Add level classification for display
+            level: difficulty === 0 ? "OK" : 
+                   difficulty >= 3 ? "Problematic" : 
+                   difficulty >= 1 ? "Difficult" : "OK"
+          };
+        }).sort((a, b) => {
+          // Sort by difficulty (highest first), then by frequency, then alphabetically
+          if (b.difficulty !== a.difficulty) {
+            return b.difficulty - a.difficulty;
+          }
+          if (b.frequency !== a.frequency) {
+            return b.frequency - a.frequency;
+          }
+          return a.key.localeCompare(b.key);
+        });
+        
+        // Ensure difficultKeysData is always an array
+        if (!Array.isArray(difficultKeysData)) {
+          console.error('difficultKeysData is not an array after mapping:', difficultKeysData);
+          difficultKeysData = [];
+        }
+        
+        // Debug: Log the data being saved
+        console.log('=== SAVING DIFFICULT KEYS DATA ===');
+        console.log('Highlighted keys (all):', highlightedKeys);
+        console.log('Unique keys:', uniqueKeys);
+        console.log('Key frequencies:', keyFrequency);
+        console.log('Key difficulties:', keyDifficulties);
+        console.log('Difficult keys data to save:', difficultKeysData);
+        console.log('Total keys in data:', difficultKeysData.length);
+        console.log('Keys in data:', difficultKeysData.map(k => k.key));
+        
+        // Get user name and exercise info
+        const userDataStr = localStorage.getItem('examUserData');
+        const userData = userDataStr ? JSON.parse(userDataStr) : {};
+        
+        // Get exercise/lesson name
+        let exerciseName = "";
+        if (lessonId) {
+          try {
+            const res = await fetch('/api/learning?' + new Date().getTime());
+            if (res.ok) {
+              const data = await res.json();
+              for (const section of data.sections || []) {
+                const foundLesson = section.lessons?.find(l => l.id === lessonId);
+                if (foundLesson) {
+                  exerciseName = foundLesson.name || foundLesson.title || "";
+                  break;
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching lesson name:', error);
+          }
+        }
+        
+        // Get current date and time
+        const now = new Date();
+        const resultDate = now.toLocaleDateString('en-GB', { 
+          day: '2-digit', 
+          month: 'long', 
+          year: 'numeric' 
+        });
+        const resultTime = now.toLocaleTimeString('en-GB', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+        
+        // Ensure difficultKeysData is an array before saving
+        const keysToSave = Array.isArray(difficultKeysData) ? difficultKeysData : [];
+        
+        // Save to localStorage for learning result page
+        const resultData = {
+          timeUsed: Math.round(timeTaken),
+          grossSpeed: finalWpm,
+          accuracy: finalAccuracy,
+          netSpeed: netSpeed,
+          difficultKeys: keysToSave, // Always ensure it's an array
+          userName: userName || userData.name || "User",
+          exerciseName: exerciseName,
+          language: language === "hindi" ? "Hindi" : "English",
+          subLanguage: subLanguage || "",
+          resultDate: resultDate,
+          resultTime: resultTime,
+          timeDuration: Math.round(timeTaken) // Save in seconds
+        };
+        
+        // Verify the data structure before saving
+        console.log('Final resultData to save:', resultData);
+        console.log('difficultKeys in resultData:', resultData.difficultKeys);
+        console.log('difficultKeys is array:', Array.isArray(resultData.difficultKeys));
+        
+        // Save to localStorage
+        const dataToSave = JSON.stringify(resultData);
+        localStorage.setItem('learningResult', dataToSave);
+        
+        // Verify data was saved
+        const savedData = localStorage.getItem('learningResult');
+        console.log('Data saved to localStorage:', savedData);
+        console.log('Verifying saved data:', JSON.parse(savedData));
+        
+        // Auto-redirect to learning result page immediately
+        window.location.href = '/result/learning-re';
+      }
+    };
+    
+    saveAndRedirect();
+  }, [isCompleted, startTime, endTime, totalCount, highlightedKeys, keyDifficulties, lessonId, language, subLanguage, userName]);
+
   // Update keyStatus when highlightedKeys changes
   useEffect(() => {
     setKeyStatus(Array(highlightedKeys.length).fill(null));
@@ -715,7 +895,7 @@ function KeyboardApp() {
   return (
     <div
       className={`fixed inset-0 w-full h-full overflow-y-auto ${
-        isDarkMode ? "bg-gradient-to-br from-black to-gray-900" : "bg-white"
+        isDarkMode ? "bg-gray-900" : "bg-gray-100"
       }`}
       style={{
         minHeight: '100dvh', // Dynamic viewport height for mobile
@@ -878,17 +1058,20 @@ function KeyboardApp() {
           .user-profile-name {
             display: none !important;
           }
-          /* Force keyboard container to be smaller */
+          /* Force keyboard container to be smaller and fixed */
           .keyboard-container.mobile-scale,
           .mobile-scale.keyboard-container {
-            transform: scale(1) !important;
+            transform: scale(0.85) !important;
             transform-origin: top center !important;
-            width: 100% !important;
-            margin-left: 0 !important;
-            padding: 2px !important;
-            max-width: 100% !important;
+            width: 75% !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding: 4px !important;
+            max-width: 85% !important;
             margin-top: 0 !important;
-            border-radius: 10 !important;
+            border-radius: 8px !important;
+            position: relative !important;
+            overflow: visible !important;
           }
           /* Remove border radius from keyboard keys */
           .keyboard-container.mobile-scale .flex > div {
@@ -919,61 +1102,122 @@ function KeyboardApp() {
           /* Keyboard keys in landscape - use specific class selector */
           .keyboard-container.mobile-scale .flex > div,
           .keyboard-container.mobile-scale .flex > div.h-14 {
-            height: 69px !important;
-            min-height: 16px !important;
-            max-height: 39px !important;
-            font-size: 0.4rem !important;
-            margin-left: 0.5px !important;
-            margin-right: 0.5px !important;
-            padding: 0 !important;
-            line-height: 1 !important;
-          }
-          /* Override all width classes with attribute selector */
-          .keyboard-container.mobile-scale .flex > div[class*="w-"] {
-            width: 22px !important;
-            min-width: 22px !important;
-          }
-          /* Special keys - smaller widths */
-          .keyboard-container.mobile-scale .flex > div[class*="170px"] {
-            width: 45px !important;
-          }
-          /* Increase Backspace and Enter button size in landscape */
-          .keyboard-container.mobile-scale .flex > div.text-red-500[class*="170px"],
-          .keyboard-container.mobile-scale .flex > div.text-green-500[class*="170px"] {
-            width: 70px !important;
-            min-width: 70px !important;
-            height: 39px !important;
-            min-height: 39px !important;
-            max-height: 39px !important;
+            height: 32px !important;
+            min-height: 32px !important;
+            max-height: 32px !important;
             font-size: 0.5rem !important;
+            margin-left: 1px !important;
+            margin-right: 1px !important;
+            padding: 4px 2px !important;
+            line-height: 1.2 !important;
           }
-          .keyboard-container.mobile-scale .flex > div[class*="130px"] {
+          /* Override all width classes with attribute selector - default keys */
+          .keyboard-container.mobile-scale .flex > div[class*="w-"] {
+            width: 28px !important;
+            min-width: 58px !important;
+            max-width: 28px !important;
+          }
+          /* Special keys - Backspace and Enter (170px) */
+          .keyboard-container.mobile-scale .flex > div[class*="170px"] {
+            width: 60px !important;
+            min-width: 82px !important;
+            max-width: 60px !important;
+          }
+          /* Shift button (175px) */
+          .keyboard-container.mobile-scale .flex > div[class*="175px"] {
             width: 65px !important;
+            min-width: 105px !important;
+            max-width: 65px !important;
           }
-          .keyboard-container.mobile-scale .flex > div[class*="105px"] {
-            width: 88px !important;
+          /* Tab button (130px) */
+          .keyboard-container.mobile-scale .flex > div[class*="130px"] {
+            width: 50px !important;
+            min-width: 82px !important;
+            max-width: 50px !important;
           }
-          .keyboard-container.mobile-scale .flex > div[class*="165px"] {
-            width: 98px !important;
+          /* Caps button (118px) */
+          .keyboard-container.mobile-scale .flex > div[class*="118px"] {
+            width: 48px !important;
+            min-width: 82px !important;
+            max-width: 48px !important;
           }
-          .keyboard-container.mobile-scale .flex > div[class*="70px"] {
-            width: 40px !important;
+          /* Ctrl, Alt, Win, Menu buttons (70px) */
+          .keyboard-container.mobile-scale .flex > div[class*="100px"] {
+            width: 35px !important;
+            min-width: 35px !important;
+            max-width: 35px !important;
           }
+          /* Backslash button (95px) */
           .keyboard-container.mobile-scale .flex > div[class*="95px"] {
-            width: 45px !important;
+            width: 40px !important;
+            min-width: 40px !important;
+            max-width: 40px !important;
           }
+          /* Default letter keys (55px) */
           .keyboard-container.mobile-scale .flex > div[class*="55px"] {
-            width: 46px !important;
+            width: 28px !important;
+            min-width: 40px !important;
+            max-width: 28px !important;
           }
           /* Space key */
           .keyboard-container.mobile-scale .flex > div[class*="flex-1"] {
             flex: 1 1 auto !important;
-            min-width: 30px !important;
+            min-width: 80px !important;
             width: auto !important;
+            max-width: 270px !important;
           }
           /* Row spacing */
           .keyboard-container.mobile-scale .flex {
-            margin-bottom: 1px !important;
+            margin-bottom: 2px !important;
+            gap: 2px !important;
+          }
+          
+          /* Fix keyboard container positioning in landscape */
+          .keyboard-container {
+            position: relative !important;
+            max-height: 50vh !important;
+            overflow-y: auto !important;
+            
+          }
+          /* Right section absolute positioning in mobile landscape */
+          .right-section-stats {
+            position: absolute !important;
+            // right: 0px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            z-index: 100 !important;
+            bottom: -400px !important;
+          }
+        }
+        
+        * Increase typing prompt keys size in mobile landscape */
+          .typing-prompt-container > div {
+            width: 48px !important;
+            height: 48px !important;
+            min-width: 48px !important;
+            min-height: 48px !important;
+            font-size: 1.1rem !important;
+          }
+          .typing-prompt-container > div[class*="w-16"] {
+            width: 50px !important;
+            min-width: 70px !important;
+          }
+        }
+
+        /* Desktop landscape view - fix keyboard */
+        @media (min-width: 768px) and (orientation: landscape) {
+          .keyboard-container {
+            max-width: 70% !important;
+            margin: 0 auto !important;
+            padding: 8px !important;
+          }
+        }
+        
+        /* All landscape views - decrease keyboard width */
+        @media (orientation: landscape) {
+          .keyboard-container {
+            max-width: 95% !important;
+            width: 90% !important;
           }
         }
       `}</style>
@@ -1018,12 +1262,12 @@ function KeyboardApp() {
         <div 
           className={`flex ${isMobile ? "flex-nowrap typing-prompt-mobile" : "flex-wrap"} justify-center items-center gap-1 md:gap-2 relative ${
             isMobile ? "overflow-x-auto mt-2 px-2" : "mobile-tight-gap"
-          }`}
+          } typing-prompt-container`}
           style={isMobile ? { scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' } : {}}
         >
           {isMobile ? (
-            // Mobile: Show all keys in one row
-            highlightedKeys.map((key, index) => {
+            // Mobile: Show all keys in one row (use actual highlightedKeys, not organized rows)
+            highlightedKeys.filter(k => k !== undefined && k !== null).map((key, index) => {
               const isCurrentKey = index === currentIndex;
               const keyStatusForThisKey = keyStatus[index];
               const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
@@ -1151,8 +1395,17 @@ function KeyboardApp() {
           )}
         </div>
 
-        <div className={`flex items-center ${isMobile ? "justify-center gap-3" : "gap-4"} mt-2 mobile-tight-gap mobile-small-text`}>
-          {/* Hand Toggle */}
+        <div
+  className={`
+    hidden
+    md:hidden
+    lg:flex
+    flex items-center
+    ${isMobile ? "justify-center gap-3" : "gap-4"}
+    mt-2
+    mobile-tight-gap mobile-small-text
+  `}
+>          {/* Hand Toggle */}
           <label className="flex items-center gap-1 md:gap-2">
             <span className={isMobile ? "text-sm" : ""}>Hand</span>
             <div className="relative inline-block w-12 h-6">
@@ -1209,15 +1462,15 @@ function KeyboardApp() {
         </div>
 
         {/* Rotation Prompt for Mobile Landscape - Side of Keyboard */}
-        {isMobile && isLandscape && (
-          <div className="rotate-prompt-mobile fixed right-2 top-1/2 -translate-y-1/2 z-[100] bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 flex items-center gap-2 shadow-lg border border-gray-700" style={{ pointerEvents: 'none', transform: 'translateY(-50%)' }}>
+        {isMobile && !isLandscape && (
+          <div className="rotate-prompt-mobile fixed bottom-84 left-1/2 -translate-x-1/2 z-[100] bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 flex items-center gap-3 shadow-lg border border-gray-700" style={{ pointerEvents: 'none' }}>
             {/* Phone Icon with Rotation Arrows */}
             <div className="relative flex items-center justify-center w-20 h-20">
               {/* Rotation Arrows */}
               <svg width="80" height="80" viewBox="0 0 80 80" className="absolute inset-0 animate-rotate-arrows">
-                {/* Top Arrow - Clockwise */}
+                {/* Left Arrow - Counter-clockwise */}
                 <path
-                  d="M 20 20 Q 40 10, 60 20"
+                  d="M 20 20 Q 10 40, 20 60"
                   stroke="#3b82f6"
                   strokeWidth="3"
                   fill="none"
@@ -1226,16 +1479,16 @@ function KeyboardApp() {
                   style={{ animationDuration: '2s' }}
                 />
                 <path
-                  d="M 55 18 L 60 20 L 55 22"
+                  d="M 18 25 L 20 20 L 22 25"
                   stroke="#3b82f6"
                   strokeWidth="3"
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
-                {/* Bottom Arrow - Counter-clockwise */}
+                {/* Right Arrow - Clockwise */}
                 <path
-                  d="M 60 60 Q 40 70, 20 60"
+                  d="M 60 60 Q 70 40, 60 20"
                   stroke="#3b82f6"
                   strokeWidth="3"
                   fill="none"
@@ -1244,7 +1497,7 @@ function KeyboardApp() {
                   style={{ animationDuration: '2s' }}
                 />
                 <path
-                  d="M 25 58 L 20 60 L 25 62"
+                  d="M 62 55 L 60 60 L 58 55"
                   stroke="#3b82f6"
                   strokeWidth="3"
                   fill="none"
@@ -1253,19 +1506,19 @@ function KeyboardApp() {
                 />
               </svg>
               
-              {/* Phone Icon in Landscape */}
-              <div className="relative w-14 h-9 bg-blue-500 rounded-md border-2 border-blue-400 flex items-center justify-between px-1.5">
+              {/* Phone Icon in Portrait */}
+              <div className="relative w-9 h-14 bg-blue-500 rounded-md border-2 border-blue-400 flex flex-col items-center justify-between py-1.5">
                 {/* Camera/Sensor */}
                 <div className="w-1.5 h-1.5 bg-blue-300 rounded-full"></div>
                 {/* Screen */}
-                <div className="flex-1 h-5 bg-blue-400 rounded mx-1"></div>
+                <div className="flex-1 w-5 bg-blue-400 rounded my-1"></div>
                 {/* Button/Notch */}
-                <div className="w-0.5 h-2.5 bg-blue-300 rounded"></div>
+                <div className="w-2.5 h-0.5 bg-blue-300 rounded"></div>
               </div>
             </div>
             
-            {/* Vertical Text */}
-            <div className="flex flex-col text-white font-semibold text-sm leading-tight">
+            {/* Horizontal Text */}
+            <div className="flex flex-row items-center text-white font-semibold text-sm gap-1">
               <span>Rotate</span>
               <span>Your</span>
               <span>Phone</span>
@@ -1276,7 +1529,7 @@ function KeyboardApp() {
         {/* Keyboard */}
         {keyboard && (
           <div className={`relative mt-4 ${isMobile ? "p-2 w-full max-w-full" : "p-5"} border border-gray-600 rounded-3xl shadow-md keyboard-container ${
-            isDarkMode ? "bg-gray-800" : "bg-gray-200"
+            isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
           } ${isMobile ? "" : "mobile-scale"}`}>
             
             {/* Dual Hand Image Overlay - positioned on top of keyboard */}
@@ -1322,22 +1575,13 @@ function KeyboardApp() {
                     <div
                       key={keyIndex}
                       className={`${isMobile ? "h-8 text-xs" : "h-14 text-base"} ${getKeyWidth(key)} ${isMobile ? "mx-0.5" : "mx-1"} rounded flex items-center justify-center 
-                        border transition-all duration-150
-                        ${
-                          key === "Backspace" ? "text-red-500" :
-                          key === "Enter" ? "text-green-500" :
-                          key === "Shift" ? "text-blue-500" :
-                          key === "Ctrl" ? "text-yellow-400" :
-                          key === "Space" ? "text-pink-400" :
-                          key === "Caps" ? "text-green-500" :
-                          key === "Tab" ? "text-blue-800" :
-                          isDarkMode ? "text-white border-gray-600" : "text-black border-gray-400"
+                        border transition-all duration-150 ${
+                          isDarkMode ? "border-gray-600 text-white" : "border-gray-400 text-gray-800"
                         }
                         ${
-                          isPressed ? (key === "Space" ? "bg-pink-500 text-white border-pink-300 border-2 scale-95" : "bg-white text-black border-2 scale-95") :
-                          isCurrentKey ? "bg-yellow-400 text-black border-yellow-300 border-2" :
-                          hand ? (isDarkMode ? "bg-gray-800/70" : "bg-white/70") :
-                          (isDarkMode ? "bg-gray-800" : "bg-white")
+                          isPressed ? (isDarkMode ? "bg-gray-600 text-white border-gray-500 border-2 scale-95" : "bg-gray-400 text-gray-900 border-gray-500 border-2 scale-95") :
+                          isCurrentKey ? "bg-blue-500 text-white border-blue-400 border-2" :
+                          isDarkMode ? "bg-black text-white border-gray-600" : "bg-gray-300 text-gray-800 border-gray-400"
                         }`}
                     >
                       {key === "Space" ? "Space" : key}
@@ -1394,9 +1638,9 @@ function KeyboardApp() {
       )}
 
       {/* Right Section - Hidden on Mobile Portrait, Visible on Mobile Landscape */}
-      <div className={`${isMobile && isLandscape ? "flex" : "hidden md:flex"} flex-col items-center ${isMobile && isLandscape ? "gap-2" : "space-y-1"} ${isMobile && isLandscape ? "mt-2" : "mt-15"} mobile-stack mobile-small-text`}>
+      <div className={`${isMobile && isLandscape ? "flex" : "hidden md:flex"} flex-col items-center ${isMobile && isLandscape ? "gap-2" : "space-y-1"} ${isMobile && isLandscape ? "mt-2" : "md:mt-25 mt-15"} mobile-stack mobile-small-text right-section-stats`}>
         {!isMobile || !isLandscape ? (
-          <div className="flex flex-col items-center user-profile-section user-profile-landscape">
+          <div className="flex flex-col items-center user-profile-section user-profile-landscape mb-4">
             <img
               src={userProfileUrl}
               alt="User"
@@ -1411,7 +1655,7 @@ function KeyboardApp() {
         
         {isMobile && isLandscape ? (
           // Landscape Mobile: Single column layout with all 5 cards
-          <div className="flex flex-col gap-2 w-full max-w-[120px] items-center landscape-mobile-stats">
+          <div className="flex flex-col gap-2 w-full max-w-[120px] items-center landscape-mobile-stats md:mr-0 mr-20 lg:mr-0">
             {/* Time Card */}
             <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
               <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>

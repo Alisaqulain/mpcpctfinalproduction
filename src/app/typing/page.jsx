@@ -552,6 +552,7 @@ function TypingTutorForm() {
             flex: 1 !important;
             overflow-y: auto !important;
             padding: 0.5rem !important;
+          
           }
           .landscape-mobile-sidebar {
             width: 140px !important;
@@ -567,6 +568,34 @@ function TypingTutorForm() {
           .font-size-buttons-landscape {
             display: none !important;
           }
+          /* Position absolute for stats div in landscape mobile view only */
+          .stats-container-landscape {
+            position: absolute !important;
+            top: 15px !important;
+            gap: 0px !important;
+          }
+          /* Margin adjustments for cards in landscape mobile view only */
+          .card-correct-landscape {
+            margin-right: 0% !important;
+            margin-left: 22% !important;
+          }
+          .card-wrong-landscape {
+            margin-right: 18% !important;
+            margin-left: 2% !important;
+          }
+          .card-total-landscape {
+            margin-left: 10% !important;
+            margin-right: 4% !important;
+          }
+          .card-backspace-landscape {
+            margin-left: 0% !important;
+            margin-right: 10% !important;
+          }
+          /* Margin top for time div in landscape mobile view only */
+          .time-container-landscape {
+            margin-top: 30px !important;
+            margin-left: 49% !important;
+          }
         }
       `}</style>
       <div className={`max-w-7xl mx-auto mt-30 md:mt-15 ${isMobile && isLandscape ? "landscape-mobile-container" : ""}`}>
@@ -578,7 +607,7 @@ function TypingTutorForm() {
         <div className={`flex ${isMobile && isLandscape ? "flex-row" : "flex-col-reverse lg:flex-row"} gap-6`}>
           
           {/* Typing Area */}
-          <div className={`${isMobile && isLandscape ? "landscape-mobile-typing-area" : "w-[105%] lg:w-[110%]"}`}>
+          <div className={`${isMobile && isLandscape ? "landscape-mobile-typing-area" : "w-[90%] lg:w-[110%]  mx-auto "}`}>
           {(!isMobile || !isLandscape) && (
             <p className="block lg:hidden text-md mb-15 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-center font-bold">
               Typing Tutor
@@ -638,14 +667,14 @@ function TypingTutorForm() {
                 </div>
               ) : (
                 <>
-                  <div className={`text-sm leading-relaxed mb-4 overflow-auto ${isMobile && isLandscape ? "min-h-[150px] max-h-[200px]" : "min-h-[200px] max-h-[250px]"} mt-4 break-words font-sans`}>
+                  <div className={`text-sm leading-relaxed mb-4 overflow-auto ${isMobile && isLandscape ? "min-h-[150px] max-h-[200px]" : "min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px]"} mt-4 break-words font-sans`}>
                     {renderColoredWords()}
                   </div>
                   <textarea
                     value={typedText}
                     onChange={handleChange}
                     disabled={isPaused || isCompleted}
-                    className={`w-full ${isMobile && isLandscape ? "min-h-[100px] max-h-[150px]" : "min-h-[120px] max-h-[200px] md:min-h-[180px] md:max-h-[220px]"} p-2 border-t border-gray-400 rounded-md focus:outline-none mt-4 disabled:opacity-50`}
+                    className={`w-full ${isMobile && isLandscape ? "min-h-[100px] max-h-[150px]" : "min-h-[100px] max-h-[100px] md:min-h-[80px] md:max-h-[100px] lg:min-h-[180px] lg:max-h-[220px]"} p-2 border-t border-gray-400 rounded-md focus:outline-none mt-4 disabled:opacity-50`}
                     placeholder={isMobile && isLandscape ? "Type Here..." : "Start typing here..."}
                     style={{ fontSize: `${fontSize}px` }}
                   />
@@ -686,10 +715,10 @@ function TypingTutorForm() {
   <a href="/skill_test">close</a>
 </button>
 
-            <div className="flex flex-col items-center space-y-1">
-              {/* Hide profile in landscape mobile */}
-              {(!isMobile || !isLandscape) && (
-                <div className="user-profile-landscape">
+            <div className="flex flex-col items-center space-y-1 mt-[-18]">
+              {/* Hide profile in portrait view only */}
+              {!isMobile || isLandscape ? (
+                <div className="user-profile-landscape mb-4">
                   <img
                     src={userProfileUrl}
                     alt={userName}
@@ -698,14 +727,14 @@ function TypingTutorForm() {
                       e.target.src = "/lo.jpg";
                     }}
                   />
-                  <p className="font-semibold text-xs">{userName}</p>
+                  <p className="font-semibold text-xs text-center">{userName}</p>
                   {backspaceLimit !== null && (
                     <p className="text-xs text-yellow-300 mt-1">
                       Backspace: {backspaceCount}/{backspaceLimit}
                     </p>
                   )}
                 </div>
-              )}
+              ) : null}
 
               {/* Landscape Mobile: Single column layout with all stats */}
               {isMobile && isLandscape ? (
@@ -759,18 +788,18 @@ function TypingTutorForm() {
               ) : (
                 <>
                   {/* Portrait/Desktop: Original layout */}
-                  <div className="w-24 h-9 rounded-lg overflow-hidden mx-auto text-center mt-2 md:mt-5 lg:mt-2 pt-0 md:pt-0 lg:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+                  <div className="w-24 h-9 rounded-lg overflow-hidden mx-auto text-center mt-10 md:mt-5 lg:mt-2 pt-0 md:pt-0 lg:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] time-container-landscape">
                     <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
                     <div className="bg-white text-black text-sm font-bold">
                       {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
                     </div>
                   </div>
-                  <div className={`flex grid-cols-1  gap-y-3 mt-2 gap-x-4  md:gap-x-15 lg:gap-x-15 mr-0 md:mr-10 w-[70%] md:w-full text-center lg:landscape:grid lg:grid-cols-2 `}>
+                  <div className={`flex grid-cols-1  gap-y-3 mt-2 gap-x-4  md:gap-x-15 lg:gap-x-15 mr-0 md:mr-10 w-[70%] md:w-full text-center lg:landscape:grid lg:grid-cols-2 stats-container-landscape`}>
                     {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
                       { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
                       { label: "Total", value: words.length, color: "text-[#290c52]" },
                       { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
-                        <div key={i} className="w-full sm:w-24 h-9 rounded-lg overflow-hidden mx-auto shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+                        <div key={i} className={`w-full sm:w-24 h-9 rounded-lg overflow-hidden mx-auto shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] ${label === "Correct" ? "card-correct-landscape" : ""} ${label === "Wrong" ? "card-wrong-landscape" : ""} ${label === "Total" ? "card-total-landscape" : ""} ${label === "Backspace" ? "card-backspace-landscape" : ""}`}>
                           <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
                           <div className={`bg-white ${color} text-sm font-bold`}>{value}</div>
                         </div>
@@ -788,7 +817,7 @@ function TypingTutorForm() {
               )}
 
               {/* Speedometer */}
-              <div className="hidden lg:block">
+              <div className="hidden lg:block mt-4">
                 <div className="border-6 border-black rounded-full mt-2">
                   <div className="relative w-24 h-24 bg-black rounded-full border-4 border-white flex items-center justify-center">
                     <div className="absolute left-1 text-red-500 text-[8px] font-bold tracking-widest">SPEED</div>
