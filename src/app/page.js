@@ -23,10 +23,20 @@ const App = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("/api/profile");
+        const response = await fetch("/api/profile", {
+          credentials: 'include', // Ensure cookies are sent
+        });
         setIsAuthenticated(response.ok);
+        // Don't log 401 errors - they're expected when not logged in
+        if (!response.ok && response.status !== 401) {
+          console.error("Auth check failed:", response.status);
+        }
       } catch (error) {
         setIsAuthenticated(false);
+        // Only log unexpected errors
+        if (error.name !== 'TypeError') {
+          console.error("Auth check error:", error);
+        }
       }
     };
 

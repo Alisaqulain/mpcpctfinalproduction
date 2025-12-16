@@ -165,10 +165,15 @@ export async function POST(req) {
       }
     });
 
+    // Check if request is over HTTPS (for secure cookie)
+    const isHttps = req.headers.get('x-forwarded-proto') === 'https' || 
+                    req.url?.startsWith('https://') ||
+                    process.env.NEXT_PUBLIC_FORCE_SECURE_COOKIE === 'true';
+    
     // Set JWT token as HTTP-only cookie
     response.cookies.set("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isHttps, // Only set secure if actually using HTTPS
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60, // 7 days
       path: "/"
