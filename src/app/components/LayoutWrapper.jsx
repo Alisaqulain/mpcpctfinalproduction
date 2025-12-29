@@ -13,7 +13,10 @@ export default function LayoutWrapper({ children }) {
     pathname?.startsWith("/tips/") || 
     pathname?.startsWith("/keyboard") || 
     pathname?.startsWith("/hindi-keyboard") || 
-    pathname?.startsWith("/typing");
+    pathname?.startsWith("/typing") ||
+    pathname?.startsWith("/learning") ||
+    pathname?.startsWith("/skill_test") ||
+    pathname?.startsWith("/result");
 
   return (
     <>

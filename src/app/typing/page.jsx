@@ -3,6 +3,711 @@ import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { getLearningData, getLessonContent } from "@/lib/learningData";
 
+// Desktop View Component
+function DesktopView({
+  content,
+  loading,
+  typedText,
+  handleChange,
+  isPaused,
+  isCompleted,
+  renderColoredWords,
+  fontSize,
+  handleReset,
+  togglePause,
+  handleCompletion,
+  startTime,
+  wpm,
+  accuracy,
+  elapsedTime,
+  correctWords,
+  handleDownloadPDF,
+  formatClock,
+  timeRemaining,
+  words,
+  wrongWords,
+  backspaceCount,
+  backspaceLimit,
+  userName,
+  userProfileUrl,
+  increaseFont,
+  decreaseFont,
+  wordRefs,
+  containerRef,
+  textareaRef
+}) {
+  return (
+    <>
+      <button className="hidden md:absolute md:right-22 md:top-6 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md md:block">
+        <a href="/skill_test">close</a>
+      </button>
+
+      <div className="flex flex-col-reverse lg:flex-row gap-6">
+        {/* Typing Area */}
+        <div className="w-[90%] lg:w-[110%] mx-auto">
+          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg ml-5 mt-[-25]">
+            {/* Results Display */}
+            {isCompleted && (
+              <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
+                <h2 className="text-xl font-bold text-green-800 mb-3">Test Completed!</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{wpm}</div>
+                    <div className="text-sm text-green-700">WPM</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
+                    <div className="text-sm text-green-700">Accuracy</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
+                    <div className="text-sm text-green-700">Time</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{correctWords.length}</div>
+                    <div className="text-sm text-green-700">Correct</div>
+                  </div>
+                </div>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={handleDownloadPDF}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
+                  >
+                    Download PDF
+                  </button>
+                  <button
+                    onClick={handleReset}
+                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                <p>Loading exercise content...</p>
+              </div>
+            ) : content.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No content available for this exercise.</p>
+              </div>
+            ) : (
+              <>
+                <div className="text-sm leading-relaxed mb-4 overflow-auto min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px] mt-4 break-words font-sans" style={{ fontSize: `${fontSize}px` }}>
+                  {renderColoredWords()}
+                </div>
+                <textarea
+                  ref={textareaRef}
+                  value={typedText}
+                  onChange={handleChange}
+                  disabled={isPaused || isCompleted}
+                  className="w-full min-h-[100px] max-h-[100px] md:min-h-[80px] md:max-h-[100px] lg:min-h-[180px] lg:max-h-[220px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-4 disabled:opacity-50"
+                  placeholder="Start typing here..."
+                  style={{ fontSize: `${fontSize}px` }}
+                  autoFocus
+                />
+              </>
+            )}
+          </div>
+          <div className="flex justify-center mt-5 gap-6 flex-wrap">
+            <button
+              onClick={handleReset}
+              className="bg-pink-500 text-lg cursor-pointer hover:bg-orange-500 text-white px-8 py-1 rounded shadow"
+            >
+              Reset
+            </button>
+            <button
+              onClick={togglePause}
+              disabled={isCompleted}
+              className="bg-blue-600 cursor-pointer text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow"
+            >
+              {isPaused ? "Resume" : "Pause"}
+            </button>
+            <button
+              onClick={handleCompletion}
+              disabled={!startTime || isCompleted}
+              className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold"
+            >
+              Submit
+            </button>
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div className="w-full lg:w-[20%] text-white p-3 fixed top-0 mt-[-15] left-0 z-50 bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat lg:static lg:bg-none lg:bg-transparent">
+          <div className="flex flex-col items-center space-y-1 mt-[-18]">
+            <div className="mb-4">
+              <img
+                src={userProfileUrl}
+                alt={userName}
+                className="w-20 h-20 md:w-30 md:h-25 rounded-md border-2 border-white"
+                onError={(e) => {
+                  e.target.src = "/lo.jpg";
+                }}
+              />
+              <p className="font-semibold text-xs text-center">{userName}</p>
+             
+            </div>
+
+            <div className="w-24 h-9 rounded-lg overflow-hidden mx-auto text-center mt-10 md:mt-5 lg:mt-2 pt-0 md:pt-0 lg:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
+              <div className="bg-white text-black text-sm font-bold">
+                {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
+              </div>
+            </div>
+            <div className="flex grid-cols-1 gap-y-3 mt-2 gap-x-4 md:gap-x-15 lg:gap-x-15 mr-0 md:mr-10 w-[70%] md:w-full text-center lg:landscape:grid lg:grid-cols-2">
+              {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
+                { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
+                { label: "Total", value: words.length, color: "text-[#290c52]" },
+                { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
+                  <div key={i} className="w-full sm:w-24 h-9 rounded-lg overflow-hidden mx-auto shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+                    <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
+                    <div className={`bg-white ${color} text-sm font-bold`}>{value}</div>
+                  </div>
+                ))}
+            </div>
+            {isCompleted && (
+              <div className="mt-3 text-center">
+                <div className="bg-white text-black px-4 py-2 rounded-lg shadow-md">
+                  <div className="text-xs font-semibold mb-1">Accuracy</div>
+                  <div className="text-lg font-bold text-green-600">{accuracy}%</div>
+                </div>
+              </div>
+            )}
+
+            {/* Speedometer */}
+            <div className="hidden lg:block mt-4">
+              <div className="border-6 border-black rounded-full mt-2">
+                <div className="relative w-24 h-24 bg-black rounded-full border-4 border-white flex items-center justify-center">
+                  <div className="absolute left-1 text-red-500 text-[8px] font-bold tracking-widest">SPEED</div>
+                  <svg width="100" height="100" viewBox="0 0 100 100">
+                    <line
+                      x1="50"
+                      y1="50"
+                      x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                      y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                      stroke="red"
+                      strokeWidth="2"
+                    />
+                    {Array.from({ length: 9 }).map((_, i) => {
+                      const startAngle = (-Math.PI * 5) / 6;
+                      const endAngle = (Math.PI * 5) / 6;
+                      const angle = startAngle + (i / 8) * (endAngle - startAngle);
+                      const x = 50 + 40 * Math.cos(angle);
+                      const y = 50 + 42 * Math.sin(angle);
+                      return (
+                        <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
+                          {(i + 1) * 10}
+                        </text>
+                      );
+                    })}
+                  </svg>
+                  <span className="absolute bottom-5 text-red-500 font-bold text-xs">{wpm}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="hidden md:flex flex-col items-center justify-center gap-1">
+              <p className="text-center text-sm mb-1">Font Size</p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={decreaseFont}
+                  className="bg-white text-black border-3 cursor-pointer border-black px-5 py-[2px] text-xs rounded-md"
+                >
+                  A -
+                </button>
+                <button
+                  onClick={increaseFont}
+                  className="bg-white text-black cursor-pointer border-3 border-black px-5 py-[2px] text-xs rounded-md"
+                >
+                  A +
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Portrait View Component (Mobile Portrait)
+function PortraitView({
+  content,
+  loading,
+  typedText,
+  handleChange,
+  isPaused,
+  isCompleted,
+  renderColoredWords,
+  fontSize,
+  handleReset,
+  togglePause,
+  handleCompletion,
+  startTime,
+  wpm,
+  accuracy,
+  elapsedTime,
+  correctWords,
+  handleDownloadPDF,
+  formatClock,
+  timeRemaining,
+  words,
+  wrongWords,
+  backspaceCount,
+  backspaceLimit,
+  userName,
+  userProfileUrl,
+  wordRefs,
+  containerRef,
+  increaseFont,
+  decreaseFont,
+  textareaRef
+}) {
+  return (
+    <>
+      <button className="absolute md:hidden right-3 top-5 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md">
+        <a href="/skill_test">close</a>
+      </button>
+
+      <div className="flex flex-col-reverse gap-6">
+        {/* Typing Area */}
+        <div className="w-[90%] mx-auto">
+          <p className="block lg:hidden text-md mb-15 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-center font-bold">
+            Typing Tutor
+            <br />
+            <span className="text-xs font-normal text-white">(Type the words as they appear below)</span>
+          </p>
+
+          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg mt-[-25] w-full">
+            {/* Results Display */}
+            {isCompleted && (
+              <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
+                <h2 className="text-xl font-bold text-green-800 mb-3">Test Completed!</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{wpm}</div>
+                    <div className="text-sm text-green-700">WPM</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
+                    <div className="text-sm text-green-700">Accuracy</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
+                    <div className="text-sm text-green-700">Time</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{correctWords.length}</div>
+                    <div className="text-sm text-green-700">Correct</div>
+                  </div>
+                </div>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={handleDownloadPDF}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
+                  >
+                    Download PDF
+                  </button>
+                  <button
+                    onClick={handleReset}
+                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                <p>Loading exercise content...</p>
+              </div>
+            ) : content.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No content available for this exercise.</p>
+              </div>
+            ) : (
+              <>
+                <div className="text-sm leading-relaxed mb-4 overflow-auto min-h-[200px] max-h-[100px] mt-4 break-words font-sans" style={{ fontSize: `${fontSize}px` }}>
+                  {renderColoredWords()}
+                </div>
+                <textarea
+                  ref={textareaRef}
+                  value={typedText}
+                  onChange={handleChange}
+                  disabled={isPaused || isCompleted}
+                  className="w-full min-h-[100px] max-h-[100px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-4 disabled:opacity-50"
+                  placeholder="Start typing here..."
+                  style={{ fontSize: `${fontSize}px` }}
+                  autoFocus
+                />
+              </>
+            )}
+          </div>
+          <div className="flex justify-center mt-5 gap-6 flex-wrap">
+          <button
+              onClick={handleCompletion}
+              disabled={!startTime || isCompleted}
+              className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold w-full"
+            >
+              Submit
+            </button>
+            
+            <button
+              onClick={handleReset}
+              className="bg-pink-500 text-lg cursor-pointer hover:bg-orange-500 text-white px-8 py-1 rounded shadow"
+            >
+              Reset
+            </button>
+            <button
+              onClick={togglePause}
+              disabled={isCompleted}
+              className="bg-blue-600 cursor-pointer text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow"
+            >
+              {isPaused ? "Resume" : "Pause"}
+            </button>
+            {/* <button
+              onClick={handleCompletion}
+              disabled={!startTime || isCompleted}
+              className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold w-full"
+            >
+              Submit
+            </button> */}
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div className="w-full text-white p-3 fixed top-0 mt-[-15] left-0 z-50 bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat">
+          <div className="flex flex-col items-center space-y-1 mt-[-18]">
+            {/* User Profile */}
+            <div className="mb-4 absolute top-10 left-2">
+              <img
+                src={userProfileUrl}
+                alt={userName}
+                className="w-20 h-20 md:w-30 md:h-25 rounded-md border-2 border-white"
+                onError={(e) => {
+                  e.target.src = "/lo.jpg";
+                }}
+              />
+              <p className="font-semibold text-xs text-center">{userName}</p>
+            
+               
+  
+            </div>
+            {/* <div className="w-24 h-9 rounded-lg overflow-hidden mx-auto text-center mt-10 md:mt-5 pt-0 md:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
+              <div className="bg-white text-black text-sm font-bold">
+                {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
+              </div>
+            </div> */}
+            <div className="grid grid-cols-2 gap-3 mt-10 w-[40%] md:w-full text-center">
+              {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
+                { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
+                { label: "Total", value: words.length, color: "text-[#290c52]" },
+                { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
+                  <div key={i} className="w-full h-9 rounded-lg overflow-hidden shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+                    <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
+                    <div className={`bg-white ${color} text-sm font-bold`}>{value}</div>
+                  </div>
+                ))}
+            </div>
+            <div className="w-[40%] h-9 rounded-lg overflow-hidden mx-auto text-center mt-3 md:mt-5 pt-0 md:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
+              <div className="bg-white text-black text-sm font-bold">
+                {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
+              </div>
+            </div>
+            {isCompleted && (
+              <div className="mt-3 text-center">
+                <div className="bg-white text-black px-4 py-2 rounded-lg shadow-md">
+                  <div className="text-xs font-semibold mb-1">Accuracy</div>
+                  <div className="text-lg font-bold text-green-600">{accuracy}%</div>
+                </div>
+              </div>
+            )}
+
+            {/* Speedometer */}
+            <div className="mt-4 absolute bottom-13 right-2">
+              <div className="border-6 border-black rounded-full mt-2">
+                <div className="relative w-20 h-20 bg-black rounded-full border-4 border-white flex items-center justify-center">
+                  <div className="absolute left-1 text-red-500 text-[8px] font-bold tracking-widest">SPEED</div>
+                  <svg width="100" height="100" viewBox="0 0 100 100">
+                    <line
+                      x1="50"
+                      y1="50"
+                      x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                      y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                      stroke="red"
+                      strokeWidth="2"
+                    />
+                    {Array.from({ length: 9 }).map((_, i) => {
+                      const startAngle = (-Math.PI * 5) / 6;
+                      const endAngle = (Math.PI * 5) / 6;
+                      const angle = startAngle + (i / 8) * (endAngle - startAngle);
+                      const x = 50 + 40 * Math.cos(angle);
+                      const y = 50 + 42 * Math.sin(angle);
+                      return (
+                        <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
+                          {(i + 1) * 10}
+                        </text>
+                      );
+                    })}
+                  </svg>
+                  <span className="absolute bottom-5 text-red-500 font-bold text-xs">{wpm}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Font Size Controls */}
+              
+                <button
+                  onClick={decreaseFont}
+                  className="bg-white absolute top-35 left-4 text-black border-3 cursor-pointer border-black px-5 py-[2px] text-xs rounded-md"
+                >
+                  A -
+                </button>
+                <button
+                  onClick={increaseFont}
+                  className="bg-white absolute top-35 right-5 text-black cursor-pointer border-3 border-black px-5 py-[2px] text-xs rounded-md"
+                >
+                  A +
+                </button>
+            
+            
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Landscape View Component (Mobile Landscape)
+function LandscapeView({
+  content,
+  loading,
+  typedText,
+  handleChange,
+  isPaused,
+  isCompleted,
+  renderColoredWords,
+  fontSize,
+  handleReset,
+  togglePause,
+  handleCompletion,
+  startTime,
+  wpm,
+  accuracy,
+  elapsedTime,
+  correctWords,
+  handleDownloadPDF,
+  formatClock,
+  words,
+  wrongWords,
+  backspaceCount,
+  backspaceLimit,
+  userName,
+  userProfileUrl,
+  wordRefs,
+  containerRef,
+  increaseFont,
+  decreaseFont,
+  textareaRef
+}) {
+  return (
+    <div className="landscape-mobile-container">
+      <button className="absolute md:hidden right-3 top-5 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md" style={{ padding: '0.8vh 2vw', fontSize: 'clamp(9px, 1.8vw, 12px)', minHeight: '4vh', right: '1vw', top: '1vh' }}>
+        <a href="/skill_test">close</a>
+      </button>
+
+      <div className="flex flex-row gap-6">
+        {/* Typing Area */}
+        <div className="landscape-mobile-typing-area ml-26 " style={{ flex: '1', overflowY: 'auto', padding: '0.5vh 0.5vw', height: '100vh', width: 'calc(90vw - 18vw)', maxWidth: 'calc(100vw - 18vw)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {/* Stats row at header */}
+          <div className="flex gap-x-4  justify-center items-center w-full" style={{ marginBottom: '5vh', flexWrap: 'wrap', gap: '1vw' }}>
+            {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
+              { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
+              { label: "Total", value: words.length, color: "text-[#290c52]" },
+              { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
+                <div key={i} className="w-24 h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]" style={{ flexShrink: 0 }}>
+                  <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
+                  <div className={`bg-white ${color} text-sm font-bold`}>{value}</div>
+                </div>
+              ))}
+          </div>
+
+          <div className="bg-white p-2 rounded-xl shadow-lg" style={{ width: '95%', maxWidth: '95%', padding: '1vh 1vw', marginLeft: 'auto', marginRight: 'auto' }}>
+            {/* Results Display */}
+            {isCompleted && (
+              <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500" style={{ padding: '1.5vh 1.5vw', marginBottom: '1vh' }}>
+                <h2 className="text-xl font-bold text-green-800 mb-3" style={{ fontSize: 'clamp(12px, 2.5vw, 18px)', marginBottom: '1vh' }}>Test Completed!</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3" style={{ gap: '1vw', marginBottom: '1vh' }}>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{wpm}</div>
+                    <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>WPM</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{accuracy}%</div>
+                    <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Accuracy</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{formatClock(elapsedTime)}</div>
+                    <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Time</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{correctWords.length}</div>
+                    <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Correct</div>
+                  </div>
+                </div>
+                <div className="flex gap-3 justify-center" style={{ gap: '1vw' }}>
+                  <button
+                    onClick={handleDownloadPDF}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
+                    style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}
+                  >
+                    Download PDF
+                  </button>
+                  <button
+                    onClick={handleReset}
+                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
+                    style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {loading ? (
+              <div className="text-center py-8" style={{ padding: '2vh 0' }}>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4" style={{ width: '4vw', height: '4vw', minWidth: '30px', minHeight: '30px' }}></div>
+                <p style={{ fontSize: 'clamp(10px, 2vw, 14px)' }}>Loading exercise content...</p>
+              </div>
+            ) : content.length === 0 ? (
+              <div className="text-center py-8 text-gray-500" style={{ padding: '2vh 0', fontSize: 'clamp(10px, 2vw, 14px)' }}>
+                <p>No content available for this exercise.</p>
+              </div>
+            ) : (
+              <>
+                <div className="text-sm leading-relaxed mb-4 overflow-auto min-h-[180px] max-h-[250px] mt-4 break-words font-sans" style={{ minHeight: '30vh', maxHeight: '25vh', fontSize: 'clamp(10px, 2vw, 14px)', lineHeight: '1.4' }}>
+                  {renderColoredWords(true)}
+                </div>
+                <textarea
+                  ref={textareaRef}
+                  value={typedText}
+                  onChange={handleChange}
+                  disabled={isPaused || isCompleted}
+                  className="w-full auto-focus min-h-[150px] max-h-[180px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-4 disabled:opacity-50"
+                  placeholder="Type Here..."
+                  style={{ fontSize: `clamp(10px, 2vw, ${fontSize}px)`, minHeight: '18vh', maxHeight: '15vh', padding: '1vh 1vw', width: '100%' }}
+                  autoFocus
+                />
+              </>
+            )}
+          </div>
+          <div className="flex justify-center mt-2 gap-6 flex-wrap" style={{ marginTop: '4vh', gap: '1vw' }}>
+            <button
+              onClick={handleReset}
+              className="bg-pink-500 text-lg cursor-pointer hover:bg-orange-500 text-white px-8 py-1 rounded shadow"
+              style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
+            >
+              Reset
+            </button>
+            <button
+              onClick={togglePause}
+              disabled={isCompleted}
+              className="bg-blue-600 cursor-pointer text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow"
+              style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
+            >
+              {isPaused ? "Resume" : "Pause"}
+            </button>
+            <button
+              onClick={handleCompletion}
+              disabled={!startTime || isCompleted}
+              className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold"
+              style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
+            >
+              Submit
+            </button>
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div className="landscape-mobile-sidebar text-white bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat" style={{ width: '18vw', minWidth: '18vw', maxWidth: '18vw', height: '100vh', padding: '1vh 1vw' }}>
+          <div className="flex flex-col items-center justify-center h-full">
+            {/* User Profile */}
+            <div className="mb-4 absolute top-14.5 left-4">
+              <img
+                src={userProfileUrl}
+                alt={userName}
+                className="w-24 h-24 rounded-md border-2 border-white"
+                style={{ width: 'clamp(60px, 12vw, 80px)', height: 'clamp(60px, 12vw, 80px)' }}
+                onError={(e) => {
+                  e.target.src = "/lo.jpg";
+                }}
+              />
+              <p className="font-semibold text-xs text-center text-white" style={{ fontSize: 'clamp(8px, 1.2vw, 10px)', marginTop: '0.5vh' }}>{userName}</p>
+            </div>
+            {/* Speedometer */}
+            <div className="mt-4 absolute top-8 right-1">
+              <div className="border-6 border-black rounded-full mt-2">
+                <div className="relative w-20 h-20 bg-black rounded-full border-4 border-white flex items-center justify-center" style={{ width: 'clamp(60px, 12vw, 80px)', height: 'clamp(60px, 12vw, 80px)' }}>
+                  <div className="absolute left-1 text-red-500 text-[6px] font-bold tracking-widest" style={{ fontSize: 'clamp(6px, 1vw, 8px)' }}>SPEED</div>
+                  <svg width="100" height="100" viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
+                    <line
+                      x1="50"
+                      y1="50"
+                      x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                      y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                      stroke="red"
+                      strokeWidth="2"
+                    />
+                    {Array.from({ length: 9 }).map((_, i) => {
+                      const startAngle = (-Math.PI * 5) / 6;
+                      const endAngle = (Math.PI * 5) / 6;
+                      const angle = startAngle + (i / 8) * (endAngle - startAngle);
+                      const x = 50 + 40 * Math.cos(angle);
+                      const y = 50 + 42 * Math.sin(angle);
+                      return (
+                        <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
+                          {(i + 1) * 10}
+                        </text>
+                      );
+                    })}
+                  </svg>
+                  <span className="absolute bottom-5 text-red-500 font-bold text-xs" style={{ fontSize: 'clamp(8px, 1.2vw, 10px)' }}>{wpm}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Font Size Controls */}
+            <p className="text-white text-xs font-semibold absolute top-43 right-6">Font size</p>
+                <button
+                  onClick={decreaseFont}
+                  className="bg-white absolute top-60 right-4 text-black border-3 cursor-pointer border-black rounded-md"
+                  style={{ padding: '1.5vh 3vw', fontSize: 'clamp(12px, 2vw, 16px)', minHeight: '6vh', minWidth: '8vw' }}
+                >
+                  A -
+                </button>
+                <button
+                  onClick={increaseFont}
+                  className="bg-white absolute top-50 right-4 text-black cursor-pointer border-3 border-black rounded-md"
+                  style={{ padding: '1.5vh 3vw', fontSize: 'clamp(12px, 2vw, 16px)', minHeight: '6vh', minWidth: '8vw' }}
+                >
+                  A +
+                </button>
+             
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TypingTutorForm() {
   const searchParams = useSearchParams();
   const exerciseId = searchParams.get("exercise");
@@ -222,29 +927,86 @@ function TypingTutorForm() {
   const intervalRef = useRef(null);
   const wordRefs = useRef([]);
   const containerRef = useRef(null);
+  const textareaRef = useRef(null);
+
+  // Auto-focus textarea when content is loaded and ready
+  useEffect(() => {
+    if (!loading && content.length > 0 && textareaRef.current && !isPaused && !isCompleted) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, content, isPaused, isCompleted]);
 
   // Detect mobile and landscape orientation
   useEffect(() => {
     const checkMobileAndOrientation = () => {
-      const isMobileDevice = window.innerWidth < 768;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      
+      // More robust mobile detection - check for touch device or small screen
+      const isMobileDevice = width < 768 || 
+                            (navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i)) ||
+                            ('ontouchstart' in window);
+      
       setIsMobile(isMobileDevice);
+      
       if (isMobileDevice) {
-        const isLandscapeMode = window.innerWidth > window.innerHeight;
+        // Multiple checks for landscape orientation
+        const isLandscapeMode = 
+          width > height || // Width greater than height
+          (window.orientation !== undefined && (Math.abs(window.orientation) === 90 || Math.abs(window.orientation) === -90)) || // Orientation API
+          (screen.orientation && screen.orientation.angle % 180 !== 0) || // Screen Orientation API
+          (width / height > 1.2); // Aspect ratio check
+        
         setIsLandscape(isLandscapeMode);
       } else {
         setIsLandscape(false);
       }
     };
 
+    // Initial check
     checkMobileAndOrientation();
-    window.addEventListener('resize', checkMobileAndOrientation);
+    
+    // Listen for resize events (throttled for performance)
+    let resizeTimeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(checkMobileAndOrientation, 100);
+    };
+    window.addEventListener('resize', handleResize);
+    
+    // Listen for orientation changes with multiple event types for better compatibility
     window.addEventListener('orientationchange', () => {
-      setTimeout(checkMobileAndOrientation, 100);
+      setTimeout(checkMobileAndOrientation, 200);
     });
+    
+    // Screen orientation API (more reliable on modern devices)
+    if (screen.orientation) {
+      screen.orientation.addEventListener('change', () => {
+        setTimeout(checkMobileAndOrientation, 200);
+      });
+    }
+    
+    // Also check on focus (handles device rotation while app is in background)
+    window.addEventListener('focus', checkMobileAndOrientation);
+    
+    // Periodic check as fallback for devices that don't fire events properly (every 2 seconds)
+    const intervalId = setInterval(() => {
+      checkMobileAndOrientation();
+    }, 2000);
 
     return () => {
-      window.removeEventListener('resize', checkMobileAndOrientation);
+      clearTimeout(resizeTimeout);
+      clearInterval(intervalId);
+      window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', checkMobileAndOrientation);
+      window.removeEventListener('focus', checkMobileAndOrientation);
+      if (screen.orientation) {
+        screen.orientation.removeEventListener('change', checkMobileAndOrientation);
+      }
     };
   }, []);
 
@@ -446,10 +1208,23 @@ function TypingTutorForm() {
     setIsCompleted(false);
     setResultId(null);
     setAccuracy(100);
+    // Re-focus textarea after reset
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 100);
   };
 
   const togglePause = () => {
-    setIsPaused((prev) => !prev);
+    setIsPaused((prev) => {
+      const newPaused = !prev;
+      // Focus textarea when resuming
+      if (!newPaused && !isCompleted) {
+        setTimeout(() => {
+          textareaRef.current?.focus();
+        }, 100);
+      }
+      return newPaused;
+    });
   };
 
   const formatClock = (seconds) => {
@@ -466,7 +1241,7 @@ function TypingTutorForm() {
     return (seconds % 60).toString().padStart(2, "0");
   };
 
-  const renderColoredWords = () => {
+  const renderColoredWords = (isLandscapeMode = false) => {
     let pointer = 0;
     return content.map((line, lineIndex) => {
       const lineWords = line.trim().split(/\s+/);
@@ -474,7 +1249,12 @@ function TypingTutorForm() {
         <p
           key={lineIndex}
           className="mb-1 break-words h-[40px] flex items-center"
-          style={{ fontSize: `${fontSize}px` }}
+          style={isLandscapeMode ? { 
+            fontSize: `clamp(10px, 2vw, ${fontSize}px)`, 
+            height: 'auto', 
+            minHeight: '3vh', 
+            marginBottom: '0.3vh' 
+          } : { fontSize: `${fontSize}px` }}
           ref={lineIndex === 0 ? containerRef : null}
         >
           {lineWords.map((word, i) => {
@@ -517,48 +1297,92 @@ function TypingTutorForm() {
     window.location.href = `/result/skill-test?resultId=${resultId}`;
   };
 
+  // Common props for all views
+  const commonProps = {
+    content,
+    loading,
+    typedText,
+    handleChange,
+    isPaused,
+    isCompleted,
+    renderColoredWords,
+    fontSize,
+    handleReset,
+    togglePause,
+    handleCompletion,
+    startTime,
+    wpm,
+    accuracy,
+    elapsedTime,
+    correctWords,
+    handleDownloadPDF,
+    formatClock,
+    timeRemaining,
+    words,
+    wrongWords,
+    backspaceCount,
+    wordRefs,
+    containerRef,
+    userName,
+    userProfileUrl,
+    backspaceLimit,
+    increaseFont,
+    decreaseFont,
+    textareaRef
+  };
+
   return (
     <div className="min-h-screen bg-[#290c52] bg-[url('/bg.jpg')] mt-30 md:mt-0  bg-cover bg-center bg-no-repeat px-4 py-6 md:px-14 md:py-12 md:mx-8 md:my-8 rounded-[0px] md:rounded-[100px] typing-background-container">
       <style jsx>{`
-        @media (max-width: 767px) and (orientation: landscape),
-               (max-height: 500px) and (orientation: landscape) {
+        @media (max-width: 1024px) and (orientation: landscape),
+               (max-width: 767px) and (orientation: landscape),
+               (max-height: 600px) and (orientation: landscape),
+               (max-height: 500px) and (min-aspect-ratio: 1/1) {
           html, body {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            position: fixed;
+            height: 100vh !important;
+            width: 100vw !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            position: fixed !important;
           }
           /* Remove rounded corners and make full width in landscape mobile view */
           .typing-background-container {
             border-radius: 0 !important;
-            width: 100% !important;
+            width: 100vw !important;
+            height: 100vh !important;
             margin: 0 !important;
             padding: 0 !important;
-            max-width: 100% !important;
+            max-width: 100vw !important;
+            min-height: 100vh !important;
           }
           /* Landscape mobile layout adjustments */
           .landscape-mobile-container {
             display: flex !important;
             flex-direction: row !important;
             height: 100vh !important;
+            width: 100vw !important;
             overflow: hidden !important;
-            width: 100% !important;
-            max-width: 100% !important;
+            max-width: 100vw !important;
             margin: 0 !important;
+            padding: 0 !important;
           }
           .landscape-mobile-typing-area {
             flex: 1 !important;
             overflow-y: auto !important;
-            padding: 0.5rem !important;
-          
+            padding: 0.5vh 0.5vw !important;
+            height: 100vh !important;
+            width: calc(100vw - 18vw) !important;
+            max-width: calc(100vw - 18vw) !important;
           }
           .landscape-mobile-sidebar {
-            width: 140px !important;
-            min-width: 140px !important;
+            width: 18vw !important;
+            min-width: 18vw !important;
+            max-width: 18vw !important;
             flex-shrink: 0 !important;
             overflow-y: auto !important;
+            height: 100vh !important;
+            padding: 1vh 1vw !important;
           }
           /* Hide user profile in landscape mobile view */
           .user-profile-landscape {
@@ -568,308 +1392,143 @@ function TypingTutorForm() {
           .font-size-buttons-landscape {
             display: none !important;
           }
-          /* Position absolute for stats div in landscape mobile view only */
-          .stats-container-landscape {
-            position: absolute !important;
-            top: 15px !important;
-            gap: 0px !important;
+          /* Typing area content container */
+          .landscape-mobile-typing-area > div {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 1vh 1vw !important;
+            margin: 0 !important;
           }
-          /* Margin adjustments for cards in landscape mobile view only */
-          .card-correct-landscape {
-            margin-right: 0% !important;
-            margin-left: 22% !important;
+          /* Text display area in landscape */
+          .landscape-mobile-typing-area .text-sm {
+            min-height: 20vh !important;
+            max-height: 25vh !important;
+            font-size: clamp(10px, 2vw, 14px) !important;
+            line-height: 1.4 !important;
           }
-          .card-wrong-landscape {
-            margin-right: 18% !important;
-            margin-left: 2% !important;
+          /* Textarea in landscape */
+          .landscape-mobile-typing-area textarea {
+            min-height: 12vh !important;
+            max-height: 15vh !important;
+            font-size: clamp(10px, 2vw, 14px) !important;
+            padding: 1vh 1vw !important;
+            width: 100% !important;
           }
-          .card-total-landscape {
-            margin-left: 10% !important;
-            margin-right: 4% !important;
+          /* Buttons container in landscape */
+          .landscape-mobile-typing-area ~ div {
+            margin-top: 1vh !important;
+            gap: 1vw !important;
           }
-          .card-backspace-landscape {
-            margin-left: 0% !important;
-            margin-right: 10% !important;
+          /* Button sizes in landscape */
+          .landscape-mobile-typing-area ~ div button {
+            padding: 1vh 3vw !important;
+            font-size: clamp(10px, 2vw, 14px) !important;
+            min-height: 5vh !important;
           }
-          /* Margin top for time div in landscape mobile view only */
-          .time-container-landscape {
-            margin-top: 30px !important;
-            margin-left: 49% !important;
+          /* Stats cards in landscape sidebar */
+          .landscape-mobile-sidebar > div > div {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: 5vh !important;
+            min-height: 5vh !important;
+            margin-bottom: 0.5vh !important;
+          }
+          .landscape-mobile-sidebar > div > div > div:first-child {
+            font-size: clamp(8px, 1.5vw, 10px) !important;
+            padding: 0.3vh 0 !important;
+          }
+          .landscape-mobile-sidebar > div > div > div:last-child {
+            font-size: clamp(10px, 2vw, 14px) !important;
+            padding: 0.5vh 0 !important;
+          }
+          /* Timer boxes in landscape */
+          .landscape-mobile-sidebar .flex.gap-2 {
+            gap: 0.5vw !important;
+            margin-top: 0.5vh !important;
+          }
+          .landscape-mobile-sidebar .flex.gap-2 > div {
+            height: 5vh !important;
+            min-height: 5vh !important;
+            flex: 1 !important;
+          }
+          .landscape-mobile-sidebar .flex.gap-2 > div > div:first-child {
+            font-size: clamp(8px, 1.5vw, 10px) !important;
+            padding: 0.3vh 0 !important;
+          }
+          .landscape-mobile-sidebar .flex.gap-2 > div > div:last-child {
+            font-size: clamp(10px, 2vw, 14px) !important;
+            padding: 0.5vh 0 !important;
+          }
+          /* Close button in landscape */
+          .landscape-mobile-sidebar button,
+          .landscape-mobile-typing-area ~ button {
+            padding: 0.8vh 2vw !important;
+            font-size: clamp(9px, 1.8vw, 12px) !important;
+            min-height: 4vh !important;
+          }
+          /* Word line height in landscape */
+          .landscape-mobile-typing-area p {
+            height: auto !important;
+            min-height: 3vh !important;
+            margin-bottom: 0.3vh !important;
+            font-size: clamp(10px, 2vw, 14px) !important;
+          }
+          /* Completed test message in landscape */
+          .landscape-mobile-typing-area .bg-green-50 {
+            padding: 1.5vh 1.5vw !important;
+            margin-bottom: 1vh !important;
+          }
+          .landscape-mobile-typing-area .bg-green-50 h2 {
+            font-size: clamp(12px, 2.5vw, 18px) !important;
+            margin-bottom: 1vh !important;
+          }
+          .landscape-mobile-typing-area .bg-green-50 .grid {
+            gap: 1vw !important;
+            margin-bottom: 1vh !important;
+          }
+          .landscape-mobile-typing-area .bg-green-50 .text-2xl {
+            font-size: clamp(14px, 3vw, 20px) !important;
+          }
+          .landscape-mobile-typing-area .bg-green-50 .text-sm {
+            font-size: clamp(9px, 1.8vw, 12px) !important;
+          }
+          .landscape-mobile-typing-area .bg-green-50 button {
+            padding: 1vh 2.5vw !important;
+            font-size: clamp(10px, 2vw, 14px) !important;
+            min-height: 4.5vh !important;
+          }
+          /* Loading spinner in landscape */
+          .landscape-mobile-typing-area .animate-spin {
+            width: 4vw !important;
+            height: 4vw !important;
+            min-width: 30px !important;
+            min-height: 30px !important;
+          }
+          /* Ensure all text is readable in landscape */
+          .landscape-mobile-typing-area,
+          .landscape-mobile-sidebar {
+            font-size: clamp(10px, 2vw, 14px) !important;
+          }
+          /* Scrollbar styling for landscape */
+          .landscape-mobile-typing-area::-webkit-scrollbar,
+          .landscape-mobile-sidebar::-webkit-scrollbar {
+            width: 0.5vw !important;
+          }
+          .landscape-mobile-typing-area::-webkit-scrollbar-thumb,
+          .landscape-mobile-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3) !important;
+            border-radius: 0.25vw !important;
           }
         }
       `}</style>
       <div className={`max-w-7xl mx-auto mt-30 md:mt-15 ${isMobile && isLandscape ? "landscape-mobile-container" : ""}`}>
-       <button className="hidden md:absolute md:right-22 md:top-6 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md md:block">
-  <a href="/skill_test">close</a>
-</button>
-
-
-        <div className={`flex ${isMobile && isLandscape ? "flex-row" : "flex-col-reverse lg:flex-row"} gap-6`}>
-          
-          {/* Typing Area */}
-          <div className={`${isMobile && isLandscape ? "landscape-mobile-typing-area" : "w-[90%] lg:w-[110%]  mx-auto "}`}>
-          {(!isMobile || !isLandscape) && (
-            <p className="block lg:hidden text-md mb-15 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-center font-bold">
-              Typing Tutor
-              <br />
-              <span className="text-xs font-normal text-white">(Type the words as they appear below)</span>
-            </p>
-          )}
-
-            <div className={`bg-white ${isMobile && isLandscape ? "p-2" : "p-4 mr-10 md:p-6"} rounded-xl shadow-lg ${isMobile && isLandscape ? "" : "ml-5 mt-[-25]"}`}>
-              {/* Results Display */}
-              {isCompleted && (
-                <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
-                  <h2 className="text-xl font-bold text-green-800 mb-3">Test Completed!</h2>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{wpm}</div>
-                      <div className="text-sm text-green-700">WPM</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
-                      <div className="text-sm text-green-700">Accuracy</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
-                      <div className="text-sm text-green-700">Time</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{correctWords.length}</div>
-                      <div className="text-sm text-green-700">Correct</div>
-                    </div>
-                  </div>
-                  <div className="flex gap-3 justify-center">
-                    <button
-                      onClick={handleDownloadPDF}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
-                    >
-                      Download PDF
-                    </button>
-                    <button
-                      onClick={handleReset}
-                      className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
-                    >
-                      Try Again
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                  <p>Loading exercise content...</p>
-                </div>
-              ) : content.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <p>No content available for this exercise.</p>
-                </div>
-              ) : (
-                <>
-                  <div className={`text-sm leading-relaxed mb-4 overflow-auto ${isMobile && isLandscape ? "min-h-[150px] max-h-[200px]" : "min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px]"} mt-4 break-words font-sans`}>
-                    {renderColoredWords()}
-                  </div>
-                  <textarea
-                    value={typedText}
-                    onChange={handleChange}
-                    disabled={isPaused || isCompleted}
-                    className={`w-full ${isMobile && isLandscape ? "min-h-[100px] max-h-[150px]" : "min-h-[100px] max-h-[100px] md:min-h-[80px] md:max-h-[100px] lg:min-h-[180px] lg:max-h-[220px]"} p-2 border-t border-gray-400 rounded-md focus:outline-none mt-4 disabled:opacity-50`}
-                    placeholder={isMobile && isLandscape ? "Type Here..." : "Start typing here..."}
-                    style={{ fontSize: `${fontSize}px` }}
-                  />
-                </>
-              )}
-            </div>
-            <div className={`flex justify-center ${isMobile && isLandscape ? "mt-2" : "mt-5"} gap-6 flex-wrap`}>
-              {!isMobile || !isLandscape ? (
-                <>
-                  <button
-                    onClick={handleReset}
-                    className="bg-pink-500 text-lg cursor-pointer hover:bg-orange-500 text-white px-8 py-1 rounded shadow"
-                  >
-                    Reset
-                  </button>
-                  <button
-                    onClick={togglePause}
-                    disabled={isCompleted}
-                    className="bg-blue-600 cursor-pointer text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow"
-                  >
-                    {isPaused ? "Resume" : "Pause"}
-                  </button>
-                </>
-              ) : null}
-              <button
-                onClick={handleCompletion}
-                disabled={!startTime || isCompleted}
-                className={`${isMobile && isLandscape ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"} cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold`}
-              >
-                {isMobile && isLandscape ? "Submit Test" : "Submit"}
-              </button>
-            </div>
-          </div>
-
-          {/* Sidebar */}
-          <div className={`${isMobile && isLandscape ? "landscape-mobile-sidebar" : "w-full lg:w-[20%]"} text-white p-3 ${isMobile && isLandscape ? "static" : "fixed top-0 mt-[-15] left-0 z-50"} bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat lg:static lg:bg-none lg:bg-transparent`}>
-           <button className="absolute md:hidden right-3 top-5 md:right-22 md:top-86 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md ">
-  <a href="/skill_test">close</a>
-</button>
-
-            <div className="flex flex-col items-center space-y-1 mt-[-18]">
-              {/* Hide profile in portrait view only */}
-              {!isMobile || isLandscape ? (
-                <div className="user-profile-landscape mb-4">
-                  <img
-                    src={userProfileUrl}
-                    alt={userName}
-                    className="w-20 h-20 md:w-30 md:h-25 rounded-md border-2 border-white"
-                    onError={(e) => {
-                      e.target.src = "/lo.jpg";
-                    }}
-                  />
-                  <p className="font-semibold text-xs text-center">{userName}</p>
-                  {backspaceLimit !== null && (
-                    <p className="text-xs text-yellow-300 mt-1">
-                      Backspace: {backspaceCount}/{backspaceLimit}
-                    </p>
-                  )}
-                </div>
-              ) : null}
-
-              {/* Landscape Mobile: Single column layout with all stats */}
-              {isMobile && isLandscape ? (
-                <div className="flex flex-col gap-2 w-full max-w-[120px] items-center">
-                  {/* Correct Card */}
-                  <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-                    <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Correct</div>
-                    <div className="bg-white text-green-600 text-sm font-bold">{correctWords.length}</div>
-                  </div>
-                  {/* Wrong Card */}
-                  <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-                    <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Wrong</div>
-                    <div className="bg-white text-red-500 text-sm font-bold">{wrongWords.length}</div>
-                  </div>
-                  {/* Total Card */}
-                  <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-                    <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Total</div>
-                    <div className="bg-white text-[#290c52] text-sm font-bold">{words.length}</div>
-                  </div>
-                  {/* Speed Card */}
-                  <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-                    <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Speed</div>
-                    <div className="bg-white text-black text-sm font-bold">{wpm}</div>
-                  </div>
-                  {/* Accuracy Card */}
-                  <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-                    <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Accuracy</div>
-                    <div className="bg-white text-black text-sm font-bold">{accuracy.toFixed(1)}%</div>
-                  </div>
-                  {/* Backspace Card */}
-                  <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-                    <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Backspace</div>
-                    <div className="bg-white text-blue-500 text-sm font-bold">{backspaceCount}</div>
-                  </div>
-                  {/* Timer - Two separate dark blue boxes */}
-                  <div className="flex gap-2 w-full mt-1">
-                    <div className="flex-1 h-9 rounded-lg overflow-hidden text-center bg-blue-900 border-2 border-blue-700">
-                      <div className="bg-blue-800 text-white text-[10px] font-semibold py-[1px]">Min</div>
-                      <div className="bg-blue-900 text-white text-sm font-bold">
-                        {isCompleted ? formatMinutes(elapsedTime) : formatMinutes(timeRemaining)}
-                      </div>
-                    </div>
-                    <div className="flex-1 h-9 rounded-lg overflow-hidden text-center bg-blue-900 border-2 border-blue-700">
-                      <div className="bg-blue-800 text-white text-[10px] font-semibold py-[1px]">Sec</div>
-                      <div className="bg-blue-900 text-white text-sm font-bold">
-                        {isCompleted ? formatSeconds(elapsedTime) : formatSeconds(timeRemaining)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {/* Portrait/Desktop: Original layout */}
-                  <div className="w-24 h-9 rounded-lg overflow-hidden mx-auto text-center mt-10 md:mt-5 lg:mt-2 pt-0 md:pt-0 lg:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] time-container-landscape">
-                    <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
-                    <div className="bg-white text-black text-sm font-bold">
-                      {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
-                    </div>
-                  </div>
-                  <div className={`flex grid-cols-1  gap-y-3 mt-2 gap-x-4  md:gap-x-15 lg:gap-x-15 mr-0 md:mr-10 w-[70%] md:w-full text-center lg:landscape:grid lg:grid-cols-2 stats-container-landscape`}>
-                    {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
-                      { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
-                      { label: "Total", value: words.length, color: "text-[#290c52]" },
-                      { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
-                        <div key={i} className={`w-full sm:w-24 h-9 rounded-lg overflow-hidden mx-auto shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] ${label === "Correct" ? "card-correct-landscape" : ""} ${label === "Wrong" ? "card-wrong-landscape" : ""} ${label === "Total" ? "card-total-landscape" : ""} ${label === "Backspace" ? "card-backspace-landscape" : ""}`}>
-                          <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
-                          <div className={`bg-white ${color} text-sm font-bold`}>{value}</div>
-                        </div>
-                      ))}
-                  </div>
-                  {isCompleted && (
-                    <div className="mt-3 text-center">
-                      <div className="bg-white text-black px-4 py-2 rounded-lg shadow-md">
-                        <div className="text-xs font-semibold mb-1">Accuracy</div>
-                        <div className="text-lg font-bold text-green-600">{accuracy}%</div>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Speedometer */}
-              <div className="hidden lg:block mt-4">
-                <div className="border-6 border-black rounded-full mt-2">
-                  <div className="relative w-24 h-24 bg-black rounded-full border-4 border-white flex items-center justify-center">
-                    <div className="absolute left-1 text-red-500 text-[8px] font-bold tracking-widest">SPEED</div>
-                    <svg width="100" height="100" viewBox="0 0 100 100">
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                        y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                        stroke="red"
-                        strokeWidth="2"
-                      />
-                      {Array.from({ length: 9 }).map((_, i) => {
-                        const startAngle = (-Math.PI * 5) / 6;
-                        const endAngle = (Math.PI * 5) / 6;
-                        const angle = startAngle + (i / 8) * (endAngle - startAngle);
-                        const x = 50 + 40 * Math.cos(angle);
-                        const y = 50 + 42 * Math.sin(angle);
-                        return (
-                          <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
-                            {(i + 1) * 10}
-                          </text>
-                        );
-                      })}
-                    </svg>
-                    <span className="absolute bottom-5 text-red-500 font-bold text-xs">{wpm}</span>
-                  </div>
-                </div>
-              </div>
-
-             <div className="hidden md:flex flex-col items-center justify-center gap-1 font-size-buttons-landscape">
-  <p className="text-center text-sm mb-1">Font Size</p>
-  <div className="flex justify-center gap-3">
-    <button
-      onClick={decreaseFont}
-      className="bg-white text-black border-3 cursor-pointer border-black px-5 py-[2px] text-xs rounded-md"
-    >
-      A -
-    </button>
-    <button
-      onClick={increaseFont}
-      className="bg-white text-black cursor-pointer border-3 border-black px-5 py-[2px] text-xs rounded-md"
-    >
-      A +
-    </button>
-  </div>
-</div>
-
-            </div>
-          </div>
-          {/* End Sidebar */}
-        </div>
+        {!isMobile ? (
+          <DesktopView {...commonProps} />
+        ) : isLandscape ? (
+          <LandscapeView {...commonProps} />
+        ) : (
+          <PortraitView {...commonProps} />
+        )}
       </div>
     </div>
   );

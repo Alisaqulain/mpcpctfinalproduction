@@ -124,24 +124,302 @@ const App = () => {
   const backgroundImageStyle = { backgroundImage: "url('/b.jpg')" };
 
   return (
-    <div
-      className="min-h-screen bg-cover bg-center bg-no-repeat"
-      style={backgroundImageStyle}
-    >
-      <div className="min-h-screen bg-opacity-60">
+    <>
+      <style jsx>{`
+        /* ============================================
+           FIXED LAYOUT MEDIA QUERIES - Desktop View
+           UI structure remains same, only sizes adjust
+           ============================================ */
+        
+        /* Base desktop styles - maintain fixed layout */
+        @media (min-width: 1024px) {
+          .home-container {
+            max-width: 100%;
+            margin: 0 auto;
+          }
+          
+          .home-title {
+            font-size: 3rem !important;
+            line-height: 1.2 !important;
+          }
+          
+          .home-subtitle {
+            font-size: 1.125rem !important;
+          }
+          
+          .home-card-container {
+            gap: 2rem !important;
+            margin-left: 7rem !important;
+            margin-top: 5rem !important;
+          }
+          
+          .home-card {
+            width: 18rem !important;
+            height: 16rem !important;
+            border-width: 0.5rem !important;
+          }
+          
+          .home-card-image {
+            height: 12rem !important;
+          }
+          
+          .home-card-text {
+            font-size: 1.125rem !important;
+            padding: 1rem !important;
+          }
+          
+          .home-login-box {
+            width: 12rem !important;
+            height: 38.75rem !important;
+            padding: 1rem !important;
+            right: -15px !important;
+            top: 0 !important;
+            margin-top: -9.1875rem !important;
+          }
+          
+          .home-welcome-text {
+            font-size: 1.20rem !important;
+            padding-top: 1.75rem !important;
+            padding-bottom: 1.5rem !important;
+            top: -9.25rem !important;
+          }
+          
+          .home-info-box {
+            margin-top: 8.75rem !important;
+            padding: 1rem !important;
+          }
+          
+          .home-info-title {
+            font-size: 3rem !important;
+            padding-top: 1.25rem !important;
+          }
+          
+          .home-info-subtitle {
+            font-size: 1.25rem !important;
+            margin-top: 1.5rem !important;
+          }
+          
+          .home-info-tip {
+            font-size: 1.125rem !important;
+            margin-top: 1rem !important;
+            padding-left: 12.5rem !important;
+          }
+        }
+        
+        /* Large desktop screens (1400px+) */
+        @media (min-width: 1400px) {
+          .home-title {
+            font-size: 3.5rem !important;
+          }
+          
+          .home-subtitle {
+            font-size: 1.25rem !important;
+          }
+          
+          .home-card-container {
+            gap: 2.5rem !important;
+            margin-left: 8rem !important;
+          }
+          
+          .home-card {
+            width: 20rem !important;
+            height: 18rem !important;
+          }
+          
+          .home-card-image {
+            height: 13.5rem !important;
+          }
+          
+          .home-card-text {
+            font-size: 1.25rem !important;
+          }
+          
+          .home-login-box {
+            width: 13rem !important;
+            height: 40rem !important;
+          }
+          
+          .home-info-title {
+            font-size: 3.5rem !important;
+          }
+          
+          .home-info-subtitle {
+            font-size: 1.375rem !important;
+          }
+          
+          .home-info-tip {
+            font-size: 1.25rem !important;
+            padding-left: 14rem !important;
+          }
+        }
+        
+        /* Extra large desktop screens (1920px+) */
+        @media (min-width: 1920px) {
+          .home-title {
+            font-size: 4rem !important;
+          }
+          
+          .home-subtitle {
+            font-size: 1.375rem !important;
+          }
+          
+          .home-card-container {
+            gap: 3rem !important;
+            margin-left: 9rem !important;
+          }
+          
+          .home-card {
+            width: 22rem !important;
+            height: 20rem !important;
+            border-width: 0.625rem !important;
+          }
+          
+          .home-card-image {
+            height: 15rem !important;
+          }
+          
+          .home-card-text {
+            font-size: 1.375rem !important;
+            padding: 1.25rem !important;
+          }
+          
+          .home-login-box {
+            width: 14rem !important;
+            height: 42rem !important;
+          }
+          
+          .home-info-title {
+            font-size: 4rem !important;
+          }
+          
+          .home-info-subtitle {
+            font-size: 1.5rem !important;
+          }
+          
+          .home-info-tip {
+            font-size: 1.375rem !important;
+            padding-left: 16rem !important;
+          }
+        }
+        
+        /* Medium desktop screens (1200px - 1399px) */
+        @media (min-width: 1200px) and (max-width: 1399px) {
+          .home-title {
+            font-size: 2.75rem !important;
+          }
+          
+          .home-subtitle {
+            font-size: 1rem !important;
+          }
+          
+          .home-card-container {
+            gap: 1.75rem !important;
+            margin-left: 9rem !important;
+          }
+          
+          .home-card {
+            width: 17rem !important;
+            height: 15rem !important;
+          }
+          
+          .home-card-image {
+            height: 11rem !important;
+          }
+          
+          .home-card-text {
+            font-size: 1rem !important;
+          }
+          
+          .home-login-box {
+            width: 11.5rem !important;
+            height: 37.5rem !important;
+          }
+          
+          .home-info-title {
+            font-size: 2.75rem !important;
+          }
+          
+          .home-info-subtitle {
+            font-size: 1.125rem !important;
+          }
+          
+          .home-info-tip {
+            font-size: 1rem !important;
+            padding-left: 11rem !important;
+          }
+        }
+        
+        /* Small desktop screens (1024px - 1199px) */
+        @media (min-width: 1024px) and (max-width: 1199px) {
+          .home-title {
+            font-size: 2.5rem !important;
+          }
+          
+          .home-subtitle {
+            font-size: 0.9375rem !important;
+          }
+          
+          .home-card-container {
+            gap: 1.5rem !important;
+            margin-left: 4rem !important;
+          }
+          
+          .home-card {
+            width: 16rem !important;
+            height: 14rem !important;
+          }
+          
+          .home-card-image {
+            height: 10rem !important;
+          }
+          
+          .home-card-text {
+            font-size: 0.9375rem !important;
+          }
+          
+          .home-login-box {
+            width: 11rem !important;
+            height: 36rem !important;
+          }
+          
+          .home-info-title {
+            font-size: 2.5rem !important;
+          }
+          
+          .home-info-subtitle {
+            font-size: 1rem !important;
+          }
+          
+          .home-info-tip {
+            font-size: 0.9375rem !important;
+            padding-left: 10rem !important;
+          }
+        }
+        
+        /* Tablet and below - keep existing responsive behavior */
+        @media (max-width: 1023px) {
+          /* Keep existing mobile/tablet styles */
+        }
+      `}</style>
+      
+      <div
+        className="min-h-screen bg-cover bg-center bg-no-repeat"
+        style={backgroundImageStyle}
+      >
+      <div className="min-h-screen bg-opacity-60 home-container">
         <div className="p-4">
-          <div className="text-center md:text-left ml-0 md:ml-37 md:justify-center mt-4 md:mt-10">
-            <p className="text-2xl md:text-5xl font-bold">
+          <div className="text-center md:text-left ml-0 md:ml-47 md:justify-center mt-4 md:mt-10">
+            <p className="text-2xl md:text-5xl font-bold home-title">
               Empower Your Future with MPCPCT
             </p>
-            <p className="text-sm md:text-lg ml-0 md:ml-28 md:justify-center mt-2 md:mt-4">
+            <p className="text-sm md:text-lg ml-0 md:ml-28 md:justify-center mt-2 md:mt-4 home-subtitle">
               Learn typing and computer skills interactively to prepare for
               government roles
             </p>
           </div>
 
           <div className="flex flex-col lg:flex-row justify-between gap-4 md:gap-6 relative">
-            <div className="flex justify-center ml-0 md:ml-28 md:justify-start mt-10 md:mt-20 animate-fadeInUp gap-4 md:gap-8 lg:gap-x-8 lg:gap-y-6 w-full">
+            <div className="flex justify-center ml-0 md:ml-28 md:justify-start mt-10 md:mt-20 animate-fadeInUp gap-4 md:gap-8 lg:gap-x-8 lg:gap-y-6 w-full home-card-container">
               {items.map(({ label, img }) => {
                 let colorClass = "bg-red-600";
                 if (label === "Learning") colorClass = "bg-green-800";
@@ -151,9 +429,9 @@ const App = () => {
                 const card = (
                   <div
                     key={label}
-                    className="w-full sm:w-72 h-auto md:h-64 rounded-xl overflow-hidden shadow-md border-4 md:border-8 border-[#290c52] bg-white cursor-pointer transform transition-transform duration-300 hover:scale-105"
+                    className="w-full sm:w-72 h-auto md:h-64 rounded-xl overflow-hidden shadow-md border-4 md:border-8 border-[#290c52] bg-white cursor-pointer transform transition-transform duration-300 hover:scale-105 home-card"
                   >
-                    <div className="h-20 w-full md:h-48 md:w-full">
+                    <div className="h-20 w-full md:h-48 md:w-full home-card-image">
                       <img
                         src={img}
                         alt={label + " icon"}
@@ -163,7 +441,7 @@ const App = () => {
                     <div
                       className={
                         colorClass +
-                        " text-white text-center py-1 md:py-4 text-[10px] md:text-lg font-semibold md:font-bold"
+                        " text-white text-center py-1 md:py-4 text-[10px] md:text-lg font-semibold md:font-bold home-card-text"
                       }
                     >
                       {label}
@@ -196,7 +474,7 @@ const App = () => {
 
             {/* RIGHT SIDE LOGIN / LOGGED IN BOX */}
             {isAuthenticated ? (
-              <div className="w-full lg:w-48 border border-[#290c52] bg-gray-50 shadow-md p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:h-[620px] rounded animate-fadeInUp lg:mt-[-147px] flex flex-col items-center justify-center">
+              <div className="w-full lg:w-48 border border-[#290c52] bg-gray-50 shadow-md p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:h-[620px] rounded animate-fadeInUp lg:mt-[-147px] flex flex-col items-center justify-center home-login-box">
                 <div className="text-center">
                   <div className="text-green-700 text-xl font-semibold">
                     You are logged in
@@ -223,13 +501,13 @@ const App = () => {
               </div>
             ) : (
               <>
-                <span className="text-pink-300 font-semibold text-[20px] border-l border-[#290c52] bg-[#290c52] pt-4 md:pt-7 pb-0 md:pb-6 text-center w-full lg:w-48 absolute right-0 lg:right-[-16px] z-10 top-[155px] rounded-tl-lg rounded-tr-lg md:rounded-none lg:top-[-148px]">
+                <span className="text-pink-300 font-semibold text-[20px] border-l border-[#290c52] bg-[#290c52] pt-4 md:pt-7 pb-0 md:pb-6 text-center w-full lg:w-46 absolute right-0 lg:right-[-16px] z-10 top-[155px] rounded-tl-lg rounded-tr-lg md:rounded-none lg:top-[-148px] home-welcome-text">
                   Welcome Back
                 </span>
 
-                <div className="w-full lg:w-48 border border-[#290c52] bg-gray-50 shadow-md p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:h-[620px] rounded animate-fadeInUp lg:mt-[-147px]">
-                  <div className="font-semibold text-pink-300 text-xl text-center">
-                    <span className="font-normal text-black text-sm md:text-[14px] block md:inline md:ml-2">
+                <div className="w-full lg:w-48 border border-[#290c52] bg-gray-50 shadow-md p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:h-[620px] rounded animate-fadeInUp lg:mt-[-147px] home-login-box">
+                  <div className="font-semibold text-pink-300 text-xl text-center mt-0 md:mt-16">
+                    <span className="font-normal text-black text-sm md:text-[14px] block md:inline md:ml-2 ">
                       Login to your MPCPCT Account
                     </span>
                   </div>
@@ -344,21 +622,21 @@ const App = () => {
             )}
           </div>
 
-          <div className="mt-18 md:mt-35 w-full bg-pink-100 bg-opacity-70 text-black p-4 rounded shadow text-sm">
+          <div className="mt-18 md:mt-35 w-full bg-pink-100 bg-opacity-70 text-black p-4 rounded shadow text-sm home-info-box">
             <div className="text-center">
-              <p className="text-2xl md:text-5xl pt-3 md:pt-5 font-semibold">
+              <p className="text-2xl md:text-5xl pt-3 md:pt-5 font-semibold home-info-title">
                 Welcome to our website<br />
                 <span className="text-[#290c52] text-4xl">MPCPCT.COM</span>
               </p>
             </div>
             <div className="text-center">
-              <p className="text-base md:text-xl mt-3 md:mt-6">
+              <p className="text-base md:text-xl mt-3 md:mt-6 home-info-subtitle">
                 MPCPCT is a user-friendly learning website that helps you learn,
                 practice, and improve your typing speed and accuracy.
               </p>
             </div>
             <div className="text-center md:text-left">
-              <p className="text-sm md:text-lg mt-2 md:mt-4 md:pl-50">
+              <p className="text-sm md:text-lg mt-2 md:mt-4 md:pl-50 home-info-tip">
                 <span className="font-semibold">Tip:</span>{" "}
                 <span className="font-semibold text-red-600">
                   For taking a typing test on a mobile phone, connect your
@@ -370,6 +648,7 @@ const App = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

@@ -238,7 +238,7 @@ function SkillTestResultContent() {
           <img
             src="/lo.jpg"
             alt="Student"
-            className="w-24 h-20 border ml-2 absolute top-90 md:top-109"
+            className="w-24 h-20 border ml-2 absolute top-40"
           />
           <p className="uppercase font-bold text-2xl">Result</p>
           <p className="text-3xl md:text-2xl pt-10 md:pt-0">Skill Test Examination 2025 - 26</p>

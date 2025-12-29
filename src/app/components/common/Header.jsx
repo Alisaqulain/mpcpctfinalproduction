@@ -116,124 +116,134 @@ export default function Header() {
 
       {/* Desktop Navigation */}
       <nav className="hidden md:block bg-[#290c52] text-white">
-        <div className="flex items-center justify-between px-4 py-2 md:py-5 relative">
-          <ul className="flex flex-nowrap justify-start items-center space-x-2 md:space-x-12 ">
-            <li className="hover:bg-blue-700 px-3 py-1 rounded ml-0 md:ml-10 md:justify-start"><a href="/">Home</a></li>
+        <div className="flex items-center justify-between px-2 md:px-4 py-2 md:py-5 relative">
+          <ul className="flex flex-nowrap justify-start items-center space-x-1 md:space-x-4 lg:space-x-8 xl:space-x-12">
+            <li className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded ml-0 md:ml-10 md:justify-start">
+              <a href="/" className="text-xs md:text-sm lg:text-base">Home</a>
+            </li>
             <li className="relative">
               <button
                 onClick={() => toggleDropdown("course")}
-                className="hover:bg-blue-700 px-3 py-1 rounded flex items-center gap-1"
+                className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded flex items-center gap-1 text-xs md:text-sm lg:text-base"
               >
                 Course
                 <span
                   className={`transform transition-transform duration-300 ${
                     openDropdown === "course" ? "rotate-180" : "rotate-0"
-                  } text-lg`}
+                  } text-xs md:text-sm lg:text-base`}
                 >
                   ▾
                 </span>
               </button>
               <ul
-                className={`absolute left-0 top-full mt-2 bg-white text-black rounded shadow-md min-w-[160px] z-50 transition-all duration-300 origin-top ${
+                className={`absolute left-0 top-full mt-2 bg-white text-black rounded shadow-md min-w-[140px] md:min-w-[160px] lg:min-w-[180px] z-50 transition-all duration-300 origin-top ${
                   openDropdown === "course" ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
               >
-                <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">
-                  <a href="/learning">Learning</a>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/learning" className="text-xs md:text-sm lg:text-base">Learning</a>
                 </li>
-                <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">
-                  <a href="/skill_test">Skill Test</a>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/skill_test" className="text-xs md:text-sm lg:text-base">Skill Test</a>
                 </li>
-                <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">
-                  <a href="/exam">Exam Mode</a>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/exam" className="text-xs md:text-sm lg:text-base">Exam Mode</a>
                 </li>
-                <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">
-                  <a href="/topicwise">Topic Wise MCQ</a>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/topicwise" className="text-xs md:text-sm lg:text-base">Topic Wise MCQ</a>
                 </li>
               </ul>
             </li>
             <li className="relative">
               <button
                 onClick={() => toggleDropdown("download")}
-                className="hover:bg-blue-700 px-3 py-1 rounded flex items-center gap-1"
+                className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded flex items-center gap-1 text-xs md:text-sm lg:text-base"
               >
                 Download
                 <span
                   className={`transform transition-transform duration-300 ${
                     openDropdown === "download" ? "rotate-180" : "rotate-0"
-                  } text-lg`}
+                  } text-xs md:text-sm lg:text-base`}
                 >
                   ▾
                 </span>
               </button>
               <ul
-                className={`absolute left-0 top-full mt-2 bg-white text-black rounded shadow-md min-w-[160px] z-50 transition-all duration-300 origin-top ${
+                className={`absolute left-0 top-full mt-2 bg-white text-black rounded shadow-md min-w-[140px] md:min-w-[160px] lg:min-w-[180px] z-50 transition-all duration-300 origin-top ${
                   openDropdown === "download" ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
               >
-                <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">
-                  <a href="/notes?type=video_notes">Video Notes</a>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/notes?type=video_notes" className="text-xs md:text-sm lg:text-base">Video Notes</a>
                 </li>
-                <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">
-                  <a href="/notes?type=pdf_notes">Pdf Notes</a>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/notes?type=pdf_notes" className="text-xs md:text-sm lg:text-base">Pdf Notes</a>
                 </li>
-                <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">
-                  <a href="/notes?type=syllabus_pdf">Syllabus PDF</a>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/notes?type=syllabus_pdf" className="text-xs md:text-sm lg:text-base">Syllabus PDF</a>
                 </li>
               </ul>
             </li>
             <li className="relative">
               <button
                 onClick={() => toggleDropdown("ourApp")}
-                className="hover:bg-blue-700 px-3 py-1 rounded flex items-center gap-1"
+                className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded flex items-center gap-1 text-xs md:text-sm lg:text-base"
               >
                 Our App
                 <span
                   className={`transform transition-transform duration-300 ${
                     openDropdown === "ourApp" ? "rotate-180" : "rotate-0"
-                  } text-lg`}
+                  } text-xs md:text-sm lg:text-base`}
                 >
                   ▾
                 </span>
               </button>
               <ul
-                className={`absolute left-0 top-full mt-2 bg-white text-black rounded shadow-md min-w-[160px] z-50 transition-all duration-300 origin-top ${
+                className={`absolute left-0 top-full mt-2 bg-white text-black rounded shadow-md min-w-[140px] md:min-w-[160px] lg:min-w-[180px] z-50 transition-all duration-300 origin-top ${
                   openDropdown === "ourApp" ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
               >
-                <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">
-                  <a href="/android">Android App</a>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/android" className="text-xs md:text-sm lg:text-base">Android App</a>
                 </li>
-                <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">
-                  <a href="/android">iOS App</a>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/android" className="text-xs md:text-sm lg:text-base">iOS App</a>
                 </li>
-                <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer">
-                  <a href="/android">App Features</a>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/android" className="text-xs md:text-sm lg:text-base">App Features</a>
                 </li>
               </ul>
             </li>
-            <li className="hover:bg-blue-700 px-3 py-1 rounded"><a href="/about-us">About us</a></li>
-            <li className="hover:bg-blue-700 px-3 py-1 rounded"><a href="/payment-app">Payment</a></li>
-            <li className="hover:bg-blue-700 px-3 py-1 rounded"><a href="/contact-us">Contact Us</a></li>
-            <li className="hover:bg-blue-700 px-3 py-1 rounded"><a href="/faq">FAQ</a></li>
+            <li className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded">
+              <a href="/about-us" className="text-xs md:text-sm lg:text-base">About us</a>
+            </li>
+            <li className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded">
+              <a href="/payment-app" className="text-xs md:text-sm lg:text-base">Payment</a>
+            </li>
+            <li className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded">
+              <a href="/contact-us" className="text-xs md:text-sm lg:text-base">Contact Us</a>
+            </li>
+            <li className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded">
+              <a href="/faq" className="text-xs md:text-sm lg:text-base">FAQ</a>
+            </li>
           </ul>
-          <div className="flex items-center space-x-4 ml-4">
+          <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-4 ml-2 md:ml-4">
             {isAuthenticated ? (
               <>
                 <a href="/profile" className="text-white hover:text-blue-300 transition-colors" title="Profile">
-                  <FaUserCircle size={24} />
+                  <FaUserCircle className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7" />
                 </a>
                 <button
                   onClick={handleLogout}
-                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors text-xs"
+                  className="bg-red-500 text-white px-2 md:px-3 py-1 rounded hover:bg-red-600 transition-colors text-xs md:text-sm lg:text-base"
                 >
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <a href="/login" className="bg-white text-black px-3 py-1 rounded hover:bg-gray-100 transition-colors text-xs">Login</a>
-                <a href="/signup" className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors text-xs">Signup</a>
+                <a href="/login" className="bg-white text-black px-2 md:px-3 py-1 rounded hover:bg-gray-100 transition-colors text-xs md:text-sm lg:text-base">Login</a>
+                <a href="/signup" className="bg-blue-500 text-white px-2 md:px-3 py-1 rounded hover:bg-blue-600 transition-colors text-xs md:text-sm lg:text-base">Signup</a>
               </>
             )}
           </div>

@@ -207,10 +207,10 @@ export default function TypingTutor() {
   const settings = learningData.settings || getSettings();
 
   return (
-    <div className="bg-white font-sans min-h-screen p-4">
+    <div className="bg-white font-sans min-h-screen">
       {/* Progress Stats Banner */}
       {stats && (
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-lg mb-4">
+        <div className="bg-[#290c52] text-white p-4  mb-4">
           <div className="flex flex-wrap justify-between items-center">
   <h1 className="text-2xl font-bold text-center w-full text-yellow-400">Learning</h1>
 </div>
@@ -337,7 +337,7 @@ export default function TypingTutor() {
       {/* Main Content Section */}
       <div className="flex flex-row min-h-screen bg-blue-200 bg-[url('/bg.jpg')]">
         {/* Sidebar Navigation */}
-        <div className="w-32 bg-transparent text-white pt-14 space-y-17 text-xl md:text-4xl pl-2 md:pl-10 flex flex-col">
+        <div className="w-32 bg-transparent text-white pt-14 space-y-17 text-1rem md:text-4xl pl-2 md:pl-10 flex flex-col">
           {learningData.sections?.map((section, index) => (
             <p
               key={section.id}
@@ -419,7 +419,7 @@ export default function TypingTutor() {
                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                           {lesson.difficulty}
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="hidden md:inline text-xs text-gray-500">
                           {lesson.estimatedTime}
   </span>
                         {isLocked && (
@@ -451,9 +451,9 @@ export default function TypingTutor() {
                   <div className="mt-3">
                     <a
                       href={`/tips/home?lesson=${selectedCheckbox.id}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}`}
-                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors text-sm text-center block"
+                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors text-2xl text-center block"
                     >
-                      ⌨️ Start 
+                      Start 
                     </a>
                   </div>
                 </div>

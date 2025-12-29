@@ -335,9 +335,9 @@ export default function TypingTutor() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-6 font-sans">
+    <div className="min-h-screen bg-white font-sans">
       {/* Header */}
-      <div className="bg-[#290c52] text-yellow-400 p-3 md:p-4 rounded-t-lg shadow-md mb-4">
+      <div className="bg-[#290c52] text-yellow-400 p-3 md:p-4  shadow-md mb-4">
         <h1 className="text-lg md:text-2xl font-bold text-center">Skill Test</h1>
       </div>
 
@@ -594,7 +594,7 @@ export default function TypingTutor() {
               </div>
             )}
             <div
-              className="h-[450px] overflow-y-auto pr-2 border border-gray-300 rounded-lg bg-white shadow-inner"
+              className=" h-[200px] md:h-[450px] overflow-y-scroll pr-2 border border-gray-300 rounded-lg bg-white shadow-inner"
               style={{
                 scrollbarWidth: "thin",
                 scrollbarColor: "#a0aec0 #f1f1f1",
@@ -603,6 +603,8 @@ export default function TypingTutor() {
               <style jsx>{`
                 div::-webkit-scrollbar {
                   width: 8px;
+                  display: block;
+                  -webkit-appearance: none;
                 }
                 div::-webkit-scrollbar-track {
                   background: #f1f1f1;
@@ -614,6 +616,21 @@ export default function TypingTutor() {
                 }
                 div::-webkit-scrollbar-thumb:hover {
                   background-color: #718096;
+                }
+                @media (max-width: 768px) {
+                  div::-webkit-scrollbar {
+                    width: 8px;
+                    display: block !important;
+                    -webkit-appearance: none;
+                  }
+                  div::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 4px;
+                  }
+                  div::-webkit-scrollbar-thumb {
+                    background-color: #a0aec0;
+                    border-radius: 4px;
+                  }
                 }
               `}</style>
 
@@ -718,7 +735,7 @@ export default function TypingTutor() {
                 </div>
               )}
             </div>
-            <div className="border-2 border-gray-300 p-4 md:p-6 text-sm md:text-base leading-relaxed h-[450px] overflow-y-auto bg-gray-50 rounded-lg shadow-inner font-serif">
+            <div className="border-2 border-gray-300 p-4 md:p-6 text-sm md:text-base leading-relaxed h-[150px] md:h-[450px] overflow-y-auto bg-gray-50 rounded-lg shadow-inner font-serif">
               {previewContent ? (
                 <div className="text-gray-800 whitespace-pre-wrap">{previewContent}</div>
               ) : (
