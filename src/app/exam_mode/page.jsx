@@ -274,13 +274,32 @@ function ExamModeContent() {
               
               // If section parameter exists, use it
               if (sectionParam) {
-                const foundSection = data.data.sections.find(s => s.name === sectionParam);
+                // Decode the section parameter and trim whitespace
+                const decodedSectionParam = decodeURIComponent(sectionParam).trim();
+                console.log('Looking for section from URL parameter:', decodedSectionParam);
+                console.log('Available sections:', data.data.sections.map(s => s.name));
+                
+                // Try exact match first
+                let foundSection = data.data.sections.find(s => s.name === decodedSectionParam);
+                
+                // If not found, try case-insensitive match
+                if (!foundSection) {
+                  foundSection = data.data.sections.find(s => 
+                    s.name.toLowerCase().trim() === decodedSectionParam.toLowerCase().trim()
+                  );
+                }
+                
                 if (foundSection) {
                   targetSectionName = foundSection.name;
+                  console.log('Found section:', targetSectionName);
+                } else {
+                  console.warn('Section parameter not found:', decodedSectionParam);
+                  console.warn('Available sections are:', data.data.sections.map(s => s.name));
                 }
               }
               
               setSection(targetSectionName);
+              setCurrentQuestionIndex(0); // Reset to first question when changing sections
               
               // Set first part as default if section has parts
               const targetSection = data.data.sections.find(s => s.name === targetSectionName) || data.data.sections[0];
@@ -300,8 +319,9 @@ function ExamModeContent() {
                 setSelectedPart(null);
               }
               
-              // Mark first question of first section as visited
-              const firstQuestion = questionsBySection[firstSectionName]?.[0];
+              // Mark first question of TARGET section as visited (not first section)
+              const targetSectionQuestions = questionsBySection[targetSectionName] || [];
+              const firstQuestion = targetSectionQuestions[0];
               if (firstQuestion?._id) {
                 setVisitedQuestions(prev => {
                   const newSet = new Set([...prev, firstQuestion._id]);
@@ -320,7 +340,8 @@ function ExamModeContent() {
             const savedCompletedSections = localStorage.getItem('completedSections');
             if (savedCompletedSections) {
               try {
-                setCompletedSections(new Set(JSON.parse(savedCompletedSections)));
+                const completedArray = JSON.parse(savedCompletedSections);
+                setCompletedSections(new Set(completedArray));
               } catch (e) {
                 console.error('Error loading completed sections:', e);
               }
@@ -374,6 +395,39 @@ function ExamModeContent() {
 
     loadExamData();
   }, [searchParams]);
+
+  // Handle section change from URL parameter after sections are loaded
+  useEffect(() => {
+    if (sections.length > 0 && searchParams) {
+      const sectionParam = searchParams.get('section');
+      if (sectionParam) {
+        const decodedSectionParam = decodeURIComponent(sectionParam).trim();
+        const foundSection = sections.find(s => 
+          s.name === decodedSectionParam || 
+          s.name.toLowerCase().trim() === decodedSectionParam.toLowerCase().trim()
+        );
+        if (foundSection && foundSection.name !== section) {
+          console.log('URL section parameter changed, updating to:', foundSection.name);
+          setSection(foundSection.name);
+          setCurrentQuestionIndex(0);
+          
+          // Set first part for the new section
+          const targetSectionParts = parts.filter(p => {
+            const pSectionId = String(p.sectionId).trim();
+            const secIdStr = String(foundSection.id).trim();
+            const secIdObj = String(foundSection._id).trim();
+            return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === foundSection._id.toString();
+          }).sort((a, b) => (a.order || 0) - (b.order || 0));
+          
+          if (targetSectionParts.length > 0) {
+            setSelectedPart(targetSectionParts[0].name);
+          } else {
+            setSelectedPart(null);
+          }
+        }
+      }
+    }
+  }, [sections, parts, searchParams, section]);
 
   // Load tick sound after user interaction
   useEffect(() => {
@@ -630,37 +684,63 @@ function ExamModeContent() {
     }
   }, [markedForReview]);
 
+  // Load completed sections from localStorage on mount and when section changes
+  // This ensures completed sections persist and are never lost
+  useEffect(() => {
+    const savedCompletedSections = localStorage.getItem('completedSections');
+    if (savedCompletedSections) {
+      try {
+        const completedArray = JSON.parse(savedCompletedSections);
+        setCompletedSections(new Set(completedArray));
+      } catch (e) {
+        console.error('Error loading completed sections:', e);
+      }
+    }
+  }, [section]); // Reload when section changes to ensure state is preserved
+
+  // Sync completed sections to localStorage whenever they change
+  // This ensures any programmatic changes are saved
+  useEffect(() => {
+    if (completedSections.size > 0) {
+      localStorage.setItem('completedSections', JSON.stringify([...completedSections]));
+    }
+  }, [completedSections]);
+
   // Handle section submission
   const handleSubmitSection = () => {
-    if (!section) return;
+    if (!section) {
+      console.error('handleSubmitSection: No section selected');
+      return;
+    }
     
-    // Mark section as completed
+    console.log('handleSubmitSection called for section:', section);
+    console.log('Current completedSections:', Array.from(completedSections));
+    
+    // Prevent double submission
+    if (completedSections.has(section)) {
+      console.log('Section already completed, preventing double submission');
+      return;
+    }
+    
+    // Mark section as completed - this is permanent and cannot be undone
     setCompletedSections(prev => {
       const newSet = new Set([...prev, section]);
+      // Immediately save to localStorage to persist
       localStorage.setItem('completedSections', JSON.stringify([...newSet]));
+      console.log('Section marked as completed:', section);
       return newSet;
     });
 
-    // Check if all CPCT MCQ sections are completed (excluding typing sections)
-    const cpctSections = sections.filter(sec => 
-      sec.name !== "English Typing" && sec.name !== "हिंदी टाइपिंग"
-    );
-    const allCpctCompleted = cpctSections.every(sec => {
-      const isCompleted = sec.name === section || completedSections.has(sec.name);
-      return isCompleted;
-    });
-
-    if (allCpctCompleted) {
-      // All CPCT MCQ sections done, redirect to exam result page
-      setTimeout(() => {
-        window.location.href = "/exam/exam-result";
-      }, 500);
-    } else {
-      // Redirect to exam result page (which shows section summary), then to break page
-      setTimeout(() => {
-        window.location.href = `/exam/exam-result?section=${encodeURIComponent(section)}`;
-      }, 500);
-    }
+    // Always redirect to exam result page with section parameter
+    // The result page will show section-specific results
+    setTimeout(() => {
+      // Ensure the section is saved before redirect
+      const finalCompletedSections = new Set([...completedSections, section]);
+      localStorage.setItem('completedSections', JSON.stringify([...finalCompletedSections]));
+      console.log('Redirecting to result page for section:', section);
+      // Redirect to result page with section parameter to show section-specific results
+      window.location.href = `/exam/exam-result?section=${encodeURIComponent(section)}`;
+    }, 100);
   };
 
   return (
@@ -817,42 +897,73 @@ function ExamModeContent() {
             </button>
             {showSectionDropdown && (
               <div className="absolute z-20 w-full bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto">
-                {sections.map((sec) => (
-                  <button
-                    key={sec._id}
-                    className={`w-full px-4 py-2 text-left hover:bg-gray-100 ${
-                      section === sec.name ? "bg-gray-200" : ""
-                    }`}
-                    onClick={() => {
-                      setSection(sec.name);
-                      setCurrentQuestionIndex(0);
-                      setShowSectionDropdown(false);
-                      // Reset selected part and set first part if available
-                      const sectionParts = parts.filter(p => {
-                        const pSectionId = String(p.sectionId).trim();
-                        const secIdStr = String(sec.id).trim();
-                        const secIdObj = String(sec._id).trim();
-                        return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
-                      }).sort((a, b) => (a.order || 0) - (b.order || 0));
-                      if (sectionParts.length > 0) {
-                        setSelectedPart(sectionParts[0].name);
-                      } else {
-                        setSelectedPart(null);
-                      }
-                      // Mark first question of selected section as visited
-                      const firstQuestion = questions[sec.name]?.[0];
-                      if (firstQuestion?._id) {
-                        setVisitedQuestions(prev => {
-                          const newSet = new Set([...prev, firstQuestion._id]);
-                          localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                          return newSet;
-                        });
-                      }
-                    }}
-                  >
-                    {sec.name}
-                  </button>
-                ))}
+                {sections.map((sec, index) => {
+                  const isCompleted = completedSections.has(sec.name);
+                  const isCurrentSection = section === sec.name;
+                  
+                  // Check if this section can be accessed
+                  const currentSectionIndex = sections.findIndex(s => s.name === section);
+                  const thisSectionIndex = index;
+                  const isPreviousSection = thisSectionIndex < currentSectionIndex;
+                  const isNextSection = thisSectionIndex > currentSectionIndex;
+                  const canAccess = isCurrentSection || 
+                    (isNextSection && completedSections.has(section)) ||
+                    (isPreviousSection && !isCompleted);
+                  const isLocked = !canAccess;
+                  
+                  return (
+                    <button
+                      key={sec._id}
+                      className={`w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center justify-between ${
+                        section === sec.name ? "bg-gray-200" : ""
+                      } ${isCompleted ? "bg-green-50" : ""} ${isLocked ? "bg-gray-100 opacity-50" : ""}`}
+                      onClick={() => {
+                        // Prevent navigation to locked sections
+                        if (isLocked || isCompleted) {
+                          if (isCompleted) {
+                            alert('This section is already completed and locked.');
+                          } else {
+                            alert('Please complete the current section before moving to the next section.');
+                          }
+                          return;
+                        }
+                        setSection(sec.name);
+                        setCurrentQuestionIndex(0);
+                        setShowSectionDropdown(false);
+                        // Reset selected part and set first part if available
+                        const sectionParts = parts.filter(p => {
+                          const pSectionId = String(p.sectionId).trim();
+                          const secIdStr = String(sec.id).trim();
+                          const secIdObj = String(sec._id).trim();
+                          return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
+                        }).sort((a, b) => (a.order || 0) - (b.order || 0));
+                        if (sectionParts.length > 0) {
+                          setSelectedPart(sectionParts[0].name);
+                        } else {
+                          setSelectedPart(null);
+                        }
+                        // Mark first question of selected section as visited
+                        const firstQuestion = questions[sec.name]?.[0];
+                        if (firstQuestion?._id) {
+                          setVisitedQuestions(prev => {
+                            const newSet = new Set([...prev, firstQuestion._id]);
+                            localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                            return newSet;
+                          });
+                        }
+                      }}
+                      disabled={isLocked || isCompleted}
+                    >
+                      <span>{sec.name}</span>
+                      {isCompleted && (
+                        <span className="text-green-600 font-bold">✓ Completed</span>
+                      )}
+                      {isLocked && !isCompleted && (
+                        <span className="text-gray-500 font-bold">🔒 Locked</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -866,44 +977,85 @@ function ExamModeContent() {
 
         {/* Section Nav (Desktop) */}
         <div className="hidden lg:flex flex-col border-b border-y-gray-200 bg-[#fff]">
-          <div className="flex text-xs overflow-x-auto">
-            {sections.map((sec) => (
-              <button
-                key={sec._id}
-                onClick={() => {
-                  setSection(sec.name);
-                  setCurrentQuestionIndex(0);
-                  // Reset selected part and set first part if available
-                  const sectionParts = parts.filter(p => {
-                    const pSectionId = String(p.sectionId).trim();
-                    const secIdStr = String(sec.id).trim();
-                    const secIdObj = String(sec._id).trim();
-                    return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
-                  }).sort((a, b) => (a.order || 0) - (b.order || 0));
-                  if (sectionParts.length > 0) {
-                    setSelectedPart(sectionParts[0].name);
-                  } else {
-                    setSelectedPart(null);
-                  }
-                  // Mark first question of selected section as visited
-                  const firstQuestion = questions[sec.name]?.[0];
-                  if (firstQuestion?._id) {
-                    setVisitedQuestions(prev => {
-                      const newSet = new Set([...prev, firstQuestion._id]);
-                      localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                      return newSet;
-                    });
-                  }
-                }}
-                className={`${
-                  section === sec.name
-                    ? "bg-[#290c52] text-white border-gray-300"
-                    : "bg-white text-blue-700 border-r border-gray-300 px-4"
-                } px-2 py-3 whitespace-nowrap`}
-              >
-                {sec.name}
-              </button>
-            ))}
+          <div className="flex text-xs overflow-x-auto pl-8">
+            {sections.map((sec, index) => {
+              const isCompleted = completedSections.has(sec.name);
+              const isCurrentSection = section === sec.name;
+              
+              // Check if this section can be accessed
+              // Rules:
+              // 1. Current section - always accessible
+              // 2. Completed sections - locked, cannot access
+              // 3. Previous sections that are not completed - cannot access
+              // 4. Next section - only accessible if current section is completed
+              const currentSectionIndex = sections.findIndex(s => s.name === section);
+              const thisSectionIndex = index;
+              const isPreviousSection = thisSectionIndex < currentSectionIndex;
+              const isNextSection = thisSectionIndex > currentSectionIndex;
+              const canAccess = isCurrentSection || 
+                (isNextSection && completedSections.has(section)) ||
+                (isPreviousSection && !isCompleted);
+              const isLocked = !canAccess;
+              
+              return (
+                <button
+                  key={sec._id}
+                  onClick={() => {
+                    // Prevent navigation to locked sections
+                    if (isLocked || isCompleted) {
+                      if (isCompleted) {
+                        alert('This section is already completed and locked.');
+                      } else {
+                        alert('Please complete the current section before moving to the next section.');
+                      }
+                      return;
+                    }
+                    setSection(sec.name);
+                    setCurrentQuestionIndex(0);
+                    // Reset selected part and set first part if available
+                    const sectionParts = parts.filter(p => {
+                      const pSectionId = String(p.sectionId).trim();
+                      const secIdStr = String(sec.id).trim();
+                      const secIdObj = String(sec._id).trim();
+                      return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
+                    }).sort((a, b) => (a.order || 0) - (b.order || 0));
+                    if (sectionParts.length > 0) {
+                      setSelectedPart(sectionParts[0].name);
+                    } else {
+                      setSelectedPart(null);
+                    }
+                    // Mark first question of selected section as visited
+                    const firstQuestion = questions[sec.name]?.[0];
+                    if (firstQuestion?._id) {
+                      setVisitedQuestions(prev => {
+                        const newSet = new Set([...prev, firstQuestion._id]);
+                        localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                        return newSet;
+                      });
+                    }
+                  }}
+                  className={`${
+                    isCompleted
+                      ? "bg-green-600 text-white border-green-700 cursor-not-allowed opacity-75"
+                      : isLocked
+                      ? "bg-gray-300 text-gray-500 border-gray-400 cursor-not-allowed opacity-50"
+                      : section === sec.name
+                      ? "bg-[#290c52] text-white border-gray-300"
+                      : "bg-white text-blue-700 border-r border-gray-300 px-4 hover:bg-gray-50"
+                  } px-2 py-3 whitespace-nowrap relative`}
+                  disabled={isLocked || isCompleted}
+                  title={isCompleted ? "Section completed and locked" : isLocked ? "Complete current section first" : ""}
+                >
+                  {sec.name}
+                  {isCompleted && (
+                    <span className="ml-2 text-xs">✓</span>
+                  )}
+                  {isLocked && !isCompleted && (
+                    <span className="ml-2 text-xs">🔒</span>
+                  )}
+                </button>
+              );
+            })}
             <div className="ml-auto flex items-center gap-2 whitespace-nowrap">
               <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
                 {isSoundOn ? "🔊" : "🔇"}
@@ -1315,17 +1467,29 @@ function ExamModeContent() {
             <button 
               className={`bg-green-600 hover:bg-cyan-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap ${isLastQuestion() ? 'bg-green-600' : ''}`}
               onClick={() => {
-                // Check if we're on last question of last part of last section
-                if (isLastQuestion()) {
-                  // On last question of last part of last section, submit section
-                  handleSubmitSection();
-                } else if (isLastQuestionInPart() && isLastPartInSection()) {
-                  // On last question of last part, go to section summary
+                // Save current answer first - ensure it's saved
+                if (currentQuestion) {
+                  // Answer is already saved in selectedAnswers state via onChange handlers
+                  console.log('Save & Submit clicked - Current question:', currentQuestion._id);
+                }
+                
+                // Check if we're on last question of last part in current section
+                const isLastInSection = isLastQuestionInPart() && isLastPartInSection();
+                const isLastOverall = isLastQuestion();
+                
+                console.log('Button click - isLastInSection:', isLastInSection, 'isLastOverall:', isLastOverall);
+                console.log('Button click - isLastQuestionInPart:', isLastQuestionInPart(), 'isLastPartInSection:', isLastPartInSection());
+                console.log('Button click - currentQuestionIndex:', currentQuestionIndex, 'currentQuestions.length:', currentQuestions?.length);
+                
+                if (isLastOverall || isLastInSection) {
+                  // On last question of last part in current section, submit section
+                  console.log('Submitting section:', section);
                   handleSubmitSection();
                 } else if (isLastQuestionInPart()) {
                   // On last question of current part, move to next part
                   const nextPart = getNextPart();
                   if (nextPart) {
+                    console.log('Moving to next part:', nextPart.name);
                     setSelectedPart(nextPart.name);
                     setCurrentQuestionIndex(0);
                     // Mark first question of next part as visited
@@ -1337,11 +1501,14 @@ function ExamModeContent() {
                         return newSet;
                       });
                     }
+                  } else {
+                    console.warn('No next part found, but isLastQuestionInPart is true');
                   }
                 } else {
                   // Save answer and move to next question in current part
                   if (currentQuestion && currentQuestions && currentQuestionIndex < currentQuestions.length - 1) {
                     const nextIndex = currentQuestionIndex + 1;
+                    console.log('Moving to next question:', nextIndex);
                     setCurrentQuestionIndex(nextIndex);
                     // Mark next question as visited
                     const nextQuestion = currentQuestions[nextIndex];
@@ -1352,6 +1519,8 @@ function ExamModeContent() {
                         return newSet;
                       });
                     }
+                  } else {
+                    console.warn('Cannot move to next question - invalid state');
                   }
                 }
               }}

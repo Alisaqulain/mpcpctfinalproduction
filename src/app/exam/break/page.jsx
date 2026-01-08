@@ -9,16 +9,28 @@ function BreakScreenContent() {
   const searchParams = useSearchParams();
   const nextSectionParam = searchParams.get("next");
   const sectionParam = searchParams.get("section");
+  const breakDurationParam = searchParams.get("duration"); // Duration in minutes
+  
+  // Calculate break duration (default 1 minute, or from parameter, or 10 minutes for typing section)
+  const breakDurationMinutes = breakDurationParam ? parseInt(breakDurationParam) : 
+    (sectionParam && (sectionParam.includes("Typing") || sectionParam.includes("typing"))) ? 10 : 1;
   
   // Determine next section URL
   let nextSection = "/exam_mode";
   if (nextSectionParam) {
     nextSection = nextSectionParam;
     if (sectionParam) {
-      nextSection += `?section=${encodeURIComponent(sectionParam)}`;
+      // Ensure proper encoding
+      const decodedSection = decodeURIComponent(sectionParam);
+      nextSection += `?section=${encodeURIComponent(decodedSection)}`;
+      console.log('Break page: Next section will be:', decodedSection);
+      console.log('Break page: Full URL:', nextSection);
     }
   } else if (sectionParam) {
-    nextSection = `/exam_mode?section=${encodeURIComponent(sectionParam)}`;
+    const decodedSection = decodeURIComponent(sectionParam);
+    nextSection = `/exam_mode?section=${encodeURIComponent(decodedSection)}`;
+    console.log('Break page: Next section will be:', decodedSection);
+    console.log('Break page: Full URL:', nextSection);
   }
 
   // Fetch user name - load from localStorage first, then try API
@@ -53,6 +65,11 @@ function BreakScreenContent() {
     
     fetchUserName();
   }, []);
+
+  // Initialize break time
+  useEffect(() => {
+    setSeconds(breakDurationMinutes * 60);
+  }, [breakDurationMinutes]);
 
   // Timer effect
   useEffect(() => {
@@ -99,8 +116,18 @@ function BreakScreenContent() {
         />
         <p className="text-xl font-semibold">{userName}</p>
         <p className="text-sm font-semibold">
-          Break End - <span className="italic text-gray-600">({`00:${seconds < 10 ? `0${seconds}` : seconds}`})</span>
+          Break End - <span className="italic text-gray-600">
+            {breakDurationMinutes >= 10 
+              ? `${Math.floor(seconds / 60)}:${(seconds % 60) < 10 ? `0${seconds % 60}` : seconds % 60}`
+              : `00:${seconds < 10 ? `0${seconds}` : seconds}`
+            }
+          </span>
         </p>
+        {breakDurationMinutes >= 10 && (
+          <p className="text-xs text-gray-500 mt-1">
+            Extended break: {breakDurationMinutes} minutes
+          </p>
+        )}
 
         <div className="mt-6 text-center space-y-2">
           <p className="text-base">

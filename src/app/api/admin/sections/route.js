@@ -22,6 +22,8 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const examId = searchParams.get('examId');
   const filter = examId ? { examId } : {};
+  // Sort by order first (ascending), then by createdAt (ascending) for consistent ordering
+  // This ensures new sections appear at the bottom if they have higher order values
   const sections = await Section.find(filter).sort({ order: 1, createdAt: 1 });
   return NextResponse.json({ sections });
 }

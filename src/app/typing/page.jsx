@@ -1,706 +1,321 @@
 "use client";
-import React, { useState, useEffect, useRef, Suspense } from "react";
+import React, { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { Sun, Moon, RotateCw, X } from "lucide-react";
 import { getLearningData, getLessonContent } from "@/lib/learningData";
 
-// Desktop View Component
+// ==================== DESKTOP VIEW COMPONENT ====================
 function DesktopView({
-  content,
-  loading,
-  typedText,
-  handleChange,
-  isPaused,
-  isCompleted,
-  renderColoredWords,
-  fontSize,
-  handleReset,
-  togglePause,
-  handleCompletion,
-  startTime,
-  wpm,
-  accuracy,
-  elapsedTime,
-  correctWords,
-  handleDownloadPDF,
+  isDarkMode,
+  highlightedKeys,
+  currentIndex,
+  currentRowIndex,
+  isRowAnimating,
+  keyStatus,
+  pressedKey,
+  hand,
+  sound,
+  keyboard,
+  leftHandImage,
+  rightHandImage,
+  keys,
+  getKeyWidth,
+  getCurrentRowKeys,
+  organizeKeysIntoRows,
   formatClock,
-  timeRemaining,
-  words,
-  wrongWords,
+  correctCount,
+  wrongCount,
+  totalCount,
   backspaceCount,
-  backspaceLimit,
+  elapsedTime,
+  wpm,
   userName,
   userProfileUrl,
-  increaseFont,
-  decreaseFont,
-  wordRefs,
-  containerRef,
-  textareaRef
+  resetStats,
+  setHand,
+  setSound,
+  setKeyboard,
+  timer,
+  totalAttempts
 }) {
-  return (
-    <>
-      <button className="hidden md:absolute md:right-22 md:top-6 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md md:block">
-        <a href="/skill_test">close</a>
-      </button>
-
-      <div className="flex flex-col-reverse lg:flex-row gap-6">
-        {/* Typing Area */}
-        <div className="w-[90%] lg:w-[110%] mx-auto">
-          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg ml-5 mt-[-25]">
-            {/* Results Display */}
-            {isCompleted && (
-              <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
-                <h2 className="text-xl font-bold text-green-800 mb-3">Test Completed!</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{wpm}</div>
-                    <div className="text-sm text-green-700">WPM</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
-                    <div className="text-sm text-green-700">Accuracy</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
-                    <div className="text-sm text-green-700">Time</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{correctWords.length}</div>
-                    <div className="text-sm text-green-700">Correct</div>
-                  </div>
-                </div>
-                <div className="flex gap-3 justify-center">
-                  <button
-                    onClick={handleDownloadPDF}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
-                  >
-                    Download PDF
-                  </button>
-                  <button
-                    onClick={handleReset}
-                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
-                  >
-                    Try Again
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                <p>Loading exercise content...</p>
-              </div>
-            ) : content.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>No content available for this exercise.</p>
-              </div>
-            ) : (
-              <>
-                <div className="text-sm leading-relaxed mb-4 overflow-auto min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px] mt-4 break-words font-sans" style={{ fontSize: `${fontSize}px` }}>
-                  {renderColoredWords()}
-                </div>
-                <textarea
-                  ref={textareaRef}
-                  value={typedText}
-                  onChange={handleChange}
-                  disabled={isPaused || isCompleted}
-                  className="w-full min-h-[100px] max-h-[100px] md:min-h-[80px] md:max-h-[100px] lg:min-h-[180px] lg:max-h-[220px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-4 disabled:opacity-50"
-                  placeholder="Start typing here..."
-                  style={{ fontSize: `${fontSize}px` }}
-                  autoFocus
-                />
-              </>
-            )}
-          </div>
-          <div className="flex justify-center mt-5 gap-6 flex-wrap">
-            <button
-              onClick={handleReset}
-              className="bg-pink-500 text-lg cursor-pointer hover:bg-orange-500 text-white px-8 py-1 rounded shadow"
-            >
-              Reset
-            </button>
-            <button
-              onClick={togglePause}
-              disabled={isCompleted}
-              className="bg-blue-600 cursor-pointer text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow"
-            >
-              {isPaused ? "Resume" : "Pause"}
-            </button>
-            <button
-              onClick={handleCompletion}
-              disabled={!startTime || isCompleted}
-              className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold"
-            >
-              Submit
-            </button>
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="w-full lg:w-[20%] text-white p-3 fixed top-0 mt-[-15] left-0 z-50 bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat lg:static lg:bg-none lg:bg-transparent">
-          <div className="flex flex-col items-center space-y-1 mt-[-18]">
-            <div className="mb-4">
-              <img
-                src={userProfileUrl}
-                alt={userName}
-                className="w-20 h-20 md:w-30 md:h-25 rounded-md border-2 border-white"
-                onError={(e) => {
-                  e.target.src = "/lo.jpg";
-                }}
-              />
-              <p className="font-semibold text-xs text-center">{userName}</p>
-             
-            </div>
-
-            <div className="w-24 h-9 rounded-lg overflow-hidden mx-auto text-center mt-10 md:mt-5 lg:mt-2 pt-0 md:pt-0 lg:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
-              <div className="bg-white text-black text-sm font-bold">
-                {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
-              </div>
-            </div>
-            <div className="flex grid-cols-1 gap-y-3 mt-2 gap-x-4 md:gap-x-15 lg:gap-x-15 mr-0 md:mr-10 w-[70%] md:w-full text-center lg:landscape:grid lg:grid-cols-2">
-              {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
-                { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
-                { label: "Total", value: words.length, color: "text-[#290c52]" },
-                { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
-                  <div key={i} className="w-full sm:w-24 h-9 rounded-lg overflow-hidden mx-auto shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-                    <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
-                    <div className={`bg-white ${color} text-sm font-bold`}>{value}</div>
-                  </div>
-                ))}
-            </div>
-            {isCompleted && (
-              <div className="mt-3 text-center">
-                <div className="bg-white text-black px-4 py-2 rounded-lg shadow-md">
-                  <div className="text-xs font-semibold mb-1">Accuracy</div>
-                  <div className="text-lg font-bold text-green-600">{accuracy}%</div>
-                </div>
-              </div>
-            )}
-
-            {/* Speedometer */}
-            <div className="hidden lg:block mt-4">
-              <div className="border-6 border-black rounded-full mt-2">
-                <div className="relative w-24 h-24 bg-black rounded-full border-4 border-white flex items-center justify-center">
-                  <div className="absolute left-1 text-red-500 text-[8px] font-bold tracking-widest">SPEED</div>
-                  <svg width="100" height="100" viewBox="0 0 100 100">
-                    <line
-                      x1="50"
-                      y1="50"
-                      x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                      y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                      stroke="red"
-                      strokeWidth="2"
-                    />
-                    {Array.from({ length: 9 }).map((_, i) => {
-                      const startAngle = (-Math.PI * 5) / 6;
-                      const endAngle = (Math.PI * 5) / 6;
-                      const angle = startAngle + (i / 8) * (endAngle - startAngle);
-                      const x = 50 + 40 * Math.cos(angle);
-                      const y = 50 + 42 * Math.sin(angle);
-                      return (
-                        <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
-                          {(i + 1) * 10}
-                        </text>
-                      );
-                    })}
-                  </svg>
-                  <span className="absolute bottom-5 text-red-500 font-bold text-xs">{wpm}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="hidden md:flex flex-col items-center justify-center gap-1">
-              <p className="text-center text-sm mb-1">Font Size</p>
-              <div className="flex justify-center gap-3">
-                <button
-                  onClick={decreaseFont}
-                  className="bg-white text-black border-3 cursor-pointer border-black px-5 py-[2px] text-xs rounded-md"
-                >
-                  A -
-                </button>
-                <button
-                  onClick={increaseFont}
-                  className="bg-white text-black cursor-pointer border-3 border-black px-5 py-[2px] text-xs rounded-md"
-                >
-                  A +
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-// Portrait View Component (Mobile Portrait)
-function PortraitView({
-  content,
-  loading,
-  typedText,
-  handleChange,
-  isPaused,
-  isCompleted,
-  renderColoredWords,
-  fontSize,
-  handleReset,
-  togglePause,
-  handleCompletion,
-  startTime,
-  wpm,
-  accuracy,
-  elapsedTime,
-  correctWords,
-  handleDownloadPDF,
-  formatClock,
-  timeRemaining,
-  words,
-  wrongWords,
-  backspaceCount,
-  backspaceLimit,
-  userName,
-  userProfileUrl,
-  wordRefs,
-  containerRef,
-  increaseFont,
-  decreaseFont,
-  textareaRef
-}) {
-  return (
-    <>
-      <button className="absolute md:hidden right-3 top-5 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md">
-        <a href="/skill_test">close</a>
-      </button>
-
-      <div className="flex flex-col-reverse gap-6">
-        {/* Typing Area */}
-        <div className="w-[90%] mx-auto">
-          <p className="block lg:hidden text-md mb-15 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-center font-bold">
-            Typing Tutor
-            <br />
-            <span className="text-xs font-normal text-white">(Type the words as they appear below)</span>
-          </p>
-
-          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg mt-[-25] w-full">
-            {/* Results Display */}
-            {isCompleted && (
-              <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
-                <h2 className="text-xl font-bold text-green-800 mb-3">Test Completed!</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{wpm}</div>
-                    <div className="text-sm text-green-700">WPM</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
-                    <div className="text-sm text-green-700">Accuracy</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
-                    <div className="text-sm text-green-700">Time</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{correctWords.length}</div>
-                    <div className="text-sm text-green-700">Correct</div>
-                  </div>
-                </div>
-                <div className="flex gap-3 justify-center">
-                  <button
-                    onClick={handleDownloadPDF}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
-                  >
-                    Download PDF
-                  </button>
-                  <button
-                    onClick={handleReset}
-                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
-                  >
-                    Try Again
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                <p>Loading exercise content...</p>
-              </div>
-            ) : content.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>No content available for this exercise.</p>
-              </div>
-            ) : (
-              <>
-                <div className="text-sm leading-relaxed mb-4 overflow-auto min-h-[200px] max-h-[100px] mt-4 break-words font-sans" style={{ fontSize: `${fontSize}px` }}>
-                  {renderColoredWords()}
-                </div>
-                <textarea
-                  ref={textareaRef}
-                  value={typedText}
-                  onChange={handleChange}
-                  disabled={isPaused || isCompleted}
-                  className="w-full min-h-[100px] max-h-[100px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-4 disabled:opacity-50"
-                  placeholder="Start typing here..."
-                  style={{ fontSize: `${fontSize}px` }}
-                  autoFocus
-                />
-              </>
-            )}
-          </div>
-          <div className="flex justify-center mt-5 gap-6 flex-wrap">
-          <button
-              onClick={handleCompletion}
-              disabled={!startTime || isCompleted}
-              className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold w-full"
-            >
-              Submit
-            </button>
-            
-            <button
-              onClick={handleReset}
-              className="bg-pink-500 text-lg cursor-pointer hover:bg-orange-500 text-white px-8 py-1 rounded shadow"
-            >
-              Reset
-            </button>
-            <button
-              onClick={togglePause}
-              disabled={isCompleted}
-              className="bg-blue-600 cursor-pointer text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow"
-            >
-              {isPaused ? "Resume" : "Pause"}
-            </button>
-            {/* <button
-              onClick={handleCompletion}
-              disabled={!startTime || isCompleted}
-              className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold w-full"
-            >
-              Submit
-            </button> */}
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="w-full text-white p-3 fixed top-0 mt-[-15] left-0 z-50 bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat">
-          <div className="flex flex-col items-center space-y-1 mt-[-18]">
-            {/* User Profile */}
-            <div className="mb-4 absolute top-10 left-2">
-              <img
-                src={userProfileUrl}
-                alt={userName}
-                className="w-20 h-20 md:w-30 md:h-25 rounded-md border-2 border-white"
-                onError={(e) => {
-                  e.target.src = "/lo.jpg";
-                }}
-              />
-              <p className="font-semibold text-xs text-center">{userName}</p>
-            
-               
+  const currentRowKeys = getCurrentRowKeys();
+  const rows = organizeKeysIntoRows(highlightedKeys);
+  const nonSpaceKeys = highlightedKeys.filter(k => k !== "Space");
+  const nonSpaceStartIndex = currentRowIndex * 8;
   
-            </div>
-            {/* <div className="w-24 h-9 rounded-lg overflow-hidden mx-auto text-center mt-10 md:mt-5 pt-0 md:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
-              <div className="bg-white text-black text-sm font-bold">
-                {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
-              </div>
-            </div> */}
-            <div className="grid grid-cols-2 gap-3 mt-10 w-[40%] md:w-full text-center">
-              {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
-                { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
-                { label: "Total", value: words.length, color: "text-[#290c52]" },
-                { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
-                  <div key={i} className="w-full h-9 rounded-lg overflow-hidden shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-                    <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
-                    <div className={`bg-white ${color} text-sm font-bold`}>{value}</div>
-                  </div>
-                ))}
-            </div>
-            <div className="w-[40%] h-9 rounded-lg overflow-hidden mx-auto text-center mt-3 md:mt-5 pt-0 md:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
-              <div className="bg-white text-black text-sm font-bold">
-                {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
-              </div>
-            </div>
-            {isCompleted && (
-              <div className="mt-3 text-center">
-                <div className="bg-white text-black px-4 py-2 rounded-lg shadow-md">
-                  <div className="text-xs font-semibold mb-1">Accuracy</div>
-                  <div className="text-lg font-bold text-green-600">{accuracy}%</div>
-                </div>
-              </div>
-            )}
+  const getOriginalIndex = (displayKeyIdx) => {
+    if (currentRowKeys[displayKeyIdx] === "Space") {
+      return -1;
+    }
+    
+    let keyPosition;
+    if (displayKeyIdx < 4) {
+      // First 4 keys: positions 0-3
+      keyPosition = displayKeyIdx;
+    } else if (displayKeyIdx > 4 && displayKeyIdx < 9) {
+      // Next 4 keys after first space: positions 4-7 (skip first space at index 4)
+      keyPosition = displayKeyIdx - 1;
+    } else {
+      return -1;
+    }
+    
+    const nonSpaceKeyIndex = nonSpaceStartIndex + keyPosition;
+    if (nonSpaceKeyIndex >= nonSpaceKeys.length) return -1;
+    
+    let nonSpaceCount = 0;
+    for (let i = 0; i < highlightedKeys.length; i++) {
+      if (highlightedKeys[i] !== "Space") {
+        if (nonSpaceCount === nonSpaceKeyIndex) {
+          return i;
+        }
+        nonSpaceCount++;
+      }
+    }
+    return -1;
+  };
 
-            {/* Speedometer */}
-            <div className="mt-4 absolute bottom-13 right-2">
-              <div className="border-6 border-black rounded-full mt-2">
-                <div className="relative w-20 h-20 bg-black rounded-full border-4 border-white flex items-center justify-center">
-                  <div className="absolute left-1 text-red-500 text-[8px] font-bold tracking-widest">SPEED</div>
-                  <svg width="100" height="100" viewBox="0 0 100 100">
-                    <line
-                      x1="50"
-                      y1="50"
-                      x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                      y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                      stroke="red"
-                      strokeWidth="2"
-                    />
-                    {Array.from({ length: 9 }).map((_, i) => {
-                      const startAngle = (-Math.PI * 5) / 6;
-                      const endAngle = (Math.PI * 5) / 6;
-                      const angle = startAngle + (i / 8) * (endAngle - startAngle);
-                      const x = 50 + 40 * Math.cos(angle);
-                      const y = 50 + 42 * Math.sin(angle);
-                      return (
-                        <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
-                          {(i + 1) * 10}
-                        </text>
-                      );
-                    })}
-                  </svg>
-                  <span className="absolute bottom-5 text-red-500 font-bold text-xs">{wpm}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Font Size Controls */}
-              
-                <button
-                  onClick={decreaseFont}
-                  className="bg-white absolute top-35 left-4 text-black border-3 cursor-pointer border-black px-5 py-[2px] text-xs rounded-md"
-                >
-                  A -
-                </button>
-                <button
-                  onClick={increaseFont}
-                  className="bg-white absolute top-35 right-5 text-black cursor-pointer border-3 border-black px-5 py-[2px] text-xs rounded-md"
-                >
-                  A +
-                </button>
-            
-            
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-// Landscape View Component (Mobile Landscape)
-function LandscapeView({
-  content,
-  loading,
-  typedText,
-  handleChange,
-  isPaused,
-  isCompleted,
-  renderColoredWords,
-  fontSize,
-  handleReset,
-  togglePause,
-  handleCompletion,
-  startTime,
-  wpm,
-  accuracy,
-  elapsedTime,
-  correctWords,
-  handleDownloadPDF,
-  formatClock,
-  words,
-  wrongWords,
-  backspaceCount,
-  backspaceLimit,
-  userName,
-  userProfileUrl,
-  wordRefs,
-  containerRef,
-  increaseFont,
-  decreaseFont,
-  textareaRef
-}) {
   return (
-    <div className="landscape-mobile-container">
-      <button className="absolute md:hidden right-3 top-5 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md" style={{ padding: '0.8vh 2vw', fontSize: 'clamp(9px, 1.8vw, 12px)', minHeight: '4vh', right: '1vw', top: '1vh' }}>
-        <a href="/skill_test">close</a>
-      </button>
-
-      <div className="flex flex-row gap-6">
-        {/* Typing Area */}
-        <div className="landscape-mobile-typing-area ml-26 " style={{ flex: '1', overflowY: 'auto', padding: '0.5vh 0.5vw', height: '100vh', width: 'calc(90vw - 18vw)', maxWidth: 'calc(100vw - 18vw)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          {/* Stats row at header */}
-          <div className="flex gap-x-4  justify-center items-center w-full" style={{ marginBottom: '5vh', flexWrap: 'wrap', gap: '1vw' }}>
-            {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
-              { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
-              { label: "Total", value: words.length, color: "text-[#290c52]" },
-              { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
-                <div key={i} className="w-24 h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]" style={{ flexShrink: 0 }}>
-                  <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
-                  <div className={`bg-white ${color} text-sm font-bold`}>{value}</div>
-                </div>
-              ))}
-          </div>
-
-          <div className="bg-white p-2 rounded-xl shadow-lg" style={{ width: '95%', maxWidth: '95%', padding: '1vh 1vw', marginLeft: 'auto', marginRight: 'auto' }}>
-            {/* Results Display */}
-            {isCompleted && (
-              <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500" style={{ padding: '1.5vh 1.5vw', marginBottom: '1vh' }}>
-                <h2 className="text-xl font-bold text-green-800 mb-3" style={{ fontSize: 'clamp(12px, 2.5vw, 18px)', marginBottom: '1vh' }}>Test Completed!</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3" style={{ gap: '1vw', marginBottom: '1vh' }}>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{wpm}</div>
-                    <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>WPM</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{accuracy}%</div>
-                    <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Accuracy</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{formatClock(elapsedTime)}</div>
-                    <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Time</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{correctWords.length}</div>
-                    <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Correct</div>
-                  </div>
-                </div>
-                <div className="flex gap-3 justify-center" style={{ gap: '1vw' }}>
-                  <button
-                    onClick={handleDownloadPDF}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
-                    style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}
-                  >
-                    Download PDF
-                  </button>
-                  <button
-                    onClick={handleReset}
-                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
-                    style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}
-                  >
-                    Try Again
-                  </button>
-                </div>
+    <div className="p-4 flex flex-col md:flex-row gap-6 w-full min-h-full" style={{ minHeight: '100dvh' }}>
+      {/* Left Section */}
+      <div className="flex-1 flex flex-col items-center gap-6 mobile-stack">
+        {/* Typing Prompt Buttons - Desktop row-based layout */}
+        <div className="flex flex-wrap justify-center items-center gap-1 md:gap-2 relative mobile-tight-gap typing-prompt-container">
+          {currentRowKeys.map((key, displayIdx) => {
+            const originalIndex = getOriginalIndex(displayIdx);
+            const isCurrentKey = originalIndex === currentIndex;
+            const keyStatusForThisKey = originalIndex >= 0 ? keyStatus[originalIndex] : null;
+            const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
+            const hasGapAfterFirstSpace = displayIdx === 5 && currentRowKeys[4] === "Space";
+            
+            let marginClass = "";
+            if (displayIdx === 0) {
+              marginClass = "";
+            } else if (hasGapAfterFirstSpace) {
+              marginClass = "md:ml-8 ml-6";
+            } else {
+              marginClass = "md:ml-2 ml-1.5";
+            }
+            
+            return (
+              <div
+                key={`${currentRowIndex}-${displayIdx}`}
+                className={`
+                  ${key === "Space" ? "w-28 h-10 md:w-35 md:h-11 mt-2 mobile-space-key" : "w-16 h-14 mobile-small-key"}
+                  rounded flex items-center justify-center text-2xl font-semibold mobile-small-text
+                  ${marginClass}
+                  transition-all duration-150
+                  ${isRowAnimating ? 'animate-slide-in-right-key' : ''}
+                  ${
+                    isCurrentKey && key === "Space"
+                      ? "bg-blue-600 border-blue-400 border-2 text-white"
+                      : isCurrentKey
+                      ? "bg-blue-600 border-blue-400 border-2 text-white"
+                      : isPressed && key === "Space"
+                      ? "bg-red-600 text-white border-red-400 border-2 scale-95"
+                      : isPressed
+                      ? "bg-red-600 text-white border-red-400 border-2 scale-95"
+                      : keyStatusForThisKey === "correct"
+                      ? "bg-green-300 border-green-600 text-green-800"
+                      : keyStatusForThisKey === "wrong"
+                      ? "bg-red-600 border-red-600 text-white"
+                      : isDarkMode
+                      ? "bg-white text-black border-white"
+                      : "bg-white text-black border-black"
+                  }
+                  border
+                `}
+                style={isRowAnimating ? {
+                  animationDelay: `${displayIdx * 0.05}s`
+                } : {}}
+              >
+                {key === "Space" ? "Space" : key.toLowerCase()}
               </div>
-            )}
-
-            {loading ? (
-              <div className="text-center py-8" style={{ padding: '2vh 0' }}>
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4" style={{ width: '4vw', height: '4vw', minWidth: '30px', minHeight: '30px' }}></div>
-                <p style={{ fontSize: 'clamp(10px, 2vw, 14px)' }}>Loading exercise content...</p>
-              </div>
-            ) : content.length === 0 ? (
-              <div className="text-center py-8 text-gray-500" style={{ padding: '2vh 0', fontSize: 'clamp(10px, 2vw, 14px)' }}>
-                <p>No content available for this exercise.</p>
-              </div>
-            ) : (
-              <>
-                <div className="text-sm leading-relaxed mb-4 overflow-auto min-h-[180px] max-h-[250px] mt-4 break-words font-sans" style={{ minHeight: '30vh', maxHeight: '25vh', fontSize: 'clamp(10px, 2vw, 14px)', lineHeight: '1.4' }}>
-                  {renderColoredWords(true)}
-                </div>
-                <textarea
-                  ref={textareaRef}
-                  value={typedText}
-                  onChange={handleChange}
-                  disabled={isPaused || isCompleted}
-                  className="w-full auto-focus min-h-[150px] max-h-[180px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-4 disabled:opacity-50"
-                  placeholder="Type Here..."
-                  style={{ fontSize: `clamp(10px, 2vw, ${fontSize}px)`, minHeight: '18vh', maxHeight: '15vh', padding: '1vh 1vw', width: '100%' }}
-                  autoFocus
-                />
-              </>
-            )}
-          </div>
-          <div className="flex justify-center mt-2 gap-6 flex-wrap" style={{ marginTop: '4vh', gap: '1vw' }}>
-            <button
-              onClick={handleReset}
-              className="bg-pink-500 text-lg cursor-pointer hover:bg-orange-500 text-white px-8 py-1 rounded shadow"
-              style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
-            >
-              Reset
-            </button>
-            <button
-              onClick={togglePause}
-              disabled={isCompleted}
-              className="bg-blue-600 cursor-pointer text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow"
-              style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
-            >
-              {isPaused ? "Resume" : "Pause"}
-            </button>
-            <button
-              onClick={handleCompletion}
-              disabled={!startTime || isCompleted}
-              className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold"
-              style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
-            >
-              Submit
-            </button>
-          </div>
+            );
+          })}
         </div>
 
-        {/* Sidebar */}
-        <div className="landscape-mobile-sidebar text-white bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat" style={{ width: '18vw', minWidth: '18vw', maxWidth: '18vw', height: '100vh', padding: '1vh 1vw' }}>
-          <div className="flex flex-col items-center justify-center h-full">
-            {/* User Profile */}
-            <div className="mb-4 absolute top-14.5 left-4">
-              <img
-                src={userProfileUrl}
-                alt={userName}
-                className="w-24 h-24 rounded-md border-2 border-white"
-                style={{ width: 'clamp(60px, 12vw, 80px)', height: 'clamp(60px, 12vw, 80px)' }}
-                onError={(e) => {
-                  e.target.src = "/lo.jpg";
-                }}
+        {/* Desktop Toggles */}
+        <div className="hidden md:hidden lg:flex flex items-center gap-4 mt-2 mobile-tight-gap mobile-small-text">
+          {/* Hand Toggle */}
+          <label className="flex items-center gap-2">
+            <span>Hand</span>
+            <div className="relative inline-block w-12 h-6">
+              <input
+                type="checkbox"
+                checked={hand}
+                onChange={() => setHand(!hand)}
+                className="sr-only peer"
               />
-              <p className="font-semibold text-xs text-center text-white" style={{ fontSize: 'clamp(8px, 1.2vw, 10px)', marginTop: '0.5vh' }}>{userName}</p>
+              <div className="w-full h-full bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-colors duration-300"></div>
+              <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300 peer-checked:translate-x-6"></div>
             </div>
-            {/* Speedometer */}
-            <div className="mt-4 absolute top-8 right-1">
-              <div className="border-6 border-black rounded-full mt-2">
-                <div className="relative w-20 h-20 bg-black rounded-full border-4 border-white flex items-center justify-center" style={{ width: 'clamp(60px, 12vw, 80px)', height: 'clamp(60px, 12vw, 80px)' }}>
-                  <div className="absolute left-1 text-red-500 text-[6px] font-bold tracking-widest" style={{ fontSize: 'clamp(6px, 1vw, 8px)' }}>SPEED</div>
-                  <svg width="100" height="100" viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
-                    <line
-                      x1="50"
-                      y1="50"
-                      x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                      y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                      stroke="red"
-                      strokeWidth="2"
-                    />
-                    {Array.from({ length: 9 }).map((_, i) => {
-                      const startAngle = (-Math.PI * 5) / 6;
-                      const endAngle = (Math.PI * 5) / 6;
-                      const angle = startAngle + (i / 8) * (endAngle - startAngle);
-                      const x = 50 + 40 * Math.cos(angle);
-                      const y = 50 + 42 * Math.sin(angle);
-                      return (
-                        <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
-                          {(i + 1) * 10}
-                        </text>
-                      );
-                    })}
-                  </svg>
-                  <span className="absolute bottom-5 text-red-500 font-bold text-xs" style={{ fontSize: 'clamp(8px, 1.2vw, 10px)' }}>{wpm}</span>
-                </div>
-              </div>
-            </div>
+          </label>
 
-            {/* Font Size Controls */}
-            <p className="text-white text-xs font-semibold absolute top-43 right-6">Font size</p>
-                <button
-                  onClick={decreaseFont}
-                  className="bg-white absolute top-60 right-4 text-black border-3 cursor-pointer border-black rounded-md"
-                  style={{ padding: '1.5vh 3vw', fontSize: 'clamp(12px, 2vw, 16px)', minHeight: '6vh', minWidth: '8vw' }}
-                >
-                  A -
-                </button>
-                <button
-                  onClick={increaseFont}
-                  className="bg-white absolute top-50 right-4 text-black cursor-pointer border-3 border-black rounded-md"
-                  style={{ padding: '1.5vh 3vw', fontSize: 'clamp(12px, 2vw, 16px)', minHeight: '6vh', minWidth: '8vw' }}
-                >
-                  A +
-                </button>
-             
+          {/* Sound Toggle */}
+          <label className="flex items-center gap-2">
+            <span>Sound</span>
+            <div className="relative inline-block w-12 h-6">
+              <input
+                type="checkbox"
+                checked={sound}
+                onChange={() => setSound(!sound)}
+                className="sr-only peer"
+              />
+              <div className="w-full h-full bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-colors duration-300"></div>
+              <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300 peer-checked:translate-x-6"></div>
+            </div>
+          </label>
+
+          {/* Keyboard Toggle */}
+          <label className="flex items-center gap-2">
+            <span>Keyboard</span>
+            <div className="relative inline-block w-12 h-6">
+              <input
+                type="checkbox"
+                checked={keyboard}
+                onChange={() => setKeyboard(!keyboard)}
+                className="sr-only peer"
+              />
+              <div className="w-full h-full bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-colors duration-300"></div>
+              <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300 peer-checked:translate-x-6"></div>
+            </div>
+          </label>
+
+          {/* Reset Button */}
+          <button
+            onClick={resetStats}
+            className="ml-4 px-3 py-1 bg-blue-600 rounded hover:bg-blue-700 text-white mobile-small-text"
+          >
+            Reset
+          </button>
+        </div>
+
+        {/* Keyboard */}
+        {keyboard && (
+          <div className={`relative mt-4 p-5 border border-gray-600 rounded-3xl shadow-md keyboard-container ${
+            isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
+          } mobile-scale`}>
+            
+            {/* Dual Hand Image Overlay */}
+            {hand && (leftHandImage || rightHandImage) && (
+              <div className="absolute inset-0 pointer-events-none z-10 hand-overlay">
+                <div className="absolute left-[-10px] top-78 transform -translate-y-1/2 -translate-x-12">
+                  <img 
+                    src={leftHandImage} 
+                    alt="Left hand finger position" 
+                    className="w-130 h-600 object-contain opacity-85 transition-all duration-200 ease-in-out transform scale-110"
+                  />
+                </div>
+                
+                <div className="absolute right-33 top-78 transform -translate-y-1/2 translate-x-12">
+                  <img 
+                    src={rightHandImage} 
+                    alt="Right hand finger position" 
+                    className="w-130 h-600 object-contain opacity-85 transition-all duration-200 ease-in-out transform scale-110"
+                  />
+                </div>
+                
+                {pressedKey && (
+                  <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
+                    <div className="bg-yellow-400 text-black px-3 py-1 rounded-full text-lg font-bold shadow-lg animate-pulse">
+                      {pressedKey}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Full Keyboard Layout */}
+            {keys.map((row, rowIndex) => (
+              <div key={rowIndex} className="flex mb-2.5">
+                {row.map((key, keyIndex) => {
+                  const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
+                  const isCurrentKey = highlightedKeys[currentIndex] === key;
+                  return (
+                    <div
+                      key={keyIndex}
+                      className={`h-14 text-base ${getKeyWidth(key)} mx-1 rounded flex items-center justify-center 
+                        border transition-all duration-150 ${
+                          isDarkMode ? "border-gray-600 text-white" : "border-gray-400 text-gray-800"
+                        }
+                        ${
+                          isPressed ? (isDarkMode ? "bg-gray-600 text-white border-gray-500 border-2 scale-95" : "bg-gray-400 text-gray-900 border-gray-500 border-2 scale-95") :
+                          isCurrentKey ? "bg-blue-500 text-white border-blue-400 border-2" :
+                          isDarkMode ? "bg-black text-white border-gray-600" : "bg-gray-300 text-gray-800 border-gray-400"
+                        }`}
+                    >
+                      {key === "Space" ? "Space" : key}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Right Section - Desktop Stats */}
+      <div className="hidden md:flex flex-col items-center space-y-1 md:mt-25 mt-15 mobile-stack mobile-small-text right-section-stats">
+        <div className="flex flex-col items-center user-profile-section user-profile-landscape mb-4">
+          <img
+            src={userProfileUrl}
+            alt="User"
+            className="w-30 h-25 rounded-md border-2 border-white mobile-scale user-profile-image"
+            onError={(e) => {
+              e.target.src = "/lo.jpg";
+            }}
+          />
+          <p className="font-semibold text-xs md:text-sm mt-1 user-profile-name">{userName}</p>
+        </div>
+        
+        <div className="w-24 h-9 rounded-lg overflow-hidden text-center mt-2 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] mobile-scale">
+          <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
+          <div className="bg-white text-black text-sm font-bold">{formatClock(elapsedTime)}</div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-y-6 mt-4 gap-x-4 md:gap-x-4 w-full text-center mobile-tight-gap mobile-scale stats-grid-landscape">
+          {[
+            { label: "Correct", value: correctCount, color: "text-green-600" },
+            { label: "Wrong", value: wrongCount, color: "text-red-500" },
+            { label: "Total", value: totalCount, color: "text-[#290c52]" },
+            { label: "Backspace", value: backspaceCount, color: "text-blue-500" }
+          ].map(({ label, value, color }, i) => (
+            <div key={i} className="w-full sm:w-24 h-9 rounded-lg overflow-hidden shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
+              <div className={`bg-white ${color} text-sm font-bold`}>{value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Speedometer */}
+        <div className="hidden lg:block mt-5 mobile-scale">
+          <div className="border-6 border-black rounded-full">
+            <div className="relative w-24 h-24 bg-black rounded-full border-4 border-white flex items-center justify-center">
+              <div className="absolute left-1 text-red-500 text-[8px] font-bold tracking-widest">SPEED</div>
+              <svg width="100" height="100" viewBox="0 0 100 100">
+                <line
+                  x1="50"
+                  y1="50"
+                  x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                  y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                  stroke="red"
+                  strokeWidth="2"
+                />
+                {Array.from({ length: 9 }).map((_, i) => {
+                  const startAngle = (-Math.PI * 5) / 6;
+                  const endAngle = (Math.PI * 5) / 6;
+                  const angle = startAngle + (i / 8) * (endAngle - startAngle);
+                  const x = 50 + 40 * Math.cos(angle);
+                  const y = 50 + 42 * Math.sin(angle);
+                  return (
+                    <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
+                      {(i + 1) * 10}
+                    </text>
+                  );
+                })}
+              </svg>
+              <span className="absolute bottom-5 text-red-500 font-bold text-xs">{wpm}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -708,524 +323,1556 @@ function LandscapeView({
   );
 }
 
-function TypingTutorForm() {
+// ==================== PORTRAIT MOBILE VIEW COMPONENT ====================
+function PortraitMobileView({
+  isDarkMode,
+  setIsDarkMode,
+  highlightedKeys,
+  currentIndex,
+  keyStatus,
+  pressedKey,
+  keyboard,
+  hand,
+  keys,
+  getKeyWidth,
+  correctCount,
+  wrongCount,
+  timer,
+  totalAttempts,
+  formatClock
+}) {
+  return (
+    <div className="p-4 flex flex-col gap-6 w-full min-h-full" style={{ minHeight: '100dvh' }}>
+      {/* Theme Toggle Button - Portrait Mobile View (Left Side) */}
+      <div className="fixed top-17 left-4 z-50 cursor-pointer">
+        <button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className={`p-2 rounded-full shadow text-sm cursor-pointer ${
+            isDarkMode ? "bg-white text-black" : "bg-black text-white"
+          }`}
+        >
+          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+      </div>
+
+      {/* Close Button - Portrait Mobile View (Right Side) */}
+      <button
+        onClick={() => window.location.href = '/learning'}
+        className={`fixed top-17 right-4 z-50 p-1 rounded-md shadow-lg transition-all duration-200 hover:scale-110 ${
+          isDarkMode ? "bg-red-600 text-white hover:bg-gray-700" : "bg-white text-black hover:bg-gray-100"
+        }`}
+        aria-label="Close and return to learning page"
+      >
+        Close
+      </button>
+
+      {/* Mobile Statistics Section - Top */}
+      <div className="md:hidden w-full flex items-center justify-center gap-4 mb-4 px-4">
+        <div className="flex-1 text-center">
+          <div className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}>{correctCount}</div>
+          <div className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Correct</div>
+        </div>
+        <div className="flex-1 text-center">
+          <div className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}>{wrongCount}</div>
+          <div className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Wrong</div>
+        </div>
+        <div className="flex-1 text-center">
+          <div className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}>{totalAttempts > 0 ? Math.round((correctCount / totalAttempts) * 100) : (correctCount === 0 && wrongCount === 0 ? 0 : 100)}%</div>
+          <div className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Accuracy</div>
+        </div>
+        <div className="flex-1 text-center">
+          <div className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}>{formatClock(timer)}</div>
+          <div className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Timer</div>
+        </div>
+      </div>
+
+      {/* Left Section */}
+      <div className="flex-1 flex flex-col items-center gap-6 mobile-stack">
+        {/* Typing Prompt Buttons - All in one row (mobile) */}
+        <div 
+          className="flex flex-nowrap typing-prompt-mobile justify-center items-center gap-1 md:gap-2 relative overflow-x-auto mt-2 px-2 typing-prompt-container"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+        >
+          {highlightedKeys.filter(k => k !== undefined && k !== null).map((key, index) => {
+            const isCurrentKey = index === currentIndex;
+            const keyStatusForThisKey = keyStatus[index];
+            const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
+            
+            return (
+              <div
+                key={index}
+                className={`
+                  ${key === "Space" ? "w-16 h-8" : "w-8 h-8"}
+                  rounded flex items-center justify-center text-sm font-semibold
+                  transition-all duration-150 flex-shrink-0
+                  ${
+                    isCurrentKey && key === "Space"
+                      ? "bg-blue-600 border-blue-400 border-2 text-white"
+                      : isCurrentKey
+                      ? "bg-blue-600 border-blue-400 border-2 text-white"
+                      : isPressed && key === "Space"
+                      ? "bg-red-600 text-white border-red-400 border-2 scale-95"
+                      : isPressed
+                      ? "bg-red-600 text-white border-red-400 border-2 scale-95"
+                      : keyStatusForThisKey === "correct"
+                      ? "bg-green-300 border-green-600 text-green-800"
+                      : keyStatusForThisKey === "wrong"
+                      ? "bg-red-600 border-red-600 text-white"
+                      : "bg-white text-black border-gray-300"
+                  }
+                  border
+                `}
+              >
+                {key === "Space" ? "Space" : key.toLowerCase()}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Rotation Prompt */}
+        <div className="rotate-prompt-mobile fixed bottom-20 left-1/2 -translate-x-1/2 z-[100] bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 flex items-center gap-3 shadow-lg border border-gray-700" style={{ pointerEvents: 'none' }}>
+          <div className="relative flex items-center justify-center w-20 h-20">
+            <svg width="80" height="80" viewBox="0 0 80 80" className="absolute inset-0 animate-rotate-arrows">
+              <path
+                d="M 20 20 Q 10 40, 20 60"
+                stroke="#3b82f6"
+                strokeWidth="3"
+                fill="none"
+                strokeLinecap="round"
+                className="animate-pulse"
+                style={{ animationDuration: '2s' }}
+              />
+              <path
+                d="M 18 25 L 20 20 L 22 25"
+                stroke="#3b82f6"
+                strokeWidth="3"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M 60 60 Q 70 40, 60 20"
+                stroke="#3b82f6"
+                strokeWidth="3"
+                fill="none"
+                strokeLinecap="round"
+                className="animate-pulse"
+                style={{ animationDuration: '2s' }}
+              />
+              <path
+                d="M 62 55 L 60 60 L 58 55"
+                stroke="#3b82f6"
+                strokeWidth="3"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            
+            <div className="relative w-9 h-14 bg-blue-500 rounded-md border-2 border-blue-400 flex flex-col items-center justify-between py-1.5">
+              <div className="w-1.5 h-1.5 bg-blue-300 rounded-full"></div>
+              <div className="flex-1 w-5 bg-blue-400 rounded my-1"></div>
+              <div className="w-2.5 h-0.5 bg-blue-300 rounded"></div>
+            </div>
+          </div>
+          
+          <div className="flex flex-row items-center text-white font-semibold text-sm gap-1">
+            <span>Rotate</span>
+            <span>Your</span>
+            <span>Phone</span>
+          </div>
+        </div>
+
+        {/* Keyboard */}
+        {keyboard && (
+          <div className={`relative mt-4 p-2 w-full max-w-full border border-gray-600 rounded-3xl shadow-md keyboard-container portrait-keyboard ${
+            isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
+          }`}>
+            <style jsx>{`
+              /* PORTRAIT: Increase space button size */
+              .portrait-keyboard .flex > div[class*="flex-1"] {
+                min-width: 100px !important;
+                width: auto !important;
+                max-width: 100% !important;
+                height: 33px !important;
+                font-size: 0.6rem !important;
+                font-weight: 600 !important;
+              }
+              
+              /* PORTRAIT: Hand image overlay styles */
+              .portrait-keyboard-hand-overlay {
+                position: absolute;
+                inset: 0;
+                pointer-events: none;
+                z-index: 10;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                top: 150;
+              }
+              
+              .portrait-keyboard-hand-image {
+                width: 100%;
+                max-width: 90%;
+                height: auto;
+                object-fit: contain;
+                opacity: 0.7;
+                transition: all 0.2s ease-in-out;
+              
+              
+              }
+            `}</style>
+            
+            {/* Hand Image Overlay - Portrait Mobile */}
+            {hand && (
+              <div className="portrait-keyboard-hand-overlay">
+                <img 
+                  src="/hand.png" 
+                  alt="Hand position guide" 
+                  className="portrait-keyboard-hand-image"
+                />
+              </div>
+            )}
+            
+            {keys.map((row, rowIndex) => (
+              <div key={rowIndex} className="flex mb-1">
+                {row.map((key, keyIndex) => {
+                  const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
+                  const isCurrentKey = highlightedKeys[currentIndex] === key;
+                  return (
+                    <div
+                      key={keyIndex}
+                      className={`h-8 text-[8px] ${getKeyWidth(key)} mx-0.5 rounded flex items-center justify-center 
+                        border transition-all duration-150 ${
+                          isDarkMode ? "border-gray-600 text-white" : "border-gray-400 text-gray-800"
+                        }
+                        ${
+                          isPressed ? (isDarkMode ? "bg-gray-600 text-white border-gray-500 border-2 scale-95" : "bg-gray-400 text-gray-900 border-gray-500 border-2 scale-95") :
+                          isCurrentKey ? "bg-blue-500 text-white border-blue-400 border-2" :
+                          isDarkMode ? "bg-black text-white border-gray-600" : "bg-gray-300 text-gray-800 border-gray-400"
+                        }`}
+                    >
+                      {key === "Space" ? "Space" : key}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ==================== LANDSCAPE MOBILE VIEW COMPONENT ====================
+function LandscapeMobileView({
+  isDarkMode,
+  setIsDarkMode,
+  highlightedKeys,
+  currentIndex,
+  currentRowIndex,
+  keyStatus,
+  pressedKey,
+  keyboard,
+  hand,
+  leftHandImage,
+  rightHandImage,
+  keys,
+  getKeyWidth,
+  getCurrentRowKeys,
+  organizeKeysIntoRows,
+  correctCount,
+  wrongCount,
+  totalCount,
+  backspaceCount,
+  elapsedTime,
+  formatClock
+}) {
+  const currentRowKeys = getCurrentRowKeys();
+  const nonSpaceKeys = highlightedKeys.filter(k => k !== "Space");
+  const nonSpaceStartIndex = currentRowIndex * 8;
+  
+  const getOriginalIndex = (displayKeyIdx) => {
+    if (currentRowKeys[displayKeyIdx] === "Space") {
+      return -1;
+    }
+    
+    let keyPosition;
+    if (displayKeyIdx < 4) {
+      // First 4 keys: positions 0-3
+      keyPosition = displayKeyIdx;
+    } else if (displayKeyIdx > 4 && displayKeyIdx < 9) {
+      // Next 4 keys after first space: positions 4-7 (skip first space at index 4)
+      keyPosition = displayKeyIdx - 1;
+    } else {
+      return -1;
+    }
+    
+    const nonSpaceKeyIndex = nonSpaceStartIndex + keyPosition;
+    if (nonSpaceKeyIndex >= nonSpaceKeys.length) return -1;
+    
+    let nonSpaceCount = 0;
+    for (let i = 0; i < highlightedKeys.length; i++) {
+      if (highlightedKeys[i] !== "Space") {
+        if (nonSpaceCount === nonSpaceKeyIndex) {
+          return i;
+        }
+        nonSpaceCount++;
+      }
+    }
+    return -1;
+  };
+
+  return (
+    <div className="p-4 flex flex-col md:flex-row gap-6 w-full min-h-full" style={{ minHeight: '100dvh' }}>
+      {/* Close Button - Landscape Mobile View */}
+      
+      {/* Theme Toggle Button - Landscape Mobile View */}
+      <div className="fixed top-32 left-4 z-50 cursor-pointer">
+        <button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className={`p-2 rounded-full shadow text-sm cursor-pointer ${
+            isDarkMode ? "bg-white text-black" : "bg-black text-white"
+          }`}
+        >
+          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+      </div>
+
+      {/* Left Section */}
+      <div className="flex-1 flex flex-col items-center gap-6 mobile-stack">
+        {/* Typing Prompt Buttons - Landscape mobile row-based layout */}
+        <div 
+          className="flex flex-nowrap typing-prompt-mobile justify-center items-center gap-1 md:gap-2 relative overflow-x-auto mt-2 px-2 typing-prompt-container"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+        >
+          {currentRowKeys.map((key, displayIdx) => {
+            const originalIndex = getOriginalIndex(displayIdx);
+            const isCurrentKey = originalIndex === currentIndex;
+            const keyStatusForThisKey = originalIndex >= 0 ? keyStatus[originalIndex] : null;
+            const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
+            const hasGapAfterFirstSpace = displayIdx === 5 && currentRowKeys[4] === "Space";
+            
+            let marginClass = "";
+            if (displayIdx === 0) {
+              marginClass = "";
+            } else if (hasGapAfterFirstSpace) {
+              marginClass = "md:ml-8 ml-6";
+            } else {
+              marginClass = "md:ml-2 ml-1.5";
+            }
+            
+            return (
+              <div
+                key={`${currentRowIndex}-${displayIdx}`}
+                className={`
+                  ${key === "Space" ? "w-22 h-11 text-xl" : "w-12 h-14"}
+                  rounded flex items-center justify-center text-2xl font-semibold
+                  transition-all duration-150 flex-shrink-0
+               
+                  ${
+                    isCurrentKey && key === "Space"
+                      ? "bg-blue-600 border-blue-400 border-2 text-white"
+                      : isCurrentKey
+                      ? "bg-blue-600 border-blue-400 border-2 text-white"
+                      : isPressed && key === "Space"
+                      ? "bg-red-600 text-white border-red-400 border-2 scale-95"
+                      : isPressed
+                      ? "bg-red-600 text-white border-red-400 border-2 scale-95"
+                      : keyStatusForThisKey === "correct"
+                      ? "bg-green-300 border-green-600 text-green-800"
+                      : keyStatusForThisKey === "wrong"
+                      ? "bg-red-600 border-red-600 text-white"
+                      : "bg-white text-black border-gray-300"
+                  }
+                  border
+                `}
+              >
+                {key === "Space" ? "Space" : key.toLowerCase()}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Keyboard */}
+        {keyboard && (
+          <div className={`absolute top-22 left-0 p-1 w-full max-w-full border border-gray-600 rounded-xl shadow-md keyboard-container landscape-keyboard-small ${
+            isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
+          }`}>
+            
+            {/* Dual Hand Image Overlay */}
+            {hand && (leftHandImage || rightHandImage) && (
+              <div className="absolute inset-0 pointer-events-none z-10 hand-overlay">
+                <div className="absolute left-[-45px] top-55 transform -translate-y-1/2 -translate-x-12">
+                  <img 
+                    src={leftHandImage} 
+                    alt="Left hand finger position" 
+                    className="w-100 h-260 object-contain opacity-85 transition-all duration-200 ease-in-out transform scale-110"
+                  />
+                </div>
+                
+                <div className="absolute right-6 top-55 transform -translate-y-1/2 translate-x-12">
+                  <img 
+                    src={rightHandImage} 
+                    alt="Right hand finger position" 
+                    className="w-100 h-260 object-contain opacity-85 transition-all duration-200 ease-in-out transform scale-110"
+                  />
+                </div>
+                
+                {pressedKey && (
+                  <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
+                    <div className="bg-yellow-400 text-black px-3 py-1 rounded-full text-lg font-bold shadow-lg animate-pulse">
+                      {pressedKey}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <style jsx>{`
+              /* LANDSCAPE: Show hand overlay in landscape keyboard */
+              .landscape-keyboard-small .hand-overlay {
+                display: block !important;
+              }
+              
+              /* LANDSCAPE: Base keyboard styles - keys remain unchanged */
+              .landscape-keyboard-small {
+                width: 98vw !important;
+                max-width: 98vw !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+                transform-origin: top center !important;
+              }
+              
+              /* Base pixel sizes - keys stay the same size */
+              .landscape-keyboard-small .flex > div {
+                height: 44px !important;
+                min-height: 44px !important;
+                max-height: 34px !important;
+                font-size: 0.9rem !important;
+                margin-left: 0.5px !important;
+                margin-right: 0.5px !important;
+                padding: 2px 1px !important;
+                line-height: 1 !important;
+              }
+              
+              .landscape-keyboard-small .flex {
+                margin-bottom: 1px !important;
+                gap: 1px !important;
+              }
+              
+              /* LANDSCAPE: Override text size for keyboard keys */
+              .landscape-keyboard-small .flex > div.text-xs {
+                font-size: 0.9rem !important;
+              }
+              
+              /* Key widths - fixed sizes, never change */
+              .landscape-keyboard-small .flex > div[class*="w-"] {
+                width: 20px !important;
+                min-width: 8% !important;
+                max-width: 20px !important;
+              }
+              
+              .landscape-keyboard-small .flex > div[class*="170px"] {
+                width: 70px !important;
+                min-width: 14.4% !important;
+                max-width: 70px !important;
+              }
+              
+              .landscape-keyboard-small .flex > div[class*="175px"] {
+                width: 70px !important;
+                min-width: 17% !important;
+                max-width: 70px !important;
+              }
+              
+              .landscape-keyboard-small .flex > div[class*="130px"] {
+                width: 38px !important;
+                min-width: 12.6% !important;
+                max-width: 38px !important;
+              }
+              
+              .landscape-keyboard-small .flex > div[class*="118px"] {
+                width: 36px !important;
+                min-width: 13% !important;
+                max-width: 36px !important;
+              }
+              
+              .landscape-keyboard-small .flex > div[class*="100px"] {
+                width: 11% !important;
+                min-width: 11% !important;
+                max-width: 11% !important;
+              }
+              
+              .landscape-keyboard-small .flex > div[class*="95px"] {
+                width: 30px !important;
+                min-width: 8% !important;
+                max-width: 30px !important;
+              }
+              
+              .landscape-keyboard-small .flex > div[class*="55px"] {
+                width: 20px !important;
+                min-width: 6.3% !important;
+                max-width: 20px !important;
+              }
+              
+              .landscape-keyboard-small .flex > div[class*="flex-1"] {
+                flex: 1 1 auto !important;
+                min-width: 60px !important;
+                width: auto !important;
+                max-width: 42% !important;
+              }
+              
+              /* LANDSCAPE: Media queries - adjust container only, keys stay same */
+              @media (min-width: 1400px) {
+                .landscape-keyboard-small {
+                  transform: scale(1.1) !important;
+                  width: 95vw !important;
+                  max-width: 95vw !important;
+                }
+              }
+              
+              @media (min-width: 1200px) and (max-width: 1399px) {
+                .landscape-keyboard-small {
+                  transform: scale(1) !important;
+                  width: 98vw !important;
+                  max-width: 98vw !important;
+                }
+              }
+              
+              @media (min-width: 1000px) and (max-width: 1199px) {
+                .landscape-keyboard-small {
+                  transform: scale(0.95) !important;
+                  width: 98vw !important;
+                  max-width: 98vw !important;
+                }
+              }
+              
+              @media (min-width: 800px) and (max-width: 999px) {
+                .landscape-keyboard-small {
+                  transform: scale(0.85) !important;
+                  width: 98vw !important;
+                  max-width: 98vw !important;
+                }
+              }
+              
+              @media (min-width: 600px) and (max-width: 799px) {
+                .landscape-keyboard-small {
+                  transform: scale(0.75) !important;
+                  width: 98vw !important;
+                  max-width: 98vw !important;
+                }
+              }
+              
+              @media (max-width: 599px) {
+                .landscape-keyboard-small {
+                  transform: scale(0.7) !important;
+                  width: 98vw !important;
+                  max-width: 98vw !important;
+                }
+              }
+            `}</style>
+            {keys.map((row, rowIndex) => (
+              <div key={rowIndex} className="flex mb-1">
+                {row.map((key, keyIndex) => {
+                  const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
+                  const isCurrentKey = highlightedKeys[currentIndex] === key;
+                  return (
+                    <div
+                      key={keyIndex}
+                      className={`h-8 text-xs ${getKeyWidth(key)} mx-0.5 rounded flex items-center justify-center 
+                        border transition-all duration-150 ${
+                          isDarkMode ? "border-gray-600 text-white" : "border-gray-400 text-gray-800"
+                        }
+                        ${
+                          isPressed ? (isDarkMode ? "bg-gray-600 text-white border-gray-500 border-2 scale-95" : "bg-gray-400 text-gray-900 border-gray-500 border-2 scale-95") :
+                          isCurrentKey ? "bg-blue-500 text-white border-blue-400 border-2" :
+                          isDarkMode ? "bg-black text-white border-gray-600" : "bg-gray-300 text-gray-800 border-gray-400"
+                        }`}
+                    >
+                      {key === "Space" ? "Space" : key}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Right Section - Landscape Mobile Stats */}
+      <div className="flex flex-col items-center gap-2 mt-2 mobile-stack mobile-small-text right-section-stats absolute right-0 top-20">
+        <div className="flex flex-col gap-2 w-full max-w-[100px] items-center landscape-mobile-stats">
+          <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+            <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
+            <div className="bg-white text-black text-sm font-bold">{formatClock(elapsedTime)}</div>
+          </div>
+          <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+            <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Correct</div>
+            <div className="bg-white text-green-600 text-sm font-bold">{correctCount}</div>
+          </div>
+          <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+            <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Wrong</div>
+            <div className="bg-white text-red-500 text-sm font-bold">{wrongCount}</div>
+          </div>
+          <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+            <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Total</div>
+            <div className="bg-white text-[#290c52] text-sm font-bold">{totalCount}</div>
+          </div>
+          <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+            <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Backspace</div>
+            <div className="bg-white text-blue-500 text-sm font-bold">{backspaceCount}</div>
+          </div>
+        </div>
+        {/* Close Button */}
+        <button
+          onClick={() => window.location.href = '/learning'}
+          className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md shadow-lg transition-all duration-200 hover:scale-110 mt-6 w-full max-w-[100px]"
+          aria-label="Close and return to learning page"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ==================== MAIN KEYBOARD APP COMPONENT ====================
+function KeyboardApp() {
   const searchParams = useSearchParams();
-  const exerciseId = searchParams.get("exercise");
+  const lessonId = searchParams.get("lesson");
   const language = searchParams.get("language") || "english";
   const subLanguage = searchParams.get("subLanguage") || "";
-  const duration = parseInt(searchParams.get("duration")) || 5;
-  const backspace = searchParams.get("backspace") || "OFF";
 
-  const [content, setContent] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [learningData, setLearningData] = useState(null);
+  const [hand, setHand] = useState(true);
+  const [sound, setSound] = useState(true);
+  const [keyboard, setKeyboard] = useState(true);
+  const [pressedKey, setPressedKey] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [accuracy, setAccuracy] = useState(100);
+  const [timer, setTimer] = useState(180);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [backspaceCount, setBackspaceCount] = useState(0);
+  const [fontSize, setFontSize] = useState(16);
+  const [isMobile, setIsMobile] = useState(false);
+  const [leftHandImage, setLeftHandImage] = useState("/images/left-resting-hand.webp");
+  const [rightHandImage, setRightHandImage] = useState("/images/right-resting-hand.webp");
+  const inputRef = useRef(null);
+  const [loading, setLoading] = useState(false);
+  const [lessonContent, setLessonContent] = useState("");
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+  const [userName, setUserName] = useState("User");
+  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+  const [currentRowIndex, setCurrentRowIndex] = useState(0);
+  const [isRowAnimating, setIsRowAnimating] = useState(false);
+  const [showRotatePrompt, setShowRotatePrompt] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
+  const [keyDifficulties, setKeyDifficulties] = useState({}); // Track wrong attempts per key
 
-  // Fetch exercise content from API
+  // Default home row keys if no lesson
+  const defaultKeys = ["A", "S", "D", "F", "Space", "J", "K", "L", ";"];
+  const [highlightedKeys, setHighlightedKeys] = useState(defaultKeys);
+  const [keyStatus, setKeyStatus] = useState(Array(defaultKeys.length).fill(null));
+
+  // Function to organize keys into rows: 4 alphabets + 1 space + 4 alphabets + 1 space (at end)
+  const organizeKeysIntoRows = (keys) => {
+    const rows = [];
+    const nonSpaceKeys = keys.filter(k => k !== "Space");
+    
+    // If we have 4 or fewer keys, don't add any spaces - just return them as-is
+    if (nonSpaceKeys.length <= 4) {
+      return [nonSpaceKeys];
+    }
+    
+    // Organize into rows: 4 alphabets + space + 4 alphabets + space (at end)
+    for (let i = 0; i < nonSpaceKeys.length; i += 8) {
+      const rowKeys = [];
+      
+      // First 4 alphabets
+      for (let j = 0; j < 4 && i + j < nonSpaceKeys.length; j++) {
+        rowKeys.push(nonSpaceKeys[i + j]);
+      }
+      
+      // Check if there are more keys after the first 4
+      const remainingKeys = nonSpaceKeys.length - (i + 4);
+      
+      // Only add first space if we have more than 4 keys total in this row
+      if (remainingKeys > 0 && rowKeys.length === 4) {
+        rowKeys.push("Space");
+      }
+      
+      // Next 4 alphabets (after first space)
+      let hasSecondGroup = false;
+      for (let j = 4; j < 8 && i + j < nonSpaceKeys.length; j++) {
+        rowKeys.push(nonSpaceKeys[i + j]);
+        hasSecondGroup = true;
+      }
+      
+      // Add space at the end after the last two keys (d and s)
+      if (hasSecondGroup) {
+        rowKeys.push("Space");
+      }
+      
+      rows.push(rowKeys);
+    }
+    
+    return rows;
+  };
+
+  // Get current row keys based on progress
+  const getCurrentRowKeys = () => {
+    const rows = organizeKeysIntoRows(highlightedKeys);
+    if (rows.length === 0) return [];
+    
+    return rows[Math.min(currentRowIndex, rows.length - 1)] || rows[0] || [];
+  };
+
+  // Update current row index based on progress
   useEffect(() => {
-    const fetchData = async () => {
-      if (!exerciseId) {
-        setLoading(false);
+    const rows = organizeKeysIntoRows(highlightedKeys);
+    if (rows.length === 0) return;
+    
+    // Count how many non-space keys have been typed
+    let nonSpaceTyped = 0;
+    for (let i = 0; i < currentIndex && i < highlightedKeys.length; i++) {
+      if (highlightedKeys[i] !== "Space") {
+        nonSpaceTyped++;
+      }
+    }
+    
+    // Each row has 8 alphabets, so calculate which row we're on
+    const rowIndex = Math.floor(nonSpaceTyped / 8);
+    const newRowIndex = Math.min(rowIndex, rows.length - 1);
+    
+    if (newRowIndex !== currentRowIndex) {
+      // Trigger animation when row changes
+      setIsRowAnimating(true);
+      setCurrentRowIndex(newRowIndex);
+      
+      // Reset animation after it completes
+      setTimeout(() => {
+        setIsRowAnimating(false);
+      }, 600); // Match animation duration
+    }
+  }, [currentIndex, highlightedKeys, currentRowIndex]);
+
+  // Fetch lesson content and extract keys
+  useEffect(() => {
+    const fetchLessonData = async () => {
+      if (!lessonId) {
+        // Use default home row keys
+        setHighlightedKeys(defaultKeys);
+        setKeyStatus(Array(defaultKeys.length).fill(null));
         return;
       }
 
+      setLoading(true);
       try {
-        // Fetch skill test data
-        const res = await fetch('/api/skill-test?' + new Date().getTime());
+        // Fetch learning data
+        const res = await fetch('/api/learning?' + new Date().getTime());
         if (res.ok) {
           const data = await res.json();
-          setLearningData(data);
-          const exercise = data.exercises?.find(e => e.id === exerciseId);
-          
-          if (exercise) {
-            let exerciseContent = "";
+          // Find the lesson
+          let lesson = null;
+          for (const section of data.sections || []) {
+            const foundLesson = section.lessons?.find(l => l.id === lessonId);
+            if (foundLesson) {
+              lesson = { ...foundLesson, section: section.name };
+              break;
+            }
+          }
+
+          if (lesson) {
+            // Get content based on language - directly from lesson.content object
+            const languageKey = language.toLowerCase();
+            let contentKey = 'english';
             
-            // If exercise is linked to a lesson, use lesson content
-            if (exercise.lessonId) {
-              // Fetch learning data for lesson content
-              try {
-                const learningRes = await fetch('/api/learning?' + new Date().getTime());
-                if (learningRes.ok) {
-                  const learningData = await learningRes.json();
-                  // Find the lesson
-                  for (const section of learningData.sections || []) {
-                    const lesson = section.lessons?.find(l => l.id === exercise.lessonId);
-                    if (lesson) {
-                      const languageKey = language.toLowerCase();
-                      const subLangKey = subLanguage.toLowerCase().includes("ramington")
-                        ? "ramington"
-                        : subLanguage.toLowerCase().includes("inscript")
-                        ? "inscript"
-                        : "";
-                      exerciseContent = getLessonContent(lesson, languageKey, subLangKey) || "";
-                      break;
-                    }
-                  }
-                } else {
-                  // Fallback to local data
-                  const localData = getLearningData();
-                  setLearningData(localData);
-                  for (const section of localData.sections || []) {
-                    const lesson = section.lessons?.find(l => l.id === exercise.lessonId);
-                    if (lesson) {
-                      const languageKey = language.toLowerCase();
-                      const subLangKey = subLanguage.toLowerCase().includes("ramington")
-                        ? "ramington"
-                        : subLanguage.toLowerCase().includes("inscript")
-                        ? "inscript"
-                        : "";
-                      exerciseContent = getLessonContent(lesson, languageKey, subLangKey) || "";
-                      break;
-                    }
-                  }
-                }
-              } catch (error) {
-                console.error('Failed to fetch learning data:', error);
-                // Fallback to local data
-                const localData = getLearningData();
-                setLearningData(localData);
-              }
-            } else {
-              // Use exercise's custom content
-              const exerciseContentObj = exercise.content || {};
-              if (language.toLowerCase() === "hindi") {
-                if (subLanguage.toLowerCase().includes("ramington")) {
-                  exerciseContent = exerciseContentObj.hindi_ramington || "";
-                } else if (subLanguage.toLowerCase().includes("inscript")) {
-                  exerciseContent = exerciseContentObj.hindi_inscript || "";
-                } else {
-                  exerciseContent = exerciseContentObj.hindi_ramington || "";
-                }
+            if (languageKey === 'hindi') {
+              if (subLanguage.toLowerCase().includes("ramington")) {
+                contentKey = 'hindi_ramington';
+              } else if (subLanguage.toLowerCase().includes("inscript")) {
+                contentKey = 'hindi_inscript';
               } else {
-                exerciseContent = exerciseContentObj.english || "";
+                contentKey = 'hindi_ramington'; // default for hindi
               }
             }
+            
+            // Get content directly from lesson.content object (database structure)
+            const content = lesson.content?.[contentKey] || lesson.content?.english || "";
+            setLessonContent(content);
 
-            // Split content into lines (max ~80 characters per line for better display)
-            if (exerciseContent && exerciseContent.trim()) {
-              const words = exerciseContent.trim().split(/\s+/).filter(w => w.length > 0);
-              if (words.length > 0) {
-                const lines = [];
-                let currentLine = "";
-                for (const word of words) {
-                  if ((currentLine + " " + word).length > 80 && currentLine) {
-                    lines.push(currentLine.trim());
-                    currentLine = word;
-                  } else {
-                    currentLine = currentLine ? currentLine + " " + word : word;
+            // Extract unique characters/keys from content (first 100 characters for practice)
+            if (content) {
+              const contentToUse = content.substring(0, 100).trim();
+              // Convert content to array of characters, handling spaces
+              const keys = [];
+              for (let i = 0; i < contentToUse.length; i++) {
+                const char = contentToUse[i];
+                if (char === ' ') {
+                  // Only add space if it's not at the beginning or end (avoid trailing spaces)
+                  if (i > 0 && i < contentToUse.length - 1) {
+                    keys.push("Space");
+                  }
+                } else if (languageKey === 'hindi') {
+                  // For Hindi, include all Unicode characters (Hindi, Devanagari, etc.)
+                  // Also include English characters and common punctuation
+                  if (char.match(/[\u0900-\u097F\u0020-\u007E\u00A0-\u00FF]/)) {
+                    // For Hindi keyboard, we need to map to actual keyboard keys
+                    // For now, we'll use the character as-is for display
+                    // But for keyboard practice, we might need to map to actual keys
+                    // For simplicity, let's extract first 20-30 unique characters
+                    keys.push(char);
+                  }
+                } else {
+                  // For English, use standard regex
+                  if (char.match(/[a-zA-Z0-9;:'",.?!\-=\[\]\\`~@#$%^&*()_+|<>?/{}]/)) {
+                    keys.push(char.toUpperCase());
                   }
                 }
-                if (currentLine) {
-                  lines.push(currentLine.trim());
-                }
-                setContent(lines.length > 0 ? lines : []);
-              } else {
-                setContent([]);
               }
+              // Remove any trailing Space keys
+              while (keys.length > 0 && keys[keys.length - 1] === "Space") {
+                keys.pop();
+              }
+              // Limit to reasonable number of keys (20-30 for Hindi, 50 for English)
+              const maxKeys = languageKey === 'hindi' ? 30 : 50;
+              const keysToUse = keys.length > 0 ? keys.slice(0, maxKeys) : defaultKeys;
+              setHighlightedKeys(keysToUse);
+              setKeyStatus(Array(keysToUse.length).fill(null));
             } else {
-              setContent([]);
+              setHighlightedKeys(defaultKeys);
+              setKeyStatus(Array(defaultKeys.length).fill(null));
+            }
+          } else {
+            // Fallback to local data
+            const localData = getLearningData();
+            for (const section of localData.sections || []) {
+              const foundLesson = section.lessons?.find(l => l.id === lessonId);
+              if (foundLesson) {
+                const languageKey = language.toLowerCase();
+                let contentKey = 'english';
+                
+                if (languageKey === 'hindi') {
+                  if (subLanguage.toLowerCase().includes("ramington")) {
+                    contentKey = 'hindi_ramington';
+                  } else if (subLanguage.toLowerCase().includes("inscript")) {
+                    contentKey = 'hindi_inscript';
+                  } else {
+                    contentKey = 'hindi_ramington';
+                  }
+                }
+                
+                const content = foundLesson.content?.[contentKey] || foundLesson.content?.english || "";
+                if (content) {
+                  const contentToUse = content.substring(0, 100).trim();
+                  const keys = [];
+                  for (let i = 0; i < contentToUse.length; i++) {
+                    const char = contentToUse[i];
+                    if (char === ' ') {
+                      // Only add space if it's not at the beginning or end (avoid trailing spaces)
+                      if (i > 0 && i < contentToUse.length - 1) {
+                        keys.push("Space");
+                      }
+                    } else if (languageKey === 'hindi') {
+                      if (char.match(/[\u0900-\u097F\u0020-\u007E\u00A0-\u00FF]/)) {
+                        keys.push(char);
+                      }
+                    } else {
+                      if (char.match(/[a-zA-Z0-9;:'",.?!\-=\[\]\\`~@#$%^&*()_+|<>?/{}]/)) {
+                        keys.push(char.toUpperCase());
+                      }
+                    }
+                  }
+                  // Remove any trailing Space keys
+                  while (keys.length > 0 && keys[keys.length - 1] === "Space") {
+                    keys.pop();
+                  }
+                  const maxKeys = languageKey === 'hindi' ? 30 : 50;
+                  const keysToUse = keys.length > 0 ? keys.slice(0, maxKeys) : defaultKeys;
+                  setHighlightedKeys(keysToUse);
+                  setKeyStatus(Array(keysToUse.length).fill(null));
+                  setLessonContent(content);
+                  break;
+                }
+              }
             }
           }
         }
       } catch (error) {
-        console.error('Failed to fetch exercise data:', error);
+        console.error('Failed to fetch lesson data:', error);
+        // Use default keys on error
+        setHighlightedKeys(defaultKeys);
+        setKeyStatus(Array(defaultKeys.length).fill(null));
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [exerciseId, language, subLanguage]);
+    fetchLessonData();
+  }, [lessonId, language, subLanguage]);
 
-  // Load user name from API and localStorage
+  // Fetch user profile
   useEffect(() => {
-    const fetchUserName = async () => {
+    const fetchUserProfile = async () => {
       try {
-        // First try to get from API
-        const res = await fetch('/api/profile', { credentials: 'include' });
+        const res = await fetch('/api/profile');
         if (res.ok) {
           const data = await res.json();
-          if (data.user?.name) {
-            setUserName(data.user.name);
-          }
-          if (data.user?.profileUrl) {
-            setUserProfileUrl(data.user.profileUrl);
-          }
-          if (data.user?.name || data.user?.profileUrl) {
-            return;
+          if (data.user) {
+            setUserName(data.user.name || "User");
+            setUserProfileUrl(data.user.profileUrl || "/lo.jpg");
           }
         }
       } catch (error) {
         console.error('Failed to fetch user profile:', error);
-      }
-      
-      // Fallback to localStorage
-      const userDataStr = localStorage.getItem('examUserData');
-      if (userDataStr) {
-        try {
-          const userData = JSON.parse(userDataStr);
-          if (userData.name) {
-            setUserName(userData.name);
-          }
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-        }
+        // Keep default values
       }
     };
-    
-    fetchUserName();
+    fetchUserProfile();
   }, []);
 
-  // Fetch backspace settings
+  // Calculate stats - correctCount should be the number of correctly typed keys
+  const correctCount = isCompleted ? highlightedKeys.length : currentIndex;
+  const wrongCount = keyStatus.filter(status => status === "wrong").length;
+  const totalCount = highlightedKeys.length;
+  const totalAttempts = correctCount + wrongCount;
+
+  const wpm = elapsedTime > 0 ? Math.round((correctCount / elapsedTime) * 60) : 0;
+
+  const fingerMap = {
+    // Left hand keys
+    "`": "pinky",
+    "1": "pinky",
+    "2": "pinky",
+    "3": "pinky",
+    "4": "pinky",
+    "5": "pinky",
+    "Q": "pinky",
+    "W": "ring",
+    "E": "middle",
+    "R": "index-left",
+    "T": "index-left",
+    "A": "pinky",
+    "S": "ring",
+    "D": "middle",
+    "F": "index-left",
+    "G": "index-left",
+    "Z": "pinky",
+    "X": "ring",
+    "C": "middle",
+    "V": "index-left",
+    "B": "index-left",
+    "Shift": "pinky",
+    "Tab": "pinky",
+    "Caps": "pinky",
+    "Ctrl": "pinky",
+    "Alt": "thumb",
+    "Win": "thumb",
+    "Menu": "pinky",
+    
+    // Right hand keys
+    "Y": "index-right",
+    "U": "index-right",
+    "I": "middle-right",
+    "O": "ring-right",
+    "P": "pinky-right",
+    "H": "index-right",
+    "J": "index-right",
+    "K": "middle-right",
+    "L": "ring-right",
+    ";": "pinky-right",
+    "'": "pinky-right",
+    "N": "index-right",
+    "M": "index-right",
+    ",": "middle-right",
+    ".": "ring-right",
+    "/": "pinky-right",
+    "6": "index-right",
+    "7": "index-right",
+    "8": "middle-right",
+    "9": "ring-right",
+    "0": "pinky-right",
+    "-": "pinky-right",
+    "=": "pinky-right",
+    "[": "pinky-right",
+    "]": "pinky-right",
+    "\\": "pinky-right",
+    "Enter": "pinky-right",
+    "Backspace": "pinky-right",
+    "Menu": "pinky-right",
+    
+    // Space key uses both thumbs
+    "Space": "thumb"
+  };
+
+  // Mapping between keys and their corresponding hand images
+  const keyToHandImage = {
+    // Left hand keys
+    "`": { left: "/images/left-key-~.webp", right: "/images/right-resting-hand.webp" },
+    "1": { left: "/images/left-key-1.webp", right: "/images/right-resting-hand.webp" },
+    "2": { left: "/images/left-key-2.webp", right: "/images/right-resting-hand.webp" },
+    "3": { left: "/images/left-key-3.webp", right: "/images/right-resting-hand.webp" },
+    "4": { left: "/images/left-key-4.webp", right: "/images/right-resting-hand.webp" },
+    "5": { left: "/images/left-key-5.webp", right: "/images/right-resting-hand.webp" },
+    "Q": { left: "/images/left-key-q.webp", right: "/images/right-resting-hand.webp" },
+    "W": { left: "/images/left-key-w.webp", right: "/images/right-resting-hand.webp" },
+    "E": { left: "/images/left-key-e.webp", right: "/images/right-resting-hand.webp" },
+    "R": { left: "/images/left-key-r.webp", right: "/images/right-resting-hand.webp" },
+    "T": { left: "/images/left-key-t.webp", right: "/images/right-resting-hand.webp" },
+    "A": { left: "/images/left-key-a.webp", right: "/images/right-resting-hand.webp" },
+    "S": { left: "/images/left-key-s.webp", right: "/images/right-resting-hand.webp" },
+    "D": { left: "/images/left-key-d.webp", right: "/images/right-resting-hand.webp" },
+    "F": { left: "/images/left-key-f.webp", right: "/images/right-resting-hand.webp" },
+    "G": { left: "/images/left-key-g.webp", right: "/images/right-resting-hand.webp" },
+    "Z": { left: "/images/left-key-z.webp", right: "/images/right-resting-hand.webp" },
+    "X": { left: "/images/left-key-x.webp", right: "/images/right-resting-hand.webp" },
+    "C": { left: "/images/left-key-c.webp", right: "/images/right-resting-hand.webp" },
+    "V": { left: "/images/left-key-v.webp", right: "/images/right-resting-hand.webp" },
+    "B": { left: "/images/left-key-b.webp", right: "/images/right-resting-hand.webp" },
+    "Shift": { left: "/images/left-key-shift.webp", right: "/images/right-resting-hand.webp" },
+    "Tab": { left: "/images/left-key-tab.webp", right: "/images/right-resting-hand.webp" },
+    "Caps": { left: "/images/left-key-caps.webp", right: "/images/right-resting-hand.webp" },
+    "Ctrl": { left: "/images/left-key-ctrl.webp", right: "/images/right-resting-hand.webp" },
+    "Alt": { left: "/images/left-key-alt.webp", right: "/images/right-resting-hand.webp" },
+    "Win": { left: "/images/left-key-win.webp", right: "/images/right-resting-hand.webp" },
+    
+    // Right hand keys
+    "Y": { left: "/images/left-resting-hand.webp", right: "/images/right-key-y.webp" },
+    "U": { left: "/images/left-resting-hand.webp", right: "/images/right-key-u.webp" },
+    "I": { left: "/images/left-resting-hand.webp", right: "/images/right-key-i.webp" },
+    "O": { left: "/images/left-resting-hand.webp", right: "/images/right-key-o.webp" },
+    "P": { left: "/images/left-resting-hand.webp", right: "/images/right-key-p.webp" },
+    "H": { left: "/images/left-resting-hand.webp", right: "/images/right-key-h.webp" },
+    "J": { left: "/images/left-resting-hand.webp", right: "/images/right-key-j.webp" },
+    "K": { left: "/images/left-resting-hand.webp", right: "/images/right-key-k.webp" },
+    "L": { left: "/images/left-resting-hand.webp", right: "/images/right-key-l.webp" },
+    "N": { left: "/images/left-resting-hand.webp", right: "/images/right-key-n.webp" },
+    "M": { left: "/images/left-resting-hand.webp", right: "/images/right-key-m.webp" },
+    ";": { left: "/images/left-resting-hand.webp", right: "/images/right-key-;.webp" },
+    "'": { left: "/images/left-resting-hand.webp", right: "/images/right-key-'.webp" },
+    ",": { left: "/images/left-resting-hand.webp", right: "/images/right-key-,.webp" },
+    ".": { left: "/images/left-resting-hand.webp", right: "/images/right-key-..webp" },
+    "/": { left: "/images/left-resting-hand.webp", right: "/images/right-key-questionMark.webp" },
+    "6": { left: "/images/left-resting-hand.webp", right: "/images/right-key-6.webp" },
+    "7": { left: "/images/left-resting-hand.webp", right: "/images/right-key-7.webp" },
+    "8": { left: "/images/left-resting-hand.webp", right: "/images/right-key-8.webp" },
+    "9": { left: "/images/left-resting-hand.webp", right: "/images/right-key-9.webp" },
+    "0": { left: "/images/left-resting-hand.webp", right: "/images/right-key-0.webp" },
+    "-": { left: "/images/left-resting-hand.webp", right: "/images/right-key-dash.webp" },
+    "=": { left: "/images/left-resting-hand.webp", right: "/images/right-key-plus.webp" },
+    "[": { left: "/images/left-resting-hand.webp", right: "/images/right-key-{.webp" },
+    "]": { left: "/images/left-resting-hand.webp", right: "/images/right-key-}.webp" },
+    "\\": { left: "/images/left-resting-hand.webp", right: "/images/right-key-questionMark.webp" },
+    "Backspace": { left: "/images/left-resting-hand.webp", right: "/images/right-key-backspace.webp" },
+    "Enter": { left: "/images/left-resting-hand.webp", right: "/images/right-key-enter.webp" },
+    "Menu": { left: "/images/left-resting-hand.webp", right: "/images/right-key-menu.webp" },
+    " ": { left: "/images/left-key-space.webp", right: "/images/right-key- .webp" }, // Space key
+    "Space": { left: "/images/left-key-space.webp", right: "/images/right-key- .webp" }, // Space key
+    
+    // Default hand positions
+    "resting": { left: "/images/left-resting-hand.webp", right: "/images/right-resting-hand.webp" }
+  };
+
+  const keys = [
+    ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "Backspace"],
+    ["Tab", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\\"],
+    ["Caps", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "Enter"],
+    ["Shift", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "Shift"],
+    ["Ctrl", "Win", "Alt", "Space", "Alt", "Win", "Menu", "Ctrl"]
+  ];
+
   useEffect(() => {
-    const fetchBackspaceSettings = async () => {
-      try {
-        const res = await fetch('/api/backspace-settings');
-        if (res.ok) {
-          const data = await res.json();
-          setBackspaceSettings(data.settings || []);
-          
-          // Find setting for current duration
-          const setting = data.settings?.find(s => s.duration === duration);
-          if (setting) {
-            setBackspaceLimit(setting.backspaceLimit);
-          } else {
-            setBackspaceLimit(null); // No limit if no setting found
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch backspace settings:', error);
-        setBackspaceLimit(null);
+    const checkIfMobile = () => {
+      const isMobile = window.innerWidth < 933;
+      setIsMobile(isMobile);
+      if (isMobile && inputRef.current) {
+        inputRef.current.focus();
       }
     };
     
-    fetchBackspaceSettings();
-  }, [duration]);
-
-  const words = content.length > 0 && content.join(" ").trim() 
-    ? content.join(" ").trim().split(/\s+/).filter(w => w.length > 0)
-    : [];
-
-  const [typedText, setTypedText] = useState("");
-  const [startTime, setStartTime] = useState(null);
-  const [endTime, setEndTime] = useState(null);
-  const [wpm, setWPM] = useState(0);
-  const [backspaceCount, setBackspaceCount] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
-  const [fontSize, setFontSize] = useState(16);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(duration * 60); // Convert to seconds
-  const [resultId, setResultId] = useState(null);
-  const [accuracy, setAccuracy] = useState(100);
-  const [userName, setUserName] = useState("User");
-  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
-  const [backspaceLimit, setBackspaceLimit] = useState(null); // null = unlimited
-  const [backspaceSettings, setBackspaceSettings] = useState([]);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isLandscape, setIsLandscape] = useState(false);
-
-  const intervalRef = useRef(null);
-  const wordRefs = useRef([]);
-  const containerRef = useRef(null);
-  const textareaRef = useRef(null);
-
-  // Auto-focus textarea when content is loaded and ready
-  useEffect(() => {
-    if (!loading && content.length > 0 && textareaRef.current && !isPaused && !isCompleted) {
-      // Small delay to ensure DOM is ready
-      const timer = setTimeout(() => {
-        textareaRef.current?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, content, isPaused, isCompleted]);
-
-  // Detect mobile and landscape orientation
-  useEffect(() => {
-    const checkMobileAndOrientation = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+    const checkOrientation = () => {
+      // Multiple methods to detect landscape orientation for all devices
+      let isLandscapeMode = false;
       
-      // More robust mobile detection - check for touch device or small screen
-      const isMobileDevice = width < 768 || 
-                            (navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i)) ||
-                            ('ontouchstart' in window);
+      // Method 1: Use matchMedia for orientation (most reliable and standard)
+      if (window.matchMedia) {
+        const landscapeQuery = window.matchMedia('(orientation: landscape)');
+        if (landscapeQuery.matches) {
+          isLandscapeMode = true;
+        }
+      }
       
-      setIsMobile(isMobileDevice);
+      // Method 2: Use screen orientation API if available (fallback)
+      if (!isLandscapeMode && screen.orientation) {
+        const angle = screen.orientation.angle;
+        if (angle === 90 || angle === -90 || angle === 270) {
+          isLandscapeMode = true;
+        }
+      }
       
-      if (isMobileDevice) {
-        // Multiple checks for landscape orientation
-        const isLandscapeMode = 
-          width > height || // Width greater than height
-          (window.orientation !== undefined && (Math.abs(window.orientation) === 90 || Math.abs(window.orientation) === -90)) || // Orientation API
-          (screen.orientation && screen.orientation.angle % 180 !== 0) || // Screen Orientation API
-          (width / height > 1.2); // Aspect ratio check
-        
-        setIsLandscape(isLandscapeMode);
+      // Method 3: Compare width and height (fallback for older devices)
+      if (!isLandscapeMode && window.innerWidth > window.innerHeight) {
+        isLandscapeMode = true;
+      }
+      
+      setIsLandscape(isLandscapeMode);
+      
+      // Only show rotate prompt on mobile portrait
+      if (window.innerWidth < 768 && !isLandscapeMode) {
+        setShowRotatePrompt(true);
       } else {
-        setIsLandscape(false);
+        setShowRotatePrompt(false);
       }
     };
-
-    // Initial check
-    checkMobileAndOrientation();
     
-    // Listen for resize events (throttled for performance)
-    let resizeTimeout;
+    checkIfMobile();
+    checkOrientation();
+    
+    // Also check after delays to ensure orientation is detected on all devices
+    const timeoutId1 = setTimeout(() => {
+      checkOrientation();
+    }, 100);
+    
+    const timeoutId2 = setTimeout(() => {
+      checkOrientation();
+    }, 300);
+    
+    const timeoutId3 = setTimeout(() => {
+      checkOrientation();
+    }, 500);
+    
     const handleResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(checkMobileAndOrientation, 100);
+      checkIfMobile();
+      checkOrientation();
     };
+    
+    const handleOrientationChange = () => {
+      // Delay to ensure orientation change is complete on all devices
+      setTimeout(() => {
+        checkOrientation();
+      }, 200);
+    };
+    
+    const handleScreenOrientationChange = () => {
+      // Additional listener for screen orientation API
+      setTimeout(() => {
+        checkOrientation();
+      }, 200);
+    };
+    
     window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientationChange);
     
-    // Listen for orientation changes with multiple event types for better compatibility
-    window.addEventListener('orientationchange', () => {
-      setTimeout(checkMobileAndOrientation, 200);
-    });
-    
-    // Screen orientation API (more reliable on modern devices)
+    // Add screen orientation change listener if available
     if (screen.orientation) {
-      screen.orientation.addEventListener('change', () => {
-        setTimeout(checkMobileAndOrientation, 200);
-      });
+      screen.orientation.addEventListener('change', handleScreenOrientationChange);
     }
     
-    // Also check on focus (handles device rotation while app is in background)
-    window.addEventListener('focus', checkMobileAndOrientation);
+    // Also listen to media query changes for orientation
+    if (window.matchMedia) {
+      const landscapeQuery = window.matchMedia('(orientation: landscape)');
+      landscapeQuery.addEventListener('change', handleOrientationChange);
+    }
     
-    // Periodic check as fallback for devices that don't fire events properly (every 2 seconds)
-    const intervalId = setInterval(() => {
-      checkMobileAndOrientation();
-    }, 2000);
-
     return () => {
-      clearTimeout(resizeTimeout);
-      clearInterval(intervalId);
+      clearTimeout(timeoutId1);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', checkMobileAndOrientation);
-      window.removeEventListener('focus', checkMobileAndOrientation);
+      window.removeEventListener('orientationchange', handleOrientationChange);
       if (screen.orientation) {
-        screen.orientation.removeEventListener('change', checkMobileAndOrientation);
+        screen.orientation.removeEventListener('change', handleScreenOrientationChange);
       }
     };
   }, []);
 
-  const typedWords = typedText.trim().split(/\s+/);
-  const correctWords = typedWords.filter((word, i) => word === words[i]);
-  const wrongWords = typedWords.filter((word, i) => word !== words[i] && word);
-
-  const saveTypingResult = React.useCallback(async (endTime, startTime, grossWpm, accuracy) => {
-    try {
-      const timeTaken = Math.round((endTime - startTime) / 1000);
-      const timeInMinutes = timeTaken / 60;
-      const wordsTyped = typedWords.length;
-      const correct = correctWords.length;
-      const wrong = wrongWords.length;
-      const netSpeed = Math.round((correct / timeInMinutes) || 0);
-      
-      // Calculate errors in format "THGe [The]"
-      const errorStrings = [];
-      for (let i = 0; i < Math.min(typedWords.length, words.length); i++) {
-        if (typedWords[i] !== words[i]) {
-          errorStrings.push(`${typedWords[i]} [${words[i]}]`);
-        }
-      }
-      
-      // Determine final result (PASS if net speed >= 30 WPM)
-      const finalResult = netSpeed >= 30 ? "PASS" : "FAIL";
-      
-      // Determine remarks
-      let remarks = "Fair";
-      if (netSpeed >= 50) remarks = "Excellent";
-      else if (netSpeed >= 40) remarks = "Very Good";
-      else if (netSpeed >= 30) remarks = "Good";
-      else if (netSpeed >= 20) remarks = "Fair";
-      else remarks = "Poor";
-      
-      // Get user data - use actual userName from state (fetched from API)
-      const userDataStr = localStorage.getItem('examUserData');
-      const userData = userDataStr ? JSON.parse(userDataStr) : {};
-      
-      // Get exercise info
-      const exerciseName = learningData?.exercises?.find(e => e.id === exerciseId)?.name || "Typing Exercise";
-      
-      // Use actual userName from state (which should be fetched from API), fallback to localStorage, then "User"
-      const finalUserName = userName && userName !== "User" ? userName : (userData.name || "User");
-      
-      const resultData = {
-        userId: userData.mobile || 'anonymous',
-        userName: finalUserName,
-        userMobile: userData.mobile,
-        userCity: userData.city,
-        exerciseId: exerciseId || "",
-        exerciseName: exerciseName,
-        language: language === "hindi" ? "Hindi" : "English",
-        subLanguage: subLanguage || "",
-        duration: duration,
-        backspaceEnabled: backspace === "ON",
-        grossSpeed: grossWpm,
-        netSpeed: netSpeed,
-        totalWords: wordsTyped,
-        correctWords: correct,
-        wrongWords: wrong,
-        accuracy: accuracy,
-        timeTaken: timeTaken,
-        backspaceCount: backspaceCount,
-        errors: errorStrings,
-        finalResult: finalResult,
-        remarks: remarks
+  useEffect(() => {
+    if (isMobile && inputRef.current) {
+      const handleBlur = () => {
+        setTimeout(() => {
+          if (inputRef.current) inputRef.current.focus();
+        }, 100);
       };
       
-      const res = await fetch('/api/typing-results', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(resultData)
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        setResultId(data.result._id);
-        localStorage.setItem('lastTypingResultId', data.result._id);
-        // Redirect directly to result page
-        window.location.href = `/result/skill-test?resultId=${data.result._id}`;
+      inputRef.current.addEventListener('blur', handleBlur);
+      return () => {
+        if (inputRef.current) {
+          inputRef.current.removeEventListener('blur', handleBlur);
+        }
+      };
+    }
+  }, [isMobile]);
+
+  const getKeyWidth = (key) => {
+    switch (key) {
+      case "Backspace": return "w-[170px]";
+      case "Tab": return "w-[130px]";
+      case "Caps": return "w-[118px]";
+      case "Enter": return "w-[170px]";
+      case "Shift": return "w-[175px]";
+      case "Ctrl":
+      case "Alt":
+      case "Win":
+      case "Menu": return "w-[70px]";
+      case "\\": return "w-[95px]";
+      case "Space": return "flex-1";
+      default: return "w-[55px]";
+    }
+  };
+
+  const normalizeKey = (key) => {
+    if (key === " ") return "Space";
+    if (key === "Control") return "Ctrl";
+    if (key === "AltGraph") return "Alt";
+    if (key === "OS" || key === "Meta") return "Win";
+    if (key === "ContextMenu") return "Menu";
+    if (key.length === 1) return key.toUpperCase();
+    return key;
+  };
+
+  // Function to update hand images based on the pressed key
+  const updateHandImages = useCallback((key) => {
+    // Get the finger mapping for this key
+    const finger = fingerMap[key];
+    
+    if (!finger) {
+      // If no finger mapping, use resting position
+      setLeftHandImage(keyToHandImage["resting"].left);
+      setRightHandImage(keyToHandImage["resting"].right);
+      return;
+    }
+
+    // Determine which hand the finger belongs to
+    const isLeftHand = ['pinky', 'ring', 'middle', 'index-left'].includes(finger);
+    const isRightHand = ['index-right', 'middle-right', 'ring-right', 'pinky-right'].includes(finger);
+    const isThumb = finger === 'thumb';
+
+    try {
+      if (isThumb) {
+        // For thumb (space key), show both hands with thumb position
+        if (key === "Space" || key === " ") {
+          // Special handling for space key - use existing images for both thumbs
+          setLeftHandImage("/images/left-key-ctrl.webp");
+          setRightHandImage("/images/right-key- .webp");
+        } else {
+          const handImages = keyToHandImage[key] || keyToHandImage["resting"];
+          setLeftHandImage(handImages.left);
+          setRightHandImage(handImages.right);
+        }
+      } else if (isLeftHand) {
+        // Show specific finger position for left hand, keep right hand resting
+        const handImages = keyToHandImage[key] || keyToHandImage["resting"];
+        setLeftHandImage(handImages.left);
+        setRightHandImage(keyToHandImage["resting"].right);
+      } else if (isRightHand) {
+        // Show specific finger position for right hand, keep left hand resting
+        const handImages = keyToHandImage[key] || keyToHandImage["resting"];
+        setLeftHandImage(keyToHandImage["resting"].left);
+        setRightHandImage(handImages.right);
       } else {
-        console.error('Failed to save typing result');
+        // Fallback to resting position
+        setLeftHandImage(keyToHandImage["resting"].left);
+        setRightHandImage(keyToHandImage["resting"].right);
       }
     } catch (error) {
-      console.error('Error saving typing result:', error);
+      console.error("Error updating hand images:", error);
+      // Fallback to resting position on error
+      setLeftHandImage(keyToHandImage["resting"].left);
+      setRightHandImage(keyToHandImage["resting"].right);
     }
-  }, [typedWords, correctWords, wrongWords, words, learningData, exerciseId, language, subLanguage, duration, backspace, backspaceCount]);
+  }, []);
 
-  const handleCompletion = React.useCallback(() => {
-    if (isCompleted) return;
-    
-    setIsCompleted(true);
-    setIsPaused(true);
-    const endTimeNow = Date.now();
-    setEndTime(endTimeNow);
-    
-    // Calculate final stats
-    const timeInMinutes = elapsedTime / 60 || 1;
-    const finalWPM = Math.floor((correctWords.length / timeInMinutes));
-    const totalTyped = typedWords.length;
-    const correct = correctWords.length;
-    const finalAccuracy = totalTyped > 0 ? Math.round((correct / totalTyped) * 100) : 100;
-    
-    setWPM(finalWPM);
-    setAccuracy(finalAccuracy);
-    
-    // Save result
-    saveTypingResult(endTimeNow, startTime, finalWPM, finalAccuracy);
-  }, [isCompleted, elapsedTime, correctWords.length, typedWords.length, startTime, saveTypingResult]);
-
-  // Timer effect - count up elapsed time and count down remaining time
   useEffect(() => {
-    if (isPaused || !startTime || isCompleted) return;
-    
-    intervalRef.current = setInterval(() => {
-      setElapsedTime((prev) => {
-        const newTime = prev + 1;
-        setTimeRemaining((prevRemaining) => {
-          const newRemaining = (duration * 60) - newTime;
-          // Don't auto-complete when time runs out, just stop at 0
-          return newRemaining <= 0 ? 0 : newRemaining;
-        });
-        return newTime;
+    const interval = setInterval(() => {
+      setTimer(prev => {
+        if (prev <= 0) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
       });
+      setElapsedTime(prev => prev + 1);
     }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleKeyPress = useCallback((e) => {
+    const normalizedKey = normalizeKey(e.key);
+    
+    // Update hand images for any key press
+    updateHandImages(normalizedKey);
+    setPressedKey(normalizedKey);
+
+    // Only process typing practice if we're still in the exercise
+    if (currentIndex < highlightedKeys.length) {
+      if (e.key === "Backspace") {
+        setBackspaceCount(prev => prev + 1);
+      }
+
+      if (e.key === ' ' || highlightedKeys.includes(normalizedKey)) {
+        e.preventDefault();
+      }
+      
+      const expectedKey = highlightedKeys[currentIndex];
+      const isCorrect = normalizedKey === expectedKey;
+      const newKeyStatus = [...keyStatus];
+      newKeyStatus[currentIndex] = isCorrect ? 'correct' : 'wrong';
+      setKeyStatus(newKeyStatus);
+      
+      // Track key difficulties (wrong attempts)
+      if (!isCorrect && expectedKey) {
+        setKeyDifficulties(prev => ({
+          ...prev,
+          [expectedKey]: (prev[expectedKey] || 0) + 1
+        }));
+      }
+      
+      // Set start time on first key press
+      if (!startTime && currentIndex === 0) {
+        setStartTime(Date.now());
+      }
+      
+      if (isCorrect) {
+        setCurrentIndex(prev => {
+          const nextIndex = prev + 1;
+          // Check if completed
+          if (nextIndex >= highlightedKeys.length) {
+            setIsCompleted(true);
+            setEndTime(Date.now());
+          }
+          return nextIndex;
+        });
+      }
+      const totalAttempts = currentIndex + (isCorrect ? 1 : 0) + wrongCount;
+      const newAccuracy = Math.round(((currentIndex + (isCorrect ? 1 : 0)) / totalAttempts) * 100);
+      setAccuracy(newAccuracy);
+
+      if (sound) {
+        const audio = new Audio(isCorrect ? '/correct.mp3' : '/wrong.mp3');
+        audio.play().catch(e => console.log("Audio play failed:", e));
+      }
+    }
+  }, [currentIndex, keyStatus, wrongCount, sound, updateHandImages]);
+
+  const handleKeyUp = useCallback(() => {
+    setPressedKey("");
+    // Reset both hand images to resting position when key is released
+    setLeftHandImage(keyToHandImage["resting"].left);
+    setRightHandImage(keyToHandImage["resting"].right);
+  }, []);
+
+  useEffect(() => {
+    // Add single set of key listeners
+    window.addEventListener('keydown', handleKeyPress);
+    window.addEventListener('keyup', handleKeyUp);
     
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      window.removeEventListener('keydown', handleKeyPress);
+      window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isPaused, startTime, isCompleted, duration]);
-
-  useEffect(() => {
-    if (elapsedTime === 0 || isPaused || isCompleted) return;
-    const timeInMinutes = elapsedTime / 60;
-    if (timeInMinutes > 0) {
-      setWPM(Math.floor((correctWords.length / timeInMinutes)));
-      // Calculate accuracy
-      const totalTyped = typedWords.length;
-      const correct = correctWords.length;
-      const accuracyCalc = totalTyped > 0 ? Math.round((correct / totalTyped) * 100) : 100;
-      setAccuracy(accuracyCalc);
-    }
-  }, [elapsedTime, correctWords.length, isPaused, isCompleted, typedWords.length]);
-
-  // Removed automatic completion - user must click Submit button
-
-  const handleChange = (e) => {
-    if (isPaused || isCompleted) return;
-    
-    const newValue = e.target.value;
-    
-    // Handle backspace
-    if (typedText.length > newValue.length) {
-      if (backspace === "OFF") {
-        // Prevent backspace if disabled
-        e.target.value = typedText;
-        return;
-      }
-      
-      // Check backspace limit if enabled
-      if (backspaceLimit !== null && backspaceCount >= backspaceLimit) {
-        // Backspace limit reached
-        e.target.value = typedText;
-        alert(`Backspace limit reached! Maximum ${backspaceLimit} backspaces allowed for ${duration} minute test.`);
-        return;
-      }
-      
-      setBackspaceCount((prev) => prev + 1);
-    }
-    
-    if (!startTime) {
-      setStartTime(Date.now());
-    }
-    setTypedText(newValue);
-
-    const currentIndex = newValue.trim().split(/\s+/).length - 1;
-    const nextWordEl = wordRefs.current[currentIndex];
-    if (nextWordEl && containerRef.current) {
-      nextWordEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-  };
+  }, [handleKeyPress, handleKeyUp]);
 
 
-  const handleReset = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    setTypedText("");
+  const resetStats = () => {
+    setCurrentIndex(0);
+    setCurrentRowIndex(0);
+    setIsRowAnimating(false);
+    setAccuracy(100);
+    setKeyStatus(Array(highlightedKeys.length).fill(null));
+    setTimer(180);
+    setElapsedTime(0);
+    setBackspaceCount(0);
+    setPressedKey("");
+    setIsCompleted(false);
     setStartTime(null);
     setEndTime(null);
-    setWPM(0);
-    setBackspaceCount(0);
-    setElapsedTime(0);
-    setTimeRemaining(duration * 60);
-    setIsPaused(false);
-    setIsCompleted(false);
-    setResultId(null);
-    setAccuracy(100);
-    // Re-focus textarea after reset
-    setTimeout(() => {
-      textareaRef.current?.focus();
-    }, 100);
+    setKeyDifficulties({});
+    setLeftHandImage(keyToHandImage["resting"].left);
+    setRightHandImage(keyToHandImage["resting"].right);
+    if (isMobile && inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
-  const togglePause = () => {
-    setIsPaused((prev) => {
-      const newPaused = !prev;
-      // Focus textarea when resuming
-      if (!newPaused && !isCompleted) {
-        setTimeout(() => {
-          textareaRef.current?.focus();
-        }, 100);
+  // Calculate final stats for completion modal
+  // Use actual time taken from start to end, or fallback to elapsedTime
+  const timeTaken = startTime && endTime ? (endTime - startTime) / 1000 : (elapsedTime > 0 ? elapsedTime : 1);
+  
+  // When completed, correctCount should equal totalCount
+  const finalCorrectCount = isCompleted ? totalCount : correctCount;
+  
+  // WPM calculation: (correct keys / time in minutes)
+  // For keyboard practice, we calculate based on keys typed correctly
+  const finalWpm = timeTaken > 0 ? Math.round((finalCorrectCount / timeTaken) * 60) : 0;
+  
+  // Accuracy: percentage of correct keys out of total keys
+  const finalAccuracy = totalCount > 0 ? Math.round((finalCorrectCount / totalCount) * 100) : 100;
+  
+  // Display correct count (should match totalCount when completed)
+  const displayCorrectCount = isCompleted ? totalCount : correctCount;
+
+  // Check for completion - separate effect to ensure it triggers
+  useEffect(() => {
+    if (currentIndex >= highlightedKeys.length && highlightedKeys.length > 0 && !isCompleted) {
+      if (!startTime) {
+        setStartTime(Date.now());
       }
-      return newPaused;
-    });
-  };
+      setIsCompleted(true);
+      setEndTime(Date.now());
+    }
+  }, [currentIndex, highlightedKeys.length, isCompleted, startTime]);
+
+  // Save result data to localStorage when completed and redirect
+  useEffect(() => {
+    const saveAndRedirect = async () => {
+      if (isCompleted && startTime && endTime) {
+        const timeTaken = (endTime - startTime) / 1000;
+        const finalCorrectCount = totalCount;
+        const finalWpm = timeTaken > 0 ? Math.round((finalCorrectCount / timeTaken) * 60) : 0;
+        const finalAccuracy = totalCount > 0 ? Math.round((finalCorrectCount / totalCount) * 100) : 100;
+        const netSpeed = Math.round(finalWpm * (finalAccuracy / 100));
+        
+        // Get ALL unique keys that were practiced with their difficulty levels
+        // Count frequency of each key (how many times it appeared in the sequence)
+        const keyFrequency = {};
+        highlightedKeys.forEach(key => {
+          const keyName = key === "Space" ? "Space" : key;
+          keyFrequency[keyName] = (keyFrequency[keyName] || 0) + 1;
+        });
+        
+        // Get all unique keys and their difficulties
+        // keyDifficulties already contains the total error count for each key
+        const uniqueKeys = [...new Set(highlightedKeys)];
+        
+        // Create data with all unique keys, showing frequency and total difficulty
+        let difficultKeysData = uniqueKeys.map(key => {
+          const keyName = key === "Space" ? "Space" : key;
+          const difficulty = keyDifficulties[key] || 0; // Total errors for this key
+          const frequency = keyFrequency[keyName] || 1; // How many times this key appeared
+          
+          return {
+            key: keyName,
+            difficulty: difficulty,
+            frequency: frequency, // How many times this key appeared in practice
+            // Add level classification for display
+            level: difficulty === 0 ? "OK" : 
+                   difficulty >= 3 ? "Problematic" : 
+                   difficulty >= 1 ? "Difficult" : "OK"
+          };
+        }).sort((a, b) => {
+          // Sort by difficulty (highest first), then by frequency, then alphabetically
+          if (b.difficulty !== a.difficulty) {
+            return b.difficulty - a.difficulty;
+          }
+          if (b.frequency !== a.frequency) {
+            return b.frequency - a.frequency;
+          }
+          return a.key.localeCompare(b.key);
+        });
+        
+        // Ensure difficultKeysData is always an array
+        if (!Array.isArray(difficultKeysData)) {
+          console.error('difficultKeysData is not an array after mapping:', difficultKeysData);
+          difficultKeysData = [];
+        }
+        
+        // Debug: Log the data being saved
+        console.log('=== SAVING DIFFICULT KEYS DATA ===');
+        console.log('Highlighted keys (all):', highlightedKeys);
+        console.log('Unique keys:', uniqueKeys);
+        console.log('Key frequencies:', keyFrequency);
+        console.log('Key difficulties:', keyDifficulties);
+        console.log('Difficult keys data to save:', difficultKeysData);
+        console.log('Total keys in data:', difficultKeysData.length);
+        console.log('Keys in data:', difficultKeysData.map(k => k.key));
+        
+        // Get user name and exercise info
+        const userDataStr = localStorage.getItem('examUserData');
+        const userData = userDataStr ? JSON.parse(userDataStr) : {};
+        
+        // Get exercise/lesson name
+        let exerciseName = "";
+        if (lessonId) {
+          try {
+            const res = await fetch('/api/learning?' + new Date().getTime());
+            if (res.ok) {
+              const data = await res.json();
+              for (const section of data.sections || []) {
+                const foundLesson = section.lessons?.find(l => l.id === lessonId);
+                if (foundLesson) {
+                  exerciseName = foundLesson.name || foundLesson.title || "";
+                  break;
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching lesson name:', error);
+          }
+        }
+        
+        // Get current date and time
+        const now = new Date();
+        const resultDate = now.toLocaleDateString('en-GB', { 
+          day: '2-digit', 
+          month: 'long', 
+          year: 'numeric' 
+        });
+        const resultTime = now.toLocaleTimeString('en-GB', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+        
+        // Ensure difficultKeysData is an array before saving
+        const keysToSave = Array.isArray(difficultKeysData) ? difficultKeysData : [];
+        
+        // Save to localStorage for learning result page
+        const resultData = {
+          timeUsed: Math.round(timeTaken),
+          grossSpeed: finalWpm,
+          accuracy: finalAccuracy,
+          netSpeed: netSpeed,
+          difficultKeys: keysToSave, // Always ensure it's an array
+          userName: userName || userData.name || "User",
+          exerciseName: exerciseName,
+          language: language === "hindi" ? "Hindi" : "English",
+          subLanguage: subLanguage || "",
+          resultDate: resultDate,
+          resultTime: resultTime,
+          timeDuration: Math.round(timeTaken) // Save in seconds
+        };
+        
+        // Verify the data structure before saving
+        console.log('Final resultData to save:', resultData);
+        console.log('difficultKeys in resultData:', resultData.difficultKeys);
+        console.log('difficultKeys is array:', Array.isArray(resultData.difficultKeys));
+        
+        // Save to localStorage
+        const dataToSave = JSON.stringify(resultData);
+        localStorage.setItem('learningResult', dataToSave);
+        
+        // Verify data was saved
+        const savedData = localStorage.getItem('learningResult');
+        console.log('Data saved to localStorage:', savedData);
+        console.log('Verifying saved data:', JSON.parse(savedData));
+        
+        // Auto-redirect to learning result page immediately
+        window.location.href = '/result/learning-re';
+      }
+    };
+    
+    saveAndRedirect();
+  }, [isCompleted, startTime, endTime, totalCount, highlightedKeys, keyDifficulties, lessonId, language, subLanguage, userName]);
+
+  // Update keyStatus when highlightedKeys changes
+  useEffect(() => {
+    setKeyStatus(Array(highlightedKeys.length).fill(null));
+    setCurrentIndex(0);
+    setCurrentRowIndex(0);
+    setIsRowAnimating(false);
+  }, [highlightedKeys]);
 
   const formatClock = (seconds) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, "0");
@@ -1233,318 +1880,602 @@ function TypingTutorForm() {
     return `${m}:${s}`;
   };
 
-  const formatMinutes = (seconds) => {
-    return Math.floor(seconds / 60).toString().padStart(2, "0");
-  };
-
-  const formatSeconds = (seconds) => {
-    return (seconds % 60).toString().padStart(2, "0");
-  };
-
-  const renderColoredWords = (isLandscapeMode = false) => {
-    let pointer = 0;
-    return content.map((line, lineIndex) => {
-      const lineWords = line.trim().split(/\s+/);
+  // Determine which view to render
+  const renderView = () => {
+    // Show landscape mobile view when mobile device is in landscape orientation
+    if (isMobile && isLandscape) {
       return (
-        <p
-          key={lineIndex}
-          className="mb-1 break-words h-[40px] flex items-center"
-          style={isLandscapeMode ? { 
-            fontSize: `clamp(10px, 2vw, ${fontSize}px)`, 
-            height: 'auto', 
-            minHeight: '3vh', 
-            marginBottom: '0.3vh' 
-          } : { fontSize: `${fontSize}px` }}
-          ref={lineIndex === 0 ? containerRef : null}
-        >
-          {lineWords.map((word, i) => {
-            const index = pointer++;
-            let className = "";
-            if (typedWords.length - 1 > index) {
-              className = typedWords[index] === word ? "text-green-600" : "text-red-600";
-            } else if (typedWords.length - 1 === index) {
-              className = "bg-blue-500 text-white";
-            } else {
-              className = "text-gray-500";
-            }
-            return (
-              <span
-                key={i}
-                ref={(el) => (wordRefs.current[index] = el)}
-                className={`${className} mr-1`}
-              >
-                {word}
-              </span>
-            );
-          })}
-        </p>
+        <LandscapeMobileView
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+          highlightedKeys={highlightedKeys}
+          currentIndex={currentIndex}
+          currentRowIndex={currentRowIndex}
+          keyStatus={keyStatus}
+          pressedKey={pressedKey}
+          keyboard={keyboard}
+          hand={hand}
+          leftHandImage={leftHandImage}
+          rightHandImage={rightHandImage}
+          keys={keys}
+          getKeyWidth={getKeyWidth}
+          getCurrentRowKeys={getCurrentRowKeys}
+          organizeKeysIntoRows={organizeKeysIntoRows}
+          correctCount={correctCount}
+          wrongCount={wrongCount}
+          totalCount={totalCount}
+          backspaceCount={backspaceCount}
+          elapsedTime={elapsedTime}
+          formatClock={formatClock}
+        />
       );
-    });
-  };
-
-  const increaseFont = () => setFontSize((prev) => Math.min(prev + 2, 30));
-  const decreaseFont = () => setFontSize((prev) => Math.max(prev - 2, 10));
-
-  const handleDownloadPDF = () => {
-    if (!resultId) {
-      // If no resultId, redirect to result page
-      const storedId = localStorage.getItem('lastTypingResultId');
-      if (storedId) {
-        window.location.href = `/result/skill-test?resultId=${storedId}`;
-      }
-      return;
+    } else if (isMobile && !isLandscape) {
+      return (
+        <PortraitMobileView
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+          highlightedKeys={highlightedKeys}
+          currentIndex={currentIndex}
+          keyStatus={keyStatus}
+          pressedKey={pressedKey}
+          keyboard={keyboard}
+          hand={hand}
+          keys={keys}
+          getKeyWidth={getKeyWidth}
+          correctCount={correctCount}
+          wrongCount={wrongCount}
+          timer={timer}
+          totalAttempts={totalAttempts}
+          formatClock={formatClock}
+        />
+      );
+    } else {
+      return (
+        <DesktopView
+          isDarkMode={isDarkMode}
+          highlightedKeys={highlightedKeys}
+          currentIndex={currentIndex}
+          currentRowIndex={currentRowIndex}
+          isRowAnimating={isRowAnimating}
+          keyStatus={keyStatus}
+          pressedKey={pressedKey}
+          hand={hand}
+          sound={sound}
+          keyboard={keyboard}
+          leftHandImage={leftHandImage}
+          rightHandImage={rightHandImage}
+          keys={keys}
+          getKeyWidth={getKeyWidth}
+          getCurrentRowKeys={getCurrentRowKeys}
+          organizeKeysIntoRows={organizeKeysIntoRows}
+          formatClock={formatClock}
+          correctCount={correctCount}
+          wrongCount={wrongCount}
+          totalCount={totalCount}
+          backspaceCount={backspaceCount}
+          elapsedTime={elapsedTime}
+          wpm={wpm}
+          userName={userName}
+          userProfileUrl={userProfileUrl}
+          resetStats={resetStats}
+          setHand={setHand}
+          setSound={setSound}
+          setKeyboard={setKeyboard}
+          timer={timer}
+          totalAttempts={totalAttempts}
+        />
+      );
     }
-    window.location.href = `/result/skill-test?resultId=${resultId}`;
-  };
-
-  // Common props for all views
-  const commonProps = {
-    content,
-    loading,
-    typedText,
-    handleChange,
-    isPaused,
-    isCompleted,
-    renderColoredWords,
-    fontSize,
-    handleReset,
-    togglePause,
-    handleCompletion,
-    startTime,
-    wpm,
-    accuracy,
-    elapsedTime,
-    correctWords,
-    handleDownloadPDF,
-    formatClock,
-    timeRemaining,
-    words,
-    wrongWords,
-    backspaceCount,
-    wordRefs,
-    containerRef,
-    userName,
-    userProfileUrl,
-    backspaceLimit,
-    increaseFont,
-    decreaseFont,
-    textareaRef
   };
 
   return (
-    <div className="min-h-screen bg-[#290c52] bg-[url('/bg.jpg')] mt-30 md:mt-0  bg-cover bg-center bg-no-repeat px-4 py-6 md:px-14 md:py-12 md:mx-8 md:my-8 rounded-[0px] md:rounded-[100px] typing-background-container">
+    <div
+      className={`fixed inset-0 w-full h-full overflow-y-auto ${
+        isDarkMode ? "bg-gray-900" : "bg-gray-100"
+      }`}
+      style={{
+        minHeight: '100dvh', // Dynamic viewport height for mobile
+      }}
+    >
+      {/* Hidden input for mobile keyboard */}
+      <input
+        type="text"
+        ref={inputRef}
+        className="absolute opacity-0 h-0 w-0"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck="false"
+      />
+
+      <div
+        className={`w-full min-h-full ${
+          isDarkMode ? "text-white" : "text-black"
+        }`}
+        style={{
+          minHeight: '100dvh',
+        }}
+        tabIndex={0}
+      >
+
+      {/* Global Styles */}
       <style jsx>{`
-        @media (max-width: 1024px) and (orientation: landscape),
-               (max-width: 767px) and (orientation: landscape),
-               (max-height: 600px) and (orientation: landscape),
-               (max-height: 500px) and (min-aspect-ratio: 1/1) {
-          html, body {
-            height: 100vh !important;
-            width: 100vw !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow: hidden !important;
-            position: fixed !important;
+        /* ============================================
+           GLOBAL ANIMATIONS - Used in ALL views
+           ============================================ */
+        @keyframes slideInRight {
+          0% {
+            transform: translateX(100%);
+            opacity: 0;
           }
-          /* Remove rounded corners and make full width in landscape mobile view */
-          .typing-background-container {
-            border-radius: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            max-width: 100vw !important;
-            min-height: 100vh !important;
+          100% {
+            transform: translateX(0);
+            opacity: 1;
           }
-          /* Landscape mobile layout adjustments */
-          .landscape-mobile-container {
+        }
+        
+        @keyframes slideInRightKey {
+          0% {
+            transform: translateX(100px);
+            opacity: 0;
+          }
+          100% {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes rotateArrows {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+        
+        /* Animation classes - Used in DESKTOP view for row transitions */
+        .animate-slide-in-right {
+          animation: slideInRight 0.6s ease-out;
+        }
+        
+        /* Animation class - Used in DESKTOP view for key animations */
+        .animate-slide-in-right-key {
+          animation: slideInRightKey 0.4s ease-out forwards;
+        }
+        
+        /* Animation class - Used in PORTRAIT view for rotation prompt */
+        .animate-rotate-arrows {
+          animation: rotateArrows 3s linear infinite;
+        }
+        
+        /* ============================================
+           PORTRAIT MOBILE VIEW STYLES
+           (max-width: 767px) - Portrait orientation
+           ============================================ */
+        @media (max-width: 767px) {
+          /* PORTRAIT: Scale down elements for mobile portrait view */
+          .mobile-scale {
+            transform: scale(0.8);
+            transform-origin: top center;
+            width: 125%;
+            margin-left: 1%;
+          }
+          
+          /* PORTRAIT: Stack elements vertically in mobile portrait */
+          .mobile-stack {
+            flex-direction: column;
+          }
+          
+          /* PORTRAIT: Smaller text size for mobile portrait */
+          .mobile-small-text {
+            font-size: 0.8rem;
+          }
+          
+          /* PORTRAIT: Tighter gap spacing for mobile portrait */
+          .mobile-tight-gap {
+            gap: 0.5rem;
+          }
+          
+          /* PORTRAIT: Small key sizes for typing prompt in portrait */
+          .mobile-small-key {
+            width: 30px !important;
+            height: 30px !important;
+            font-size: 0.7rem !important;
+          }
+          
+          /* PORTRAIT: Space key size for typing prompt in portrait */
+          .mobile-space-key {
+            width: 60px !important;
+            height: 30px !important;
+          }
+          
+          /* PORTRAIT: Ensure typing prompt stays in one row on mobile portrait */
+          .typing-prompt-mobile {
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+          }
+          
+          /* PORTRAIT: Hide scrollbar for typing prompt in portrait */
+          .typing-prompt-mobile::-webkit-scrollbar {
+            display: none;
+          }
+          
+          /* PORTRAIT: Rotation prompt visibility for portrait view */
+          .rotate-prompt-mobile {
             display: flex !important;
-            flex-direction: row !important;
-            height: 100vh !important;
-            width: 100vw !important;
-            overflow: hidden !important;
-            max-width: 100vw !important;
-            margin: 0 !important;
-            padding: 0 !important;
+            visibility: visible !important;
+            opacity: 1 !important;
           }
-          .landscape-mobile-typing-area {
-            flex: 1 !important;
-            overflow-y: auto !important;
-            padding: 0.5vh 0.5vw !important;
-            height: 100vh !important;
-            width: calc(100vw - 18vw) !important;
-            max-width: calc(100vw - 18vw) !important;
+          
+          /* LANDSCAPE: Rotation prompt in landscape mobile view */
+          @media (max-width: 932px) and (orientation: landscape) {
+            .rotate-prompt-mobile {
+              display: flex !important;
+              visibility: visible !important;
+              opacity: 1 !important;
+              position: fixed !important;
+              z-index: 9999 !important;
+            }
           }
-          .landscape-mobile-sidebar {
-            width: 18vw !important;
-            min-width: 18vw !important;
-            max-width: 18vw !important;
-            flex-shrink: 0 !important;
-            overflow-y: auto !important;
-            height: 100vh !important;
-            padding: 1vh 1vw !important;
+          
+          /* PORTRAIT & LANDSCAPE: Hide hand overlay on all mobile views */
+          .hand-overlay {
+            display: none !important;
           }
-          /* Hide user profile in landscape mobile view */
+        }
+
+        
+        /* ============================================
+           LANDSCAPE MOBILE VIEW STYLES
+           (max-width: 932px) and (orientation: landscape)
+           ============================================ */
+        @media (max-width: 932px) and (orientation: landscape),
+               (max-height: 500px) and (orientation: landscape) {
+          /* LANDSCAPE: Fix html/body for landscape mobile */
+          html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: fixed;
+          }
+          
+          /* LANDSCAPE: Hide top mobile stats container in landscape */
+          .mobile-stats-container {
+            display: none !important;
+          }
+          
+          /* LANDSCAPE: Right section cards in landscape mobile - single column with 5 cards */
+          .landscape-mobile-stats {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            width: 100% !important;
+            max-width: 120px !important;
+            gap: 0.5rem !important;
+          }
+          
+          /* LANDSCAPE: Stats card width in landscape mobile */
+          .landscape-mobile-stats > div {
+            width: 100% !important;
+            min-width: 100% !important;
+          }
+          
+          /* LANDSCAPE: Hide user profile image in landscape mobile view */
+          .user-profile-section,
+          .user-profile-image,
+          .user-profile-name {
+            display: none !important;
+          }
+          
+          /* LANDSCAPE: Force keyboard container to be smaller and fixed */
+          .keyboard-container.mobile-scale,
+          .mobile-scale.keyboard-container {
+            transform: scale(0.85) !important;
+            transform-origin: top center !important;
+            width: 75% !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding: 4px !important;
+            max-width: 85% !important;
+            margin-top: 0 !important;
+            border-radius: 8px !important;
+            position: relative !important;
+            overflow: visible !important;
+          }
+          
+          /* LANDSCAPE: Remove border radius from keyboard keys */
+          .keyboard-container.mobile-scale .flex > div {
+            border-radius: 0 !important;
+          }
+          
+          /* LANDSCAPE: Hide hand images in landscape mobile view */
+          .keyboard-container.mobile-scale .hand-overlay {
+            display: none !important;
+          }
+          
+          /* LANDSCAPE: Hide user profile in landscape mobile view */
           .user-profile-landscape {
             display: none !important;
           }
-          /* Hide font size buttons in landscape mobile view */
-          .font-size-buttons-landscape {
+          
+          /* LANDSCAPE: Single column layout for stats in landscape mobile */
+          .stats-grid-landscape {
+            grid-template-columns: 1fr !important;
+          }
+          
+          /* LANDSCAPE: Small key sizes for landscape mobile */
+          .mobile-small-key {
+            width: 30px !important;
+            height: 30px !important;
+            font-size: 0.8rem !important;
+          }
+          
+          /* LANDSCAPE: Space key size for landscape mobile */
+          .mobile-space-key {
+            width: 90px !important;
+            height: 20px !important;
+            font-size: 0.8rem !important;
+          }
+          
+          /* LANDSCAPE: Keyboard keys in landscape - use specific class selector */
+          .keyboard-container.mobile-scale .flex > div,
+          .keyboard-container.mobile-scale .flex > div.h-14 {
+            height: 32px !important;
+            min-height: 32px !important;
+            max-height: 32px !important;
+            font-size: 0.5rem !important;
+            margin-left: 1px !important;
+            margin-right: 1px !important;
+            padding: 4px 2px !important;
+            line-height: 1.2 !important;
+          }
+          
+          /* LANDSCAPE: Override all width classes with attribute selector - default keys */
+          .keyboard-container.mobile-scale .flex > div[class*="w-"] {
+            width: 28px !important;
+            min-width: 58px !important;
+            max-width: 28px !important;
+          }
+          
+          /* LANDSCAPE: Special keys - Backspace and Enter (170px) */
+          .keyboard-container.mobile-scale .flex > div[class*="170px"] {
+            width: 60px !important;
+            min-width: 82px !important;
+            max-width: 60px !important;
+          }
+          
+          /* LANDSCAPE: Shift button (175px) */
+          .keyboard-container.mobile-scale .flex > div[class*="175px"] {
+            width: 65px !important;
+            min-width: 105px !important;
+            max-width: 65px !important;
+          }
+          
+          /* LANDSCAPE: Tab button (130px) */
+          .keyboard-container.mobile-scale .flex > div[class*="130px"] {
+            width: 50px !important;
+            min-width: 82px !important;
+            max-width: 50px !important;
+          }
+          
+          /* LANDSCAPE: Caps button (118px) */
+          .keyboard-container.mobile-scale .flex > div[class*="118px"] {
+            width: 48px !important;
+            min-width: 82px !important;
+            max-width: 48px !important;
+          }
+          
+          /* LANDSCAPE: Ctrl, Alt, Win, Menu buttons (70px) */
+          .keyboard-container.mobile-scale .flex > div[class*="100px"] {
+            width: 35px !important;
+            min-width: 35px !important;
+            max-width: 35px !important;
+          }
+          
+          /* LANDSCAPE: Backslash button (95px) */
+          .keyboard-container.mobile-scale .flex > div[class*="95px"] {
+            width: 40px !important;
+            min-width: 40px !important;
+            max-width: 40px !important;
+          }
+          
+          /* LANDSCAPE: Default letter keys (55px) */
+          .keyboard-container.mobile-scale .flex > div[class*="55px"] {
+            width: 28px !important;
+            min-width: 40px !important;
+            max-width: 28px !important;
+          }
+          
+          /* LANDSCAPE: Space key */
+          .keyboard-container.mobile-scale .flex > div[class*="flex-1"] {
+            flex: 1 1 auto !important;
+            min-width: 80px !important;
+            width: auto !important;
+            max-width: 270px !important;
+          }
+          
+          /* LANDSCAPE: Row spacing for keyboard */
+          .keyboard-container.mobile-scale .flex {
+            margin-bottom: 2px !important;
+            gap: 2px !important;
+          }
+          
+          /* LANDSCAPE: Fix keyboard container positioning in landscape */
+          .keyboard-container {
+            position: relative !important;
+            max-height: 50vh !important;
+            overflow-y: auto !important;
+            
+          }
+          
+          /* LANDSCAPE: Right section absolute positioning in mobile landscape */
+          .right-section-stats {
+            position: absolute !important;
+            right: 0px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            z-index: 100 !important;
+            padding-right: 0.5rem !important;
+          }
+          
+          /* LANDSCAPE MOBILE: Hide theme toggle button at top right */
+          .theme-toggle-button {
             display: none !important;
           }
-          /* Typing area content container */
-          .landscape-mobile-typing-area > div {
-            width: 100% !important;
-            max-width: 100% !important;
-            padding: 1vh 1vw !important;
-            margin: 0 !important;
+          
+          /* LANDSCAPE MOBILE: Hide desktop toggles (Hand, Sound, Keyboard) at bottom of keyboard */
+          .mobile-stack > div:has(label),
+          .mobile-stack > div.hidden.md\\:hidden.lg\\:flex {
+            display: none !important;
           }
-          /* Text display area in landscape */
-          .landscape-mobile-typing-area .text-sm {
-            min-height: 20vh !important;
-            max-height: 25vh !important;
-            font-size: clamp(10px, 2vw, 14px) !important;
-            line-height: 1.4 !important;
+        }
+        
+        /* ============================================
+           LANDSCAPE MOBILE: Typing Prompt Keys
+           Increase typing prompt keys size in mobile landscape
+           ============================================ */
+        @media (max-width: 932px) and (orientation: landscape) {
+          /* LANDSCAPE: Typing prompt container keys size */
+          .typing-prompt-container > div {
+            width: 64px !important;
+            height: 64px !important;
+            min-width: 64px !important;
+            min-height: 64px !important;
+            font-size: 1.3rem !important;
           }
-          /* Textarea in landscape */
-          .landscape-mobile-typing-area textarea {
-            min-height: 12vh !important;
-            max-height: 15vh !important;
-            font-size: clamp(10px, 2vw, 14px) !important;
-            padding: 1vh 1vw !important;
-            width: 100% !important;
+          
+          /* LANDSCAPE: Space key in typing prompt */
+          .typing-prompt-container > div[class*="w-24"] {
+            width: 120px !important;
+            min-width: 120px !important;
+            height: 48px !important;
           }
-          /* Buttons container in landscape */
-          .landscape-mobile-typing-area ~ div {
-            margin-top: 1vh !important;
-            gap: 1vw !important;
+        }
+
+        /* ============================================
+           DESKTOP LANDSCAPE VIEW STYLES
+           (min-width: 768px) and (orientation: landscape)
+           ============================================ */
+        @media (min-width: 768px) and (orientation: landscape) {
+          /* DESKTOP LANDSCAPE: Fix keyboard container width */
+          .keyboard-container {
+            max-width: 70% !important;
+            margin: 0 auto !important;
+            padding: 8px !important;
           }
-          /* Button sizes in landscape */
-          .landscape-mobile-typing-area ~ div button {
-            padding: 1vh 3vw !important;
-            font-size: clamp(10px, 2vw, 14px) !important;
-            min-height: 5vh !important;
+        }
+        
+        /* ============================================
+           ALL LANDSCAPE VIEWS (Desktop + Mobile)
+           (orientation: landscape)
+           ============================================ */
+        @media (max-width: 932px) and (orientation: landscape) {
+          /* MOBILE LANDSCAPE: Decrease keyboard width for mobile landscape views */
+          .keyboard-container {
+            max-width: 95% !important;
+            width: 90% !important;
           }
-          /* Stats cards in landscape sidebar */
-          .landscape-mobile-sidebar > div > div {
-            width: 100% !important;
-            max-width: 100% !important;
-            height: 5vh !important;
-            min-height: 5vh !important;
-            margin-bottom: 0.5vh !important;
-          }
-          .landscape-mobile-sidebar > div > div > div:first-child {
-            font-size: clamp(8px, 1.5vw, 10px) !important;
-            padding: 0.3vh 0 !important;
-          }
-          .landscape-mobile-sidebar > div > div > div:last-child {
-            font-size: clamp(10px, 2vw, 14px) !important;
-            padding: 0.5vh 0 !important;
-          }
-          /* Timer boxes in landscape */
-          .landscape-mobile-sidebar .flex.gap-2 {
-            gap: 0.5vw !important;
-            margin-top: 0.5vh !important;
-          }
-          .landscape-mobile-sidebar .flex.gap-2 > div {
-            height: 5vh !important;
-            min-height: 5vh !important;
-            flex: 1 !important;
-          }
-          .landscape-mobile-sidebar .flex.gap-2 > div > div:first-child {
-            font-size: clamp(8px, 1.5vw, 10px) !important;
-            padding: 0.3vh 0 !important;
-          }
-          .landscape-mobile-sidebar .flex.gap-2 > div > div:last-child {
-            font-size: clamp(10px, 2vw, 14px) !important;
-            padding: 0.5vh 0 !important;
-          }
-          /* Close button in landscape */
-          .landscape-mobile-sidebar button,
-          .landscape-mobile-typing-area ~ button {
-            padding: 0.8vh 2vw !important;
-            font-size: clamp(9px, 1.8vw, 12px) !important;
-            min-height: 4vh !important;
-          }
-          /* Word line height in landscape */
-          .landscape-mobile-typing-area p {
-            height: auto !important;
-            min-height: 3vh !important;
-            margin-bottom: 0.3vh !important;
-            font-size: clamp(10px, 2vw, 14px) !important;
-          }
-          /* Completed test message in landscape */
-          .landscape-mobile-typing-area .bg-green-50 {
-            padding: 1.5vh 1.5vw !important;
-            margin-bottom: 1vh !important;
-          }
-          .landscape-mobile-typing-area .bg-green-50 h2 {
-            font-size: clamp(12px, 2.5vw, 18px) !important;
-            margin-bottom: 1vh !important;
-          }
-          .landscape-mobile-typing-area .bg-green-50 .grid {
-            gap: 1vw !important;
-            margin-bottom: 1vh !important;
-          }
-          .landscape-mobile-typing-area .bg-green-50 .text-2xl {
-            font-size: clamp(14px, 3vw, 20px) !important;
-          }
-          .landscape-mobile-typing-area .bg-green-50 .text-sm {
-            font-size: clamp(9px, 1.8vw, 12px) !important;
-          }
-          .landscape-mobile-typing-area .bg-green-50 button {
-            padding: 1vh 2.5vw !important;
-            font-size: clamp(10px, 2vw, 14px) !important;
-            min-height: 4.5vh !important;
-          }
-          /* Loading spinner in landscape */
-          .landscape-mobile-typing-area .animate-spin {
-            width: 4vw !important;
-            height: 4vw !important;
-            min-width: 30px !important;
-            min-height: 30px !important;
-          }
-          /* Ensure all text is readable in landscape */
-          .landscape-mobile-typing-area,
-          .landscape-mobile-sidebar {
-            font-size: clamp(10px, 2vw, 14px) !important;
-          }
-          /* Scrollbar styling for landscape */
-          .landscape-mobile-typing-area::-webkit-scrollbar,
-          .landscape-mobile-sidebar::-webkit-scrollbar {
-            width: 0.5vw !important;
-          }
-          .landscape-mobile-typing-area::-webkit-scrollbar-thumb,
-          .landscape-mobile-sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3) !important;
-            border-radius: 0.25vw !important;
+          
+          /* MOBILE LANDSCAPE: Align stats section to right edge on mobile landscape devices */
+          .right-section-stats {
+            right: 0px !important;
+            padding-right: 0.5rem !important;
           }
         }
       `}</style>
-      <div className={`max-w-7xl mx-auto mt-30 md:mt-15 ${isMobile && isLandscape ? "landscape-mobile-container" : ""}`}>
-        {!isMobile ? (
-          <DesktopView {...commonProps} />
-        ) : isLandscape ? (
-          <LandscapeView {...commonProps} />
-        ) : (
-          <PortraitView {...commonProps} />
-        )}
+
+      {/* Theme Toggle Button - Hidden in Portrait Mobile View */}
+      <div className="absolute top-16 md:top-5 right-5 md:right-5 z-50 cursor-pointer theme-toggle-button hidden md:block">
+        <button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className={`p-2 rounded-full shadow text-sm cursor-pointer ${
+            isDarkMode ? "bg-white text-black" : "bg-black text-white"
+          }`}
+        >
+          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+      </div>
+
+      {/* Render appropriate view based on device and orientation */}
+      {renderView()}
+
+      {/* Completion Result Modal */}
+      {isCompleted && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`bg-white rounded-lg p-6 md:p-8 max-w-md w-full mx-4 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}>
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 text-green-600">
+              🎉 Practice Completed!
+            </h2>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-3xl font-bold text-green-600">{finalWpm}</div>
+                <div className="text-sm text-gray-600 mt-1">WPM</div>
+              </div>
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-3xl font-bold text-blue-600">{finalAccuracy}%</div>
+                <div className="text-sm text-gray-600 mt-1">Accuracy</div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <div className="text-3xl font-bold text-purple-600">{Math.round(timeTaken)}s</div>
+                <div className="text-sm text-gray-600 mt-1">Time</div>
+              </div>
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <div className="text-3xl font-bold text-orange-600">{displayCorrectCount}/{totalCount}</div>
+                <div className="text-sm text-gray-600 mt-1">Correct/Total</div>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={resetStats}
+                className="flex-1 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors font-semibold"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={() => window.location.href = '/learning'}
+                className="flex-1 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-semibold"
+              >
+                Back to Lessons
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
 }
 
-export default function TypingTutor() {
+function getFingerPosition(finger) {
+  const positions = {
+    'pinky': 'bottom-20 left-4',
+    'ring': 'bottom-24 left-12',
+    'middle': 'bottom-28 left-20',
+    'index-left': 'bottom-28 left-28',
+    'thumb': 'bottom-16 left-40',
+    'index-right': 'bottom-28 right-28',
+    'middle-right': 'bottom-28 right-20',
+    'ring-right': 'bottom-24 right-12',
+    'pinky-right': 'bottom-20 right-4'
+  };
+  return positions[finger] || 'bottom-16 left-40';
+}
+
+export default function App() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#290c52] bg-[url('/bg.jpg')] mt-30 md:mt-0 bg-cover bg-center bg-no-repeat px-4 py-6 md:px-14 md:py-12 md:mx-8 md:my-8 rounded-[0px] md:rounded-[100px] flex items-center justify-center">
-        <div className="text-center text-white">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black to-gray-900 text-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p>Loading...</p>
         </div>
       </div>
     }>
-      <TypingTutorForm />
+      <KeyboardApp />
     </Suspense>
   );
 }

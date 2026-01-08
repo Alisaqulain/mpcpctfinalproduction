@@ -27,14 +27,29 @@ function PaymentAppContent() {
   const [loading, setLoading] = useState(false);
   const [pricing, setPricing] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(searchParams.get("plan") || "oneMonth");
+  const [features, setFeatures] = useState([]);
+  const [showFeaturesModal, setShowFeaturesModal] = useState(false);
   
   const type = "all"; // Unified subscription for all content types
   const amount = searchParams.get("amount");
   const duration = searchParams.get("duration");
 
+  const fetchFeatures = async () => {
+    try {
+      const res = await fetch('/api/features');
+      if (res.ok) {
+        const data = await res.json();
+        setFeatures(data.features || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch features:', error);
+    }
+  };
+
   useEffect(() => {
     fetchUser();
     fetchPricing();
+    fetchFeatures();
   }, []);
 
   const fetchUser = async () => {
@@ -262,12 +277,16 @@ function PaymentAppContent() {
   return (
     <div className="min-h-screen bg-[#fff] flex items-center justify-center p-4">
       <div className="w-full max-w-2xl space-y-6">
-        <div className="bg-[#F7FFEF] text-[#333333] text-center py-8 px-2 rounded-md font-medium text-2xl">
-          Complete Subscription
-          <br />
-          <span className="text-sm text-[#13800D]">
-            Access to Learning, Exam & Skill Test - Choose your plan
-          </span>
+        <div className="bg-[#F7FFEF] text-[#333333] text-center py-8 px-2 rounded-md font-medium text-2xl relative">
+          <div className="mb-4">
+            <h1 className="text-2xl font-bold">Choose Your Plan</h1>
+          </div>
+          <button
+            onClick={() => setShowFeaturesModal(true)}
+            className="bg-[#290c52] text-white px-6 py-3 rounded-md text-base font-medium hover:bg-[#3a1a6b] transition-colors shadow-lg"
+          >
+            📋 View All Features
+          </button>
         </div>
 
         {/* Plan Selection */}
@@ -325,6 +344,7 @@ function PaymentAppContent() {
               </div>
             )}
 
+
             {/* Referral Code Section */}
             <div className="space-y-2">
               <div className="flex justify-center gap-2">
@@ -376,6 +396,113 @@ function PaymentAppContent() {
             <p className="text-xs text-center text-[#666666]">
               Secure payment powered by Razorpay
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Modal */}
+      {showFeaturesModal && (
+        <FeaturesModal 
+          features={features} 
+          onClose={() => setShowFeaturesModal(false)} 
+        />
+      )}
+    </div>
+  );
+}
+
+function FeaturesModal({ features, onClose }) {
+  // Default features if none exist
+  const displayFeatures = features.length > 0 ? features : [
+    {
+      title: "Unlimited Learning",
+      description: "1 month free unlimited access to all learning materials (Learning, Skill Test, Exam)",
+      icon: "📚"
+    },
+    {
+      title: "Skill Test",
+      description: "Practice with skill tests to improve your performance",
+      icon: "🎯"
+    },
+    {
+      title: "Exam Mode",
+      description: "Take full-length exams in exam mode",
+      icon: "📝"
+    },
+    {
+      title: "Free PDF",
+      description: "Download free PDF materials and notes",
+      icon: "📄"
+    },
+    {
+      title: "Syllabus PDF",
+      description: "Access complete syllabus in PDF format",
+      icon: "📋"
+    },
+    {
+      title: "Video Notes",
+      description: "Watch video notes for better understanding",
+      icon: "📹"
+    }
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="sticky top-0 bg-[#290c52] text-white px-6 py-4 flex justify-between items-center">
+          <h3 className="text-2xl font-bold">✨ Subscription Features</h3>
+          <button 
+            onClick={onClose} 
+            className="text-white hover:text-gray-200 text-3xl font-bold leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-white hover:bg-opacity-20 transition-colors"
+          >
+            &times;
+          </button>
+        </div>
+        <div className="p-6">
+          <div className="mb-4 text-center">
+            <p className="text-lg text-gray-700 font-medium">
+              With your subscription, you get access to all these amazing features:
+            </p>
+          </div>
+          <div className="space-y-4">
+            {displayFeatures.map((feature, index) => (
+              <div key={feature._id || index} className="flex items-center gap-4 p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                <div className="text-4xl flex-shrink-0">{feature.icon || '✓'}</div>
+                <div className="flex-1">
+                  <div className="font-bold text-lg text-gray-800 mb-1">{feature.title}</div>
+                  <div className="text-sm text-gray-600 leading-relaxed">{feature.description}</div>
+                </div>
+                <div className="flex-shrink-0 flex items-center justify-center">
+                  {feature.showWrong ? (
+                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                      <span className="text-red-600 text-2xl font-bold">✗</span>
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                      <span className="text-green-600 text-2xl font-bold">✓</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-center text-green-800 font-semibold">
+                🎉 All features are included with your subscription!
+              </p>
+              <p className="text-center text-sm text-green-700 mt-2">
+                One subscription unlocks access to Learning, Skill Test, and Exam sections
+              </p>
+            </div>
+          </div>
+          <div className="mt-6 text-center">
+            <button
+              onClick={onClose}
+              className="bg-[#290c52] text-white px-8 py-3 rounded-md font-medium hover:bg-[#3a1a6b] transition-colors shadow-lg"
+            >
+              Got it! Let's Continue
+            </button>
           </div>
         </div>
       </div>

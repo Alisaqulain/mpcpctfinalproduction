@@ -10,6 +10,7 @@ export default function AdminPanel() {
   const [questions, setQuestions] = useState([]);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [selectedExam, setSelectedExam] = useState(null);
+  const [editingExam, setEditingExam] = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
   const [selectedPart, setSelectedPart] = useState(null);
   const [activeTab, setActiveTab] = useState('exams');
@@ -19,6 +20,7 @@ export default function AdminPanel() {
   const [showPartForm, setShowPartForm] = useState(false);
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showCPCTImport, setShowCPCTImport] = useState(false);
 
   // Check if user is admin
   useEffect(() => {
@@ -118,24 +120,71 @@ export default function AdminPanel() {
   const handleSaveExam = async (formData) => {
     setSaving(true);
     try {
+      const method = editingExam ? 'PUT' : 'POST';
+      const body = {
+        title: formData.title, 
+        key: formData.key, 
+        totalTime: parseInt(formData.totalTime) || 75, 
+        totalQuestions: parseInt(formData.totalQuestions) || 75 
+      };
+      if (editingExam) {
+        body._id = editingExam._id;
+      }
+      
       const res = await fetch('/api/admin/exams', { 
-        method: 'POST', 
+        method, 
         headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ 
-          title: formData.title, 
-          key: formData.key, 
-          totalTime: parseInt(formData.totalTime) || 75, 
-          totalQuestions: parseInt(formData.totalQuestions) || 75 
-        })
+        body: JSON.stringify(body)
       });
       if (res.ok) {
         await fetchExams();
         setShowExamForm(false);
+        setEditingExam(null);
+        // Clear selection if we deleted the selected exam
+        if (editingExam && selectedExam === editingExam._id) {
+          setSelectedExam(null);
+          setSections([]);
+          setParts([]);
+          setQuestions([]);
+        }
+      } else {
+        const error = await res.json();
+        alert(error.error || 'Failed to save exam');
       }
     } catch (error) {
       console.error('Error saving exam:', error);
+      alert('Failed to save exam: ' + error.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteExam = async (examId) => {
+    if (!confirm('Are you sure you want to delete this exam? This will also delete all sections, parts, and questions associated with it.')) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/exams?_id=${examId}`, { 
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (res.ok) {
+        await fetchExams();
+        // Clear selection if we deleted the selected exam
+        if (selectedExam === examId) {
+          setSelectedExam(null);
+          setSections([]);
+          setParts([]);
+          setQuestions([]);
+        }
+        alert('Exam deleted successfully');
+      } else {
+        const error = await res.json();
+        alert(error.error || 'Failed to delete exam');
+      }
+    } catch (error) {
+      console.error('Error deleting exam:', error);
+      alert('Failed to delete exam: ' + error.message);
     }
   };
 
@@ -152,6 +201,12 @@ export default function AdminPanel() {
       // Get current sections count for default values
       const currentSectionsCount = sections.length;
       
+      // Calculate order - should be higher than existing sections so new section appears at bottom
+      const maxOrder = sections.length > 0 
+        ? Math.max(...sections.map(s => s.order || 0)) 
+        : 0;
+      const newOrder = maxOrder + 1;
+      
       const res = await fetch('/api/admin/sections', { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
@@ -160,7 +215,7 @@ export default function AdminPanel() {
           name: formData.name,
           id: sectionId,
           lessonNumber: parseInt(formData.lessonNumber) || currentSectionsCount + 1,
-          order: parseInt(formData.order) || currentSectionsCount
+          order: parseInt(formData.order) || newOrder
         })
       });
       
@@ -546,6 +601,79 @@ export default function AdminPanel() {
             </p>
           </div>
 
+          {/* CPCT Import Section */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-yellow-800 mb-2">
+              <strong>CPCT Exam Setup:</strong> Create CPCT exam with all sections
+            </p>
+            <button
+              onClick={async () => {
+                if (!confirm('This will create/update CPCT exam and all sections. Continue?')) return;
+                try {
+                  const res = await fetch('/api/admin/import-cpct-full', {
+                    method: 'POST',
+                    credentials: 'include'
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(`✅ ${data.message}\n\nExam ID: ${data.exam._id}\n\nNow you can add questions to each section.`);
+                    await fetchExams();
+                    // Select the CPCT exam if it exists
+                    const cpctExam = exams.find(e => e.key === 'CPCT');
+                    if (cpctExam) {
+                      setSelectedExam(cpctExam._id);
+                      fetchSections(cpctExam._id);
+                    }
+                  } else {
+                    alert('Failed: ' + (data.error || 'Unknown error'));
+                  }
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                }
+              }}
+              className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 text-sm mr-2"
+            >
+              Create CPCT Exam & Sections
+            </button>
+            <button
+              onClick={async () => {
+                if (!confirm('This will create a dummy exam with 5 sections (3 parts each, 5 questions each) + typing section. Continue?')) return;
+                try {
+                  const res = await fetch('/api/admin/create-dummy-exam', {
+                    method: 'POST',
+                    credentials: 'include'
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(`✅ ${data.message}\n\nSections: ${data.sections}\nParts: ${data.parts}\nQuestions: ${data.questions}\n\n${data.note}`);
+                    await fetchExams();
+                    // Select the Dummy exam if it exists
+                    const dummyExam = exams.find(e => e.key === 'DUMMY');
+                    if (dummyExam) {
+                      setSelectedExam(dummyExam._id);
+                      fetchSections(dummyExam._id);
+                    }
+                  } else {
+                    alert('Failed: ' + (data.error || 'Unknown error'));
+                  }
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                }
+              }}
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
+            >
+              Create Dummy Exam (5 Sections + Typing)
+            </button>
+            {selectedExam && exams.find(e => e._id === selectedExam)?.key === 'CPCT' && (
+              <button
+                onClick={() => setShowCPCTImport(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
+              >
+                Import Questions (Coming Soon)
+              </button>
+            )}
+          </div>
+
           {/* Four Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Exams Column */}
@@ -566,12 +694,17 @@ export default function AdminPanel() {
                   <ul className="space-y-2">
             {exams.map(exam => (
               <li key={exam._id}>
-                        <button 
-                          className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                        <div className={`w-full rounded-lg border transition-colors ${
                             selectedExam === exam._id 
                               ? 'bg-[#290c52] text-white border-[#290c52]' 
-                              : 'bg-white hover:bg-gray-50 border-gray-200'
-                          }`} 
+                              : 'bg-white border-gray-200'
+                          }`}>
+                        <button 
+                          className={`w-full text-left px-4 py-3 ${
+                            selectedExam === exam._id 
+                              ? 'text-white' 
+                              : 'hover:bg-gray-50'
+                          }`}
                           onClick={() => { 
                             setSelectedExam(exam._id); 
                             setSelectedSection(null);
@@ -586,6 +719,36 @@ export default function AdminPanel() {
                             Type: {exam.key} • {exam.totalQuestions} questions • {exam.totalTime} min
                           </div>
                         </button>
+                        <div className={`px-4 pb-2 flex gap-2 ${selectedExam === exam._id ? 'border-t border-purple-300 pt-2' : ''}`}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingExam(exam);
+                              setShowExamForm(true);
+                            }}
+                            className={`text-xs px-2 py-1 rounded ${
+                              selectedExam === exam._id
+                                ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            }`}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteExam(exam._id);
+                            }}
+                            className={`text-xs px-2 py-1 rounded ${
+                              selectedExam === exam._id
+                                ? 'bg-red-600 hover:bg-red-700 text-white'
+                                : 'bg-red-600 hover:bg-red-700 text-white'
+                            }`}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                        </div>
               </li>
             ))}
           </ul>
@@ -861,8 +1024,9 @@ export default function AdminPanel() {
           {/* Forms Modals */}
           {showExamForm && (
             <ExamFormModal 
+              exam={editingExam}
               onSave={handleSaveExam} 
-              onClose={() => setShowExamForm(false)} 
+              onClose={() => { setShowExamForm(false); setEditingExam(null); }} 
               saving={saving}
             />
           )}
@@ -1869,13 +2033,31 @@ function UsersAdmin() {
 }
 
 // Form Modal Components
-function ExamFormModal({ onSave, onClose, saving }) {
+function ExamFormModal({ exam, onSave, onClose, saving }) {
   const [formData, setFormData] = useState({
-    title: '',
-    key: 'CPCT',
-    totalTime: 75,
-    totalQuestions: 75
+    title: exam?.title || '',
+    key: exam?.key || 'CPCT',
+    totalTime: exam?.totalTime || 75,
+    totalQuestions: exam?.totalQuestions || 75
   });
+
+  useEffect(() => {
+    if (exam) {
+      setFormData({
+        title: exam.title || '',
+        key: exam.key || 'CPCT',
+        totalTime: exam.totalTime || 75,
+        totalQuestions: exam.totalQuestions || 75
+      });
+    } else {
+      setFormData({
+        title: '',
+        key: 'CPCT',
+        totalTime: 75,
+        totalQuestions: 75
+      });
+    }
+  }, [exam]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -1886,7 +2068,7 @@ function ExamFormModal({ onSave, onClose, saving }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="border-b px-6 py-4 flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Add New Exam</h3>
+          <h3 className="text-lg font-semibold">{exam ? 'Edit Exam' : 'Add New Exam'}</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -1908,13 +2090,16 @@ function ExamFormModal({ onSave, onClose, saving }) {
               onChange={(e) => setFormData({...formData, key: e.target.value})}
               className="w-full border rounded-lg px-4 py-2"
               required
+              disabled={!!exam}
             >
               <option value="CPCT">CPCT</option>
               <option value="RSCIT">RSCIT</option>
               <option value="CCC">CCC</option>
               <option value="CUSTOM">TOPIC WISE (CUSTOM)</option>
             </select>
-            <p className="text-xs text-gray-500 mt-1">This determines which exam mode it appears in</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {exam ? 'Exam type cannot be changed after creation' : 'This determines which exam mode it appears in'}
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -1944,7 +2129,7 @@ function ExamFormModal({ onSave, onClose, saving }) {
               disabled={saving}
               className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium disabled:bg-gray-400"
             >
-              {saving ? 'Saving...' : 'Create Exam'}
+              {saving ? 'Saving...' : (exam ? 'Update Exam' : 'Create Exam')}
             </button>
             <button
               type="button"
@@ -4328,11 +4513,55 @@ function PricingAdmin() {
   const [pricing, setPricing] = useState({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [selectedType, setSelectedType] = useState('learning');
+  // Removed selectedType - single unified pricing for all sections
+  const [features, setFeatures] = useState([]);
+  const [editingFeature, setEditingFeature] = useState(null);
+  const [showFeatureForm, setShowFeatureForm] = useState(false);
 
   useEffect(() => {
     fetchPricing();
+    fetchFeatures();
   }, []);
+
+  const fetchFeatures = async () => {
+    try {
+      const res = await fetch('/api/admin/features', { credentials: 'include' });
+      const data = await res.json();
+      const fetchedFeatures = data.features || [];
+      
+      // Auto-initialize default features if none exist
+      if (fetchedFeatures.length === 0) {
+        await initializeDefaultFeatures();
+        // Fetch again after initialization
+        const res2 = await fetch('/api/admin/features', { credentials: 'include' });
+        const data2 = await res2.json();
+        setFeatures((data2.features || []).sort((a, b) => a.order - b.order));
+      } else {
+        setFeatures(fetchedFeatures.sort((a, b) => a.order - b.order));
+      }
+    } catch (error) {
+      console.error('Failed to fetch features:', error);
+    }
+  };
+
+  const initializeDefaultFeatures = async () => {
+    try {
+      const res = await fetch('/api/admin/features', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ action: 'initialize' })
+      });
+      const result = await res.json();
+      if (res.ok) {
+        console.log('Default features initialized successfully');
+      } else {
+        console.error('Failed to initialize default features:', result.error);
+      }
+    } catch (error) {
+      console.error('Failed to initialize default features:', error);
+    }
+  };
 
   const fetchPricing = async () => {
     setLoading(true);
@@ -4341,11 +4570,23 @@ function PricingAdmin() {
         credentials: 'include'
       });
       const data = await res.json();
-      const pricingMap = {};
-      data.pricing?.forEach(p => {
-        pricingMap[p.type] = p;
-      });
-      setPricing(pricingMap);
+      // Get learning pricing as unified pricing (applies to all sections)
+      const learningPricing = data.pricing?.find(p => p.type === 'learning') || data.pricing?.[0];
+      if (learningPricing) {
+        setPricing({ unified: learningPricing });
+      } else {
+        // Set default if no pricing exists
+        setPricing({
+          unified: {
+            type: 'learning',
+            plans: {
+              oneMonth: { price: 499, originalPrice: 999, discount: 50, duration: 30 },
+              threeMonths: { price: 999, originalPrice: 1999, discount: 50, duration: 90 },
+              sixMonths: { price: 1499, originalPrice: 2999, discount: 50, duration: 180 }
+            }
+          }
+        });
+      }
     } catch (error) {
       console.error('Failed to fetch pricing:', error);
     } finally {
@@ -4356,15 +4597,16 @@ function PricingAdmin() {
   const handleSave = async (type, plans) => {
     setSaving(true);
     try {
+      // Save as 'learning' type which applies to all sections
       const res = await fetch('/api/admin/pricing', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, plans }),
+        body: JSON.stringify({ type: 'learning', plans }),
         credentials: 'include'
       });
       if (res.ok) {
         await fetchPricing();
-        alert('Pricing updated successfully!');
+        alert('Pricing updated successfully! This pricing applies to all sections (Learning, Skill Test, Exam).');
       } else {
         const data = await res.json();
         alert('Failed to save: ' + (data.error || 'Unknown error'));
@@ -4377,12 +4619,12 @@ function PricingAdmin() {
     }
   };
 
-  const updatePlan = (type, planKey, field, value) => {
+  const updatePlan = (planKey, field, value) => {
     setPricing(prev => {
       const newPricing = { ...prev };
-      if (!newPricing[type]) {
-        newPricing[type] = {
-          type,
+      if (!newPricing.unified) {
+        newPricing.unified = {
+          type: 'learning',
           plans: {
             oneMonth: { price: 499, originalPrice: 999, discount: 50, duration: 30 },
             threeMonths: { price: 999, originalPrice: 1999, discount: 50, duration: 90 },
@@ -4390,9 +4632,9 @@ function PricingAdmin() {
           }
         };
       }
-      newPricing[type].plans[planKey][field] = parseInt(value) || 0;
+      newPricing.unified.plans[planKey][field] = parseInt(value) || 0;
       // Recalculate discount
-      const plan = newPricing[type].plans[planKey];
+      const plan = newPricing.unified.plans[planKey];
       if (plan.originalPrice > 0) {
         plan.discount = Math.round(((plan.originalPrice - plan.price) / plan.originalPrice) * 100);
       }
@@ -4400,35 +4642,83 @@ function PricingAdmin() {
     });
   };
 
-  const getCurrentPricing = (type) => {
-    if (!pricing[type]) {
+  const getCurrentPricing = () => {
+    if (!pricing.unified || !pricing.unified.plans) {
       return {
         oneMonth: { price: 499, originalPrice: 999, discount: 50, duration: 30 },
         threeMonths: { price: 999, originalPrice: 1999, discount: 50, duration: 90 },
         sixMonths: { price: 1499, originalPrice: 2999, discount: 50, duration: 180 }
       };
     }
-    return pricing[type].plans;
+    return pricing.unified.plans;
+  };
+
+  const handleSaveFeature = async (formData) => {
+    try {
+      const method = editingFeature ? 'PUT' : 'POST';
+      const body = {
+        title: formData.title,
+        description: formData.description,
+        icon: formData.icon || '✓',
+        order: parseInt(formData.order) || 0,
+        isActive: formData.isActive !== false,
+        showTick: formData.showTick !== false,
+        showWrong: formData.showWrong === true
+      };
+      if (editingFeature) {
+        body._id = editingFeature._id;
+      }
+
+      const res = await fetch('/api/admin/features', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body)
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        await fetchFeatures();
+        setShowFeatureForm(false);
+        setEditingFeature(null);
+        alert('Feature saved successfully!');
+      } else {
+        alert(result.error || 'Failed to save feature');
+      }
+    } catch (error) {
+      console.error('Failed to save feature:', error);
+      alert('Failed to save feature');
+    }
+  };
+
+  const handleDeleteFeature = async (featureId) => {
+    if (!confirm('Are you sure you want to delete this feature?')) return;
+    try {
+      const res = await fetch(`/api/admin/features?id=${featureId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (res.ok) {
+        await fetchFeatures();
+        alert('Feature deleted successfully!');
+      } else {
+        alert('Failed to delete feature');
+      }
+    } catch (error) {
+      console.error('Failed to delete feature:', error);
+      alert('Failed to delete feature');
+    }
   };
 
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-4">Pricing Management</h2>
-        <div className="flex gap-2 mb-4">
-          {['learning', 'skill', 'exam'].map(type => (
-            <button
-              key={type}
-              onClick={() => setSelectedType(type)}
-              className={`px-4 py-2 rounded-lg font-medium ${
-                selectedType === type
-                  ? 'bg-[#290c52] text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </button>
-          ))}
+        <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-4 rounded">
+          <p className="text-sm text-blue-800">
+            <strong>Unified Pricing:</strong> This pricing applies to all sections (Learning, Skill Test, Exam). 
+            A single subscription unlocks access to all three sections.
+          </p>
         </div>
       </div>
 
@@ -4437,7 +4727,7 @@ function PricingAdmin() {
       ) : (
         <div className="grid md:grid-cols-3 gap-6">
           {['oneMonth', 'threeMonths', 'sixMonths'].map(planKey => {
-            const plan = getCurrentPricing(selectedType)[planKey];
+            const plan = getCurrentPricing()[planKey];
             const planNames = {
               oneMonth: '1 Month',
               threeMonths: '3 Months',
@@ -4452,7 +4742,7 @@ function PricingAdmin() {
                     <input
                       type="number"
                       value={plan.price}
-                      onChange={(e) => updatePlan(selectedType, planKey, 'price', e.target.value)}
+                      onChange={(e) => updatePlan(planKey, 'price', e.target.value)}
                       className="w-full border rounded px-3 py-2"
                     />
                   </div>
@@ -4461,7 +4751,7 @@ function PricingAdmin() {
                     <input
                       type="number"
                       value={plan.originalPrice}
-                      onChange={(e) => updatePlan(selectedType, planKey, 'originalPrice', e.target.value)}
+                      onChange={(e) => updatePlan(planKey, 'originalPrice', e.target.value)}
                       className="w-full border rounded px-3 py-2"
                     />
                   </div>
@@ -4470,7 +4760,7 @@ function PricingAdmin() {
                     <input
                       type="number"
                       value={plan.duration}
-                      onChange={(e) => updatePlan(selectedType, planKey, 'duration', e.target.value)}
+                      onChange={(e) => updatePlan(planKey, 'duration', e.target.value)}
                       className="w-full border rounded px-3 py-2"
                     />
                   </div>
@@ -4481,6 +4771,7 @@ function PricingAdmin() {
                       Save ₹{plan.originalPrice - plan.price}
                     </div>
                   </div>
+                  
                 </div>
               </div>
             );
@@ -4490,13 +4781,99 @@ function PricingAdmin() {
 
       <div className="mt-6 text-center">
         <button
-          onClick={() => handleSave(selectedType, getCurrentPricing(selectedType))}
+          onClick={() => handleSave('learning', getCurrentPricing())}
           disabled={saving}
           className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-8 py-3 rounded-lg font-semibold"
         >
           {saving ? 'Saving...' : 'Save Pricing'}
         </button>
       </div>
+
+      {/* Features Section - Global for all plans */}
+      <div className="mt-8 bg-white border rounded-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h3 className="text-xl font-semibold">Subscription Features</h3>
+            <p className="text-sm text-gray-600 mt-1">Features apply to all plans (Learning, Skill Test, Exam)</p>
+          </div>
+          <button
+            onClick={() => {
+              setEditingFeature(null);
+              setShowFeatureForm(true);
+            }}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            + Add Feature
+          </button>
+        </div>
+        <div className="space-y-3">
+          {features.length === 0 ? (
+            <p className="text-center text-gray-500 py-4">No features yet. Click "+ Add Feature" to create one.</p>
+          ) : (
+            features.map(f => (
+              <div key={f._id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-2xl">{f.icon || '✓'}</span>
+                  <div className="flex gap-1">
+                    {f.showWrong ? (
+                      <span className="text-red-600 text-lg font-bold">✗</span>
+                    ) : (
+                      <span className="text-green-600 text-lg font-bold">✓</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium">{f.title}</div>
+                  <div className="text-sm text-gray-600">{f.description}</div>
+                  <div className="mt-1 flex gap-2 flex-wrap">
+                    <span className="text-xs text-gray-500">Order: {f.order}</span>
+                    <span className={`text-xs px-2 py-1 rounded ${
+                      f.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {f.isActive ? 'ACTIVE' : 'INACTIVE'}
+                    </span>
+                    <span className={`text-xs px-2 py-1 rounded ${
+                      f.showWrong ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                    }`}>
+                      {f.showWrong ? '✗ Wrong' : '✓ Tick'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingFeature(f);
+                      setShowFeatureForm(true);
+                    }}
+                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteFeature(f._id)}
+                    className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Feature Form Modal */}
+      {showFeatureForm && (
+        <Modal onClose={() => { setShowFeatureForm(false); setEditingFeature(null); }}>
+          <FeatureForm
+            feature={editingFeature}
+            onSave={handleSaveFeature}
+            onCancel={() => { setShowFeatureForm(false); setEditingFeature(null); }}
+            saving={false}
+            error=""
+          />
+        </Modal>
+      )}
     </div>
   );
 }
@@ -5817,6 +6194,445 @@ function BackspaceSettingForm({ setting, onSave, onCancel, saving, error }) {
         </div>
       </form>
     </div>
+  );
+}
+
+function FeaturesAdmin() {
+  const [features, setFeatures] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [editingFeature, setEditingFeature] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/features', { credentials: 'include' });
+      const data = await res.json();
+      setFeatures(data.features || []);
+    } catch (error) {
+      console.error('Failed to fetch features:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { refresh(); }, []);
+
+  const handleSave = async (formData) => {
+    setSaving(true);
+    setSaveError('');
+    try {
+      const method = editingFeature ? 'PUT' : 'POST';
+      const body = {
+        title: formData.title,
+        description: formData.description,
+        icon: formData.icon || '✓',
+        order: parseInt(formData.order) || 0,
+        isActive: formData.isActive !== false
+      };
+      if (editingFeature) {
+        body._id = editingFeature._id;
+      }
+
+      const res = await fetch('/api/admin/features', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body)
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        await refresh();
+        setShowForm(false);
+        setEditingFeature(null);
+        alert('Feature saved successfully!');
+      } else {
+        setSaveError(result.error || 'Failed to save feature');
+      }
+    } catch (error) {
+      setSaveError('Network error: ' + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (featureId) => {
+    if (!confirm('Are you sure you want to delete this feature?')) return;
+    try {
+      const res = await fetch(`/api/admin/features?id=${featureId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (res.ok) {
+        await refresh();
+        alert('Feature deleted successfully!');
+      } else {
+        alert('Failed to delete feature');
+      }
+    } catch (error) {
+      console.error('Failed to delete feature:', error);
+      alert('Failed to delete feature');
+    }
+  };
+
+  const handleToggleActive = async (feature) => {
+    try {
+      const res = await fetch('/api/admin/features', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          _id: feature._id,
+          isActive: !feature.isActive
+        })
+      });
+      if (res.ok) {
+        await refresh();
+      } else {
+        alert('Failed to update feature');
+      }
+    } catch (error) {
+      console.error('Failed to toggle feature:', error);
+      alert('Failed to update feature');
+    }
+  };
+
+  const handleInitializeDefaults = async () => {
+    if (!confirm('This will create default features. Continue?')) return;
+    try {
+      const res = await fetch('/api/admin/features', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ action: 'initialize' })
+      });
+      const result = await res.json();
+      if (res.ok) {
+        await refresh();
+        alert('Default features initialized successfully!');
+      } else {
+        alert(result.error || 'Failed to initialize features');
+      }
+    } catch (error) {
+      console.error('Failed to initialize features:', error);
+      alert('Failed to initialize features');
+    }
+  };
+
+  return (
+    <div className="mt-4">
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-4 rounded">
+        <p className="text-sm text-blue-800">
+          <strong>Subscription Features:</strong> Manage features that are displayed to users on the payment page. 
+          These features show what users get when they subscribe. Features are displayed in a popup on the payment page.
+        </p>
+      </div>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-semibold">Subscription Features</h3>
+        <div className="flex gap-2">
+          {features.length === 0 && (
+            <button 
+              onClick={handleInitializeDefaults} 
+              className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+            >
+              Initialize Default Features
+            </button>
+          )}
+          <button 
+            onClick={() => { setEditingFeature(null); setShowForm(true); }} 
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            + Add Feature
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white border rounded-lg p-4">
+        {loading ? (
+          <div className="text-center py-8">Loading...</div>
+        ) : features.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">No features yet. Click "+ Add Feature" to create one.</div>
+        ) : (
+          <div className="space-y-3">
+            {features.map(f => (
+              <div key={f._id} className="border rounded-lg p-4 hover:bg-gray-50">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{f.icon || '✓'}</span>
+                      <div className="font-medium text-lg">{f.title}</div>
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1 ml-8">{f.description}</div>
+                    <div className="mt-2 ml-8 flex gap-2">
+                      <span className="text-xs text-gray-500">Order: {f.order}</span>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        f.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {f.isActive ? 'ACTIVE' : 'INACTIVE'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleToggleActive(f)}
+                      className={`px-3 py-1 rounded text-sm ${
+                        f.isActive 
+                          ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
+                          : 'bg-green-600 text-white hover:bg-green-700'
+                      }`}
+                    >
+                      {f.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button
+                      onClick={() => { setEditingFeature(f); setShowForm(true); }}
+                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(f._id)}
+                      className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {showForm && (
+        <Modal onClose={() => { setShowForm(false); setEditingFeature(null); setSaveError(''); }}>
+          <FeatureForm
+            feature={editingFeature}
+            onSave={handleSave}
+            onCancel={() => { setShowForm(false); setEditingFeature(null); setSaveError(''); }}
+            saving={saving}
+            error={saveError}
+          />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function FeatureForm({ feature, onSave, onCancel, saving, error }) {
+  const [formData, setFormData] = useState({
+    title: feature?.title || '',
+    description: feature?.description || '',
+    icon: feature?.icon || '✓',
+    order: feature?.order || 0,
+    isActive: feature?.isActive !== false,
+    showTick: feature?.showTick !== false,
+    showWrong: feature?.showWrong === true
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div>
+      <h4 className="font-semibold text-lg mb-2">{feature ? 'Edit Feature' : 'Add New Feature'}</h4>
+      <p className="text-sm text-gray-600 mb-4">This feature will apply to all plans (Learning, Skill Test, Exam)</p>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Feature Title *</label>
+          <input
+            type="text"
+            value={formData.title}
+            onChange={(e) => setFormData({...formData, title: e.target.value})}
+            className="w-full border rounded px-3 py-2 text-sm"
+            placeholder="e.g., Unlimited Learning"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Description *</label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            className="w-full border rounded px-3 py-2 text-sm"
+            placeholder="e.g., Access to all learning materials"
+            rows="3"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Icon (Emoji or Symbol)</label>
+          <input
+            type="text"
+            value={formData.icon}
+            onChange={(e) => setFormData({...formData, icon: e.target.value})}
+            className="w-full border rounded px-3 py-2 text-sm"
+            placeholder="✓ or 📚 or 🎯"
+          />
+          <p className="text-xs text-gray-500 mt-1">Enter an emoji or symbol to display with this feature</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Display Order</label>
+          <input
+            type="number"
+            value={formData.order}
+            onChange={(e) => setFormData({...formData, order: e.target.value})}
+            className="w-full border rounded px-3 py-2 text-sm"
+            placeholder="0"
+            min="0"
+          />
+          <p className="text-xs text-gray-500 mt-1">Lower numbers appear first (0 = first)</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.isActive}
+              onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+              className="w-5 h-5"
+            />
+            <span className="text-sm font-medium">Active (Show on payment page)</span>
+          </label>
+          <div className="border-t pt-3">
+            <label className="block text-sm font-medium mb-2">Display Indicator</label>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="indicator"
+                  checked={!formData.showWrong}
+                  onChange={() => setFormData({...formData, showWrong: false, showTick: true})}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm">Show Tick (✓) - Feature Included</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="indicator"
+                  checked={formData.showWrong}
+                  onChange={() => setFormData({...formData, showWrong: true, showTick: false})}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm">Show Wrong (✗) - Feature Not Included</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-6">
+          <button 
+            type="submit" 
+            disabled={saving}
+            className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
+          >
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+          <button 
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-300 px-6 py-2 rounded hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function CPCTImportModal({ examId, onClose }) {
+  const [importing, setImporting] = useState(false);
+  const [currentSection, setCurrentSection] = useState('');
+  const [progress, setProgress] = useState({ current: 0, total: 0, message: '' });
+
+  const sections = [
+    { name: 'Computer Proficiency (52 questions)', number: 1, key: 'computer' },
+    { name: 'Reading Comprehension (5 questions)', number: 2, key: 'reading' },
+    { name: 'Quantitative Aptitude (6 questions)', number: 3, key: 'quantitative' },
+    { name: 'General Mental Ability (6 questions)', number: 4, key: 'reasoning' },
+    { name: 'General Awareness (6 questions)', number: 5, key: 'awareness' },
+    { name: 'English Mock Typing', number: 2, key: 'english-mock' },
+    { name: 'English Actual Typing', number: 3, key: 'english-actual' },
+    { name: 'Hindi Mock Typing', number: 4, key: 'hindi-mock' },
+    { name: 'Hindi Actual Typing', number: 5, key: 'hindi-actual' }
+  ];
+
+  const handleImportSection = async (section) => {
+    if (!examId) {
+      alert('Please select CPCT exam first');
+      return;
+    }
+
+    setImporting(true);
+    setCurrentSection(section.key);
+    setProgress({ current: 0, total: 0, message: `Preparing to import ${section.name}...` });
+
+    try {
+      alert(`Import functionality for "${section.name}" will be implemented.\n\nFor now, please use the admin panel to manually add questions section by section.`);
+    } catch (error) {
+      console.error('Import error:', error);
+      alert('Import failed: ' + error.message);
+    } finally {
+      setImporting(false);
+      setCurrentSection('');
+      setProgress({ current: 0, total: 0, message: '' });
+    }
+  };
+
+  return (
+    <Modal onClose={onClose}>
+      <div>
+        <h4 className="font-semibold text-lg mb-4">Import CPCT Exam Data</h4>
+        <p className="text-sm text-gray-600 mb-4">
+          Import exam data section by section. Each section will be imported separately.
+        </p>
+        
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {sections.map((section) => (
+            <button
+              key={section.key}
+              onClick={() => handleImportSection(section)}
+              disabled={importing || !examId}
+              className={`w-full text-left p-3 rounded border transition-colors ${
+                importing && currentSection === section.key
+                  ? 'bg-blue-100 border-blue-300'
+                  : 'bg-white border-gray-200 hover:bg-gray-50'
+              } ${!examId ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <div className="font-medium">{section.name}</div>
+              {importing && currentSection === section.key && (
+                <div className="text-xs text-blue-600 mt-1">{progress.message}</div>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+          <p className="text-xs text-yellow-800">
+            <strong>Note:</strong> Due to the large amount of data, questions need to be imported manually through the admin panel. 
+            Select the exam, create sections, and add questions one by one or in batches.
+          </p>
+        </div>
+
+        <div className="flex gap-2 mt-6">
+          <button
+            onClick={onClose}
+            className="bg-gray-300 px-6 py-2 rounded hover:bg-gray-400"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </Modal>
   );
 }
 

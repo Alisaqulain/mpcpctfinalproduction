@@ -33,25 +33,19 @@ function ExamResultContent() {
           return;
         }
 
-        // If section parameter is provided, show section-specific results (don't check for all sections)
-        // Otherwise, check if all sections are completed
-        if (!currentSection) {
-          const examRes = await fetch(`/api/exam-questions?examId=${examId}`);
-          if (examRes.ok) {
-            const examData = await examRes.json();
-            if (examData.success && examData.data) {
-              const totalSections = examData.data.sections?.length || 0;
-              const completedSections = savedCompletedSections ? JSON.parse(savedCompletedSections) : [];
-              
-              // If not all sections completed, redirect back to exam
-              if (completedSections.length < totalSections) {
-                alert('Please complete all sections before viewing results.');
-                window.location.href = '/exam_mode';
-                return;
-              }
-            }
+        // If section parameter is provided, show section-specific results
+        // Allow viewing results even if section is not marked as completed (old functionality)
+        if (currentSection) {
+          // Section parameter provided - show section-specific results
+          // Allow viewing even if not marked as completed (old behavior)
+          // Just show a warning if section is not completed
+          const completedSections = savedCompletedSections ? JSON.parse(savedCompletedSections) : [];
+          if (!completedSections.includes(currentSection)) {
+            // Section not completed, but allow viewing (old functionality)
+            console.log('Section not marked as completed, but allowing view (old functionality)');
           }
         }
+        // If no section parameter, show all results (old functionality - no blocking)
         
         // Load user data
         const userDataStr = localStorage.getItem('examUserData');
@@ -536,14 +530,31 @@ function ExamResultContent() {
                 const currentSectionIndex = sections.findIndex(s => s.name === currentSection);
                 if (currentSectionIndex < sections.length - 1) {
                   const nextSection = sections[currentSectionIndex + 1];
-                  router.push(`/exam/break?next=/exam_mode&section=${encodeURIComponent(nextSection.name)}`);
+                  // Check if next section is a typing section
+                  const isTypingSection = nextSection.name === "English Typing" || 
+                                         nextSection.name === "हिंदी टाइपिंग" ||
+                                         nextSection.name.includes("Typing") || 
+                                         nextSection.name.includes("typing");
+                  
+                  // Check if we're moving from 5th section to typing (6th section) - 10 min break
+                  const isAfterFiveSections = currentSectionIndex === 4; // 0-indexed, so 4 = 5th section
+                  const breakDuration = (isTypingSection && isAfterFiveSections) ? 10 : 1;
+                  
+                  if (isTypingSection && !isAfterFiveSections) {
+                    // Typing section but not after 5 sections, go directly
+                    router.push(`/exam_mode?section=${encodeURIComponent(nextSection.name)}`);
+                  } else {
+                    // Go to break page (1 min for MCQ sections, 10 min for typing after 5 sections)
+                    router.push(`/exam/break?next=/exam_mode&section=${encodeURIComponent(nextSection.name)}&duration=${breakDuration}`);
+                  }
                 } else {
+                  // Last section completed, show final results
                   router.push('/exam/exam-result');
                 }
               }}
               className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
             >
-              Continue to Break
+              Continue to Next Section
             </button>
           </div>
         </div>

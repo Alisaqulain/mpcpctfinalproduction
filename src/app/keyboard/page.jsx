@@ -667,7 +667,7 @@ function LandscapeMobileView({
               <div
                 key={`${currentRowIndex}-${displayIdx}`}
                 className={`
-                  ${key === "Space" ? "w-16 h-14 text-xl" : "w-12 h-14"}
+                  ${key === "Space" ? "w-22 h-11 text-xl" : "w-12 h-14"}
                   rounded flex items-center justify-center text-2xl font-semibold
                   transition-all duration-150 flex-shrink-0
                
