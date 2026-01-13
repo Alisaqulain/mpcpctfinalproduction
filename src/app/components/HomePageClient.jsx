@@ -215,11 +215,11 @@ const App = () => {
                 </>
               ) : (
                 <>
-                  <span className="text-pink-300 font-semibold text-[20px] border-l border-[#290c52] bg-[#290c52] pt-4 md:pt-7 pb-0 md:pb-6 text-center w-full lg:w-48 absolute right-0 lg:right-[-16px] z-10 top-[155px] rounded-tl-lg rounded-tr-lg md:rounded-none lg:top-[-148px]">
+                  <span className="text-pink-300 font-semibold text-[20px] border-2 border-[#290c52] bg-[#290c52] pt-4 md:pt-7 pb-0 md:pb-6 text-center w-full lg:w-48 absolute right-0 lg:right-[-16px] z-10 top-[155px] rounded-tl-lg rounded-tr-lg md:rounded-none lg:top-[-148px]">
                     Welcome Back
                   </span>
 
-                  <div className="w-full lg:w-48 border border-[#290c52] bg-gray-50 shadow-md p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:h-[620px] rounded animate-fadeInUp lg:mt-[-147px]">
+                  <div className="w-full lg:w-48 border-2 border-[#290c52] bg-gray-50 shadow-lg p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-16px] lg:top-0 h-auto md:h-[620px] rounded-lg animate-fadeInUp lg:mt-[-147px]">
                     <h2 className="font-semibold text-pink-300 text-xl text-center">
                       <span className="font-normal text-black text-sm md:text-[14px] block md:inline md:ml-2">
                         Login to your MPCPCT Account

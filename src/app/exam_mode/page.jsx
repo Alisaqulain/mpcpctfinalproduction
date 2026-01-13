@@ -27,6 +27,10 @@ function ExamModeContent() {
   const [isBreakActive, setIsBreakActive] = useState(false);
   const [breakTimeLeft, setBreakTimeLeft] = useState(60); // 1 minute break
   const [allSectionsCompleted, setAllSectionsCompleted] = useState(false);
+  const [isTypingSection, setIsTypingSection] = useState(false);
+  const [typingTimeLeft, setTypingTimeLeft] = useState(null);
+  const [isMainTimerPaused, setIsMainTimerPaused] = useState(false);
+  const [pausedMainTime, setPausedMainTime] = useState(null);
   const audioRef = useRef(null);
   const loggedImageQuestions = useRef(new Set()); // Track which questions we've already logged
   const searchParams = useSearchParams();
@@ -400,6 +404,9 @@ function ExamModeContent() {
             if (data.data.exam.totalTime) {
               setTimeLeft(data.data.exam.totalTime * 60);
             }
+
+            // Note: Typing section detection is now handled by a separate useEffect
+            // that watches for section changes, so we don't need to set it here
             
             // Load completed sections from localStorage
             const savedCompletedSections = localStorage.getItem('completedSections');
@@ -554,6 +561,53 @@ function ExamModeContent() {
     }
   }, [sections, parts, searchParams]); // Removed section from dependencies to prevent infinite loop
 
+  // Detect typing sections when section changes and set up typing timer
+  // IMPORTANT: Typing sections have SEPARATE timing that does NOT count against main exam time
+  // - When entering a typing section: Main timer PAUSES, typing timer STARTS
+  // - When leaving a typing section: Typing timer STOPS, main timer RESUMES from where it was paused
+  useEffect(() => {
+    if (!section || sections.length === 0) {
+      return;
+    }
+
+    // Find current section data
+    const currentSectionData = sections.find(s => s.name === section);
+    
+    if (currentSectionData && currentSectionData.typingTime) {
+      // This is a typing section - pause main timer and start typing timer
+      console.log(`⏱️ Typing section detected: ${currentSectionData.name}, typing time: ${currentSectionData.typingTime} minutes`);
+      console.log(`⏸️ Pausing main exam timer. Current main time: ${formatTime(timeLeft)}`);
+      
+      // Save current main timer time before pausing (use functional update to get latest value)
+      setTimeLeft((currentTime) => {
+        setPausedMainTime(currentTime);
+        return currentTime; // Keep the same time, timer will be paused
+      });
+      setIsMainTimerPaused(true);
+      setIsTypingSection(true);
+      // Initialize typing timer (convert minutes to seconds)
+      const typingTimeInSeconds = currentSectionData.typingTime * 60;
+      setTypingTimeLeft(typingTimeInSeconds);
+      console.log(`▶️ Starting typing timer: ${formatTime(typingTimeInSeconds)}`);
+      console.log(`ℹ️ Main exam timer is PAUSED and will resume when leaving this typing section`);
+    } else {
+      // This is a regular section - resume main timer if it was paused
+      console.log(`📝 Regular section: ${section}`);
+      setIsTypingSection(false);
+      setTypingTimeLeft(null);
+      
+      // Resume main timer from where it was paused
+      setPausedMainTime((savedTime) => {
+        if (savedTime !== null && isMainTimerPaused) {
+          console.log(`▶️ Resuming main exam timer from: ${formatTime(savedTime)}`);
+          setTimeLeft(savedTime);
+        }
+        return null; // Clear saved time
+      });
+      setIsMainTimerPaused(false);
+    }
+  }, [section, sections, isMainTimerPaused]);
+
   // Load tick sound after user interaction
   useEffect(() => {
     const handleFirstClick = () => {
@@ -565,19 +619,66 @@ function ExamModeContent() {
     return () => document.removeEventListener("click", handleFirstClick);
   }, []);
 
-  // Timer
+  // Main Exam Timer - only runs when not paused and not in typing section
+  // This timer is PAUSED during typing sections (typing sections have separate timing)
   useEffect(() => {
+    if (isMainTimerPaused || isTypingSection) {
+      // Timer is paused - don't count down
+      // Main exam time is preserved and will resume when leaving typing section
+      return;
+    }
+    
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 0) {
           clearInterval(interval);
+          console.log('⏰ Main exam time expired!');
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
+    
     return () => clearInterval(interval);
-  }, []);
+  }, [isMainTimerPaused, isTypingSection]);
+
+  // Typing Section Timer - separate timer for typing sections
+  // This timer runs independently and does NOT count against main exam time
+  useEffect(() => {
+    if (!isTypingSection || typingTimeLeft === null || typingTimeLeft <= 0) {
+      return;
+    }
+
+    console.log(`⏱️ Typing timer started: ${formatTime(typingTimeLeft)} remaining`);
+
+    const interval = setInterval(() => {
+      setTypingTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          // Auto-submit section when typing time expires
+          // Note: section is captured in closure, but we'll access it via the state
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isTypingSection, typingTimeLeft]);
+
+  // Auto-submit when typing time reaches 0
+  useEffect(() => {
+    if (isTypingSection && typingTimeLeft === 0 && section) {
+      console.log('⏰ Typing time expired! Auto-submitting section:', section);
+      // Use a small delay to ensure state is updated before submitting
+      const timeoutId = setTimeout(() => {
+        handleSubmitSection();
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isTypingSection, typingTimeLeft, section]);
 
   // Play sound each second
   useEffect(() => {
@@ -1151,7 +1252,18 @@ function ExamModeContent() {
             <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
               {isSoundOn ? "🔊" : "🔇"}
             </button>
-            <span className="text-lg ml-2">Time Left: <b className="bg-blue-400 text-black px-3">{formatTime(timeLeft)}</b></span>
+            <span className="text-lg ml-2">
+              {isTypingSection && typingTimeLeft !== null ? (
+                <>
+                  Typing Time: <b className="bg-orange-400 text-black px-3">{formatTime(typingTimeLeft)}</b>
+                  <span className="text-xs ml-2 text-gray-600">(Main: {formatTime(timeLeft)})</span>
+                </>
+              ) : (
+                <>
+                  Time Left: <b className="bg-blue-400 text-black px-3">{formatTime(timeLeft)}</b>
+                </>
+              )}
+            </span>
           </div>
         </div>
 
@@ -1240,7 +1352,18 @@ function ExamModeContent() {
               <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
                 {isSoundOn ? "🔊" : "🔇"}
               </button>
-              <span className="text-lg">Time Left: <b className="bg-blue-400 text-black px-3 mr-5">{formatTime(timeLeft)}</b></span>
+              <span className="text-lg">
+                {isTypingSection && typingTimeLeft !== null ? (
+                  <>
+                    Typing Time: <b className="bg-orange-400 text-black px-3 mr-5">{formatTime(typingTimeLeft)}</b>
+                    <span className="text-xs ml-2 text-gray-600">(Main: {formatTime(timeLeft)})</span>
+                  </>
+                ) : (
+                  <>
+                    Time Left: <b className="bg-blue-400 text-black px-3 mr-5">{formatTime(timeLeft)}</b>
+                  </>
+                )}
+              </span>
             </div>
           </div>
           

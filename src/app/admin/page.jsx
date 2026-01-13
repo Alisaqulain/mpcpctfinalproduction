@@ -215,7 +215,8 @@ export default function AdminPanel() {
           name: formData.name,
           id: sectionId,
           lessonNumber: parseInt(formData.lessonNumber) || currentSectionsCount + 1,
-          order: parseInt(formData.order) || newOrder
+          order: parseInt(formData.order) || newOrder,
+          typingTime: formData.typingTime ? parseInt(formData.typingTime) : null
         })
       });
       
@@ -2218,7 +2219,8 @@ function SectionFormModal({ onSave, onClose, saving }) {
     name: '',
     id: '',
     lessonNumber: '',
-    order: ''
+    order: '',
+    typingTime: ''
   });
 
   // Auto-generate ID from name
@@ -2288,6 +2290,18 @@ function SectionFormModal({ onSave, onClose, saving }) {
               />
               <p className="text-xs text-gray-500 mt-1">Required field</p>
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Typing Time (minutes)</label>
+            <input
+              type="number"
+              value={formData.typingTime}
+              onChange={(e) => setFormData({...formData, typingTime: e.target.value})}
+              className="w-full border rounded-lg px-4 py-2"
+              placeholder="Leave empty if not a typing section"
+              min="0"
+            />
+            <p className="text-xs text-gray-500 mt-1">If set, this section will have separate timing (doesn't count towards main exam time). Leave empty for regular sections.</p>
           </div>
           <div className="flex gap-3 pt-4">
             <button

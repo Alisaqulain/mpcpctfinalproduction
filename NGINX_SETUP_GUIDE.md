@@ -235,3 +235,4 @@ The configuration includes:
 **Configuration File Location:** `/etc/nginx/sites-available/mpcpct`
 **Symlink Location:** `/etc/nginx/sites-enabled/mpcpct`
 
+

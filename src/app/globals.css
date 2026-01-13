@@ -26,3 +26,38 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Welcome Back Login Box Styling */
+.home-welcome-text {
+  border: 2px solid #290c52 !important;
+  border-bottom: none !important;
+  box-shadow: 0 4px 6px rgba(41, 12, 82, 0.1);
+}
+
+.home-login-box {
+  border: 2px solid #290c52 !important;
+  box-shadow: 0 10px 25px rgba(41, 12, 82, 0.15) !important;
+  transition: box-shadow 0.3s ease;
+}
+
+.home-login-box:hover {
+  box-shadow: 0 15px 35px rgba(41, 12, 82, 0.2) !important;
+}
+
+/* Ensure smooth connection between welcome text and login box on desktop */
+@media (min-width: 1024px) {
+  .home-welcome-text {
+    border-bottom: none !important;
+    margin-bottom: -2px !important; /* Overlap to eliminate gap */
+    width: 12% !important;
+    padding-top: 1.75rem !important;
+    padding-bottom: 1.5rem !important;
+    font-size: 1.2rem !important;
+    top: -9.25rem !important;
+  }
+  
+  .home-login-box {
+    border-top: none !important;
+    margin-top: -2px !important; /* Overlap to eliminate gap */
+  }
+}
+
