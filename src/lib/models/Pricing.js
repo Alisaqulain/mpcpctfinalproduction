@@ -5,7 +5,7 @@ const PricingSchema = new mongoose.Schema(
     type: { type: String, enum: ["learning", "skill", "exam"], required: true, unique: true },
     plans: {
       oneMonth: {
-        price: { type: Number, required: true, default: 499 },
+        price: { type: Number, required: true, default: 399 },
         originalPrice: { type: Number, required: true, default: 999 },
         discount: { type: Number, default: 0 }, // Auto-calculated
         duration: { type: Number, default: 30 }

@@ -28,7 +28,7 @@ function PricingContent() {
   const getPlans = () => {
     if (!pricing || !pricing[selectedType]) {
       return {
-        oneMonth: { price: 499, originalPrice: 999, discount: 50, duration: 30 },
+        oneMonth: { price: 399, originalPrice: 999, discount: 60, duration: 30 },
         threeMonths: { price: 999, originalPrice: 1999, discount: 50, duration: 90 },
         sixMonths: { price: 1499, originalPrice: 2999, discount: 50, duration: 180 }
       };
