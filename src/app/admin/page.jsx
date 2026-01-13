@@ -66,7 +66,24 @@ export default function AdminPanel() {
   const fetchExams = async () => {
     const res = await fetch('/api/admin/exams');
     const data = await res.json();
-    setExams(data.exams || []);
+    const examList = data.exams || [];
+    
+    // Sort by extracting number from title (e.g., "CPCT Exam 1" -> 1, "CPCT Exam 15" -> 15)
+    const sortedExams = examList.sort((a, b) => {
+      const getExamNumber = (title) => {
+        const match = (title || '').match(/(\d+)$/);
+        return match ? parseInt(match[1], 10) : 0;
+      };
+      const numA = getExamNumber(a.title || '');
+      const numB = getExamNumber(b.title || '');
+      // If numbers are equal or both 0, sort by title
+      if (numA === numB) {
+        return (a.title || '').localeCompare(b.title || '');
+      }
+      return numA - numB; // Ascending order: 1, 2, 3... 15
+    });
+    
+    setExams(sortedExams);
   };
 
   const fetchSections = async (examId) => {
@@ -601,6 +618,173 @@ export default function AdminPanel() {
             <p className="text-sm text-blue-800">
               <strong>How to use:</strong> Select an Exam → Select a Section → Select a Part → View/Add Questions
             </p>
+          </div>
+
+          {/* Create 15 CPCT Exams */}
+          <div className="bg-green-50 border-2 border-green-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-green-900 mb-3 font-bold">
+              <strong>🚀 Create 15 CPCT Exams with Standard Pattern:</strong>
+            </p>
+            <p className="text-xs text-green-700 mb-3">
+              This will create 15 CPCT exams with the standard pattern:
+              <br />• 75 min main exam + 15 min English typing + 15 min Hindi typing
+              <br />• Sections: IT SKILLS (1-52), READING COMPREHENSION (53-57), QUANTITATIVE APTITUDE (58-63), GENERAL MENTAL ABILITY (64-69), GENERAL AWARENESS (70-75)
+              <br />• One Part per Section (Part 1)
+              <br />• First exam is FREE, others are PAID
+              <br />• Each question: 1 mark, no negative marking
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  if (!confirm('This will create 15 CPCT exams with sections and parts. Continue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/create-cpct-15-exams', {
+                      method: 'POST',
+                      credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Success! Created ${data.exams.length} exams. ${data.summary.free} free, ${data.summary.paid} paid.`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to create exams'));
+                    }
+                  } catch (error) {
+                    console.error('Error creating exams:', error);
+                    alert('Failed to create exams: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Creating...' : 'Create 15 CPCT Exams'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will add one Part to each Section in all CPCT exams that don\'t have parts. Continue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/add-parts-to-exams', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({})
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Success! Added ${data.createdParts} parts to ${data.parts.length} sections.`);
+                      // Refresh parts if a section is selected
+                      if (selectedExam && selectedSection) {
+                        await fetchParts(selectedExam, selectedSection);
+                      }
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to add parts'));
+                    }
+                  } catch (error) {
+                    console.error('Error adding parts:', error);
+                    alert('Failed to add parts: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Adding...' : 'Add Parts to Existing Exams'}
+              </button>
+            </div>
+          </div>
+
+          {/* Create 15 CCC Exams */}
+          <div className="bg-purple-50 border-2 border-purple-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-purple-900 mb-3 font-bold">
+              <strong>🚀 Create 15 CCC Exams:</strong>
+            </p>
+            <p className="text-xs text-purple-700 mb-3">
+              This will create 15 CCC exams with the following pattern:
+              <br />• 90 minutes duration
+              <br />• 100 questions total
+              <br />• One section: "Computer Concepts"
+              <br />• One part: "CCC"
+              <br />• Each question: 1 mark, no negative marking
+              <br />• First exam is FREE, others are PAID
+            </p>
+            <button
+              onClick={async () => {
+                if (!confirm('This will create 15 CCC exams with sections, parts, and 100 questions each. Continue?')) return;
+                try {
+                  setSaving(true);
+                  const res = await fetch('/api/admin/create-ccc-15-exams', {
+                    method: 'POST',
+                    credentials: 'include'
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(`Success! Created ${data.exams.length} exams. ${data.summary.free} free, ${data.summary.paid} paid.`);
+                    await fetchExams();
+                  } else {
+                    alert('Error: ' + (data.error || 'Failed to create exams'));
+                  }
+                } catch (error) {
+                  console.error('Error creating exams:', error);
+                  alert('Failed to create exams: ' + error.message);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+              disabled={saving}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+            >
+              {saving ? 'Creating...' : 'Create 15 CCC Exams'}
+            </button>
+          </div>
+
+          {/* Create 15 RSCIT Exams */}
+          <div className="bg-orange-50 border-2 border-orange-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-orange-900 mb-3 font-bold">
+              <strong>🚀 Create 15 RSCIT Exams:</strong>
+            </p>
+            <p className="text-xs text-orange-700 mb-3">
+              This will create 15 RSCIT exams with the following pattern:
+              <br />• 90 minutes duration
+              <br />• 100 questions total
+              <br />• Section A: 35 questions @ 1 mark each
+              <br />• Section B: 65 questions @ 1 mark each
+              <br />• One part "RSCIT" in each section
+              <br />• No negative marking
+              <br />• First exam is FREE, others are PAID
+            </p>
+            <button
+              onClick={async () => {
+                if (!confirm('This will create 15 RSCIT exams with sections, parts, and 100 questions each. Continue?')) return;
+                try {
+                  setSaving(true);
+                  const res = await fetch('/api/admin/create-rscit-15-exams', {
+                    method: 'POST',
+                    credentials: 'include'
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(`Success! Created ${data.exams.length} exams. ${data.summary.free} free, ${data.summary.paid} paid.`);
+                    await fetchExams();
+                  } else {
+                    alert('Error: ' + (data.error || 'Failed to create exams'));
+                  }
+                } catch (error) {
+                  console.error('Error creating exams:', error);
+                  alert('Failed to create exams: ' + error.message);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+              disabled={saving}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+            >
+              {saving ? 'Creating...' : 'Create 15 RSCIT Exams'}
+            </button>
           </div>
 
           {/* CPCT Real Paper Import - One Time Import */}

@@ -106,10 +106,21 @@ export default function ExamSection() {
     return currentTab?.key || "CUSTOM";
   };
 
-  // Get exams for current tab
+  // Get exams for current tab - sorted by exam number (1, 2, 3...)
   const getCurrentExams = () => {
     const key = getCurrentExamKey();
-    return exams[key] || [];
+    const examList = exams[key] || [];
+    
+    // Sort by extracting number from title (e.g., "CPCT Exam 1" -> 1, "CPCT Exam 15" -> 15)
+    return examList.sort((a, b) => {
+      const getExamNumber = (title) => {
+        const match = title.match(/(\d+)$/);
+        return match ? parseInt(match[1], 10) : 0;
+      };
+      const numA = getExamNumber(a.title || '');
+      const numB = getExamNumber(b.title || '');
+      return numA - numB; // Ascending order: 1, 2, 3... 15
+    });
   };
 
   return (

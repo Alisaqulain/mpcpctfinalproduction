@@ -16,8 +16,8 @@ export async function GET(req) {
       query.key = key;
     }
     
-    // Fetch exams from database
-    const exams = await Exam.find(query).sort({ createdAt: -1 });
+    // Fetch exams from database - sort by title to show Exam 1 first, then 2, 3, etc.
+    const exams = await Exam.find(query).sort({ title: 1, createdAt: 1 });
     
     return NextResponse.json({ 
       success: true,

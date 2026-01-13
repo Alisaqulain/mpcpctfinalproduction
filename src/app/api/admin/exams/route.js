@@ -19,7 +19,8 @@ async function requireAdmin(req) {
 
 export async function GET() {
   await dbConnect();
-  const exams = await Exam.find().sort({ createdAt: -1 });
+  // Sort by title to show Exam 1 first, then 2, 3, etc.
+  const exams = await Exam.find().sort({ title: 1, createdAt: 1 });
   return NextResponse.json({ exams });
 }
 
