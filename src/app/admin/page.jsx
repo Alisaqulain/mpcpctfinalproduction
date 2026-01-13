@@ -601,6 +601,63 @@ export default function AdminPanel() {
             </p>
           </div>
 
+          {/* CPCT Real Paper Import - One Time Import */}
+          <div className="bg-blue-50 border-2 border-blue-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-blue-900 mb-3 font-bold">
+              <strong>📥 Import Real CPCT Paper (21st Nov 2025 Shift 2 QP1):</strong>
+            </p>
+            <p className="text-xs text-blue-700 mb-3">
+              Paste the complete exam paper text below. All questions will be imported and set as FREE.
+              <br />You can edit questions and add images after import through the admin panel.
+            </p>
+            <textarea
+              id="cpctPaperText"
+              placeholder="Paste the complete CPCT exam paper text here..."
+              className="w-full h-40 border border-gray-300 rounded p-2 text-sm mb-3 font-mono text-xs"
+            />
+            <button
+              onClick={async () => {
+                const textarea = document.getElementById('cpctPaperText');
+                const examData = textarea?.value?.trim();
+                
+                if (!examData) {
+                  alert('Please paste the exam paper text first!');
+                  return;
+                }
+                
+                if (!confirm('This will import the complete CPCT exam paper with all questions.\n\nAll questions will be set as FREE.\n\nContinue?')) return;
+                
+                try {
+                  const res = await fetch('/api/admin/import-cpct-real-paper', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ examData })
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(`✅ ${data.message}\n\nImported: ${data.imported} questions\nErrors: ${data.errors}\n\n${data.note}`);
+                    if (textarea) textarea.value = '';
+                    await fetchExams();
+                    // Select the CPCT exam if it exists
+                    const cpctExam = exams.find(e => e.key === 'CPCT');
+                    if (cpctExam) {
+                      setSelectedExam(cpctExam._id);
+                      fetchSections(cpctExam._id);
+                    }
+                  } else {
+                    alert('Failed: ' + (data.error || 'Unknown error'));
+                  }
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                }
+              }}
+              className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 text-sm font-bold"
+            >
+              📥 Import Real CPCT Paper
+            </button>
+          </div>
+
           {/* Four Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Exams Column */}

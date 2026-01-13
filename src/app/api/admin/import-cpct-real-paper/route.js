@@ -29,6 +29,9 @@ function parseExamData(text) {
   let currentOptions = [];
   let isEnglish = true;
   let questionNumber = 0;
+  let inComprehensionPassage = false;
+  let comprehensionPassage_en = '';
+  let comprehensionPassage_hi = '';
 
   const lines = text.split('\n').map(l => l.trim()).filter(l => l);
 
@@ -116,12 +119,32 @@ function parseExamData(text) {
       continue;
     }
 
+    // Detect comprehension passage start
+    if (line.includes('Read the given passage') || line.includes('Read the given') || 
+        (line.includes('Question Type : COMPREHENSION') && currentQuestion)) {
+      if (currentQuestion && currentQuestion.questionType === 'COMPREHENSION') {
+        inComprehensionPassage = true;
+        comprehensionPassage_en = '';
+        comprehensionPassage_hi = '';
+        isEnglish = true;
+      }
+    }
+
     // Detect sub-question for comprehension
     if (line.includes('Sub questions') || (line.includes('Question Number :') && currentQuestion?.questionType === 'COMPREHENSION')) {
+      if (line.includes('Sub questions')) {
+        inComprehensionPassage = false;
+        // Save passage to main question
+        if (currentQuestion && currentQuestion.questionType === 'COMPREHENSION') {
+          currentQuestion.passage_en = comprehensionPassage_en.trim();
+          currentQuestion.passage_hi = comprehensionPassage_hi.trim();
+        }
+      }
       if (line.includes('Question Number :')) {
         const subQNumMatch = line.match(/Question Number : (\d+)/);
         const subQIdMatch = line.match(/Question Id : (\d+)/);
         if (subQNumMatch && subQIdMatch) {
+          inComprehensionPassage = false;
           const subQuestion = {
             questionNumber: parseInt(subQNumMatch[1]),
             questionId: subQIdMatch[1],
@@ -141,10 +164,21 @@ function parseExamData(text) {
       }
     }
 
-    // Detect language switch (Hindi)
+    // Detect language switch (Hindi) - improved detection
     if (line.includes('OS म') || line.includes('िनम्न म') || line.includes('िदए गए') || 
-        line.includes('टनर') || line.includes('कौन-सा') || line.includes('का पूण')) {
+        line.includes('टनर') || line.includes('कौन-सा') || line.includes('का पूण') ||
+        line.includes('म ') || line.includes('है') || line.includes('होती') ||
+        /[\u0900-\u097F]/.test(line)) { // Check for Devanagari script
       isEnglish = false;
+    }
+    
+    // Detect English (reset)
+    if (line.match(/^[A-Za-z]/) && !/[\u0900-\u097F]/.test(line) && 
+        !line.includes('OS म') && !line.includes('िनम्न म')) {
+      // Only switch to English if it's clearly English text
+      if (line.length > 5 && line.match(/^[A-Za-z\s.,!?;:'"-]+$/)) {
+        isEnglish = true;
+      }
     }
 
     // Detect options
@@ -186,10 +220,20 @@ function parseExamData(text) {
         !line.includes('Allow Back Space') &&
         !line.includes('Display Question Number') &&
         !line.includes('Sub-Section') &&
-        !line.includes('Question Shuffling')) {
+        !line.includes('Question Shuffling') &&
+        !line.includes('Read the given passage') &&
+        !line.includes('Sub questions')) {
       
+      // Handle comprehension passage
+      if (inComprehensionPassage && currentQuestion.questionType === 'COMPREHENSION') {
+        if (isEnglish) {
+          comprehensionPassage_en += (comprehensionPassage_en ? ' ' : '') + line;
+        } else {
+          comprehensionPassage_hi += (comprehensionPassage_hi ? ' ' : '') + line;
+        }
+      }
       // For typing questions, collect content
-      if (currentQuestion.questionType === 'TYPING') {
+      else if (currentQuestion.questionType === 'TYPING') {
         if (isEnglish) {
           currentQuestion.typingContent_english += (currentQuestion.typingContent_english ? ' ' : '') + line;
         } else {
@@ -202,17 +246,17 @@ function parseExamData(text) {
           }
         }
       } else {
-        // For MCQ/Comprehension questions
+        // For MCQ/Comprehension sub-questions
         if (isEnglish) {
           if (!currentQuestion.question_en) {
             currentQuestion.question_en = line;
-          } else if (line.length > 10) { // Only append substantial lines
+          } else if (line.length > 5) { // Append substantial lines
             currentQuestion.question_en += ' ' + line;
           }
         } else {
           if (!currentQuestion.question_hi) {
             currentQuestion.question_hi = line;
-          } else if (line.length > 10) {
+          } else if (line.length > 5) {
             currentQuestion.question_hi += ' ' + line;
           }
         }
@@ -297,7 +341,7 @@ export async function POST(req) {
 
     await dbConnect();
 
-    // Create or update CPCT exam
+    // Create or update CPCT exam - mark as free by ensuring all questions are free
     let exam = await Exam.findOne({ key: "CPCT" });
     if (!exam) {
       exam = await Exam.create({
@@ -312,6 +356,12 @@ export async function POST(req) {
       exam.totalQuestions = 75;
       await exam.save();
     }
+    
+    // Mark all existing questions for this exam as free
+    await Question.updateMany(
+      { examId: String(exam._id) },
+      { isFree: true }
+    );
 
     // Parse exam data
     const sections = parseExamData(examData);
@@ -371,17 +421,52 @@ export async function POST(req) {
               questionDoc.typingBackspaceEnabled = qData.typingBackspaceEnabled !== false;
             } else if (qData.questionType === 'COMPREHENSION') {
               // Handle comprehension questions
+              questionDoc.passage_en = qData.passage_en || qData.question_en || '';
+              questionDoc.passage_hi = qData.passage_hi || qData.question_hi || '';
               questionDoc.question_en = qData.question_en || '';
               questionDoc.question_hi = qData.question_hi || '';
               questionDoc.options_en = qData.options_en || [];
               questionDoc.options_hi = qData.options_hi || [];
               questionDoc.correctAnswer = qData.correctAnswer || 0;
-              // Store sub-questions as a passage or in explanation
+              
+              // Create separate questions for each sub-question
               if (qData.subQuestions && qData.subQuestions.length > 0) {
-                questionDoc.passage_en = qData.question_en || '';
-                questionDoc.passage_hi = qData.question_hi || '';
-                // For now, we'll create separate questions for sub-questions
-                // Or store them in a way that can be retrieved
+                for (const subQ of qData.subQuestions) {
+                  try {
+                    const subQuestionId = `cpct-q-${subQ.questionId}`;
+                    let subQuestion = await Question.findOne({ id: subQuestionId });
+                    
+                    const subQuestionDoc = {
+                      examId: String(exam._id),
+                      sectionId: String(section._id),
+                      id: subQuestionId,
+                      questionType: 'MCQ',
+                      marks: qData.correctMarks || 1,
+                      negativeMarks: qData.wrongMarks || 0,
+                      isFree: true,
+                      question_en: subQ.question_en || '',
+                      question_hi: subQ.question_hi || '',
+                      options_en: subQ.options_en || [],
+                      options_hi: subQ.options_hi || [],
+                      correctAnswer: subQ.correctAnswer || 0,
+                      passage_en: questionDoc.passage_en, // Link to main passage
+                      passage_hi: questionDoc.passage_hi
+                    };
+                    
+                    if (subQuestion) {
+                      Object.assign(subQuestion, subQuestionDoc);
+                      await subQuestion.save();
+                    } else {
+                      await Question.create(subQuestionDoc);
+                    }
+                    totalImported++;
+                  } catch (error) {
+                    totalErrors++;
+                    errors.push({ questionId: subQ.questionId, error: error.message });
+                  }
+                }
+                // Skip creating the main comprehension question as a separate question
+                continue;
               }
             } else {
               // MCQ questions
