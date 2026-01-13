@@ -505,7 +505,7 @@ const App = () => {
                   Welcome Back
                 </span>
 
-                <div className="w-full lg:w-48 border-2 border-[#290c52] bg-gray-50 shadow-lg p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-16px] lg:top-0 h-auto md:h-[620px] rounded-lg animate-fadeInUp lg:mt-[-147px] home-login-box">
+                <div className="w-full lg:w-48 border-2 border-[#290c52] bg-gray-50 shadow-lg p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:h-[620px] rounded-lg animate-fadeInUp lg:mt-[-147px] home-login-box">
                   <div className="font-semibold text-pink-300 text-xl text-center mt-0 md:mt-16">
                     <span className="font-normal text-black text-sm md:text-[14px] block md:inline md:ml-2 ">
                       Login to your MPCPCT Account

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Subscription from "@/lib/models/Subscription";
 import User from "@/lib/models/User";
+import Exam from "@/lib/models/Exam";
 import { jwtVerify } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret123";
@@ -21,7 +22,7 @@ export async function POST(request) {
       return NextResponse.json({ hasAccess: false, reason: "invalid_token", redirectTo: "/signup" }, { status: 401 });
     }
 
-    const { type, examType, isFree, itemId } = await request.json();
+    const { type, examType, isFree, itemId, examId } = await request.json();
 
     await dbConnect();
     
@@ -31,8 +32,21 @@ export async function POST(request) {
       return NextResponse.json({ hasAccess: true, reason: "admin" });
     }
 
-    // Check if content is marked as free
-    if (isFree === true) {
+    // If examId is provided, check exam's isFree status
+    if (examId) {
+      const exam = await Exam.findById(examId);
+      if (!exam) {
+        return NextResponse.json({ hasAccess: false, reason: "exam_not_found" }, { status: 404 });
+      }
+      
+      // If exam is free, allow access
+      if (exam.isFree === true) {
+        return NextResponse.json({ hasAccess: true, reason: "free" });
+      }
+      
+      // Exam is paid, check for subscription below
+    } else if (isFree === true) {
+      // Legacy support: Check if content is marked as free (for non-exam content)
       return NextResponse.json({ hasAccess: true, reason: "free" });
     }
 
@@ -71,7 +85,7 @@ export async function POST(request) {
     return NextResponse.json({ 
       hasAccess: false, 
       reason: "no_subscription",
-      redirectTo: `/payment-app?type=${type}&itemId=${itemId || ''}`
+      redirectTo: `/payment-app?type=${type || 'exam'}&itemId=${itemId || examId || ''}`
     });
   } catch (error) {
     console.error("Access check error:", error);

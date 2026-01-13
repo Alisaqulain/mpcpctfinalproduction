@@ -13,7 +13,8 @@ export async function GET() {
     await dbConnect();
     
     // Fetch sections and lessons from database
-    const sections = await Section.find({}).sort({ lessonNumber: 1 }).lean();
+    // Only get learning sections (sections without examId - exam sections should not appear in learning)
+    const sections = await Section.find({ examId: { $exists: false } }).sort({ lessonNumber: 1 }).lean();
     const lessons = await Lesson.find({}).lean();
     
     console.log(`[Learning API] Fetched ${sections.length} sections and ${lessons.length} lessons from database`);

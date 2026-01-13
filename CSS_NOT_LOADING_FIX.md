@@ -160,3 +160,4 @@ sudo tail -f /var/log/nginx/mpcpct-error.log
 **After applying the fix, CSS should load correctly!**
 
 
+

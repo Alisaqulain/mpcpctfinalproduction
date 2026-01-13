@@ -225,3 +225,4 @@ location /uploads/ {
 **After applying the fix, images should load correctly!**
 
 
+

@@ -223,8 +223,20 @@ export default function ExamSection() {
                         <img src="/newr.png" alt="" className="w-18 h-14" />
                       </div>
 
-                      {/* Title */}
-                      <div className="text-md font-medium pl-4">{exam.title}</div>
+                      {/* Title with Free/Premium badge */}
+                      <div className="flex items-center gap-2 pl-4">
+                        <div className="text-md font-medium">{exam.title}</div>
+                        {exam.isFree === false && (
+                          <span className="bg-yellow-500 text-black text-xs font-semibold px-2 py-1 rounded">
+                            Premium
+                          </span>
+                        )}
+                        {exam.isFree === true && (
+                          <span className="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded">
+                            Free
+                          </span>
+                        )}
+                      </div>
 
                       {/* Start Exam Button */}
                       <button className="relative bg-pink-300 hover:bg-yellow-500 text-black px-4 md:px-6 py-3 text-sm font-semibold rounded-md shadow-md">

@@ -11,6 +11,9 @@ function StartTestPageContent() {
   const [errors, setErrors] = useState({});
   const [examId, setExamId] = useState(null);
   const [examType, setExamType] = useState(null);
+  const [accessChecked, setAccessChecked] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
+  const [accessError, setAccessError] = useState(null);
 
   useEffect(() => {
     // Get exam ID and type from URL parameters
@@ -20,7 +23,62 @@ function StartTestPageContent() {
     if (typeParam) setExamType(typeParam);
   }, [searchParams]);
 
+  // Check exam access when examId is available
+  useEffect(() => {
+    const checkExamAccess = async () => {
+      if (!examId) {
+        setAccessChecked(true);
+        setHasAccess(true); // Allow if no examId (backward compatibility)
+        return;
+      }
+
+      try {
+        setAccessChecked(false);
+        const res = await fetch('/api/check-access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            type: 'exam', 
+            examId: examId,
+            examType: examType 
+          }),
+          credentials: 'include'
+        });
+
+        const data = await res.json();
+        
+        if (data.hasAccess === true) {
+          setHasAccess(true);
+          setAccessError(null);
+        } else {
+          setHasAccess(false);
+          if (data.reason === 'no_token' || data.reason === 'invalid_token') {
+            setAccessError('Please login to access this exam');
+          } else if (data.reason === 'no_subscription') {
+            setAccessError('This exam requires a membership. Please subscribe to access.');
+          } else {
+            setAccessError('You do not have access to this exam');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking exam access:', error);
+        setHasAccess(false);
+        setAccessError('Error checking access. Please try again.');
+      } finally {
+        setAccessChecked(true);
+      }
+    };
+
+    checkExamAccess();
+  }, [examId, examType]);
+
   const handleStart = () => {
+    // Check access first
+    if (!hasAccess) {
+      setErrors({ access: accessError || 'You do not have access to this exam' });
+      return;
+    }
+
     const newErrors = {};
 
     if (!name.trim()) newErrors.name = "Name is required";
@@ -76,6 +134,43 @@ function StartTestPageContent() {
       <div className="flex justify-center mt-20 px-4">
         <div className="bg-[#290c52] border rounded-md p-6 w-full max-w-md shadow">
           <h2 className="text-center text-xl text-white font-semibold mb-6">Start Test</h2>
+
+          {/* Access Check Message */}
+          {accessChecked && !hasAccess && (
+            <div className="mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-lg">
+              <p className="text-yellow-800 text-sm mb-3">
+                {accessError || 'You do not have access to this exam'}
+              </p>
+              {accessError && accessError.includes('membership') && (
+                <div className="flex gap-2">
+                  <a
+                    href="/payment-app?type=exam"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-semibold"
+                  >
+                    Subscribe Now
+                  </a>
+                  <a
+                    href="/exam"
+                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-semibold"
+                  >
+                    Back to Exams
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!accessChecked && (
+            <div className="mb-4 text-center">
+              <p className="text-white text-sm">Checking access...</p>
+            </div>
+          )}
+
+          {errors.access && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-300 rounded">
+              <p className="text-red-600 text-sm">{errors.access}</p>
+            </div>
+          )}
 
           {/* Name Input */}
           <div className="flex flex-col mb-4">
@@ -141,9 +236,14 @@ function StartTestPageContent() {
           <div className="text-center">
             <button
               onClick={handleStart}
-              className="bg-pink-300 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded shadow"
+              disabled={!accessChecked || !hasAccess}
+              className={`font-semibold px-6 py-2 rounded shadow ${
+                !accessChecked || !hasAccess
+                  ? 'bg-gray-400 cursor-not-allowed text-gray-200'
+                  : 'bg-pink-300 hover:bg-blue-700 text-white'
+              }`}
             >
-              Start
+              {!accessChecked ? 'Checking...' : !hasAccess ? 'Access Denied' : 'Start'}
             </button>
           </div>
         </div>

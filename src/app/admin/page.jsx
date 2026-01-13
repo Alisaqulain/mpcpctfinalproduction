@@ -125,7 +125,8 @@ export default function AdminPanel() {
         title: formData.title, 
         key: formData.key, 
         totalTime: parseInt(formData.totalTime) || 75, 
-        totalQuestions: parseInt(formData.totalQuestions) || 75 
+        totalQuestions: parseInt(formData.totalQuestions) || 75,
+        isFree: formData.isFree === true || formData.isFree === 'true'
       };
       if (editingExam) {
         body._id = editingExam._id;
@@ -2023,7 +2024,8 @@ function ExamFormModal({ exam, onSave, onClose, saving }) {
     title: exam?.title || '',
     key: exam?.key || 'CPCT',
     totalTime: exam?.totalTime || 75,
-    totalQuestions: exam?.totalQuestions || 75
+    totalQuestions: exam?.totalQuestions || 75,
+    isFree: exam?.isFree !== undefined ? exam.isFree : false
   });
 
   useEffect(() => {
@@ -2032,14 +2034,16 @@ function ExamFormModal({ exam, onSave, onClose, saving }) {
         title: exam.title || '',
         key: exam.key || 'CPCT',
         totalTime: exam.totalTime || 75,
-        totalQuestions: exam.totalQuestions || 75
+        totalQuestions: exam.totalQuestions || 75,
+        isFree: exam.isFree !== undefined ? exam.isFree : false
       });
     } else {
       setFormData({
         title: '',
         key: 'CPCT',
         totalTime: 75,
-        totalQuestions: 75
+        totalQuestions: 75,
+        isFree: false
       });
     }
   }, [exam]);
@@ -2107,6 +2111,22 @@ function ExamFormModal({ exam, onSave, onClose, saving }) {
                 required
               />
             </div>
+          </div>
+          <div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.isFree}
+                onChange={(e) => setFormData({...formData, isFree: e.target.checked})}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium">Free Exam (Users can take without membership)</span>
+            </label>
+            <p className="text-xs text-gray-500 mt-1 ml-6">
+              {formData.isFree 
+                ? '✓ This exam is free - all users can access it' 
+                : 'This exam requires a membership/subscription to access'}
+            </p>
           </div>
           <div className="flex gap-3 pt-4">
             <button
