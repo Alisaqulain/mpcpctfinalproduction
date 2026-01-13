@@ -36,8 +36,8 @@ export async function POST(req) {
     const createdExams = [];
     const errors = [];
 
-    // Create 15 exams
-    for (let examNum = 1; examNum <= 15; examNum++) {
+    // Create 20 exams
+    for (let examNum = 1; examNum <= 20; examNum++) {
       try {
         const examTitle = `RSCIT Exam ${examNum}`;
         const examId = `rscit-exam-${examNum}`;
@@ -54,13 +54,13 @@ export async function POST(req) {
             key: "RSCIT",
             title: examTitle,
             totalTime: 90, // 90 minutes
-            totalQuestions: 100, // 100 questions (35 + 65)
+            totalQuestions: 50, // 50 questions (35 + 15)
             isFree: examNum === 1 // First exam is free, others are paid
           });
         } else {
           // Update existing exam
           exam.totalTime = 90;
-          exam.totalQuestions = 100;
+          exam.totalQuestions = 50;
           exam.isFree = examNum === 1;
           await exam.save();
         }
@@ -73,7 +73,7 @@ export async function POST(req) {
           ]
         });
 
-        // Section A: 35 questions, 1 mark each
+        // Section A: 35 questions, 2 marks each
         const sectionAId = `${examId}-section-a`;
         let sectionA = await Section.findOne({
           examId: exam._id,
@@ -144,12 +144,12 @@ export async function POST(req) {
               "विकल्प D"
             ],
             correctAnswer: 0, // Default to option A (0-indexed)
-            marks: 1,
+            marks: 2,
             negativeMarks: 0
           });
         }
 
-        // Section B: 65 questions, 1 mark each
+        // Section B: 15 questions, 2 marks each
         const sectionBId = `${examId}-section-b`;
         let sectionB = await Section.findOne({
           examId: exam._id,
@@ -192,8 +192,8 @@ export async function POST(req) {
           await partB.save();
         }
 
-        // Create 65 questions for Section B (2 marks each)
-        for (let qIndex = 0; qIndex < 65; qIndex++) {
+        // Create 15 questions for Section B (2 marks each)
+        for (let qIndex = 0; qIndex < 15; qIndex++) {
           totalQuestionsCreated++;
           const questionId = `${examId}-section-b-q-${qIndex + 1}`;
           
@@ -219,7 +219,7 @@ export async function POST(req) {
               "विकल्प D"
             ],
             correctAnswer: 0, // Default to option A (0-indexed)
-            marks: 1,
+            marks: 2,
             negativeMarks: 0
           });
         }
@@ -235,7 +235,7 @@ export async function POST(req) {
           totalQuestions: exam.totalQuestions
         });
 
-        console.log(`✅ Created exam ${examNum}/15: ${examTitle} (${exam.isFree ? 'FREE' : 'PAID'}) with ${totalQuestionsCreated} questions (35 in Section A, 65 in Section B)`);
+        console.log(`✅ Created exam ${examNum}/20: ${examTitle} (${exam.isFree ? 'FREE' : 'PAID'}) with ${totalQuestionsCreated} questions (35 in Section A, 15 in Section B)`);
 
       } catch (error) {
         console.error(`❌ Error creating exam ${examNum}:`, error);
@@ -248,7 +248,7 @@ export async function POST(req) {
 
     return NextResponse.json({
       success: true,
-      message: `Successfully created ${createdExams.length} RSCIT exams`,
+      message: `Successfully created ${createdExams.length} RSCIT exams (20 total)`,
       exams: createdExams,
       summary: {
         total: createdExams.length,
@@ -256,7 +256,7 @@ export async function POST(req) {
         paid: createdExams.filter(e => !e.isFree).length
       },
       errors: errors.length > 0 ? errors : undefined,
-      note: "Each exam has 2 sections (Section A: 35 questions @ 1 mark each, Section B: 65 questions @ 1 mark each) with 1 part (RSCIT) in each section, no negative marks, 90 minutes duration."
+      note: "Each exam has 2 sections (Section A: 35 questions @ 2 marks each, Section B: 15 questions @ 2 marks each) with 1 part (RSCIT) in each section, no negative marks, 90 minutes duration."
     });
 
   } catch (error) {

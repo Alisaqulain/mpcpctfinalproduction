@@ -31,7 +31,7 @@ export async function GET(req) {
 
     if (user?.role === "admin") {
       // Admin can see all topics from Topic collection
-      const topics = await Topic.find({}).lean().sort({ createdAt: -1 });
+      const topics = await Topic.find({}).lean().sort({ createdAt: 1 });
       console.log('Admin user - Found topics:', topics.length);
       const formattedTopics = topics.map(t => ({
         _id: t._id.toString(),

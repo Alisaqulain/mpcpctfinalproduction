@@ -25,7 +25,7 @@ export async function GET(req) {
     await dbConnect();
     
     // Get topics from Topic collection
-    const topics = await Topic.find({}).lean().sort({ createdAt: -1 });
+    const topics = await Topic.find({}).lean().sort({ createdAt: 1 });
     
     // Convert to the expected format
     const formattedTopics = topics.map(t => ({
@@ -87,6 +87,40 @@ export async function POST(req) {
       return NextResponse.json({ error: "Topic with this ID already exists" }, { status: 400 });
     }
     return NextResponse.json({ error: error.message || 'Failed to create topic' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req) {
+  try {
+    const auth = await requireAdmin(req);
+    if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.error === "Forbidden" ? 403 : 401 });
+    await dbConnect();
+    
+    const { searchParams } = new URL(req.url);
+    const topicId = searchParams.get('topicId');
+    
+    if (!topicId) {
+      return NextResponse.json({ error: "Missing topicId parameter" }, { status: 400 });
+    }
+    
+    // Delete all questions for this topic first
+    const deletedQuestions = await TopicWiseMCQ.deleteMany({ topicId });
+    console.log(`Deleted ${deletedQuestions.deletedCount} questions for topic ${topicId}`);
+    
+    // Delete the topic
+    const deletedTopic = await Topic.findOneAndDelete({ topicId });
+    if (!deletedTopic) {
+      return NextResponse.json({ error: "Topic not found" }, { status: 404 });
+    }
+    
+    return NextResponse.json({ 
+      success: true, 
+      message: "Topic and all its questions deleted successfully",
+      deletedQuestions: deletedQuestions.deletedCount
+    });
+  } catch (error) {
+    console.error('Error deleting topic:', error);
+    return NextResponse.json({ error: error.message || 'Failed to delete topic' }, { status: 500 });
   }
 }
 

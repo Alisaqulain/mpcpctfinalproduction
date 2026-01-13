@@ -35,8 +35,11 @@ export async function POST(req) {
     const createdExams = [];
     const errors = [];
 
-    // Section definitions for CPCT pattern
-    const sections = [
+    // Section definitions for CPCT pattern - NEW STRUCTURE
+    // Section A: Contains all MCQ sections as PARTS
+    // Section B: English Typing (15 min separate timer)
+    // Section C: Hindi Typing (15 min separate timer)
+    const sectionA_Parts = [
       {
         name: "IT SKILLS",
         order: 1,
@@ -66,27 +69,35 @@ export async function POST(req) {
         order: 5,
         questionRange: { start: 70, end: 75 }, // 6 questions
         questionCount: 6
+      }
+    ];
+
+    // Main sections (A, B, C)
+    const sections = [
+      {
+        name: "Section A",
+        order: 1,
+        questionCount: 75, // Total MCQ questions
+        parts: sectionA_Parts
       },
       {
-        name: "English Typing",
-        order: 6,
-        questionRange: null, // Typing section
+        name: "Section B",
+        order: 2,
         questionCount: 0,
         typingTime: 15, // 15 minutes
         questionType: "TYPING"
       },
       {
-        name: "Hindi Typing",
-        order: 7,
-        questionRange: null, // Typing section
+        name: "Section C",
+        order: 3,
         questionCount: 0,
         typingTime: 15, // 15 minutes
         questionType: "TYPING"
       }
     ];
 
-    // Create 15 exams
-    for (let examNum = 1; examNum <= 15; examNum++) {
+    // Create 20 exams
+    for (let examNum = 1; examNum <= 20; examNum++) {
       try {
         const examTitle = `CPCT Exam ${examNum}`;
         const examId = `cpct-exam-${examNum}`;
@@ -102,13 +113,13 @@ export async function POST(req) {
           exam = await Exam.create({
             key: "CPCT",
             title: examTitle,
-            totalTime: 105, // 75 min main + 15 min English + 15 min Hindi
+            totalTime: 75, // Main exam timer for Section A (75 minutes)
             totalQuestions: 75, // Only MCQ questions count
             isFree: examNum === 1 // First exam is free, others are paid
           });
         } else {
           // Update existing exam
-          exam.totalTime = 105;
+          exam.totalTime = 75; // Main exam timer for Section A
           exam.totalQuestions = 75;
           exam.isFree = examNum === 1;
           await exam.save();
@@ -144,28 +155,58 @@ export async function POST(req) {
             await section.save();
           }
 
-          // Create one part for each section
-          const partId = `${sectionId}-part-1`;
-          let part = await Part.findOne({
-            examId: exam._id,
-            sectionId: section._id,
-            id: partId
-          });
+          // For Section A, create multiple parts (one for each MCQ section)
+          // For Section B and C (typing sections), no parts needed
+          if (sectionData.parts && sectionData.parts.length > 0) {
+            // Section A: Create parts for each MCQ section
+            for (const partData of sectionData.parts) {
+              const partId = `${sectionId}-part-${partData.order}`;
+              let part = await Part.findOne({
+                examId: exam._id,
+                sectionId: section._id,
+                id: partId
+              });
 
-          if (!part) {
-            part = await Part.create({
-              id: partId,
-              name: "Part 1",
+              if (!part) {
+                part = await Part.create({
+                  id: partId,
+                  name: partData.name,
+                  examId: exam._id,
+                  sectionId: section._id,
+                  order: partData.order
+                });
+                totalParts++;
+              } else {
+                // Update existing part
+                part.name = partData.name;
+                part.order = partData.order;
+                await part.save();
+              }
+            }
+          } else {
+            // Section B or C (typing sections): Create one part
+            const partId = `${sectionId}-part-1`;
+            let part = await Part.findOne({
               examId: exam._id,
               sectionId: section._id,
-              order: 1
+              id: partId
             });
-            totalParts++;
-          } else {
-            // Update existing part
-            part.name = "Part 1";
-            part.order = 1;
-            await part.save();
+
+            if (!part) {
+              part = await Part.create({
+                id: partId,
+                name: sectionData.name === "Section B" ? "English Typing" : "Hindi Typing",
+                examId: exam._id,
+                sectionId: section._id,
+                order: 1
+              });
+              totalParts++;
+            } else {
+              // Update existing part
+              part.name = sectionData.name === "Section B" ? "English Typing" : "Hindi Typing";
+              part.order = 1;
+              await part.save();
+            }
           }
 
           createdSections.push({
@@ -174,7 +215,7 @@ export async function POST(req) {
             order: section.order,
             questionCount: sectionData.questionCount,
             typingTime: sectionData.typingTime,
-            partId: part._id.toString()
+            partsCount: sectionData.parts ? sectionData.parts.length : 1
           });
         }
 
@@ -188,7 +229,7 @@ export async function POST(req) {
           totalQuestions: exam.totalQuestions
         });
 
-        console.log(`✅ Created exam ${examNum}/15: ${examTitle} (${exam.isFree ? 'FREE' : 'PAID'})`);
+        console.log(`✅ Created exam ${examNum}/20: ${examTitle} (${exam.isFree ? 'FREE' : 'PAID'})`);
 
       } catch (error) {
         console.error(`❌ Error creating exam ${examNum}:`, error);
@@ -201,7 +242,7 @@ export async function POST(req) {
 
     return NextResponse.json({
       success: true,
-      message: `Successfully created ${createdExams.length} CPCT exams`,
+      message: `Successfully created ${createdExams.length} CPCT exams (20 total)`,
       exams: createdExams,
       summary: {
         total: createdExams.length,
@@ -209,7 +250,7 @@ export async function POST(req) {
         paid: createdExams.filter(e => !e.isFree).length
       },
       errors: errors.length > 0 ? errors : undefined,
-      note: "Exams are created with sections and parts (one part per section). You can now add questions to each part through the admin panel."
+      note: "Exams are created with 3 sections: Section A (with 5 parts for MCQ sections), Section B (English Typing - 15 min), Section C (Hindi Typing - 15 min). Main exam timer is 75 minutes for Section A. Typing sections have separate 15-minute timers."
     });
 
   } catch (error) {

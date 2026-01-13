@@ -1,0 +1,425 @@
+{
+  "questions": [
+    {
+      "category": "Introduction to Computer",
+      "subcategory": "Basics of Computer",
+      "question_en": "What is the full form of RAM?",
+      "question_hi": "RAM का पूरा नाम क्या है?",
+      "options_en": [
+        "Random Access Memory",
+        "Read Access Memory",
+        "Run Access Memory",
+        "Rapid Access Memory"
+      ],
+      "options_hi": [
+        "रैंडम एक्सेस मेमोरी",
+        "रीड एक्सेस मेमोरी",
+        "रन एक्सेस मेमोरी",
+        "रैपिड एक्सेस मेमोरी"
+      ],
+      "correctAnswer": 0,
+      "explanation_en": "RAM stands for Random Access Memory, which is volatile memory used for temporary storage.",
+      "explanation_hi": "RAM का मतलब रैंडम एक्सेस मेमोरी है, जो अस्थायी भंडारण के लिए उपयोग की जाने वाली अस्थिर मेमोरी है।"
+    },
+    {
+      "category": "Introduction to Computer",
+      "subcategory": "Basics of Computer",
+      "question_en": "Which of the following is NOT a characteristic of a computer?",
+      "question_hi": "निम्नलिखित में से कौन सा कंप्यूटर की विशेषता नहीं है?",
+      "options_en": [
+        "Speed",
+        "Accuracy",
+        "Intelligence",
+        "Storage"
+      ],
+      "options_hi": [
+        "गति",
+        "सटीकता",
+        "बुद्धिमत्ता",
+        "भंडारण"
+      ],
+      "correctAnswer": 2,
+      "explanation_en": "Computers do not have intelligence; they follow instructions given by humans.",
+      "explanation_hi": "कंप्यूटर में बुद्धिमत्ता नहीं होती; वे मनुष्यों द्वारा दिए गए निर्देशों का पालन करते हैं।"
+    },
+    {
+      "category": "Introduction to Computer",
+      "subcategory": "Components",
+      "question_en": "Which component is known as the brain of the computer?",
+      "question_hi": "किस घटक को कंप्यूटर का दिमाग कहा जाता है?",
+      "options_en": [
+        "RAM",
+        "CPU",
+        "Hard Disk",
+        "Monitor"
+      ],
+      "options_hi": [
+        "RAM",
+        "CPU",
+        "हार्ड डिस्क",
+        "मॉनिटर"
+      ],
+      "correctAnswer": 1,
+      "explanation_en": "CPU (Central Processing Unit) is known as the brain of the computer as it processes all instructions.",
+      "explanation_hi": "CPU (सेंट्रल प्रोसेसिंग यूनिट) को कंप्यूटर का दिमाग कहा जाता है क्योंकि यह सभी निर्देशों को संसाधित करता है।"
+    },
+    {
+      "category": "Introduction to Computer",
+      "subcategory": "Input Devices",
+      "question_en": "Which of the following is an input device?",
+      "question_hi": "निम्नलिखित में से कौन एक इनपुट डिवाइस है?",
+      "options_en": [
+        "Monitor",
+        "Printer",
+        "Keyboard",
+        "Speaker"
+      ],
+      "options_hi": [
+        "मॉनिटर",
+        "प्रिंटर",
+        "कीबोर्ड",
+        "स्पीकर"
+      ],
+      "correctAnswer": 2,
+      "explanation_en": "Keyboard is an input device used to enter data into the computer.",
+      "explanation_hi": "कीबोर्ड एक इनपुट डिवाइस है जिसका उपयोग कंप्यूटर में डेटा दर्ज करने के लिए किया जाता है।"
+    },
+    {
+      "category": "Introduction to Computer",
+      "subcategory": "Output Devices",
+      "question_en": "Which device displays the output on the screen?",
+      "question_hi": "कौन सा डिवाइस स्क्रीन पर आउटपुट प्रदर्शित करता है?",
+      "options_en": [
+        "Keyboard",
+        "Mouse",
+        "Monitor",
+        "Scanner"
+      ],
+      "options_hi": [
+        "कीबोर्ड",
+        "माउस",
+        "मॉनिटर",
+        "स्कैनर"
+      ],
+      "correctAnswer": 2,
+      "explanation_en": "Monitor is an output device that displays visual information on the screen.",
+      "explanation_hi": "मॉनिटर एक आउटपुट डिवाइस है जो स्क्रीन पर दृश्य जानकारी प्रदर्शित करता है।"
+    },
+    {
+      "category": "Introduction to Computer",
+      "subcategory": "Storage Devices",
+      "question_en": "Which is a primary storage device?",
+      "question_hi": "कौन सा प्राथमिक भंडारण डिवाइस है?",
+      "options_en": [
+        "Hard Disk",
+        "USB Drive",
+        "RAM",
+        "CD-ROM"
+      ],
+      "options_hi": [
+        "हार्ड डिस्क",
+        "USB ड्राइव",
+        "RAM",
+        "CD-ROM"
+      ],
+      "correctAnswer": 2,
+      "explanation_en": "RAM (Random Access Memory) is a primary storage device that stores data temporarily.",
+      "explanation_hi": "RAM (रैंडम एक्सेस मेमोरी) एक प्राथमिक भंडारण डिवाइस है जो डेटा को अस्थायी रूप से संग्रहीत करता है।"
+    },
+    {
+      "category": "Introduction to Computer",
+      "subcategory": "Storage Devices",
+      "question_en": "What does ROM stand for?",
+      "question_hi": "ROM का क्या मतलब है?",
+      "options_en": [
+        "Read Only Memory",
+        "Random Only Memory",
+        "Read Output Memory",
+        "Random Output Memory"
+      ],
+      "options_hi": [
+        "रीड ओनली मेमोरी",
+        "रैंडम ओनली मेमोरी",
+        "रीड आउटपुट मेमोरी",
+        "रैंडम आउटपुट मेमोरी"
+      ],
+      "correctAnswer": 0,
+      "explanation_en": "ROM stands for Read Only Memory, which stores permanent instructions that cannot be modified.",
+      "explanation_hi": "ROM का मतलब रीड ओनली मेमोरी है, जो स्थायी निर्देशों को संग्रहीत करता है जिन्हें संशोधित नहीं किया जा सकता।"
+    },
+    {
+      "category": "Windows Operating System",
+      "subcategory": "Desktop Basics",
+      "question_en": "What is the bar at the bottom of Windows desktop called?",
+      "question_hi": "Windows डेस्कटॉप के नीचे की पट्टी को क्या कहा जाता है?",
+      "options_en": [
+        "Menu Bar",
+        "Taskbar",
+        "Toolbar",
+        "Status Bar"
+      ],
+      "options_hi": [
+        "मेनू बार",
+        "टास्कबार",
+        "टूलबार",
+        "स्टेटस बार"
+      ],
+      "correctAnswer": 1,
+      "explanation_en": "The Taskbar is the bar at the bottom of the Windows desktop that shows running applications and the Start button.",
+      "explanation_hi": "टास्कबार Windows डेस्कटॉप के नीचे की पट्टी है जो चल रहे एप्लिकेशन और Start बटन दिखाती है।"
+    },
+    {
+      "category": "Windows Operating System",
+      "subcategory": "File Management",
+      "question_en": "Which shortcut key is used to copy a file or folder?",
+      "question_hi": "फ़ाइल या फ़ोल्डर कॉपी करने के लिए किस शॉर्टकट की का उपयोग किया जाता है?",
+      "options_en": [
+        "Ctrl + X",
+        "Ctrl + C",
+        "Ctrl + V",
+        "Ctrl + Z"
+      ],
+      "options_hi": [
+        "Ctrl + X",
+        "Ctrl + C",
+        "Ctrl + V",
+        "Ctrl + Z"
+      ],
+      "correctAnswer": 1,
+      "explanation_en": "Ctrl + C is used to copy selected files or folders in Windows.",
+      "explanation_hi": "Windows में चयनित फ़ाइलों या फ़ोल्डरों को कॉपी करने के लिए Ctrl + C का उपयोग किया जाता है।"
+    },
+    {
+      "category": "Windows Operating System",
+      "subcategory": "File Management",
+      "question_en": "Which shortcut key is used to paste a file or folder?",
+      "question_hi": "फ़ाइल या फ़ोल्डर पेस्ट करने के लिए किस शॉर्टकट की का उपयोग किया जाता है?",
+      "options_en": [
+        "Ctrl + X",
+        "Ctrl + C",
+        "Ctrl + V",
+        "Ctrl + Z"
+      ],
+      "options_hi": [
+        "Ctrl + X",
+        "Ctrl + C",
+        "Ctrl + V",
+        "Ctrl + Z"
+      ],
+      "correctAnswer": 2,
+      "explanation_en": "Ctrl + V is used to paste copied files or folders in Windows.",
+      "explanation_hi": "Windows में कॉपी की गई फ़ाइलों या फ़ोल्डरों को पेस्ट करने के लिए Ctrl + V का उपयोग किया जाता है।"
+    },
+    {
+      "category": "MS Office",
+      "subcategory": "MS Word",
+      "question_en": "In MS Word, which menu is used to insert a table?",
+      "question_hi": "MS Word में, टेबल सम्मिलित करने के लिए किस मेनू का उपयोग किया जाता है?",
+      "options_en": [
+        "File",
+        "Home",
+        "Insert",
+        "View"
+      ],
+      "options_hi": [
+        "File",
+        "Home",
+        "Insert",
+        "View"
+      ],
+      "correctAnswer": 2,
+      "explanation_en": "The Insert menu in MS Word contains options to insert tables, images, charts, and other objects.",
+      "explanation_hi": "MS Word में Insert मेनू में टेबल, छवियां, चार्ट और अन्य वस्तुएं सम्मिलित करने के विकल्प होते हैं।"
+    },
+    {
+      "category": "MS Office",
+      "subcategory": "MS Word",
+      "question_en": "Which shortcut key is used to save a document in MS Word?",
+      "question_hi": "MS Word में दस्तावेज़ सहेजने के लिए किस शॉर्टकट की का उपयोग किया जाता है?",
+      "options_en": [
+        "Ctrl + S",
+        "Ctrl + O",
+        "Ctrl + N",
+        "Ctrl + P"
+      ],
+      "options_hi": [
+        "Ctrl + S",
+        "Ctrl + O",
+        "Ctrl + N",
+        "Ctrl + P"
+      ],
+      "correctAnswer": 0,
+      "explanation_en": "Ctrl + S is the standard shortcut to save a document in MS Word and most applications.",
+      "explanation_hi": "Ctrl + S MS Word और अधिकांश एप्लिकेशन में दस्तावेज़ सहेजने के लिए मानक शॉर्टकट है।"
+    },
+    {
+      "category": "MS Office",
+      "subcategory": "MS Excel",
+      "question_en": "In MS Excel, what is a collection of worksheets called?",
+      "question_hi": "MS Excel में, वर्कशीट के संग्रह को क्या कहा जाता है?",
+      "options_en": [
+        "Workbook",
+        "Worksheet",
+        "Cell",
+        "Range"
+      ],
+      "options_hi": [
+        "वर्कबुक",
+        "वर्कशीट",
+        "सेल",
+        "रेंज"
+      ],
+      "correctAnswer": 0,
+      "explanation_en": "A workbook is a collection of worksheets in MS Excel. A single Excel file is a workbook.",
+      "explanation_hi": "MS Excel में वर्कबुक वर्कशीट का संग्रह है। एक एकल Excel फ़ाइल एक वर्कबुक है।"
+    },
+    {
+      "category": "MS Office",
+      "subcategory": "MS Excel",
+      "question_en": "Which function in MS Excel is used to add numbers?",
+      "question_hi": "MS Excel में संख्याओं को जोड़ने के लिए किस फ़ंक्शन का उपयोग किया जाता है?",
+      "options_en": [
+        "AVERAGE",
+        "SUM",
+        "COUNT",
+        "MAX"
+      ],
+      "options_hi": [
+        "AVERAGE",
+        "SUM",
+        "COUNT",
+        "MAX"
+      ],
+      "correctAnswer": 1,
+      "explanation_en": "The SUM function in MS Excel is used to add a range of numbers.",
+      "explanation_hi": "MS Excel में SUM फ़ंक्शन का उपयोग संख्याओं की श्रेणी को जोड़ने के लिए किया जाता है।"
+    },
+    {
+      "category": "MS Office",
+      "subcategory": "MS Excel",
+      "question_en": "Which function calculates the average of numbers in MS Excel?",
+      "question_hi": "MS Excel में संख्याओं का औसत किस फ़ंक्शन से गणना करता है?",
+      "options_en": [
+        "AVERAGE",
+        "SUM",
+        "COUNT",
+        "MIN"
+      ],
+      "options_hi": [
+        "AVERAGE",
+        "SUM",
+        "COUNT",
+        "MIN"
+      ],
+      "correctAnswer": 0,
+      "explanation_en": "The AVERAGE function in MS Excel calculates the average (mean) of a range of numbers.",
+      "explanation_hi": "MS Excel में AVERAGE फ़ंक्शन संख्याओं की श्रेणी का औसत (माध्य) गणना करता है।"
+    },
+    {
+      "category": "MS Office",
+      "subcategory": "MS PowerPoint",
+      "question_en": "What is a single page in a PowerPoint presentation called?",
+      "question_hi": "PowerPoint प्रस्तुति में एक पृष्ठ को क्या कहा जाता है?",
+      "options_en": [
+        "Slide",
+        "Page",
+        "Sheet",
+        "Document"
+      ],
+      "options_hi": [
+        "स्लाइड",
+        "पृष्ठ",
+        "शीट",
+        "दस्तावेज़"
+      ],
+      "correctAnswer": 0,
+      "explanation_en": "A single page in PowerPoint is called a slide. A presentation consists of multiple slides.",
+      "explanation_hi": "PowerPoint में एक पृष्ठ को स्लाइड कहा जाता है। एक प्रस्तुति में कई स्लाइड होती हैं।"
+    },
+    {
+      "category": "Internet & Email",
+      "subcategory": "Web Browsing",
+      "question_en": "What does URL stand for?",
+      "question_hi": "URL का क्या मतलब है?",
+      "options_en": [
+        "Uniform Resource Locator",
+        "Universal Resource Locator",
+        "Unique Resource Locator",
+        "United Resource Locator"
+      ],
+      "options_hi": [
+        "यूनिफ़ॉर्म रिसोर्स लोकेटर",
+        "यूनिवर्सल रिसोर्स लोकेटर",
+        "यूनीक रिसोर्स लोकेटर",
+        "यूनाइटेड रिसोर्स लोकेटर"
+      ],
+      "correctAnswer": 0,
+      "explanation_en": "URL stands for Uniform Resource Locator, which is the address of a web page on the internet.",
+      "explanation_hi": "URL का मतलब यूनिफ़ॉर्म रिसोर्स लोकेटर है, जो इंटरनेट पर एक वेब पेज का पता है।"
+    },
+    {
+      "category": "Internet & Email",
+      "subcategory": "Email",
+      "question_en": "What does @ symbol represent in an email address?",
+      "question_hi": "ईमेल पते में @ प्रतीक क्या दर्शाता है?",
+      "options_en": [
+        "At",
+        "And",
+        "About",
+        "Address"
+      ],
+      "options_hi": [
+        "At",
+        "And",
+        "About",
+        "Address"
+      ],
+      "correctAnswer": 0,
+      "explanation_en": "The @ symbol in an email address means 'at' and separates the username from the domain name.",
+      "explanation_hi": "ईमेल पते में @ प्रतीक का मतलब 'at' है और यह उपयोगकर्ता नाम को डोमेन नाम से अलग करता है।"
+    },
+    {
+      "category": "Digital Payments & E-Governance",
+      "subcategory": "Digital Payments",
+      "question_en": "What does UPI stand for?",
+      "question_hi": "UPI का क्या मतलब है?",
+      "options_en": [
+        "Unified Payment Interface",
+        "Universal Payment Interface",
+        "Unique Payment Interface",
+        "United Payment Interface"
+      ],
+      "options_hi": [
+        "यूनिफ़ाइड पेमेंट इंटरफ़ेस",
+        "यूनिवर्सल पेमेंट इंटरफ़ेस",
+        "यूनीक पेमेंट इंटरफ़ेस",
+        "यूनाइटेड पेमेंट इंटरफ़ेस"
+      ],
+      "correctAnswer": 0,
+      "explanation_en": "UPI stands for Unified Payment Interface, a real-time payment system in India.",
+      "explanation_hi": "UPI का मतलब यूनिफ़ाइड पेमेंट इंटरफ़ेस है, भारत में एक वास्तविक समय भुगतान प्रणाली।"
+    },
+    {
+      "category": "Basic Security and Privacy",
+      "subcategory": "Security",
+      "question_en": "What is the purpose of antivirus software?",
+      "question_hi": "एंटीवायरस सॉफ़्टवेयर का उद्देश्य क्या है?",
+      "options_en": [
+        "To speed up the computer",
+        "To protect against viruses and malware",
+        "To connect to the internet",
+        "To create documents"
+      ],
+      "options_hi": [
+        "कंप्यूटर की गति बढ़ाने के लिए",
+        "वायरस और मैलवेयर से सुरक्षा के लिए",
+        "इंटरनेट से कनेक्ट करने के लिए",
+        "दस्तावेज़ बनाने के लिए"
+      ],
+      "correctAnswer": 1,
+      "explanation_en": "Antivirus software is designed to detect, prevent, and remove viruses and malware from computers.",
+      "explanation_hi": "एंटीवायरस सॉफ़्टवेयर कंप्यूटर से वायरस और मैलवेयर का पता लगाने, रोकने और हटाने के लिए डिज़ाइन किया गया है।"
+    }
+  ]
+}
+

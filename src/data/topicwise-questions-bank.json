@@ -1,0 +1,407 @@
+{
+  "topics": {
+    "topic-computers-evolution-types": {
+      "topicName": "Computers and their evolution and types",
+      "topicName_hi": "कंप्यूटर और उनका विकास और प्रकार",
+      "questions": [
+        {
+          "question_en": "What is a computer?",
+          "question_hi": "कंप्यूटर क्या है?",
+          "options_en": [
+            "An electronic device that processes data",
+            "A type of printer",
+            "A storage device",
+            "An input device"
+          ],
+          "options_hi": [
+            "एक इलेक्ट्रॉनिक डिवाइस जो डेटा प्रोसेस करती है",
+            "एक प्रकार का प्रिंटर",
+            "एक भंडारण डिवाइस",
+            "एक इनपुट डिवाइस"
+          ],
+          "correctAnswer": 0,
+          "explanation_en": "A computer is an electronic device that processes data according to instructions.",
+          "explanation_hi": "कंप्यूटर एक इलेक्ट्रॉनिक डिवाइस है जो निर्देशों के अनुसार डेटा प्रोसेस करती है।"
+        },
+        {
+          "question_en": "Which was the first generation of computers?",
+          "question_hi": "कंप्यूटर की पहली पीढ़ी कौन सी थी?",
+          "options_en": [
+            "Vacuum tube based",
+            "Transistor based",
+            "IC based",
+            "Microprocessor based"
+          ],
+          "options_hi": [
+            "वैक्यूम ट्यूब आधारित",
+            "ट्रांजिस्टर आधारित",
+            "IC आधारित",
+            "माइक्रोप्रोसेसर आधारित"
+          ],
+          "correctAnswer": 0,
+          "explanation_en": "First generation computers used vacuum tubes (1940-1956).",
+          "explanation_hi": "पहली पीढ़ी के कंप्यूटर वैक्यूम ट्यूब (1940-1956) का उपयोग करते थे।"
+        },
+        {
+          "question_en": "What are the main types of computers?",
+          "question_hi": "कंप्यूटर के मुख्य प्रकार क्या हैं?",
+          "options_en": [
+            "Supercomputer, Mainframe, Minicomputer, Microcomputer",
+            "Desktop, Laptop, Tablet, Phone",
+            "Windows, Mac, Linux, Android",
+            "RAM, ROM, Hard Disk, SSD"
+          ],
+          "options_hi": [
+            "सुपरकंप्यूटर, मेनफ्रेम, मिनीकंप्यूटर, माइक्रोकंप्यूटर",
+            "डेस्कटॉप, लैपटॉप, टैबलेट, फोन",
+            "Windows, Mac, Linux, Android",
+            "RAM, ROM, हार्ड डिस्क, SSD"
+          ],
+          "correctAnswer": 0,
+          "explanation_en": "Computers are classified as Supercomputer, Mainframe, Minicomputer, and Microcomputer based on size and capability.",
+          "explanation_hi": "कंप्यूटर को आकार और क्षमता के आधार पर सुपरकंप्यूटर, मेनफ्रेम, मिनीकंप्यूटर और माइक्रोकंप्यूटर में वर्गीकृत किया जाता है।"
+        }
+      ]
+    },
+    "topic-generations-printers": {
+      "topicName": "Computer generations & Printers",
+      "topicName_hi": "कंप्यूटर पीढ़ियां और प्रिंटर",
+      "questions": [
+        {
+          "question_en": "Which generation of computers used transistors?",
+          "question_hi": "कंप्यूटर की किस पीढ़ी में ट्रांजिस्टर का उपयोग किया गया?",
+          "options_en": [
+            "First Generation",
+            "Second Generation",
+            "Third Generation",
+            "Fourth Generation"
+          ],
+          "options_hi": [
+            "प्रथम पीढ़ी",
+            "द्वितीय पीढ़ी",
+            "तृतीय पीढ़ी",
+            "चतुर्थ पीढ़ी"
+          ],
+          "correctAnswer": 1,
+          "explanation_en": "Second generation computers (1956-1963) used transistors instead of vacuum tubes.",
+          "explanation_hi": "दूसरी पीढ़ी के कंप्यूटर (1956-1963) वैक्यूम ट्यूब के बजाय ट्रांजिस्टर का उपयोग करते थे।"
+        },
+        {
+          "question_en": "What type of printer uses ink cartridges?",
+          "question_hi": "किस प्रकार के प्रिंटर में इंक कार्ट्रिज का उपयोग होता है?",
+          "options_en": [
+            "Dot Matrix Printer",
+            "Inkjet Printer",
+            "Laser Printer",
+            "Thermal Printer"
+          ],
+          "options_hi": [
+            "डॉट मैट्रिक्स प्रिंटर",
+            "इंकजेट प्रिंटर",
+            "लेजर प्रिंटर",
+            "थर्मल प्रिंटर"
+          ],
+          "correctAnswer": 1,
+          "explanation_en": "Inkjet printers use ink cartridges to print documents.",
+          "explanation_hi": "इंकजेट प्रिंटर दस्तावेज़ प्रिंट करने के लिए इंक कार्ट्रिज का उपयोग करते हैं।"
+        }
+      ]
+    },
+    "topic-memory-types": {
+      "topicName": "All types of memory",
+      "topicName_hi": "सभी प्रकार की मेमोरी",
+      "questions": [
+        {
+          "question_en": "What does RAM stand for?",
+          "question_hi": "RAM का क्या मतलब है?",
+          "options_en": [
+            "Random Access Memory",
+            "Read Access Memory",
+            "Run Access Memory",
+            "Rapid Access Memory"
+          ],
+          "options_hi": [
+            "रैंडम एक्सेस मेमोरी",
+            "रीड एक्सेस मेमोरी",
+            "रन एक्सेस मेमोरी",
+            "रैपिड एक्सेस मेमोरी"
+          ],
+          "correctAnswer": 0,
+          "explanation_en": "RAM stands for Random Access Memory, which is volatile memory.",
+          "explanation_hi": "RAM का मतलब रैंडम एक्सेस मेमोरी है, जो अस्थिर मेमोरी है।"
+        },
+        {
+          "question_en": "Which memory is non-volatile?",
+          "question_hi": "कौन सी मेमोरी गैर-अस्थिर है?",
+          "options_en": [
+            "RAM",
+            "ROM",
+            "Cache",
+            "Register"
+          ],
+          "options_hi": [
+            "RAM",
+            "ROM",
+            "कैश",
+            "रजिस्टर"
+          ],
+          "correctAnswer": 1,
+          "explanation_en": "ROM (Read Only Memory) is non-volatile memory that retains data even when power is off.",
+          "explanation_hi": "ROM (रीड ओनली मेमोरी) गैर-अस्थिर मेमोरी है जो बिजली बंद होने पर भी डेटा बनाए रखती है।"
+        }
+      ]
+    },
+    "topic-software-hardware-io": {
+      "topicName": "Software and its types and hardware, input and output devices",
+      "topicName_hi": "सॉफ़्टवेयर और उसके प्रकार और हार्डवेयर, इनपुट और आउटपुट डिवाइस",
+      "questions": [
+        {
+          "question_en": "What is system software?",
+          "question_hi": "सिस्टम सॉफ़्टवेयर क्या है?",
+          "options_en": [
+            "Software that manages computer hardware",
+            "Application software",
+            "Utility software",
+            "Programming software"
+          ],
+          "options_hi": [
+            "सॉफ़्टवेयर जो कंप्यूटर हार्डवेयर को प्रबंधित करता है",
+            "एप्लिकेशन सॉफ़्टवेयर",
+            "यूटिलिटी सॉफ़्टवेयर",
+            "प्रोग्रामिंग सॉफ़्टवेयर"
+          ],
+          "correctAnswer": 0,
+          "explanation_en": "System software manages computer hardware and provides a platform for application software.",
+          "explanation_hi": "सिस्टम सॉफ़्टवेयर कंप्यूटर हार्डवेयर को प्रबंधित करता है और एप्लिकेशन सॉफ़्टवेयर के लिए एक प्लेटफ़ॉर्म प्रदान करता है।"
+        },
+        {
+          "question_en": "Which is an input device?",
+          "question_hi": "कौन सा एक इनपुट डिवाइस है?",
+          "options_en": [
+            "Monitor",
+            "Printer",
+            "Mouse",
+            "Speaker"
+          ],
+          "options_hi": [
+            "मॉनिटर",
+            "प्रिंटर",
+            "माउस",
+            "स्पीकर"
+          ],
+          "correctAnswer": 2,
+          "explanation_en": "Mouse is an input device used to provide input to the computer.",
+          "explanation_hi": "माउस एक इनपुट डिवाइस है जिसका उपयोग कंप्यूटर को इनपुट प्रदान करने के लिए किया जाता है।"
+        }
+      ]
+    },
+    "topic-programming-languages": {
+      "topicName": "All programming languages",
+      "topicName_hi": "सभी प्रोग्रामिंग भाषाएं",
+      "questions": [
+        {
+          "question_en": "Which is a high-level programming language?",
+          "question_hi": "कौन सी एक उच्च-स्तरीय प्रोग्रामिंग भाषा है?",
+          "options_en": [
+            "Machine Language",
+            "Assembly Language",
+            "C++",
+            "Binary Code"
+          ],
+          "options_hi": [
+            "मशीन भाषा",
+            "असेम्बली भाषा",
+            "C++",
+            "बाइनरी कोड"
+          ],
+          "correctAnswer": 2,
+          "explanation_en": "C++ is a high-level programming language that is easier to read and write than low-level languages.",
+          "explanation_hi": "C++ एक उच्च-स्तरीय प्रोग्रामिंग भाषा है जो निम्न-स्तरीय भाषाओं की तुलना में पढ़ने और लिखने में आसान है।"
+        }
+      ]
+    },
+    "topic-data-communication": {
+      "topicName": "Data communication media",
+      "topicName_hi": "डेटा संचार मीडिया",
+      "questions": [
+        {
+          "question_en": "What is data communication?",
+          "question_hi": "डेटा संचार क्या है?",
+          "options_en": [
+            "Transfer of data between devices",
+            "Storage of data",
+            "Processing of data",
+            "Deletion of data"
+          ],
+          "options_hi": [
+            "डिवाइस के बीच डेटा का स्थानांतरण",
+            "डेटा का भंडारण",
+            "डेटा का प्रसंस्करण",
+            "डेटा का विलोपन"
+          ],
+          "correctAnswer": 0,
+          "explanation_en": "Data communication is the transfer of data between two or more devices.",
+          "explanation_hi": "डेटा संचार दो या अधिक डिवाइस के बीच डेटा का स्थानांतरण है।"
+        }
+      ]
+    },
+    "topic-internet-browsers-viruses-network": {
+      "topicName": "Internet browsers and search engines, mail sites, viruses, and network media and topology",
+      "topicName_hi": "इंटरनेट ब्राउज़र और सर्च इंजन, मेल साइट्स, वायरस, और नेटवर्क मीडिया और टोपोलॉजी",
+      "questions": [
+        {
+          "question_en": "Which is a web browser?",
+          "question_hi": "कौन सा एक वेब ब्राउज़र है?",
+          "options_en": [
+            "Google Chrome",
+            "MS Word",
+            "Excel",
+            "PowerPoint"
+          ],
+          "options_hi": [
+            "Google Chrome",
+            "MS Word",
+            "Excel",
+            "PowerPoint"
+          ],
+          "correctAnswer": 0,
+          "explanation_en": "Google Chrome is a popular web browser used to access the internet.",
+          "explanation_hi": "Google Chrome एक लोकप्रिय वेब ब्राउज़र है जिसका उपयोग इंटरनेट एक्सेस करने के लिए किया जाता है।"
+        },
+        {
+          "question_en": "What is a computer virus?",
+          "question_hi": "कंप्यूटर वायरस क्या है?",
+          "options_en": [
+            "A malicious program that replicates itself",
+            "A type of hardware",
+            "A storage device",
+            "An input device"
+          ],
+          "options_hi": [
+            "एक दुर्भावनापूर्ण प्रोग्राम जो खुद को दोहराता है",
+            "एक प्रकार का हार्डवेयर",
+            "एक भंडारण डिवाइस",
+            "एक इनपुट डिवाइस"
+          ],
+          "correctAnswer": 0,
+          "explanation_en": "A computer virus is a malicious program that can replicate itself and spread to other computers.",
+          "explanation_hi": "कंप्यूटर वायरस एक दुर्भावनापूर्ण प्रोग्राम है जो खुद को दोहरा सकता है और अन्य कंप्यूटरों में फैल सकता है।"
+        }
+      ]
+    },
+    "topic-ms-office": {
+      "topicName": "Microsoft Office (Word, Excel, PowerPoint)",
+      "topicName_hi": "Microsoft Office (Word, Excel, PowerPoint)",
+      "questions": [
+        {
+          "question_en": "In MS Word, which shortcut saves a document?",
+          "question_hi": "MS Word में, कौन सा शॉर्टकट दस्तावेज़ सहेजता है?",
+          "options_en": [
+            "Ctrl + S",
+            "Ctrl + O",
+            "Ctrl + N",
+            "Ctrl + P"
+          ],
+          "options_hi": [
+            "Ctrl + S",
+            "Ctrl + O",
+            "Ctrl + N",
+            "Ctrl + P"
+          ],
+          "correctAnswer": 0,
+          "explanation_en": "Ctrl + S is used to save a document in MS Word.",
+          "explanation_hi": "MS Word में दस्तावेज़ सहेजने के लिए Ctrl + S का उपयोग किया जाता है।"
+        },
+        {
+          "question_en": "In MS Excel, which function adds numbers?",
+          "question_hi": "MS Excel में, कौन सा फ़ंक्शन संख्याओं को जोड़ता है?",
+          "options_en": [
+            "SUM",
+            "AVERAGE",
+            "COUNT",
+            "MAX"
+          ],
+          "options_hi": [
+            "SUM",
+            "AVERAGE",
+            "COUNT",
+            "MAX"
+          ],
+          "correctAnswer": 0,
+          "explanation_en": "The SUM function in MS Excel adds a range of numbers.",
+          "explanation_hi": "MS Excel में SUM फ़ंक्शन संख्याओं की श्रेणी को जोड़ता है।"
+        }
+      ]
+    },
+    "topic-shortcut-keys": {
+      "topicName": "All shortcut keys",
+      "topicName_hi": "सभी शॉर्टकट कुंजियां",
+      "questions": [
+        {
+          "question_en": "Which shortcut key is used to copy?",
+          "question_hi": "कॉपी करने के लिए किस शॉर्टकट कुंजी का उपयोग किया जाता है?",
+          "options_en": [
+            "Ctrl + C",
+            "Ctrl + X",
+            "Ctrl + V",
+            "Ctrl + Z"
+          ],
+          "options_hi": [
+            "Ctrl + C",
+            "Ctrl + X",
+            "Ctrl + V",
+            "Ctrl + Z"
+          ],
+          "correctAnswer": 0,
+          "explanation_en": "Ctrl + C is used to copy selected text or files.",
+          "explanation_hi": "Ctrl + C का उपयोग चयनित पाठ या फ़ाइलों को कॉपी करने के लिए किया जाता है।"
+        },
+        {
+          "question_en": "Which shortcut key is used to paste?",
+          "question_hi": "पेस्ट करने के लिए किस शॉर्टकट कुंजी का उपयोग किया जाता है?",
+          "options_en": [
+            "Ctrl + C",
+            "Ctrl + X",
+            "Ctrl + V",
+            "Ctrl + Z"
+          ],
+          "options_hi": [
+            "Ctrl + C",
+            "Ctrl + X",
+            "Ctrl + V",
+            "Ctrl + Z"
+          ],
+          "correctAnswer": 2,
+          "explanation_en": "Ctrl + V is used to paste copied content.",
+          "explanation_hi": "Ctrl + V का उपयोग कॉपी की गई सामग्री को पेस्ट करने के लिए किया जाता है।"
+        }
+      ]
+    },
+    "topic-important-notes": {
+      "topicName": "Important sorts of notes",
+      "topicName_hi": "नोट्स के महत्वपूर्ण प्रकार",
+      "questions": [
+        {
+          "question_en": "What are digital notes?",
+          "question_hi": "डिजिटल नोट्स क्या हैं?",
+          "options_en": [
+            "Notes stored electronically",
+            "Handwritten notes",
+            "Printed notes",
+            "Voice notes only"
+          ],
+          "options_hi": [
+            "इलेक्ट्रॉनिक रूप से संग्रहीत नोट्स",
+            "हस्तलिखित नोट्स",
+            "मुद्रित नोट्स",
+            "केवल आवाज नोट्स"
+          ],
+          "correctAnswer": 0,
+          "explanation_en": "Digital notes are notes stored electronically on computers or digital devices.",
+          "explanation_hi": "डिजिटल नोट्स कंप्यूटर या डिजिटल डिवाइस पर इलेक्ट्रॉनिक रूप से संग्रहीत नोट्स हैं।"
+        }
+      ]
+    }
+  }
+}
+

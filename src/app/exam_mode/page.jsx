@@ -400,9 +400,20 @@ function ExamModeContent() {
               }
             }
             
-            // Set timer from exam data
+            // Set timer from exam data or restore from localStorage
             if (data.data.exam.totalTime) {
-              setTimeLeft(data.data.exam.totalTime * 60);
+              const savedTimeLeft = localStorage.getItem('examTimeLeft');
+              if (savedTimeLeft) {
+                const savedTime = parseInt(savedTimeLeft, 10);
+                // Only use saved time if it's valid and less than total time
+                if (savedTime > 0 && savedTime <= data.data.exam.totalTime * 60) {
+                  setTimeLeft(savedTime);
+                } else {
+                  setTimeLeft(data.data.exam.totalTime * 60);
+                }
+              } else {
+                setTimeLeft(data.data.exam.totalTime * 60);
+              }
             }
 
             // Note: Typing section detection is now handled by a separate useEffect
@@ -620,9 +631,13 @@ function ExamModeContent() {
       setTimeLeft((prev) => {
         if (prev <= 0) {
           clearInterval(interval);
+          localStorage.removeItem('examTimeLeft'); // Clear timer when it reaches 0
           return 0;
         }
-        return prev - 1;
+        const newTime = prev - 1;
+        // Save remaining time to localStorage
+        localStorage.setItem('examTimeLeft', newTime.toString());
+        return newTime;
       });
     }, 1000);
     return () => clearInterval(interval);
@@ -948,6 +963,7 @@ function ExamModeContent() {
       } else {
         // Last section, go to final result
         console.log('✅ Last section already completed, going to result page');
+        localStorage.removeItem('examTimeLeft'); // Clear timer when exam is complete
         window.location.replace('/exam/exam-result');
       }
       return;
@@ -1182,6 +1198,9 @@ function ExamModeContent() {
                           }
                           return;
                         }
+                        // Save current timer state before switching sections
+                        const currentTime = timeLeft;
+                        localStorage.setItem('examTimeLeft', currentTime.toString());
                         setSection(sec.name);
                         setCurrentQuestionIndex(0);
                         setShowSectionDropdown(false);

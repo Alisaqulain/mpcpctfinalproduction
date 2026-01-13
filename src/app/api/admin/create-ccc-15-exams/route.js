@@ -36,8 +36,8 @@ export async function POST(req) {
     const createdExams = [];
     const errors = [];
 
-    // Create 15 exams
-    for (let examNum = 1; examNum <= 15; examNum++) {
+    // Create 20 exams
+    for (let examNum = 1; examNum <= 20; examNum++) {
       try {
         const examTitle = `CCC Exam ${examNum}`;
         const examId = `ccc-exam-${examNum}`;
@@ -160,7 +160,7 @@ export async function POST(req) {
           totalQuestions: exam.totalQuestions
         });
 
-        console.log(`✅ Created exam ${examNum}/15: ${examTitle} (${exam.isFree ? 'FREE' : 'PAID'}) with ${totalQuestionsCreated} questions`);
+        console.log(`✅ Created exam ${examNum}/20: ${examTitle} (${exam.isFree ? 'FREE' : 'PAID'}) with ${totalQuestionsCreated} questions`);
 
       } catch (error) {
         console.error(`❌ Error creating exam ${examNum}:`, error);
@@ -173,7 +173,7 @@ export async function POST(req) {
 
     return NextResponse.json({
       success: true,
-      message: `Successfully created ${createdExams.length} CCC exams`,
+      message: `Successfully created ${createdExams.length} CCC exams (20 total)`,
       exams: createdExams,
       summary: {
         total: createdExams.length,

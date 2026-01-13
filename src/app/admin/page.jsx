@@ -620,23 +620,28 @@ export default function AdminPanel() {
             </p>
           </div>
 
-          {/* Create 15 CPCT Exams */}
+          {/* Create 20 CPCT Exams */}
           <div className="bg-green-50 border-2 border-green-400 rounded-lg p-4 mb-6">
             <p className="text-sm text-green-900 mb-3 font-bold">
-              <strong>🚀 Create 15 CPCT Exams with Standard Pattern:</strong>
+              <strong>🚀 Create 20 CPCT Exams with Standard Pattern:</strong>
             </p>
             <p className="text-xs text-green-700 mb-3">
-              This will create 15 CPCT exams with the standard pattern:
-              <br />• 75 min main exam + 15 min English typing + 15 min Hindi typing
-              <br />• Sections: IT SKILLS (1-52), READING COMPREHENSION (53-57), QUANTITATIVE APTITUDE (58-63), GENERAL MENTAL ABILITY (64-69), GENERAL AWARENESS (70-75)
-              <br />• One Part per Section (Part 1)
+              This will create 20 CPCT exams with the new structure:
+              <br />• <strong>Section A:</strong> 75 minutes main exam timer - Contains 5 parts:
+              <br />&nbsp;&nbsp;&nbsp;1. IT SKILLS (52 questions)
+              <br />&nbsp;&nbsp;&nbsp;2. READING COMPREHENSION (5 questions)
+              <br />&nbsp;&nbsp;&nbsp;3. QUANTITATIVE APTITUDE (6 questions)
+              <br />&nbsp;&nbsp;&nbsp;4. GENERAL MENTAL ABILITY AND REASONING (6 questions)
+              <br />&nbsp;&nbsp;&nbsp;5. GENERAL AWARENESS (6 questions)
+              <br />• <strong>Section B:</strong> English Typing - 15 minutes separate timer
+              <br />• <strong>Section C:</strong> Hindi Typing - 15 minutes separate timer
               <br />• First exam is FREE, others are PAID
               <br />• Each question: 1 mark, no negative marking
             </p>
             <div className="flex gap-3">
               <button
                 onClick={async () => {
-                  if (!confirm('This will create 15 CPCT exams with sections and parts. Continue?')) return;
+                  if (!confirm('This will create 20 CPCT exams with sections and parts. Continue?')) return;
                   try {
                     setSaving(true);
                     const res = await fetch('/api/admin/create-cpct-15-exams', {
@@ -660,7 +665,35 @@ export default function AdminPanel() {
                 disabled={saving}
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
               >
-                {saving ? 'Creating...' : 'Create 15 CPCT Exams'}
+                {saving ? 'Creating...' : 'Create 20 CPCT Exams'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will update all existing CPCT exams to the new 3-section structure (Section A with 5 parts, Section B English Typing, Section C Hindi Typing). Existing questions will be migrated where possible. Continue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/update-cpct-exams-structure', {
+                      method: 'POST',
+                      credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Success! Updated ${data.exams.length} exams. ${data.summary.totalMigratedQuestions} questions migrated.`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to update exams'));
+                    }
+                  } catch (error) {
+                    console.error('Error updating exams:', error);
+                    alert('Failed to update exams: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Updating...' : 'Update Existing CPCT Exams to New Structure'}
               </button>
               <button
                 onClick={async () => {
@@ -698,13 +731,13 @@ export default function AdminPanel() {
             </div>
           </div>
 
-          {/* Create 15 CCC Exams */}
+          {/* Create 20 CCC Exams */}
           <div className="bg-purple-50 border-2 border-purple-400 rounded-lg p-4 mb-6">
             <p className="text-sm text-purple-900 mb-3 font-bold">
-              <strong>🚀 Create 15 CCC Exams:</strong>
+              <strong>🚀 Create 20 CCC Exams:</strong>
             </p>
             <p className="text-xs text-purple-700 mb-3">
-              This will create 15 CCC exams with the following pattern:
+              This will create 20 CCC exams with the following pattern:
               <br />• 90 minutes duration
               <br />• 100 questions total
               <br />• One section: "Computer Concepts"
@@ -712,54 +745,184 @@ export default function AdminPanel() {
               <br />• Each question: 1 mark, no negative marking
               <br />• First exam is FREE, others are PAID
             </p>
-            <button
-              onClick={async () => {
-                if (!confirm('This will create 15 CCC exams with sections, parts, and 100 questions each. Continue?')) return;
-                try {
-                  setSaving(true);
-                  const res = await fetch('/api/admin/create-ccc-15-exams', {
-                    method: 'POST',
-                    credentials: 'include'
-                  });
-                  const data = await res.json();
-                  if (res.ok) {
-                    alert(`Success! Created ${data.exams.length} exams. ${data.summary.free} free, ${data.summary.paid} paid.`);
-                    await fetchExams();
-                  } else {
-                    alert('Error: ' + (data.error || 'Failed to create exams'));
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  if (!confirm('This will create 20 CCC exams with sections, parts, and 100 questions each. Continue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/create-ccc-15-exams', {
+                      method: 'POST',
+                      credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Success! Created ${data.exams.length} exams. ${data.summary.free} free, ${data.summary.paid} paid.`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to create exams'));
+                    }
+                  } catch (error) {
+                    console.error('Error creating exams:', error);
+                    alert('Failed to create exams: ' + error.message);
+                  } finally {
+                    setSaving(false);
                   }
-                } catch (error) {
-                  console.error('Error creating exams:', error);
-                  alert('Failed to create exams: ' + error.message);
-                } finally {
-                  setSaving(false);
-                }
-              }}
-              disabled={saving}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
-            >
-              {saving ? 'Creating...' : 'Create 15 CCC Exams'}
-            </button>
+                }}
+                disabled={saving}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Creating...' : 'Create 20 CCC Exams'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will import CCC syllabus-based questions for exams 1-5. Continue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/import-ccc-questions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ examNumbers: [1, 2, 3, 4, 5] })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Success! Imported questions for ${data.results.length} exam(s).`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to import questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error importing questions:', error);
+                    alert('Failed to import questions: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Importing...' : 'Import CCC Questions (Exams 1-5)'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will import CCC syllabus-based questions for exams 6-10. Continue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/import-ccc-questions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ examNumbers: [6, 7, 8, 9, 10] })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Success! Imported questions for ${data.results.length} exam(s).`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to import questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error importing questions:', error);
+                    alert('Failed to import questions: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Importing...' : 'Import CCC Questions (Exams 6-10)'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will import CCC syllabus-based questions for exams 11-20. These questions will be different from exams 1-10. Continue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/import-ccc-questions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ examNumbers: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20] })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Success! Imported questions for ${data.results.length} exam(s).`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to import questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error importing questions:', error);
+                    alert('Failed to import questions: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Importing...' : 'Import CCC Questions (Exams 11-20)'}
+              </button>
+              <button
+                onClick={async () => {
+                  const examNums = prompt('Enter exam numbers to import questions (e.g., 1,2,3):', '');
+                  if (examNums === null || examNums.trim() === '') return;
+                  const examNumbers = examNums.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n) && n > 0);
+                  if (examNumbers.length === 0) {
+                    alert('Please enter valid exam numbers');
+                    return;
+                  }
+                  if (!confirm(`This will import CCC syllabus-based questions for exams: ${examNumbers.join(', ')}. Continue?`)) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/import-ccc-questions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ examNumbers })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Success! Imported questions for ${data.results.length} exam(s).`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to import questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error importing questions:', error);
+                    alert('Failed to import questions: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Importing...' : 'Import CCC Questions (Custom)'}
+              </button>
+            </div>
           </div>
 
-          {/* Create 15 RSCIT Exams */}
+          {/* Create 20 RSCIT Exams */}
           <div className="bg-orange-50 border-2 border-orange-400 rounded-lg p-4 mb-6">
             <p className="text-sm text-orange-900 mb-3 font-bold">
-              <strong>🚀 Create 15 RSCIT Exams:</strong>
+              <strong>🚀 Create 20 RSCIT Exams:</strong>
             </p>
             <p className="text-xs text-orange-700 mb-3">
-              This will create 15 RSCIT exams with the following pattern:
+              This will create 20 RSCIT exams with the following pattern:
               <br />• 90 minutes duration
-              <br />• 100 questions total
-              <br />• Section A: 35 questions @ 1 mark each
-              <br />• Section B: 65 questions @ 1 mark each
+              <br />• 50 questions total (100 marks)
+              <br />• Section A: 35 questions @ 2 marks each (70 marks)
+              <br />• Section B: 15 questions @ 2 marks each (30 marks)
               <br />• One part "RSCIT" in each section
               <br />• No negative marking
               <br />• First exam is FREE, others are PAID
             </p>
-            <button
-              onClick={async () => {
-                if (!confirm('This will create 15 RSCIT exams with sections, parts, and 100 questions each. Continue?')) return;
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  if (!confirm('This will create 20 RSCIT exams with sections, parts, and 50 questions each. Continue?')) return;
                 try {
                   setSaving(true);
                   const res = await fetch('/api/admin/create-rscit-15-exams', {
@@ -783,8 +946,129 @@ export default function AdminPanel() {
               disabled={saving}
               className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
             >
-              {saving ? 'Creating...' : 'Create 15 RSCIT Exams'}
-            </button>
+              {saving ? 'Creating...' : 'Create 20 RSCIT Exams'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will import RSCIT syllabus-based questions for exams 1-5. Continue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/import-rscit-questions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ examNumbers: [1, 2, 3, 4, 5] })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Success! Imported questions for ${data.results.length} exam(s).`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to import questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error importing questions:', error);
+                    alert('Failed to import questions: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Importing...' : 'Import RSCIT Questions (Exams 1-5)'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will import RSCIT syllabus-based questions for exams 6-10. These questions will be different from exams 1-5. Continue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/import-rscit-questions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ examNumbers: [6, 7, 8, 9, 10] })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Success! Imported questions for ${data.results.length} exam(s).`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to import questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error importing questions:', error);
+                    alert('Failed to import questions: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Importing...' : 'Import RSCIT Questions (Exams 6-10)'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will import RSCIT syllabus-based questions for exams 11-15. These questions will be different from exams 1-10. Continue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/import-rscit-questions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ examNumbers: [11, 12, 13, 14, 15] })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Success! Imported questions for ${data.results.length} exam(s).`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to import questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error importing questions:', error);
+                    alert('Failed to import questions: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Importing...' : 'Import RSCIT Questions (Exams 11-15)'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will import RSCIT syllabus-based questions for exams 16-20. These questions will be different from exams 1-15. Continue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/import-rscit-questions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ examNumbers: [16, 17, 18, 19, 20] })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Success! Imported questions for ${data.results.length} exam(s).`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to import questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error importing questions:', error);
+                    alert('Failed to import questions: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Importing...' : 'Import RSCIT Questions (Exams 16-20)'}
+              </button>
+            </div>
           </div>
 
           {/* CPCT Real Paper Import - One Time Import */}
@@ -3923,6 +4207,47 @@ function SkillAdmin(){
 
   return (
     <div className="mt-4">
+      {/* Create 20 Exercise Lessons */}
+      <div className="bg-indigo-50 border-2 border-indigo-400 rounded-lg p-4 mb-6">
+        <p className="text-sm text-indigo-900 mb-3 font-bold">
+          <strong>🚀 Create 20 Exercise Lessons:</strong>
+        </p>
+        <p className="text-xs text-indigo-700 mb-3">
+          This will create 20 Exercise lessons (Lesson 1, Lesson 2, ... Lesson 20) in Skill Test:
+          <br />• Each exercise has placeholder content that can be edited later
+          <br />• First exercise (Lesson 1) is FREE, others are PAID
+          <br />• Exercises are ordered from 1 to 20
+        </p>
+        <button
+          onClick={async () => {
+            if (!confirm('This will create/update 20 Exercise lessons in Skill Test. Continue?')) return;
+            try {
+              setSaving(true);
+              const res = await fetch('/api/admin/create-skill-test-exercises', {
+                method: 'POST',
+                credentials: 'include'
+              });
+              const data = await res.json();
+              if (res.ok) {
+                alert(`Success! Created/updated ${data.exercises.length} exercises. ${data.summary.free} free, ${data.summary.paid} paid.`);
+                await refresh();
+              } else {
+                alert('Error: ' + (data.error || 'Failed to create exercises'));
+              }
+            } catch (error) {
+              console.error('Error creating exercises:', error);
+              alert('Failed to create exercises: ' + error.message);
+            } finally {
+              setSaving(false);
+            }
+          }}
+          disabled={saving}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+        >
+          {saving ? 'Creating...' : 'Create 20 Exercise Lessons'}
+        </button>
+      </div>
+
       <div className="flex flex-col md:flex-row gap-4 min-h-[70vh]">
         {/* Left Side: Exercise List */}
         <div className="w-full md:w-1/3 border rounded-lg p-4 bg-white shadow-sm">
@@ -5297,6 +5622,7 @@ function TopicWiseMCQAdmin(){
   const [loading, setLoading] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [editingQuestion, setEditingQuestion] = useState(null);
+  const [editingTopic, setEditingTopic] = useState(null);
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [showTopicForm, setShowTopicForm] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -5343,9 +5669,7 @@ function TopicWiseMCQAdmin(){
     setSaving(true);
     setSaveError('');
     try {
-      const timestamp = Date.now();
-      const random = Math.floor(Math.random() * 1000);
-      const topicId = formData.topicId || `topic-${timestamp}-${random}`;
+      const topicId = editingTopic ? editingTopic.topicId : (formData.topicId || `topic-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
       
       const body = {
         topicId: topicId,
@@ -5361,6 +5685,7 @@ function TopicWiseMCQAdmin(){
       if (res.ok) {
         await refreshTopics();
         setShowTopicForm(false);
+        setEditingTopic(null);
       } else {
         const result = await res.json();
         setSaveError(result.error || 'Failed to save topic');
@@ -5488,14 +5813,90 @@ function TopicWiseMCQAdmin(){
     }
   };
 
+  const handleDeleteTopic = async (topicId) => {
+    if (!confirm('Are you sure you want to delete this topic? This will also delete all questions in this topic.')) return;
+    try {
+      const res = await fetch(`/api/admin/topicwise/topics?topicId=${topicId}`, { method: 'DELETE' });
+      if (res.ok) {
+        await refreshTopics();
+        if (selectedTopic === topicId) {
+          setSelectedTopic(null);
+          setQuestions([]);
+        }
+        alert('Topic deleted successfully');
+      } else {
+        const error = await res.json();
+        alert('Error: ' + (error.error || 'Failed to delete topic'));
+      }
+    } catch (error) {
+      console.error('Failed to delete topic:', error);
+      alert('Failed to delete topic: ' + error.message);
+    }
+  };
+
+  const handleEditTopic = (topic) => {
+    setEditingTopic(topic);
+    setShowTopicForm(true);
+  };
+
   return (
     <div className="mt-4">
+          {/* Create 10 Topics with 100 Questions Each */}
+          <div className="bg-teal-50 border-2 border-teal-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-teal-900 mb-3 font-bold">
+              <strong>🚀 Create 10 Topics with 100 Questions Each:</strong>
+            </p>
+            <p className="text-xs text-teal-700 mb-3">
+              This will create 10 topics in Topic Wise MCQ with 100 questions each:
+              <br />• 1. Computers and their evolution and types
+              <br />• 2. Computer generations & Printers
+              <br />• 3. All types of memory
+              <br />• 4. Software and its types and hardware, input and output devices
+              <br />• 5. All programming languages
+              <br />• 6. Data communication media
+              <br />• 7. Internet browsers and search engines, mail sites, viruses, and network media and topology
+              <br />• 8. Microsoft Office (Word, Excel, PowerPoint)
+              <br />• 9. All shortcut keys
+              <br />• 10. Important sorts of notes
+              <br />• The "das" topic will be deleted if it exists
+              <br />• All questions can be edited later through the admin panel
+            </p>
+        <button
+          onClick={async () => {
+            if (!confirm('This will create/update 10 topics with 100 questions each. The "das" topic will be deleted. Continue?')) return;
+            try {
+              setSaving(true);
+              const res = await fetch('/api/admin/create-topicwise-topics', {
+                method: 'POST',
+                credentials: 'include'
+              });
+              const data = await res.json();
+              if (res.ok) {
+                alert(`Success! Created/updated ${data.topics.length} topics with ${data.summary.totalQuestions} total questions.`);
+                await refreshTopics();
+              } else {
+                alert('Error: ' + (data.error || 'Failed to create topics'));
+              }
+            } catch (error) {
+              console.error('Error creating topics:', error);
+              alert('Failed to create topics: ' + error.message);
+            } finally {
+              setSaving(false);
+            }
+          }}
+          disabled={saving}
+          className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+        >
+          {saving ? 'Creating...' : 'Create 10 Topics with 100 Questions Each'}
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white border rounded-lg p-4">
           <div className="flex justify-between items-center mb-3">
             <h4 className="font-semibold">Topics</h4>
             <button 
-              onClick={() => { setShowTopicForm(true); }} 
+              onClick={() => { setEditingTopic(null); setShowTopicForm(true); }} 
               className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
             >
               + Add Topic
@@ -5510,15 +5911,39 @@ function TopicWiseMCQAdmin(){
               {topics.map(topic => (
                 <div
                   key={topic.topicId}
-                  onClick={() => setSelectedTopic(topic.topicId)}
-                  className={`p-3 rounded cursor-pointer transition ${
+                  className={`p-3 rounded transition ${
                     selectedTopic === topic.topicId
                       ? 'bg-blue-100 border-2 border-blue-500'
                       : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
                   }`}
                 >
-                  <div className="font-medium">{topic.topicName}</div>
-                  {topic.topicName_hi && <div className="text-xs text-gray-600 mt-1">{topic.topicName_hi}</div>}
+                  <div 
+                    onClick={() => setSelectedTopic(topic.topicId)}
+                    className="cursor-pointer"
+                  >
+                    <div className="font-medium">{topic.topicName}</div>
+                    {topic.topicName_hi && <div className="text-xs text-gray-600 mt-1">{topic.topicName_hi}</div>}
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditTopic(topic);
+                      }}
+                      className="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTopic(topic.topicId);
+                      }}
+                      className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -5587,10 +6012,11 @@ function TopicWiseMCQAdmin(){
       </div>
 
       {showTopicForm && (
-        <Modal onClose={() => { setShowTopicForm(false); setSaveError(''); }}>
+        <Modal onClose={() => { setShowTopicForm(false); setEditingTopic(null); setSaveError(''); }}>
           <TopicForm
+            topic={editingTopic}
             onSave={handleSaveTopic}
-            onCancel={() => { setShowTopicForm(false); setSaveError(''); }}
+            onCancel={() => { setShowTopicForm(false); setEditingTopic(null); setSaveError(''); }}
             saving={saving}
             error={saveError}
           />
@@ -5871,12 +6297,28 @@ function DownloadForm({ download, type, onSave, onCancel, saving, error }) {
   );
 }
 
-function TopicForm({ onSave, onCancel, saving, error }) {
+function TopicForm({ topic, onSave, onCancel, saving, error }) {
   const [formData, setFormData] = useState({
-    topicId: '',
-    topicName: '',
-    topicName_hi: ''
+    topicId: topic?.topicId || '',
+    topicName: topic?.topicName || '',
+    topicName_hi: topic?.topicName_hi || ''
   });
+
+  useEffect(() => {
+    if (topic) {
+      setFormData({
+        topicId: topic.topicId || '',
+        topicName: topic.topicName || '',
+        topicName_hi: topic.topicName_hi || ''
+      });
+    } else {
+      setFormData({
+        topicId: '',
+        topicName: '',
+        topicName_hi: ''
+      });
+    }
+  }, [topic]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -5885,7 +6327,7 @@ function TopicForm({ onSave, onCancel, saving, error }) {
 
   return (
     <div>
-      <h4 className="font-semibold text-lg mb-4">Add New Topic</h4>
+      <h4 className="font-semibold text-lg mb-4">{topic ? 'Edit Topic' : 'Add New Topic'}</h4>
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
@@ -5901,7 +6343,9 @@ function TopicForm({ onSave, onCancel, saving, error }) {
             className="w-full border rounded px-3 py-2 text-sm"
             placeholder="topic-1"
             required
+            disabled={!!topic}
           />
+          {topic && <p className="text-xs text-gray-500 mt-1">Topic ID cannot be changed when editing</p>}
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Topic Name (English) *</label>
