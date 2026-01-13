@@ -30,6 +30,12 @@ function StartTestPageContent() {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
+      // Clear all previous exam data to start fresh
+      localStorage.removeItem('examAnswers');
+      localStorage.removeItem('visitedQuestions');
+      localStorage.removeItem('markedForReview');
+      localStorage.removeItem('completedSections');
+      
       // Store exam data in localStorage
       if (examId) {
         localStorage.setItem('currentExamId', examId);
@@ -48,7 +54,7 @@ function StartTestPageContent() {
     <div className="min-h-screen bg-white-50">
       {/* Top Header */}
       <div className="bg-[#290c52] text-white flex justify-between items-center px-6 py-4">
-        <div className="text-2xl font-bold text-yellow-300">Mpcpctmaster.com</div>
+        <div className="text-2xl font-bold text-yellow-300">MPCPCT</div>
         {/* <div className="text-right text-sm space-y-1 ml-90">
           <p>
             Candidate Name : <span className="text-yellow-300">User</span>

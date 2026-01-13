@@ -7,30 +7,59 @@ function BreakScreenContent() {
   const [userName, setUserName] = useState("User");
   const [breakComplete, setBreakComplete] = useState(false);
   const searchParams = useSearchParams();
-  const nextSectionParam = searchParams.get("next");
-  const sectionParam = searchParams.get("section");
-  const breakDurationParam = searchParams.get("duration"); // Duration in minutes
+  
+  // Get all URL parameters - add logging to debug
+  const nextSectionParam = searchParams?.get("next");
+  const sectionParam = searchParams?.get("section");
+  const breakDurationParam = searchParams?.get("duration"); // Duration in minutes
+  
+  // Log parameters for debugging - only on client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('🔍 ========== BREAK PAGE PARAMETERS ==========');
+      console.log('🔍 nextSectionParam:', nextSectionParam);
+      console.log('🔍 sectionParam:', sectionParam);
+      console.log('🔍 breakDurationParam:', breakDurationParam);
+      console.log('🔍 Full URL:', window.location.href);
+      console.log('🔍 Search params object:', searchParams?.toString());
+    }
+  }, [nextSectionParam, sectionParam, breakDurationParam, searchParams]);
   
   // Calculate break duration (default 1 minute, or from parameter, or 10 minutes for typing section)
   const breakDurationMinutes = breakDurationParam ? parseInt(breakDurationParam) : 
     (sectionParam && (sectionParam.includes("Typing") || sectionParam.includes("typing"))) ? 10 : 1;
   
   // Determine next section URL
+  // CRITICAL: Always preserve the section parameter from URL
   let nextSection = "/exam_mode";
   if (nextSectionParam) {
     nextSection = nextSectionParam;
     if (sectionParam) {
-      // Ensure proper encoding
+      // Ensure proper encoding - decode first to handle double encoding
       const decodedSection = decodeURIComponent(sectionParam);
-      nextSection += `?section=${encodeURIComponent(decodedSection)}`;
-      console.log('Break page: Next section will be:', decodedSection);
-      console.log('Break page: Full URL:', nextSection);
+      // Check if nextSection already has query params
+      const hasQuery = nextSection.includes('?');
+      nextSection += hasQuery ? `&section=${encodeURIComponent(decodedSection)}` : `?section=${encodeURIComponent(decodedSection)}`;
+      console.log('✅ Break page: Next section will be:', decodedSection);
+      console.log('✅ Break page: Full URL:', nextSection);
+      console.log('✅ Break page: Encoded section param:', encodeURIComponent(decodedSection));
+    } else {
+      console.warn('⚠️ Break page: nextSectionParam exists but sectionParam is missing!');
+      console.warn('⚠️ This means the redirect URL from exam_mode did not include the section parameter.');
     }
   } else if (sectionParam) {
     const decodedSection = decodeURIComponent(sectionParam);
     nextSection = `/exam_mode?section=${encodeURIComponent(decodedSection)}`;
-    console.log('Break page: Next section will be:', decodedSection);
-    console.log('Break page: Full URL:', nextSection);
+    console.log('✅ Break page: Next section will be:', decodedSection);
+    console.log('✅ Break page: Full URL:', nextSection);
+    console.log('✅ Break page: Encoded section param:', encodeURIComponent(decodedSection));
+  } else {
+    // Only warn if we're sure the params are loaded (not during initial render)
+    if (searchParams && typeof window !== 'undefined') {
+      console.warn('⚠️ Break page: No section parameter provided!');
+      console.warn('⚠️ URL:', window.location.href);
+      console.warn('⚠️ This will redirect to first section by default.');
+    }
   }
 
   // Fetch user name - load from localStorage first, then try API

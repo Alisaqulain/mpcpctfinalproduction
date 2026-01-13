@@ -7,6 +7,7 @@ import { calculateCPCTMetricsFromText } from "@/lib/cpctFormulas";
 function TypingTestForm() {
   const searchParams = useSearchParams();
   const lessonId = searchParams.get("lesson");
+  const exerciseId = searchParams.get("exercise");
   const language = searchParams.get("language") || "english";
   const subLanguageRaw = (searchParams.get("subLanguage") || "").toLowerCase();
   // Normalize subLanguage to keys used by getLessonContent
@@ -15,6 +16,7 @@ function TypingTestForm() {
   const backspaceEnabled = searchParams.get("backspace") === "ON";
   
   const [lesson, setLesson] = useState(null);
+  const [exercise, setExercise] = useState(null);
   const [content, setContent] = useState("");
   const [userInput, setUserInput] = useState("");
   const [startTime, setStartTime] = useState(null);
@@ -36,7 +38,93 @@ function TypingTestForm() {
   const timerRef = useRef(null);
 
   useEffect(() => {
-    const fetchLesson = async () => {
+    const fetchData = async () => {
+      // Handle exercise parameter (from skill test)
+      if (exerciseId) {
+        try {
+          const res = await fetch('/api/skill-test?' + new Date().getTime(), {
+            credentials: 'include'
+          });
+          if (res.ok) {
+            const data = await res.json();
+            // Find the exercise in the data
+            const foundExercise = data.exercises?.find(e => e.id === exerciseId);
+            
+            if (foundExercise) {
+              setExercise(foundExercise);
+              
+              // If exercise is linked to a lesson, try to get lesson content first
+              if (foundExercise.lessonId) {
+                try {
+                  const learningRes = await fetch('/api/learning?' + new Date().getTime());
+                  if (learningRes.ok) {
+                    const learningData = await learningRes.json();
+                    let lessonData = null;
+                    for (const section of learningData.sections || []) {
+                      const foundLesson = section.lessons?.find(l => l.id === foundExercise.lessonId);
+                      if (foundLesson) {
+                        lessonData = {
+                          ...foundLesson,
+                          section: section.name,
+                          sectionId: section.id
+                        };
+                        break;
+                      }
+                    }
+                    
+                    if (lessonData) {
+                      setLesson(lessonData);
+                      // Get content from lesson
+                      let contentKey = 'english';
+                      if (language === 'hindi') {
+                        if (subLanguage === 'ramington') {
+                          contentKey = 'hindi_ramington';
+                        } else if (subLanguage === 'inscript') {
+                          contentKey = 'hindi_inscript';
+                        } else {
+                          contentKey = 'hindi_ramington';
+                        }
+                      }
+                      const lessonContent = lessonData.content?.[contentKey] || lessonData.content?.english || "";
+                      if (lessonContent) {
+                        setContent(lessonContent);
+                        return;
+                      }
+                    }
+                  }
+                } catch (error) {
+                  console.error('Failed to fetch lesson for exercise:', error);
+                }
+              }
+              
+              // Use exercise's own content
+              let contentKey = 'english';
+              if (language === 'hindi') {
+                if (subLanguage === 'ramington') {
+                  contentKey = 'hindi_ramington';
+                } else if (subLanguage === 'inscript') {
+                  contentKey = 'hindi_inscript';
+                } else {
+                  contentKey = 'hindi_ramington';
+                }
+              }
+              
+              const exerciseContent = foundExercise.content?.[contentKey] || foundExercise.content?.english || "Content not available";
+              setContent(exerciseContent);
+            } else {
+              setContent("Exercise not found");
+            }
+          } else {
+            setContent("Failed to load exercise");
+          }
+        } catch (error) {
+          console.error('Failed to fetch exercise:', error);
+          setContent("Failed to load exercise");
+        }
+        return;
+      }
+      
+      // Handle lesson parameter (from learning)
       if (lessonId) {
         try {
           // Fetch all learning data from API
@@ -106,8 +194,8 @@ function TypingTestForm() {
         }
       }
     };
-    fetchLesson();
-  }, [lessonId, language, subLanguage]);
+    fetchData();
+  }, [exerciseId, lessonId, language, subLanguage]);
 
   // If duration changes (via query), resync time and backspace policy
   useEffect(() => {
@@ -258,15 +346,15 @@ function TypingTestForm() {
       const userData = userDataStr ? JSON.parse(userDataStr) : {};
       
       // Get exercise info from URL or localStorage
-      const exerciseId = searchParams.get("exercise") || "";
-      const exerciseName = lesson?.title || "Typing Test";
+      const exerciseIdFromUrl = searchParams.get("exercise") || "";
+      const exerciseName = exercise?.name || lesson?.title || "Typing Test";
       
       const resultData = {
         userId: userData.mobile || 'anonymous',
         userName: userData.name || 'User',
         userMobile: userData.mobile,
         userCity: userData.city,
-        exerciseId: exerciseId,
+        exerciseId: exerciseIdFromUrl,
         exerciseName: exerciseName,
         language: language === "hindi" ? "Hindi" : "English",
         subLanguage: subLanguage || "",
@@ -348,12 +436,12 @@ function TypingTestForm() {
     });
   };
 
-  if (!lesson) {
+  if (!lesson && !exercise && !content) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading lesson...</p>
+          <p className="text-gray-600">Loading {exerciseId ? 'exercise' : 'lesson'}...</p>
         </div>
       </div>
     );
@@ -366,11 +454,18 @@ function TypingTestForm() {
           {/* Header */}
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Typing Test - {lesson.title}
+              Typing Test - {exercise?.name || lesson?.title || "Skill Test"}
             </h1>
-            <p className="text-gray-600">
-              {lesson.section} • {lesson.difficulty} • {lesson.estimatedTime}
-            </p>
+            {lesson && (
+              <p className="text-gray-600">
+                {lesson.section} • {lesson.difficulty} • {lesson.estimatedTime}
+              </p>
+            )}
+            {exercise && (
+              <p className="text-gray-600">
+                Exercise • {exercise.difficulty || "N/A"}
+              </p>
+            )}
             <p className="text-sm text-gray-500 mt-1">
               Language: {language === "hindi" ? "Hindi" : "English"}
               {subLanguage && ` (${subLanguage})`}
@@ -490,14 +585,17 @@ function TypingTestForm() {
           {/* Navigation */}
           <div className="flex justify-between items-center">
             <a
-              href="/learning"
+              href={exerciseId ? "/skill_test" : "/learning"}
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
-              ← Back to Learning
+              ← Back to {exerciseId ? "Skill Test" : "Learning"}
             </a>
             {isCompleted && (
               <a
-                href={`/typing-test?lesson=${lessonId}&language=${language}&subLanguage=${subLanguage}&duration=${duration}&backspace=${backspaceEnabled ? "ON" : "OFF"}`}
+                href={exerciseId 
+                  ? `/typing-test?exercise=${exerciseId}&language=${language}&subLanguage=${subLanguage}&duration=${duration}&backspace=${backspaceEnabled ? "ON" : "OFF"}`
+                  : `/typing-test?lesson=${lessonId}&language=${language}&subLanguage=${subLanguage}&duration=${duration}&backspace=${backspaceEnabled ? "ON" : "OFF"}`
+                }
                 className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
               >
                 Practice Again

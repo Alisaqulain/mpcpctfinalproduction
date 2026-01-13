@@ -1,6 +1,7 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import TypingArea from "@/components/typing/TypingArea";
 
 function ExamModeContent() {
   const [section, setSection] = useState("");
@@ -29,6 +30,7 @@ function ExamModeContent() {
   const audioRef = useRef(null);
   const loggedImageQuestions = useRef(new Set()); // Track which questions we've already logged
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Save answers to localStorage whenever they change
   useEffect(() => {
@@ -77,7 +79,18 @@ function ExamModeContent() {
           console.log('Fetched exam data:', data);
           if (data.success && data.data) {
             setExamData(data.data.exam);
-            setSections(data.data.sections || []);
+            // Sort sections by order to ensure correct sequence
+            const sortedSections = (data.data.sections || []).sort((a, b) => {
+              const orderA = a.order || 0;
+              const orderB = b.order || 0;
+              if (orderA !== orderB) return orderA - orderB;
+              // If order is same, sort by lessonNumber
+              const lessonA = a.lessonNumber || 0;
+              const lessonB = b.lessonNumber || 0;
+              return lessonA - lessonB;
+            });
+            console.log('📋 Loaded sections (sorted by order):', sortedSections.map((s, i) => `${i}: ${s.name} (order: ${s.order || 0}, lesson: ${s.lessonNumber || 0})`));
+            setSections(sortedSections);
             setParts(data.data.parts || []);
             
             // Organize questions by section and part
@@ -267,42 +280,94 @@ function ExamModeContent() {
             setQuestions(questionsBySection);
             setQuestionsByPart(questionsByPartData);
             
-            // Set section - check URL parameter first, then default to first section
-            if (data.data.sections.length > 0) {
+            // Set section - ALWAYS check URL parameter first, then default to first section
+            // Sort sections by order first
+            const sortedSectionsForInit = (data.data.sections || []).sort((a, b) => {
+              const orderA = a.order || 0;
+              const orderB = b.order || 0;
+              if (orderA !== orderB) return orderA - orderB;
+              const lessonA = a.lessonNumber || 0;
+              const lessonB = b.lessonNumber || 0;
+              return lessonA - lessonB;
+            });
+            
+            if (sortedSectionsForInit.length > 0) {
               const sectionParam = searchParams?.get('section');
-              let targetSectionName = data.data.sections[0].name;
+              let targetSectionName = null;
               
-              // If section parameter exists, use it
+              // If section parameter exists, use it (PRIORITY - NEVER override with first section)
               if (sectionParam) {
                 // Decode the section parameter and trim whitespace
                 const decodedSectionParam = decodeURIComponent(sectionParam).trim();
-                console.log('Looking for section from URL parameter:', decodedSectionParam);
-                console.log('Available sections:', data.data.sections.map(s => s.name));
+                console.log('🔍 Initial load - Looking for section from URL parameter:', decodedSectionParam);
+                console.log('🔍 Available sections (sorted):', sortedSectionsForInit.map((s, i) => `${i}: "${s.name}" (order: ${s.order || 0})`));
                 
                 // Try exact match first
-                let foundSection = data.data.sections.find(s => s.name === decodedSectionParam);
+                let foundSection = sortedSectionsForInit.find(s => s.name === decodedSectionParam);
                 
                 // If not found, try case-insensitive match
                 if (!foundSection) {
-                  foundSection = data.data.sections.find(s => 
+                  foundSection = sortedSectionsForInit.find(s => 
                     s.name.toLowerCase().trim() === decodedSectionParam.toLowerCase().trim()
                   );
                 }
                 
+                // If still not found, try removing emojis/special characters
+                if (!foundSection) {
+                  const cleanParam = decodedSectionParam.replace(/[🔒🔓]/g, '').trim();
+                  foundSection = sortedSectionsForInit.find(s => {
+                    const cleanSectionName = s.name.replace(/[🔒🔓]/g, '').trim();
+                    return cleanSectionName === cleanParam || 
+                           cleanSectionName.toLowerCase() === cleanParam.toLowerCase();
+                  });
+                }
+                
                 if (foundSection) {
                   targetSectionName = foundSection.name;
-                  console.log('Found section:', targetSectionName);
+                  console.log('✅ Initial load - Found section from URL parameter:', targetSectionName);
                 } else {
-                  console.warn('Section parameter not found:', decodedSectionParam);
-                  console.warn('Available sections are:', data.data.sections.map(s => s.name));
+                  console.error('❌ Initial load - Section parameter NOT FOUND:', decodedSectionParam);
+                  console.error('Available sections are:', sortedSectionsForInit.map(s => s.name));
+                  // If section param exists but not found, DO NOT default to first section
+                  // Instead, keep it null and let the useEffect handle it
+                  console.warn('⚠️ Section from URL not found, will try to match in useEffect');
+                  targetSectionName = null; // Don't set anything, let useEffect handle it
                 }
+              } else {
+                // No section parameter - check if we should use first incomplete section or first section
+                // First, check if there are any completed sections
+                const savedCompletedSections = localStorage.getItem('completedSections');
+                let firstIncompleteSection = null;
+                
+                if (savedCompletedSections) {
+                  try {
+                    const completedArray = JSON.parse(savedCompletedSections);
+                    const completedSet = new Set(completedArray);
+                    firstIncompleteSection = sortedSectionsForInit.find(s => !completedSet.has(s.name));
+                  } catch (e) {
+                    console.error('Error parsing completed sections:', e);
+                  }
+                }
+                
+                // Use first incomplete section if available, otherwise use first section
+                targetSectionName = firstIncompleteSection ? firstIncompleteSection.name : sortedSectionsForInit[0].name;
+                console.log('ℹ️ Initial load - No section parameter in URL');
+                console.log('ℹ️ Using section:', targetSectionName, firstIncompleteSection ? '(first incomplete)' : '(first section)');
               }
               
-              setSection(targetSectionName);
-              setCurrentQuestionIndex(0); // Reset to first question when changing sections
+              // Only set section if we have a valid targetSectionName
+              if (targetSectionName) {
+                console.log('✅ Setting section to:', targetSectionName);
+                setSection(targetSectionName);
+                setCurrentQuestionIndex(0); // Reset to first question when changing sections
+              } else {
+                console.log('⏸️ Not setting section yet, will be set by useEffect from URL parameter');
+              }
               
               // Set first part as default if section has parts
-              const targetSection = data.data.sections.find(s => s.name === targetSectionName) || data.data.sections[0];
+              const targetSection = targetSectionName 
+                ? sortedSectionsForInit.find(s => s.name === targetSectionName) || sortedSectionsForInit[0]
+                : sortedSectionsForInit[0];
               const targetSectionParts = (data.data.parts || []).filter(p => {
                 const pSectionId = String(p.sectionId).trim();
                 const secIdStr = String(targetSection.id).trim();
@@ -397,19 +462,69 @@ function ExamModeContent() {
   }, [searchParams]);
 
   // Handle section change from URL parameter after sections are loaded
+  // This ensures URL parameter always takes priority - FORCE update even if section appears same
+  // CRITICAL: This useEffect MUST run and update the section from URL parameter
   useEffect(() => {
     if (sections.length > 0 && searchParams) {
       const sectionParam = searchParams.get('section');
+      console.log('🔍 ========== URL PARAMETER CHECK ==========');
+      console.log('🔍 Section parameter from URL:', sectionParam);
+      console.log('🔍 Current section state:', section);
+      console.log('🔍 Total sections available:', sections.length);
+      
       if (sectionParam) {
         const decodedSectionParam = decodeURIComponent(sectionParam).trim();
-        const foundSection = sections.find(s => 
-          s.name === decodedSectionParam || 
-          s.name.toLowerCase().trim() === decodedSectionParam.toLowerCase().trim()
-        );
-        if (foundSection && foundSection.name !== section) {
-          console.log('URL section parameter changed, updating to:', foundSection.name);
+        console.log('🔍 Decoded section parameter:', decodedSectionParam);
+        console.log('🔍 Available sections:', sections.map((s, i) => `${i}: "${s.name}" (order: ${s.order || 0})`));
+        
+        // Sort sections by order first
+        const sortedSections = [...sections].sort((a, b) => {
+          const orderA = a.order || 0;
+          const orderB = b.order || 0;
+          if (orderA !== orderB) return orderA - orderB;
+          const lessonA = a.lessonNumber || 0;
+          const lessonB = b.lessonNumber || 0;
+          return lessonA - lessonB;
+        });
+        
+        // Try multiple matching strategies
+        let foundSection = sortedSections.find(s => s.name === decodedSectionParam);
+        
+        if (!foundSection) {
+          console.log('⚠️ Exact match failed, trying case-insensitive...');
+          // Try case-insensitive match
+          foundSection = sortedSections.find(s => 
+            s.name.toLowerCase().trim() === decodedSectionParam.toLowerCase().trim()
+          );
+        }
+        
+        if (!foundSection) {
+          console.log('⚠️ Case-insensitive match failed, trying without emojis...');
+          // Try removing special characters/emojis for matching
+          const cleanParam = decodedSectionParam.replace(/[🔒🔓]/g, '').trim();
+          foundSection = sortedSections.find(s => {
+            const cleanSectionName = s.name.replace(/[🔒🔓]/g, '').trim();
+            return cleanSectionName === cleanParam || 
+                   cleanSectionName.toLowerCase() === cleanParam.toLowerCase();
+          });
+        }
+        
+        if (foundSection) {
+          // ALWAYS update section from URL parameter - even if it's the same
+          console.log('✅ ========== FOUND SECTION FROM URL ==========');
+          console.log('✅ Found section name:', foundSection.name);
+          console.log('✅ Current section state:', section);
+          console.log('✅ Will update section to:', foundSection.name);
+          
+          // CRITICAL: Force update - ALWAYS set the section from URL parameter
+          // This ensures we're on the correct section after redirect from break page
+          // Even if the section appears the same, we update it to ensure state is correct
+          console.log('🔄 FORCING section update to:', foundSection.name);
           setSection(foundSection.name);
           setCurrentQuestionIndex(0);
+          
+          // Clear any cached section from localStorage to prevent conflicts
+          localStorage.removeItem('currentSection');
           
           // Set first part for the new section
           const targetSectionParts = parts.filter(p => {
@@ -421,13 +536,23 @@ function ExamModeContent() {
           
           if (targetSectionParts.length > 0) {
             setSelectedPart(targetSectionParts[0].name);
+            console.log('  - Set part to:', targetSectionParts[0].name);
           } else {
             setSelectedPart(null);
+            console.log('  - No parts for this section');
           }
+        } else {
+          console.error('❌ ========== SECTION NOT FOUND ==========');
+          console.error('❌ Section from URL parameter NOT FOUND:', decodedSectionParam);
+          console.error('❌ Available sections:', sortedSections.map(s => s.name));
+          console.error('❌ This should not happen - check section names match exactly');
         }
+      } else {
+        console.log('ℹ️ No section parameter in URL - will use default or current section');
+        // If no section param, don't change section - keep current or use default from initial load
       }
     }
-  }, [sections, parts, searchParams, section]);
+  }, [sections, parts, searchParams]); // Removed section from dependencies to prevent infinite loop
 
   // Load tick sound after user interaction
   useEffect(() => {
@@ -492,32 +617,24 @@ function ExamModeContent() {
   }, [section, selectedPart, currentQuestionIndex, questions, questionsByPart]);
   
   // Get questions for current section and part
-  const getCurrentQuestions = useCallback(() => {
+  // Use useMemo to prevent infinite loops - this was causing the re-render issue
+  const currentQuestions = useMemo(() => {
     if (!section) {
-      console.log('getCurrentQuestions: No section selected');
       return [];
     }
     
     // If part is selected and section has parts, return part questions
     if (selectedPart && questionsByPart[section]) {
-      console.log('getCurrentQuestions: Looking for part', selectedPart, 'in section', section);
-      console.log('getCurrentQuestions: Available parts in section:', Object.keys(questionsByPart[section] || {}));
       if (questionsByPart[section][selectedPart]) {
-        console.log('getCurrentQuestions: Found', questionsByPart[section][selectedPart].length, 'questions for part', selectedPart);
         return questionsByPart[section][selectedPart];
-      } else {
-        console.log('getCurrentQuestions: No questions found for part', selectedPart);
       }
     }
     
     // Otherwise, return all questions in section
-    const allQuestions = questions[section] || [];
-    console.log('getCurrentQuestions: Returning all', allQuestions.length, 'questions for section', section);
-    return allQuestions;
+    return questions[section] || [];
   }, [section, selectedPart, questions, questionsByPart]);
 
   const currentQuestion = getCurrentQuestion();
-  const currentQuestions = getCurrentQuestions();
 
   // Get parts for current section
   const getCurrentSectionParts = useCallback(() => {
@@ -715,10 +832,49 @@ function ExamModeContent() {
     
     console.log('handleSubmitSection called for section:', section);
     console.log('Current completedSections:', Array.from(completedSections));
+    console.log('Available sections:', sections.map(s => s.name));
     
-    // Prevent double submission
+    // Prevent double submission - but still allow navigation to next section
     if (completedSections.has(section)) {
-      console.log('Section already completed, preventing double submission');
+      console.log('⚠️ Section already completed, but allowing navigation to next section');
+      // Even if already completed, allow moving to next section
+      // Sort sections first to ensure correct order
+      const sortedSections = [...sections].sort((a, b) => {
+        const orderA = a.order || 0;
+        const orderB = b.order || 0;
+        if (orderA !== orderB) return orderA - orderB;
+        const lessonA = a.lessonNumber || 0;
+        const lessonB = b.lessonNumber || 0;
+        return lessonA - lessonB;
+      });
+      
+      const currentSectionIndex = sortedSections.findIndex(s => s.name === section);
+      if (currentSectionIndex === -1) {
+        console.error('❌ Current section not found in sorted sections');
+        return;
+      }
+      
+      if (currentSectionIndex < sortedSections.length - 1) {
+        const nextSection = sortedSections[currentSectionIndex + 1];
+        console.log('✅ Section already completed, moving to next section:', nextSection.name);
+        localStorage.removeItem('currentSection');
+        const encodedSection = encodeURIComponent(nextSection.name);
+        const redirectUrl = `/exam/break?next=${encodeURIComponent('/exam_mode')}&section=${encodedSection}`;
+        console.log('🚀 ========== REDIRECT (already completed section) ==========');
+        console.log('🚀 Next section name:', nextSection.name);
+        console.log('🚀 Encoded section:', encodedSection);
+        console.log('🚀 Full redirect URL:', redirectUrl);
+        setTimeout(() => {
+          console.log('🚀 Executing redirect to:', redirectUrl);
+          if (typeof window !== 'undefined') {
+            window.location.href = redirectUrl;
+          }
+        }, 100);
+      } else {
+        // Last section, go to final result
+        console.log('✅ Last section already completed, going to result page');
+        window.location.replace('/exam/exam-result');
+      }
       return;
     }
     
@@ -731,15 +887,39 @@ function ExamModeContent() {
       return newSet;
     });
 
-    // Always redirect to exam result page with section parameter
-    // The result page will show section-specific results
+    // ALWAYS redirect to result page first (with section parameter)
+    // The result page will then redirect to break page → next section
+    // NO VALIDATION - User can submit even if not all questions are answered
+    // User can submit with empty answers and still move to next section
     setTimeout(() => {
       // Ensure the section is saved before redirect
       const finalCompletedSections = new Set([...completedSections, section]);
       localStorage.setItem('completedSections', JSON.stringify([...finalCompletedSections]));
-      console.log('Redirecting to result page for section:', section);
-      // Redirect to result page with section parameter to show section-specific results
-      window.location.href = `/exam/exam-result?section=${encodeURIComponent(section)}`;
+
+      console.log('📊 ========== SECTION SUBMISSION ==========');
+      console.log('📊 Current section being submitted:', section);
+      console.log('📊 Redirecting to result page with section parameter');
+      
+      // Clear any section-related state from localStorage to ensure fresh load
+      localStorage.removeItem('currentSection');
+      
+      // ALWAYS go to result page first with the current section parameter
+      // The result page will handle showing the section results and then redirecting to break → next section
+      const encodedSection = encodeURIComponent(section);
+      const resultPageUrl = `/exam/exam-result?section=${encodedSection}`;
+      
+      console.log('🚀 ========== REDIRECTING TO RESULT PAGE ==========');
+      console.log('🚀 Section being submitted:', section);
+      console.log('🚀 Encoded section param:', encodedSection);
+      console.log('🚀 Result page URL:', resultPageUrl);
+      
+      // Use window.location.href for reliable parameter passing
+      if (typeof window !== 'undefined') {
+        console.log('🚀 Setting window.location.href to result page:', resultPageUrl);
+        window.location.href = resultPageUrl;
+      } else {
+        console.error('❌ window is undefined, cannot redirect!');
+      }
     }, 100);
   };
 
@@ -1113,28 +1293,32 @@ function ExamModeContent() {
       <div className="flex-grow p-4 overflow-auto bg-white-50 mt-0 md:mt-0 relativeaaaaaaaaaaaaaa">
   {/* Fixed Top Bar */}
   <div className="bg-[#290c52] text-white text-sm px-4 py-3 rounded-t flex justify-between flex-wrap gap-2 sticky top-[-20px] md:top-0 z-10 mb-0 md:">
-    <span>Question Type: MCQ</span>
-    <div className="flex items-center gap-2">
-      <p>View in:</p>
-      <select 
-        className="text-black text-xs bg-white"
-        value={viewLanguage}
-        onChange={(e) => setViewLanguage(e.target.value)}
-      >
-        <option value="English">English</option>
-        <option value="हिन्दी">हिन्दी</option>
-      </select>
-    </div>
+    <span>Question Type: {currentQuestion?.questionType === "TYPING" ? "TYPING" : "MCQ"}</span>
+    {currentQuestion?.questionType !== "TYPING" && (
+      <div className="flex items-center gap-2">
+        <p>View in:</p>
+        <select 
+          className="text-black text-xs bg-white"
+          value={viewLanguage}
+          onChange={(e) => setViewLanguage(e.target.value)}
+        >
+          <option value="English">English</option>
+          <option value="हिन्दी">हिन्दी</option>
+        </select>
+      </div>
+    )}
   </div>
 
   {/* Scrollable Content */}
   <div className="border border-gray-300 rounded-b">
-    <div className="bg-white-50 px-4 py-3 border-b text-sm font-semibold flex flex-col sm:flex-row justify-between">
-      <span>Question No. {currentQuestionIndex + 1} {currentQuestions && `of ${currentQuestions.length}`}</span>
-      <span className="mt-1 sm:mt-0">
-        Marks for correct answer: {currentQuestion?.marks || 1} | Negative Marks: <span className="text-red-500">{currentQuestion?.negativeMarks || 0}</span>
-      </span>
-    </div>
+    {currentQuestion?.questionType !== "TYPING" && (
+      <div className="bg-white-50 px-4 py-3 border-b text-sm font-semibold flex flex-col sm:flex-row justify-between">
+        <span>Question No. {currentQuestionIndex + 1} {currentQuestions && `of ${currentQuestions.length}`}</span>
+        <span className="mt-1 sm:mt-0">
+          Marks for correct answer: {currentQuestion?.marks || 1} | Negative Marks: <span className="text-red-500">{currentQuestion?.negativeMarks || 0}</span>
+        </span>
+      </div>
+    )}
 
     {loading ? (
       <div className="p-8 text-center">
@@ -1147,6 +1331,64 @@ function ExamModeContent() {
         ) : (
           <p>No questions available for this section.</p>
         )}
+      </div>
+    ) : currentQuestion?.questionType === "TYPING" ? (
+      // Typing Section UI
+      <div className="p-6">
+        <div className="bg-blue-50 p-4 rounded-lg mb-4">
+          <h2 className="text-lg font-semibold text-blue-800 mb-2">Typing Test - {section}</h2>
+          <ul className="text-blue-700 space-y-1 text-sm">
+            <li>• Language: {currentQuestion.typingLanguage}</li>
+            {currentQuestion.typingLanguage === "Hindi" && (
+              <li>• Script Type: {currentQuestion.typingScriptType || "Ramington Gail"}</li>
+            )}
+            <li>• Duration: {currentQuestion.typingDuration || 10} minutes</li>
+            <li>• Backspace: {currentQuestion.typingBackspaceEnabled !== false ? 'Enabled' : 'Disabled'}</li>
+            <li>• Type the text exactly as shown</li>
+          </ul>
+        </div>
+        <TypingArea
+          content={
+            currentQuestion.typingLanguage === "Hindi"
+              ? (currentQuestion.typingScriptType === "Inscript" 
+                  ? (currentQuestion.typingContent_hindi_inscript || currentQuestion.typingContent_hindi_ramington || "किताब ज्ञान का भंडार होती है। इनमें हर तरह का ज्ञान भरा होता है। ये मानव की सबसे बेहतरीन मित्र होती है।")
+                  : (currentQuestion.typingContent_hindi_ramington || "किताब ज्ञान का भंडार होती है। इनमें हर तरह का ज्ञान भरा होता है। ये मानव की सबसे बेहतरीन मित्र होती है।"))
+              : (currentQuestion.typingContent_english || "The quick brown fox jumps over the lazy dog. Practice typing to improve your speed and accuracy. This is a sample English typing test for RSCIT exam preparation. Type carefully and focus on accuracy. Speed will come with practice. Keep your fingers on the home row and maintain proper posture while typing.")
+          }
+          onComplete={(result) => {
+            console.log("Typing test completed:", result);
+            // Save typing result to selectedAnswers
+            setSelectedAnswers(prev => ({
+              ...prev,
+              [currentQuestion._id]: {
+                type: "TYPING",
+                typedText: result.typedText,
+                mistakes: result.mistakes,
+                backspaceCount: result.backspaceCount,
+                wpm: result.wpm || 0,
+                accuracy: result.accuracy || 0
+              }
+            }));
+            // Auto-submit section after typing is complete
+            setTimeout(() => {
+              handleSubmitSection();
+            }, 2000);
+          }}
+          onProgress={(progressStats) => {
+            // Save progress to localStorage for persistence
+            const progressData = {
+              questionId: currentQuestion._id,
+              ...progressStats
+            };
+            localStorage.setItem(`typingProgress_${currentQuestion._id}`, JSON.stringify(progressData));
+          }}
+          showTimer={true}
+          duration={currentQuestion.typingDuration || 10}
+          allowBackspace={currentQuestion.typingBackspaceEnabled !== false}
+          language={currentQuestion.typingLanguage || "English"}
+          scriptType={currentQuestion.typingLanguage === "Hindi" ? (currentQuestion.typingScriptType || "Ramington Gail") : null}
+          mode="word"
+        />
       </div>
     ) : (
       <>
@@ -1377,12 +1619,11 @@ function ExamModeContent() {
                   setMarkedForReview(prev => new Set([...prev, currentQuestion._id]));
                 }
                 
-                // Check if we're on last question of last part of last section
-                if (isLastQuestion()) {
-                  // On last question, redirect to result page
-                  window.location.href = "/exam/exam-result";
-                } else if (isLastQuestionInPart() && isLastPartInSection()) {
-                  // On last question of last part, go to section summary
+                // Check if we're on last question of last part of current section
+                if (isLastQuestionInPart() && isLastPartInSection()) {
+                  // On last question of last part in current section, submit section
+                  // handleSubmitSection() will check if it's the last section and redirect to result page,
+                  // otherwise it will go to break page and then next section
                   handleSubmitSection();
                 } else if (isLastQuestionInPart()) {
                   // On last question of current part, move to next part
@@ -1528,9 +1769,12 @@ function ExamModeContent() {
               {isLastQuestion() || (isLastQuestionInPart() && isLastPartInSection()) ? "Save & Submit Section" : "Save & Next"}
             </button>
           </div>
-          <button className="bg-green-800 hover:bg-cyan-700 text-white px-12 py-2 ml-2 text-[13px] rounded w-full md:hidden">
-  <a href="/exam/exam-result">Submit Section</a>
-</button>
+          <button 
+            onClick={handleSubmitSection}
+            className="bg-green-800 hover:bg-cyan-700 text-white px-12 py-2 ml-2 text-[13px] rounded w-full md:hidden"
+          >
+            Submit Section
+          </button>
 
         </div>
       </div>
@@ -1629,8 +1873,11 @@ function ExamModeContent() {
             </>
           )}
         
-          <button className="bg-green-800 hover:bg-cyan-700 text-white px-12 py-2 ml-2 mt-[-4] text-[13px] rounded">
-            <a href="/exam/exam-result">Submit Section</a>
+          <button 
+            onClick={handleSubmitSection}
+            className="bg-green-800 hover:bg-cyan-700 text-white px-12 py-2 ml-2 mt-[-4] text-[13px] rounded"
+          >
+            Submit Section
           </button>
         </div>
       </div>

@@ -28,18 +28,43 @@ export default function ProfilePage() {
         setUser(data.user);
         setSubscription(data.subscription || null);
           
-        // Fetch user's exam results
+        // Fetch user's exam results - try multiple userIds to get all results
         const userDataStr = localStorage.getItem('examUserData');
         const userData = userDataStr ? JSON.parse(userDataStr) : {};
-        const userId = userData.mobile || data.user.email || 'anonymous';
         
-        const resultsResponse = await fetch(`/api/results?userId=${userId}`);
-        if (resultsResponse.ok) {
-          const resultsData = await resultsResponse.json();
-          if (resultsData.success) {
-            setResults(resultsData.results || []);
+        // Try different userIds to get all results
+        const userIds = [
+          userData.mobile,
+          data.user.email,
+          data.user.phoneNumber,
+          data.user.mobile
+        ].filter(Boolean);
+        
+        // Fetch results for all possible userIds
+        const allResults = [];
+        for (const userId of userIds) {
+          try {
+            const resultsResponse = await fetch(`/api/results?userId=${userId}`);
+            if (resultsResponse.ok) {
+              const resultsData = await resultsResponse.json();
+              if (resultsData.success && resultsData.results) {
+                allResults.push(...resultsData.results);
+              }
+            }
+          } catch (err) {
+            console.error(`Error fetching results for userId ${userId}:`, err);
           }
         }
+        
+        // Remove duplicates based on _id
+        const uniqueResults = allResults.filter((result, index, self) =>
+          index === self.findIndex((r) => r._id === result._id)
+        );
+        
+        // Sort by submittedAt (most recent first)
+        uniqueResults.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+        
+        setResults(uniqueResults);
       } else {
         setError(data.error || "Failed to load profile");
       }
@@ -55,7 +80,7 @@ export default function ProfilePage() {
     fetchProfile();
   }, [fetchProfile]);
 
-  const handleDownloadPDF = (result) => {
+  const handleDownloadPDF = async (result) => {
     const pdf = new jsPDF();
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
@@ -126,7 +151,34 @@ export default function ProfilePage() {
     pdf.text(`Percentage: ${result.percentage}%`, pageWidth / 2, yPos, { align: 'center' });
     
     // Save PDF
-    pdf.save(`exam-result-${result.userName}-${result.examTitle}-${Date.now()}.pdf`);
+    const fileName = `exam-result-${result.userName}-${result.examTitle}-${Date.now()}.pdf`;
+    pdf.save(fileName);
+    
+    // Mark PDF as downloaded in database
+    if (result._id) {
+      try {
+        const response = await fetch('/api/results', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resultId: result._id })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Update local state
+          setResults(prevResults => 
+            prevResults.map(r => 
+              r._id === result._id 
+                ? { ...r, pdfDownloaded: true, pdfDownloadedAt: new Date() }
+                : r
+            )
+          );
+        }
+      } catch (error) {
+        console.error('Error marking PDF as downloaded:', error);
+        // Don't show error to user - PDF download succeeded
+      }
+    }
   };
 
   if (loading) {
@@ -362,18 +414,40 @@ export default function ProfilePage() {
               {results.map((result, index) => (
                 <div key={result._id || index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800">{result.examTitle}</h3>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-semibold text-gray-800">{result.examTitle}</h3>
+                        {result.pdfDownloaded && (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full flex items-center gap-1">
+                            <span>✓</span>
+                            <span>Downloaded</span>
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-500">
                         {new Date(result.submittedAt).toLocaleDateString()} at {new Date(result.submittedAt).toLocaleTimeString()}
                       </p>
+                      {result.pdfDownloaded && result.pdfDownloadedAt && (
+                        <p className="text-xs text-gray-400 mt-1">
+                          PDF Downloaded: {new Date(result.pdfDownloadedAt).toLocaleDateString()} at {new Date(result.pdfDownloadedAt).toLocaleTimeString()}
+                        </p>
+                      )}
                     </div>
-                    <button
-                      onClick={() => handleDownloadPDF(result)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold"
-                    >
-                      Download PDF
-                    </button>
+                    <div className="flex flex-col gap-2 items-end">
+                      <button
+                        onClick={() => handleDownloadPDF(result)}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                          result.pdfDownloaded
+                            ? 'bg-green-500 hover:bg-green-600 text-white'
+                            : 'bg-blue-500 hover:bg-blue-600 text-white'
+                        }`}
+                      >
+                        {result.pdfDownloaded ? 'Download Again' : 'Download PDF'}
+                      </button>
+                      {!result.pdfDownloaded && (
+                        <span className="text-xs text-gray-500">Not downloaded yet</span>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">

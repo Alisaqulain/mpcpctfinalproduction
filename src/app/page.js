@@ -626,7 +626,7 @@ const App = () => {
             <div className="text-center">
               <p className="text-2xl md:text-5xl pt-3 md:pt-5 font-semibold home-info-title">
                 Welcome to our website<br />
-                <span className="text-[#290c52] text-4xl">MPCPCT.COM</span>
+                <span className="text-[#290c52] text-4xl">MPCPCT</span>
               </p>
             </div>
             <div className="text-center">

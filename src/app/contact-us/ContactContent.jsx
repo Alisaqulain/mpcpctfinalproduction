@@ -41,7 +41,7 @@ export default function ContactContent() {
                 rel="noopener noreferrer"
                 className="text-purple-800 font-bold underline"
               >
-                www.MPCPCT.com
+                MPCPCT
               </a>
             </div>
           </div>

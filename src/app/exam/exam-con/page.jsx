@@ -43,7 +43,7 @@ export default function ExamInstructions() {
       {/* Header */}
       <div className="bg-[#290c52] text-white flex justify-between items-center px-6 py-4 w-full">
         <h1 className="text-lg md:text-xl font-semibold">
-          T&C and Exam Instruction - Mpcpctmaster.com
+          T&C and Exam Instruction - MPCPCT
         </h1>
         <div className="flex items-center gap-2">
           <span className="hidden sm:inline-block">View in :</span>

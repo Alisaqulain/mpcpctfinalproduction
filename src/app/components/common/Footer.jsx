@@ -22,7 +22,7 @@ export default function Footer() {
           <h3 className="text-lg font-semibold mb-4">Return & Refund Policy</h3>
           <div className="text-gray-300 space-y-2 text-sm leading-relaxed">
             <p>1. The customers have <strong>7 days</strong> to check their purchases.</p>
-            <p>2. If a customer is unsatisfied with the products, they must return them within <strong>7 days</strong> of the purchase. <strong>Mpcpct.com</strong> will refund all your money without any questions.</p>
+            <p>2. If a customer is unsatisfied with the products, they must return them within <strong>7 days</strong> of the purchase. <strong>MPCPCT</strong> will refund all your money without any questions.</p>
             <p>3. The products must be returned within <strong>7 days</strong> under the following conditions:</p>
             <ul className="list-disc ml-5 space-y-1">
               <li>The condition of the purchase must be the same as it was at the time of purchase</li>
@@ -30,17 +30,17 @@ export default function Footer() {
               <li>It must not be damaged</li>
               <li>The customer must bring the purchase receipt</li>
             </ul>
-            <p>4. After fourteen days of the purchase or not fulfilling any of the conditions provided in clause 3, <strong>Mpcpct.com</strong> shall not accept any return, and no money will be refunded.</p>
+            <p>4. After fourteen days of the purchase or not fulfilling any of the conditions provided in clause 3, <strong>MPCPCT</strong> shall not accept any return, and no money will be refunded.</p>
             <p>5. For more information regarding return and refund policy, please contact us.</p>
-            <p className="mt-3">Thank you for choosing <strong>Mpcpct.com</strong>!</p>
+            <p className="mt-3">Thank you for choosing <strong>MPCPCT</strong>!</p>
           </div>
         </div>
 
         {/* Copyright */}
         <div>
-          <h3 className="text-lg font-semibold mb-4">© Copyright - <span className="font-mono text-lg">Mpcpct.com</span></h3>
+          <h3 className="text-lg font-semibold mb-4">© Copyright - <span className="font-mono text-lg">MPCPCT</span></h3>
           <p className="text-gray-300">
-            © 2025 <span className="font-mono">Mpcpct.com</span>. All rights reserved. The content, design, and materials on this website—including text, graphics, logos, and software—are the property of <span className="font-mono">Mpcpct.com</span> and protected under Indian and international copyright laws.
+            © 2025 <span className="font-mono">MPCPCT</span>. All rights reserved. The content, design, and materials on this website—including text, graphics, logos, and software—are the property of <span className="font-mono">MPCPCT</span> and protected under Indian and international copyright laws.
           </p>
           <p className="italic text-gray-400 mt-2">
             Unauthorized reproduction, distribution, or modification without prior written permission is strictly prohibited. For inquiries, contact us.

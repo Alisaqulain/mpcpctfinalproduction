@@ -601,6 +601,40 @@ export default function AdminPanel() {
             </p>
           </div>
 
+          {/* Delete Exams Section */}
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-red-800 mb-2">
+              <strong>⚠️ Delete Exams:</strong> Delete CPCT and RSCIT exams completely (including all sections, parts, and questions)
+            </p>
+            <button
+              onClick={async () => {
+                if (!confirm('⚠️ WARNING: This will PERMANENTLY DELETE both CPCT and RSCIT exams and ALL their data (sections, parts, questions).\n\nThis action CANNOT be undone!\n\nAre you absolutely sure you want to continue?')) return;
+                try {
+                  const res = await fetch('/api/admin/delete-exams', {
+                    method: 'POST',
+                    credentials: 'include'
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(`✅ ${data.message}\n\nDeleted:\n- Exams: ${data.deleted.exams.join(', ')}\n- Sections: ${data.deleted.sections}\n- Parts: ${data.deleted.parts}\n- Questions: ${data.deleted.questions}\n\nYou can now create fresh exams.`);
+                    await fetchExams();
+                    setSelectedExam(null);
+                    setSections([]);
+                    setParts([]);
+                    setQuestions([]);
+                  } else {
+                    alert('Failed: ' + (data.error || 'Unknown error'));
+                  }
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                }
+              }}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
+            >
+              🗑️ Delete CPCT & RSCIT Exams
+            </button>
+          </div>
+
           {/* CPCT Import Section */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-yellow-800 mb-2">
@@ -660,9 +694,67 @@ export default function AdminPanel() {
                   alert('Error: ' + error.message);
                 }
               }}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm mr-2"
             >
               Create Dummy Exam (5 Sections + Typing)
+            </button>
+            <button
+              onClick={async () => {
+                if (!confirm('This will create CPCT exam with 3 sections:\n- Section 1: Part 1 (15 questions) + Part 2 (15 questions)\n- Section 2: Part 1 (15 questions) + Part 2 (15 questions)\n- Section 3: Part 1 (15 questions) + Part 2 (15 questions)\n\nTotal: 90 questions (each section has 2 parts with 15 questions each). Continue?')) return;
+                try {
+                  const res = await fetch('/api/admin/create-cpct-exam-30', {
+                    method: 'POST',
+                    credentials: 'include'
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(`✅ ${data.message}\n\n${JSON.stringify(data.structure, null, 2)}\n\nTotal Questions: ${data.totalQuestions}\nSections Created: ${data.sectionsCreated}`);
+                    await fetchExams();
+                    // Select the CPCT exam if it exists
+                    const cpctExam = exams.find(e => e.key === 'CPCT');
+                    if (cpctExam) {
+                      setSelectedExam(cpctExam._id);
+                      fetchSections(cpctExam._id);
+                    }
+                  } else {
+                    alert('Failed: ' + (data.error || 'Unknown error'));
+                  }
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                }
+              }}
+              className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 text-sm mr-2"
+            >
+              Create CPCT Exam (3 Sections: 2 Parts Each, 15 Q/Part)
+            </button>
+            <button
+              onClick={async () => {
+                if (!confirm('This will create RSCIT dummy exam with 3 sections:\n- Section 1: 100 MCQ questions (90 minutes)\n- Section 2: English Typing (15 minutes)\n- Section 3: Hindi Typing (15 minutes)\n\nTotal: 100 MCQ questions + 2 typing sections. Continue?')) return;
+                try {
+                  const res = await fetch('/api/admin/create-rscit-dummy', {
+                    method: 'POST',
+                    credentials: 'include'
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(`✅ ${data.message}\n\n${JSON.stringify(data.structure, null, 2)}\n\nTotal Questions: ${data.totalQuestions}\nSections Created: ${data.sectionsCreated}\nTotal Time: ${data.totalTime}`);
+                    await fetchExams();
+                    // Select the RSCIT exam if it exists
+                    const rscitExam = exams.find(e => e.key === 'RSCIT');
+                    if (rscitExam) {
+                      setSelectedExam(rscitExam._id);
+                      fetchSections(rscitExam._id);
+                    }
+                  } else {
+                    alert('Failed: ' + (data.error || 'Unknown error'));
+                  }
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                }
+              }}
+              className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 text-sm"
+            >
+              Create RSCIT Dummy (100 MCQ + English + Hindi Typing)
             </button>
             {selectedExam && exams.find(e => e._id === selectedExam)?.key === 'CPCT' && (
               <button

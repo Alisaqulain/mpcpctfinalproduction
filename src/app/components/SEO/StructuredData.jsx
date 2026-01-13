@@ -8,7 +8,7 @@ export function OrganizationSchema({ siteUrl }) {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
     "name": "MPCPCT",
-    "alternateName": ["MPCPCT.com", "MPCPCT - CPCT, RSCIT, CCC Exam Practice Platform"],
+    "alternateName": ["MPCPCT - CPCT, RSCIT, CCC Exam Practice Platform"],
     "url": siteUrl,
     "logo": `${siteUrl}/logo2.png`,
     "image": `${siteUrl}/logo2.png`,
@@ -105,7 +105,7 @@ export function WebSiteSchema({ siteUrl }) {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "MPCPCT",
-    "alternateName": "MPCPCT.com",
+    "alternateName": "MPCPCT",
     "url": siteUrl,
     "description": "MPCPCT - Practice CPCT, RSCIT, and CCC exams with bilingual support in Indore, Madhya Pradesh. Master typing skills for government jobs in MP with MPCPCT. Best online exam practice platform in Indore for CPCT, RSCIT, and CCC preparation.",
     "potentialAction": {

@@ -14,6 +14,8 @@ function ExamResultContent() {
   const [saving, setSaving] = useState(false);
   const [visitedQuestions, setVisitedQuestions] = useState(new Set());
   const [markedForReview, setMarkedForReview] = useState(new Set());
+  const [viewLanguage, setViewLanguage] = useState("English");
+  const [showAnswers, setShowAnswers] = useState(false); // Control whether to show answers or confirmation
   const searchParams = useSearchParams();
   const router = useRouter();
   const currentSection = searchParams?.get("section") || null;
@@ -503,27 +505,223 @@ function ExamResultContent() {
         </div>
       </div>
 
-      {/* Confirmation Message - Show different messages based on context */}
-      {currentSection ? (
-        <div className="text-center text-sm p-4 mt-4">
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-4">
-            <p className="text-gray-800 font-medium leading-relaxed mb-2">
-              <strong>क्या आप वाकई इस सेक्शन को सबमिट करना चाहते हैं?</strong>
-            </p>
-            <p className="text-xs text-gray-600 mb-2">
-              आगे बढ़ने के लिए 'Continue to Break' पर क्लिक करें; वापस जाने के लिए 'Go Back' पर क्लिक करें।
-            </p>
-            <p className="text-xs text-red-600 font-semibold">
-              प्रतिभागी, एक बार सेक्शन सबमिट करने के बाद, आप अपने उत्तरों में कोई संशोधन नहीं कर पाएंगे।
-            </p>
+      {/* Confirmation Dialog - Show BEFORE answers if section is specified and answers not shown yet */}
+      {currentSection && !showAnswers ? (
+        <div className="px-4 mt-8 mb-4">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-4">
+              <p className="text-gray-800 font-medium leading-relaxed mb-2 text-center">
+                <strong>क्या आप वाकई इस सेक्शन को सबमिट करना चाहते हैं?</strong>
+              </p>
+              <p className="text-xs text-gray-600 mb-2 text-center">
+                आगे बढ़ने के लिए 'Continue to Next Section' पर क्लिक करें; वापस जाने के लिए 'Go Back' पर क्लिक करें।
+              </p>
+              <p className="text-xs text-red-600 font-semibold text-center">
+                प्रतिभागी, एक बार सेक्शन सबमिट करने के बाद, आप अपने उत्तरों में कोई संशोधन नहीं कर पाएंगे।
+              </p>
+            </div>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => router.back()}
+                className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Go Back
+              </button>
+              <button
+                onClick={() => {
+                  // Show answers after confirmation
+                  setShowAnswers(true);
+                }}
+                className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Continue to Next Section
+              </button>
+            </div>
           </div>
+        </div>
+      ) : null}
+
+      {/* Questions Review Section - Show only after confirmation OR if no section specified */}
+      {sectionStats.length > 0 && (!currentSection || showAnswers) && (
+        <div className="px-4 mt-8 mb-4">
+          <div className="bg-[#290c52] text-white p-3 rounded-t-lg flex justify-between items-center">
+            <h2 className="text-lg md:text-xl font-bold">Questions Review</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-sm">View in:</span>
+              <select 
+                className="text-black text-xs bg-white px-2 py-1 rounded"
+                value={viewLanguage}
+                onChange={(e) => setViewLanguage(e.target.value)}
+              >
+                <option value="English">English</option>
+                <option value="हिन्दी">हिन्दी</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="border border-gray-300 rounded-b-lg overflow-hidden">
+            {sections
+              .filter(sec => !currentSection || sec.name === currentSection)
+              .map((sec, sectionIndex) => {
+                const sectionQuestions = questions[sec.name] || [];
+                if (sectionQuestions.length === 0) return null;
+                
+                const sectionStat = sectionStats.find(s => s.sectionName === sec.name);
+                if (!sectionStat || sectionStat.yetToAttempt) return null;
+              
+              return (
+                <div key={sec._id || sectionIndex} className="border-b border-gray-200 last:border-b-0">
+                  <div className="bg-blue-50 p-3 border-b border-gray-300">
+                    <h3 className="text-base md:text-lg font-semibold text-[#290c52]">
+                      {sec.name}
+                    </h3>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Total Questions: {sectionStat.totalQuestions} | 
+                      Correct: <span className="text-green-600 font-semibold">{sectionStat.correct}</span> | 
+                      Incorrect: <span className="text-red-600 font-semibold">{sectionStat.incorrect}</span>
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 space-y-6">
+                    {sectionQuestions.map((q, qIndex) => {
+                      const userAnswer = selectedAnswers[q._id];
+                      const correctAnswer = q.correctAnswer;
+                      const isCorrect = userAnswer !== undefined && userAnswer !== null && userAnswer === correctAnswer;
+                      const isAnswered = userAnswer !== undefined && userAnswer !== null;
+                      const options = (viewLanguage === "हिन्दी" && q.options_hi && q.options_hi.length > 0)
+                        ? q.options_hi 
+                        : (q.options_en || q.options_hi || []);
+                      const questionText = (viewLanguage === "हिन्दी" && q.question_hi)
+                        ? q.question_hi
+                        : (q.question_en || q.question_hi || 'No question text available');
+                      
+                      return (
+                        <div 
+                          key={q._id || qIndex}
+                          className={`border-2 rounded-lg p-4 ${
+                            isCorrect 
+                              ? 'border-green-500 bg-green-50' 
+                              : isAnswered 
+                              ? 'border-red-500 bg-red-50' 
+                              : 'border-gray-300 bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="bg-[#290c52] text-white px-3 py-1 rounded-full text-sm font-bold">
+                                  Q{qIndex + 1}
+                                </span>
+                                {isCorrect && (
+                                  <span className="bg-green-600 text-white px-2 py-1 rounded text-xs font-semibold">
+                                    ✓ Correct
+                                  </span>
+                                )}
+                                {isAnswered && !isCorrect && (
+                                  <span className="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold">
+                                    ✗ Incorrect
+                                  </span>
+                                )}
+                                {!isAnswered && (
+                                  <span className="bg-gray-500 text-white px-2 py-1 rounded text-xs font-semibold">
+                                    Not Answered
+                                  </span>
+                                )}
+                              </div>
+                              
+                              {/* Question Image */}
+                              {q.imageUrl && String(q.imageUrl).trim() !== '' && (
+                                <div className="mb-3">
+                                  <img 
+                                    src={encodeURI(String(q.imageUrl).trim())} 
+                                    alt="Question" 
+                                    className="max-w-full h-auto rounded border shadow-md"
+                                    style={{ maxHeight: '400px' }}
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                    }}
+                                  />
+                                </div>
+                              )}
+                              
+                              {/* Question Text */}
+                              <p className="text-sm md:text-base font-medium text-gray-800 mb-4">
+                                {questionText}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Options */}
+                          <div className="space-y-2">
+                            {options.map((opt, optIndex) => {
+                              const isUserAnswer = isAnswered && userAnswer === optIndex;
+                              const isCorrectOption = correctAnswer === optIndex;
+                              
+                              return (
+                                <div
+                                  key={optIndex}
+                                  className={`p-3 rounded border-2 flex items-start gap-3 ${
+                                    isCorrectOption
+                                      ? 'bg-green-100 border-green-500'
+                                      : isUserAnswer
+                                      ? 'bg-red-100 border-red-400'
+                                      : 'bg-white border-gray-300'
+                                  }`}
+                                >
+                                  <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 mt-0.5 ${
+                                    isCorrectOption
+                                      ? 'bg-green-600 text-white'
+                                      : isUserAnswer
+                                      ? 'bg-red-600 text-white'
+                                      : 'bg-gray-300 text-gray-700'
+                                  }`}>
+                                    {String.fromCharCode(65 + optIndex)}
+                                  </div>
+                                  <div className="flex-1">
+                                    <span className={`text-sm md:text-base ${
+                                      isCorrectOption || isUserAnswer
+                                        ? 'font-semibold'
+                                        : 'font-normal'
+                                    }`}>
+                                      {opt}
+                                    </span>
+                                    <div className="flex gap-2 mt-1">
+                                      {isCorrectOption && (
+                                        <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded font-semibold">
+                                          Correct Answer
+                                        </span>
+                                      )}
+                                      {isUserAnswer && !isCorrectOption && (
+                                        <span className="text-xs bg-red-600 text-white px-2 py-0.5 rounded font-semibold">
+                                          Your Answer
+                                        </span>
+                                      )}
+                                      {isUserAnswer && isCorrectOption && (
+                                        <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-semibold">
+                                          Your Answer (Correct)
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Navigation Button - Show after answers are displayed for section-specific view */}
+      {currentSection && showAnswers ? (
+        <div className="text-center text-sm p-4 mt-4">
           <div className="flex justify-center gap-4">
-            <button
-              onClick={() => router.back()}
-              className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-            >
-              Go Back
-            </button>
             <button
               onClick={() => {
                 // Find next section

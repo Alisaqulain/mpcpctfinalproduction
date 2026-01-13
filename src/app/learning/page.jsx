@@ -37,8 +37,9 @@ export default function TypingTutor() {
           credentials: 'include'
         });
         const data = await res.json();
-        if (data.hasAccess && data.reason === 'subscription') {
-          setUserSubscription(data.subscription);
+        // Grant access if hasAccess is true (covers subscription, admin, etc.)
+        if (data.hasAccess === true) {
+          setUserSubscription(data.subscription || { type: 'all' });
         }
       } catch (error) {
         console.error('Failed to check access:', error);

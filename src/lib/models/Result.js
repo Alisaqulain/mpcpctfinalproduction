@@ -32,7 +32,9 @@ const ResultSchema = new mongoose.Schema(
     totalScore: { type: Number, default: 0 },
     percentage: { type: Number, default: 0 },
     timeTaken: { type: Number }, // in seconds
-    submittedAt: { type: Date, default: Date.now }
+    submittedAt: { type: Date, default: Date.now },
+    pdfDownloaded: { type: Boolean, default: false }, // Track if PDF was downloaded
+    pdfDownloadedAt: { type: Date } // Track when PDF was downloaded
   },
   { timestamps: true }
 );

@@ -36,7 +36,8 @@ export default function SkillTestPage() {
         body: JSON.stringify({ type: "skill", isFree: false })
       });
       const data = await res.json();
-      setUserIsPremium(data.hasAccess && data.reason === "subscription");
+      // Grant access if hasAccess is true (covers subscription, admin, etc.)
+      setUserIsPremium(data.hasAccess === true);
     } catch (error) {
       console.error("Failed to check premium status:", error);
     }
