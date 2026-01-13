@@ -1,5 +1,5 @@
 export default async function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.mpcpct.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://mpcpct.com";
   
   // Define all routes with their priorities and change frequencies
   const routes = [

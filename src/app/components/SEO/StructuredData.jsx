@@ -301,6 +301,39 @@ export function LocalBusinessSchema({ siteUrl }) {
   );
 }
 
+export function ExamPaperSchema({ siteUrl, examName, examType, description, questionCount, duration, datePublished }) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "LearningResource",
+    "name": `${examName} Exam Paper`,
+    "description": description || `Free ${examName} exam paper, ${examName} question paper, ${examName} previous year paper, ${examName} sample paper for practice. Download ${examName} exam paper PDF, ${examName} solved paper with answers.`,
+    "educationalLevel": "Professional",
+    "learningResourceType": "Exam Paper",
+    "about": {
+      "@type": "Thing",
+      "name": examName
+    },
+    "provider": {
+      "@type": "EducationalOrganization",
+      "name": "MPCPCT",
+      "url": siteUrl
+    },
+    "inLanguage": ["en-IN", "hi-IN"],
+    "datePublished": datePublished || new Date().toISOString(),
+    "numberOfQuestions": questionCount || 75,
+    "timeRequired": duration ? `PT${duration}M` : "PT120M",
+    "keywords": `${examName} exam paper, ${examName} question paper, ${examName} previous year paper, ${examName} sample paper, ${examName} practice paper, ${examName} solved paper, ${examName} mock test paper, ${examName} exam paper download, ${examName} paper PDF`,
+    "url": `${siteUrl}/exam`
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 export function ServiceSchema({ siteUrl }) {
   const schema = {
     "@context": "https://schema.org",
@@ -366,7 +399,8 @@ export function ServiceSchema({ siteUrl }) {
           "itemOffered": {
             "@type": "Course",
             "name": "CPCT Exam Preparation",
-            "description": "Practice and prepare for CPCT (Computer Proficiency Certificate Test) exam"
+            "description": "Practice and prepare for CPCT (Computer Proficiency Certificate Test) exam. Download free CPCT exam papers, CPCT question papers, CPCT previous year papers, CPCT sample papers 2025. Get CPCT solved papers, CPCT mock test papers, CPCT practice papers with answers.",
+            "keywords": "CPCT exam paper, CPCT question paper, CPCT previous year paper, CPCT sample paper, CPCT practice paper, CPCT solved paper, CPCT mock test paper, CPCT exam paper download, CPCT paper PDF"
           }
         },
         {

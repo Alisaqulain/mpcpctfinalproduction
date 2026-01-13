@@ -5,7 +5,7 @@ import { GeistMono } from "geist/font/mono";
 import Script from "next/script";
 import LayoutWrapper from "./components/LayoutWrapper";
 import { defaultMetadata } from "../lib/metadata";
-import { OrganizationSchema, WebSiteSchema, ServiceSchema, LocalBusinessSchema } from "./components/SEO/StructuredData";
+import { OrganizationSchema, WebSiteSchema, ServiceSchema, LocalBusinessSchema, ExamPaperSchema } from "./components/SEO/StructuredData";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -18,7 +18,7 @@ const poppins = Poppins({
 export const metadata = defaultMetadata;
 
 export default function RootLayout({ children }) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mpcpct.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://mpcpct.com';
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
@@ -51,6 +51,14 @@ export default function RootLayout({ children }) {
         <LocalBusinessSchema siteUrl={siteUrl} />
         <WebSiteSchema siteUrl={siteUrl} />
         <ServiceSchema siteUrl={siteUrl} />
+        <ExamPaperSchema 
+          siteUrl={siteUrl} 
+          examName="CPCT" 
+          examType="Computer Proficiency Certification Test"
+          description="Free CPCT exam papers, CPCT question papers, CPCT previous year papers, CPCT sample papers 2025. Download CPCT exam paper PDF, practice CPCT solved papers with answers. Best CPCT exam paper preparation platform."
+          questionCount={75}
+          duration={120}
+        />
         
         {/* Google Analytics */}
         {gaId && (

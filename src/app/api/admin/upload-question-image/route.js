@@ -29,6 +29,22 @@ export async function POST(request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
+    // Check file size (limit to 5MB for images)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      return NextResponse.json({ 
+        error: `File size too large. Maximum size is 5MB. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB` 
+      }, { status: 400 });
+    }
+
+    // Validate file type (only images)
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json({ 
+        error: `Invalid file type. Only images (JPEG, PNG, GIF, WebP) are allowed.` 
+      }, { status: 400 });
+    }
+
     const uploadsDir = join(process.cwd(), "public", "uploads", "question-images");
     if (!existsSync(uploadsDir)) {
       await mkdir(uploadsDir, { recursive: true });
