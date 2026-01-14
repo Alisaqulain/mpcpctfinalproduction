@@ -53,13 +53,13 @@ export async function POST(req) {
           exam = await Exam.create({
             key: "RSCIT",
             title: examTitle,
-            totalTime: 90, // 90 minutes
+            totalTime: 60, // 60 minutes for Section B (main timer), Section A has separate 15 min timer
             totalQuestions: 50, // 50 questions (35 + 15)
             isFree: examNum === 1 // First exam is free, others are paid
           });
         } else {
           // Update existing exam
-          exam.totalTime = 90;
+          exam.totalTime = 60; // 60 minutes for Section B
           exam.totalQuestions = 50;
           exam.isFree = examNum === 1;
           await exam.save();
@@ -73,7 +73,9 @@ export async function POST(req) {
           ]
         });
 
-        // Section A: 35 questions, 2 marks each
+        // Section A: 15 questions, 2 marks each (FIRST - order 1)
+        // 15 minutes separate timer for Section A
+        // Minimum 12 marks required to proceed to Section B
         const sectionAId = `${examId}-section-a`;
         let sectionA = await Section.findOne({
           examId: exam._id,
@@ -86,11 +88,18 @@ export async function POST(req) {
             name: "Section A",
             examId: exam._id,
             lessonNumber: 1,
-            order: 1
+            order: 1,
+            typingTime: 15, // 15 minutes separate timer for Section A
+            minimumMarks: 12, // Minimum 12 marks required to proceed to Section B
+            maxMarks: 30 // 15 questions × 2 marks = 30 marks
           });
         } else {
           sectionA.name = "Section A";
           sectionA.order = 1;
+          sectionA.lessonNumber = 1;
+          sectionA.typingTime = 15; // 15 minutes separate timer
+          sectionA.minimumMarks = 12; // Minimum 12 marks required
+          sectionA.maxMarks = 30; // 15 questions × 2 marks
           await sectionA.save();
         }
 
@@ -116,9 +125,9 @@ export async function POST(req) {
           await partA.save();
         }
 
-        // Create 35 questions for Section A (1 mark each)
+        // Create 15 questions for Section A (2 marks each)
         let totalQuestionsCreated = 0;
-        for (let qIndex = 0; qIndex < 35; qIndex++) {
+        for (let qIndex = 0; qIndex < 15; qIndex++) {
           totalQuestionsCreated++;
           const questionId = `${examId}-section-a-q-${qIndex + 1}`;
           
@@ -143,13 +152,15 @@ export async function POST(req) {
               "विकल्प C",
               "विकल्प D"
             ],
-            correctAnswer: 0, // Default to option A (0-indexed)
+            correctAnswer: 0,
             marks: 2,
             negativeMarks: 0
           });
         }
 
-        // Section B: 15 questions, 2 marks each
+        // Section B: 35 questions, 2 marks each (SECOND - order 2)
+        // 60 minutes main timer for Section B (fresh, not remaining from Section A)
+        // Minimum 28 marks required in Section B to pass
         const sectionBId = `${examId}-section-b`;
         let sectionB = await Section.findOne({
           examId: exam._id,
@@ -162,11 +173,18 @@ export async function POST(req) {
             name: "Section B",
             examId: exam._id,
             lessonNumber: 2,
-            order: 2
+            order: 2,
+            requiresPreviousSection: true, // Requires Section A to be completed with minimum marks
+            minimumMarks: 28, // Minimum 28 marks required in Section B to pass
+            maxMarks: 70 // 35 questions × 2 marks = 70 marks
           });
         } else {
           sectionB.name = "Section B";
           sectionB.order = 2;
+          sectionB.lessonNumber = 2;
+          sectionB.requiresPreviousSection = true;
+          sectionB.minimumMarks = 28; // Minimum 28 marks required
+          sectionB.maxMarks = 70; // 35 questions × 2 marks
           await sectionB.save();
         }
 
@@ -192,8 +210,8 @@ export async function POST(req) {
           await partB.save();
         }
 
-        // Create 15 questions for Section B (2 marks each)
-        for (let qIndex = 0; qIndex < 15; qIndex++) {
+        // Create 35 questions for Section B (2 marks each)
+        for (let qIndex = 0; qIndex < 35; qIndex++) {
           totalQuestionsCreated++;
           const questionId = `${examId}-section-b-q-${qIndex + 1}`;
           
@@ -218,7 +236,7 @@ export async function POST(req) {
               "विकल्प C",
               "विकल्प D"
             ],
-            correctAnswer: 0, // Default to option A (0-indexed)
+            correctAnswer: 0,
             marks: 2,
             negativeMarks: 0
           });
@@ -235,7 +253,7 @@ export async function POST(req) {
           totalQuestions: exam.totalQuestions
         });
 
-        console.log(`✅ Created exam ${examNum}/20: ${examTitle} (${exam.isFree ? 'FREE' : 'PAID'}) with ${totalQuestionsCreated} questions (35 in Section A, 15 in Section B)`);
+        console.log(`✅ Created exam ${examNum}/20: ${examTitle} (${exam.isFree ? 'FREE' : 'PAID'}) with ${totalQuestionsCreated} questions (15 in Section A first with 15 min timer, 35 in Section B second with 60 min timer)`);
 
       } catch (error) {
         console.error(`❌ Error creating exam ${examNum}:`, error);
@@ -256,7 +274,7 @@ export async function POST(req) {
         paid: createdExams.filter(e => !e.isFree).length
       },
       errors: errors.length > 0 ? errors : undefined,
-      note: "Each exam has 2 sections (Section A: 35 questions @ 2 marks each, Section B: 15 questions @ 2 marks each) with 1 part (RSCIT) in each section, no negative marks, 90 minutes duration."
+      note: "Each exam has 2 sections: Section A first (15 questions @ 2 marks = 30 marks, 15 minutes separate timer, minimum 12 marks to proceed), then Section B (35 questions @ 2 marks = 70 marks, 60 minutes main timer, minimum 28 marks to pass). Total: 50 questions @ 2 marks = 100 marks. Total time: 90 minutes (15 + 60). Section B always gets fresh 60 minutes, not remaining from Section A. Passing criteria: Minimum 12 marks in Section A AND minimum 28 marks in Section B. No negative marks."
     });
 
   } catch (error) {

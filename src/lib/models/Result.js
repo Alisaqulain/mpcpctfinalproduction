@@ -30,11 +30,22 @@ const ResultSchema = new mongoose.Schema(
     totalCorrect: { type: Number, default: 0 },
     totalIncorrect: { type: Number, default: 0 },
     totalScore: { type: Number, default: 0 },
+    totalMaxMarks: { type: Number }, // Maximum possible marks
     percentage: { type: Number, default: 0 },
+    passingMarks: { type: Number }, // Passing marks for the exam
+    isPassed: { type: Boolean }, // Overall pass/fail status
     timeTaken: { type: Number }, // in seconds
     submittedAt: { type: Date, default: Date.now },
     pdfDownloaded: { type: Boolean, default: false }, // Track if PDF was downloaded
-    pdfDownloadedAt: { type: Date } // Track when PDF was downloaded
+    pdfDownloadedAt: { type: Date }, // Track when PDF was downloaded
+    // CPCT specific: typing section results
+    typingResults: [{
+      sectionName: String,
+      language: String, // English, Hindi
+      netSpeed: Number, // NWPM
+      passingSpeed: Number, // Required NWPM (30 for English, 20 for Hindi)
+      isPassed: Boolean
+    }]
   },
   { timestamps: true }
 );

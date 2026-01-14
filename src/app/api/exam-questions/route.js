@@ -45,14 +45,32 @@ export async function GET(req) {
     }).sort({ order: 1, createdAt: 1 });
     
     // Fetch all questions for this exam
+    // Try multiple formats to ensure we get all questions
     const questions = await Question.find({ 
       $or: [
         { examId: String(examId) },
-        { examId: examId }
+        { examId: examId },
+        { examId: new RegExp(`^${String(examId)}$`, 'i') }
       ]
     }).sort({ createdAt: 1 });
     
     console.log(`Found ${sections.length} sections, ${parts.length} parts, and ${questions.length} questions for exam ${examId}`);
+    console.log(`Exam details: _id=${exam._id}, title=${exam.title}, key=${exam.key}`);
+    
+    // Log a sample of question examIds to debug
+    if (questions.length > 0) {
+      console.log(`Sample question examIds: ${questions.slice(0, 3).map(q => q.examId).join(', ')}`);
+    } else {
+      console.warn(`⚠️ WARNING: No questions found for exam ${examId}!`);
+      // Try a broader search to see if questions exist with different examId format
+      const allQuestions = await Question.find({}).limit(5);
+      console.log(`Sample of all questions in DB (first 5):`, allQuestions.map(q => ({
+        _id: q._id,
+        examId: q.examId,
+        examIdType: typeof q.examId,
+        question_en: q.question_en?.substring(0, 30)
+      })));
+    }
     sections.forEach(s => {
       console.log(`Section: ${s.name} (id: ${s.id}, _id: ${s._id.toString()})`);
     });
@@ -82,7 +100,9 @@ export async function GET(req) {
           _id: s._id.toString(),
           id: s.id,
           name: s.name,
-          order: s.order
+          order: s.order,
+          typingTime: s.typingTime || null,
+          skillLessonId: s.skillLessonId || null
         })),
         parts: parts.map(p => ({
           _id: p._id.toString(),

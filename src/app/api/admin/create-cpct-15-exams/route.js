@@ -3,6 +3,7 @@ import dbConnect from "@/lib/db";
 import Exam from "@/lib/models/Exam";
 import Section from "@/lib/models/Section";
 import Part from "@/lib/models/Part";
+import SkillLesson from "@/lib/models/SkillLesson";
 import { jwtVerify } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret123";
@@ -34,6 +35,7 @@ export async function POST(req) {
 
     const createdExams = [];
     const errors = [];
+    let totalSkillLessonsLinked = 0;
 
     // Section definitions for CPCT pattern - NEW STRUCTURE
     // Section A: Contains all MCQ sections as PARTS
@@ -138,6 +140,56 @@ export async function POST(req) {
             id: sectionId
           });
 
+          // For typing sections (Section B and C), link to skill lessons
+          let skillLessonId = null;
+          if (sectionData.name === "Section B" || sectionData.name === "Section C") {
+            // Paper 1 -> Lesson 1, Paper 2 -> Lesson 2, etc.
+            const lessonOrder = examNum;
+            const language = sectionData.name === "Section B" ? "English" : "Hindi";
+            
+            // Find the skill lesson with matching order and language
+            // Try multiple query patterns to find the lesson
+            let skillLesson = await SkillLesson.findOne({
+              language: language,
+              order: lessonOrder
+            });
+            
+            // If not found by exact order, try to find by order number (flexible matching)
+            if (!skillLesson) {
+              skillLesson = await SkillLesson.findOne({
+                language: language,
+                $or: [
+                  { order: lessonOrder },
+                  { order: parseInt(lessonOrder) },
+                  { order: String(lessonOrder) }
+                ]
+              }).sort({ order: 1, createdAt: 1 });
+            }
+            
+            // If still not found, try to find any lesson with that order (case-insensitive language)
+            if (!skillLesson) {
+              skillLesson = await SkillLesson.findOne({
+                $or: [
+                  { language: language },
+                  { language: language.toLowerCase() },
+                  { language: language.toUpperCase() }
+                ],
+                order: lessonOrder
+              }).sort({ order: 1, createdAt: 1 });
+            }
+            
+            if (skillLesson) {
+              skillLessonId = skillLesson.id || skillLesson._id?.toString();
+              totalSkillLessonsLinked++;
+              console.log(`  ✅ Linked ${sectionData.name} to ${language} Skill Lesson ${lessonOrder} (ID: ${skillLessonId})`);
+            } else {
+              // Log available skill lessons for debugging
+              const availableLessons = await SkillLesson.find({ language: language }).sort({ order: 1 }).limit(5);
+              console.log(`  ⚠️ Warning: ${language} Skill Lesson with order ${lessonOrder} not found for ${sectionData.name}`);
+              console.log(`  📋 Available ${language} lessons (first 5):`, availableLessons.map(l => ({ order: l.order, id: l.id, title: l.title })));
+            }
+          }
+
           if (!section) {
             section = await Section.create({
               id: sectionId,
@@ -145,13 +197,15 @@ export async function POST(req) {
               examId: exam._id,
               lessonNumber: sectionData.order,
               order: sectionData.order,
-              typingTime: sectionData.typingTime || null
+              typingTime: sectionData.typingTime || null,
+              skillLessonId: skillLessonId
             });
           } else {
             // Update existing section
             section.name = sectionData.name;
             section.order = sectionData.order;
             section.typingTime = sectionData.typingTime || null;
+            section.skillLessonId = skillLessonId;
             await section.save();
           }
 
@@ -247,7 +301,8 @@ export async function POST(req) {
       summary: {
         total: createdExams.length,
         free: createdExams.filter(e => e.isFree).length,
-        paid: createdExams.filter(e => !e.isFree).length
+        paid: createdExams.filter(e => !e.isFree).length,
+        skillLessonsLinked: totalSkillLessonsLinked
       },
       errors: errors.length > 0 ? errors : undefined,
       note: "Exams are created with 3 sections: Section A (with 5 parts for MCQ sections), Section B (English Typing - 15 min), Section C (Hindi Typing - 15 min). Main exam timer is 75 minutes for Section A. Typing sections have separate 15-minute timers."

@@ -7,13 +7,29 @@ import { jwtVerify } from "jose";
 const JWT_SECRET = process.env.JWT_SECRET || "secret123";
 
 async function requireAdmin(req) {
-  const token = req.cookies.get("token")?.value;
-  if (!token) return { ok: false, error: "Unauthorized" };
   try {
+    const { cookies } = await import("next/headers");
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    if (!token) {
+      return { ok: false, error: "Unauthorized" };
+    }
+
+    const { jwtVerify } = await import("jose");
+    const JWT_SECRET = process.env.JWT_SECRET || "secret123";
     const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
-    if (payload.role !== "admin") return { ok: false, error: "Forbidden" };
-    return { ok: true };
-  } catch (e) {
+
+    const User = (await import("@/lib/models/User")).default;
+    await dbConnect();
+    const user = await User.findById(payload.userId);
+
+    if (!user || user.role !== "admin") {
+      return { ok: false, error: "Forbidden" };
+    }
+
+    return { ok: true, userId: payload.userId };
+  } catch (error) {
     return { ok: false, error: "Unauthorized" };
   }
 }
@@ -31,7 +47,8 @@ export async function GET(req) {
     const formattedTopics = topics.map(t => ({
       topicId: t.topicId,
       topicName: t.topicName || '',
-      topicName_hi: (t.topicName_hi !== undefined && t.topicName_hi !== null) ? t.topicName_hi : ''
+      topicName_hi: (t.topicName_hi !== undefined && t.topicName_hi !== null) ? t.topicName_hi : '',
+      isFree: t.isFree || false
     }));
     
     return NextResponse.json({ topics: formattedTopics });
@@ -48,7 +65,7 @@ export async function POST(req) {
     await dbConnect();
     
     const body = await req.json();
-    const { topicId, topicName, topicName_hi } = body;
+    const { topicId, topicName, topicName_hi, isFree } = body;
     
     if (!topicId || !topicName) {
       return NextResponse.json({ error: "Missing required fields: topicId and topicName" }, { status: 400 });
@@ -56,6 +73,7 @@ export async function POST(req) {
     
     // Safely handle topicName_hi - ensure it's a string or empty string
     const topicNameHiValue = (topicName_hi !== undefined && topicName_hi !== null) ? String(topicName_hi) : '';
+    const isFreeValue = isFree === true || isFree === 'true';
     
     // Check if topic already exists in Topic collection
     const existingTopic = await Topic.findOne({ topicId });
@@ -63,6 +81,7 @@ export async function POST(req) {
       // Update the topic
       existingTopic.topicName = topicName;
       existingTopic.topicName_hi = topicNameHiValue;
+      existingTopic.isFree = isFreeValue;
       await existingTopic.save();
       
       // Also update all questions with this topicId to have the new topic name
@@ -77,7 +96,8 @@ export async function POST(req) {
     await Topic.create({
       topicId,
       topicName,
-      topicName_hi: topicNameHiValue
+      topicName_hi: topicNameHiValue,
+      isFree: isFreeValue
     });
     
     return NextResponse.json({ success: true, message: "Topic created successfully" });

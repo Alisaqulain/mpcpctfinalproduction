@@ -34,9 +34,28 @@ function shuffleArray(array) {
   return shuffled;
 }
 
-// Function to create a unique signature for a question
+// Function to clean question text - remove tags like [V51], [V52], etc. and (Question X) patterns
+function cleanQuestionText(text) {
+  if (!text) return text;
+  // Remove patterns like [V51], [V52], [V123], etc.
+  let cleaned = text.replace(/\[V\d+\]/g, '');
+  // Remove patterns like "(Question 57)", "(Question X)" from question text
+  cleaned = cleaned.replace(/\s*\(Question\s+\d+\)/gi, '').trim();
+  return cleaned;
+}
+
+// Function to create a unique signature for a question - improved to detect duplicates better
 function getQuestionSignature(question) {
-  return (question.question_en || '').toLowerCase().trim().replace(/\s+/g, ' ');
+  if (!question || !question.question_en) return '';
+  // Clean the question text before creating signature
+  let text = question.question_en.toLowerCase().trim();
+  // Remove tags like [V51], [V52], etc.
+  text = text.replace(/\[v\d+\]/gi, '');
+  // Remove patterns like "(Question 57)", "(Question X)"
+  text = text.replace(/\s*\(question\s+\d+\)/gi, '');
+  // Normalize whitespace
+  text = text.replace(/\s+/g, ' ').trim();
+  return text;
 }
 
 // Function to get all used questions from existing RSCIT exams
@@ -214,8 +233,9 @@ export async function POST(req) {
     });
     
     // Generate additional questions if needed
-    const sectionANeeded = (examNumbers?.length || 5) * 35;
-    const sectionBNeeded = (examNumbers?.length || 5) * 15;
+    // Section A: 15 questions per exam, Section B: 35 questions per exam
+    const sectionANeeded = (examNumbers?.length || 5) * 15;
+    const sectionBNeeded = (examNumbers?.length || 5) * 35;
     
     const additionalSectionA = generateAdditionalRSCITQuestions(availableSectionA, Math.max(0, sectionANeeded - availableSectionA.length + 200), "A");
     const additionalSectionB = generateAdditionalRSCITQuestions(availableSectionB, Math.max(0, sectionBNeeded - availableSectionB.length + 100), "B");
@@ -285,28 +305,28 @@ export async function POST(req) {
           ]
         });
 
-        // Get 35 unique questions for Section A
+        // Get 15 unique questions for Section A
         const availableForA = uniqueSectionA.filter(q => {
           const sig = getQuestionSignature(q);
           return !usedInBatch.has(sig);
         });
         
         const shuffledA = shuffleArray(availableForA);
-        const examQuestionsA = shuffledA.slice(0, 35);
+        const examQuestionsA = shuffledA.slice(0, 15);
         
         examQuestionsA.forEach(q => {
           const sig = getQuestionSignature(q);
           usedInBatch.add(sig);
         });
 
-        // Get 15 unique questions for Section B
+        // Get 35 unique questions for Section B
         const availableForB = uniqueSectionB.filter(q => {
           const sig = getQuestionSignature(q);
           return !usedInBatch.has(sig);
         });
         
         const shuffledB = shuffleArray(availableForB);
-        const examQuestionsB = shuffledB.slice(0, 15);
+        const examQuestionsB = shuffledB.slice(0, 35);
         
         examQuestionsB.forEach(q => {
           const sig = getQuestionSignature(q);
@@ -349,13 +369,13 @@ export async function POST(req) {
             partId: String(partA._id),
             questionNumber: i + 1,
             questionType: "MCQ",
-            question_en: q.question_en,
-            question_hi: q.question_hi,
-            options_en: q.options_en,
-            options_hi: q.options_hi,
+            question_en: cleanQuestionText(q.question_en),
+            question_hi: cleanQuestionText(q.question_hi),
+            options_en: q.options_en.map(opt => cleanQuestionText(opt)),
+            options_hi: q.options_hi.map(opt => cleanQuestionText(opt)),
             correctAnswer: q.correctAnswer,
-            explanation_en: q.explanation_en || "",
-            explanation_hi: q.explanation_hi || "",
+            explanation_en: cleanQuestionText(q.explanation_en || ""),
+            explanation_hi: cleanQuestionText(q.explanation_hi || ""),
             marks: 2,
             negativeMarks: 0
           });
@@ -374,13 +394,13 @@ export async function POST(req) {
             partId: String(partB._id),
             questionNumber: questionsCreated + 1,
             questionType: "MCQ",
-            question_en: q.question_en,
-            question_hi: q.question_hi,
-            options_en: q.options_en,
-            options_hi: q.options_hi,
+            question_en: cleanQuestionText(q.question_en),
+            question_hi: cleanQuestionText(q.question_hi),
+            options_en: q.options_en.map(opt => cleanQuestionText(opt)),
+            options_hi: q.options_hi.map(opt => cleanQuestionText(opt)),
             correctAnswer: q.correctAnswer,
-            explanation_en: q.explanation_en || "",
-            explanation_hi: q.explanation_hi || "",
+            explanation_en: cleanQuestionText(q.explanation_en || ""),
+            explanation_hi: cleanQuestionText(q.explanation_hi || ""),
             marks: 2,
             negativeMarks: 0
           });
@@ -421,4 +441,6 @@ export async function POST(req) {
     }, { status: 500 });
   }
 }
+
+
 

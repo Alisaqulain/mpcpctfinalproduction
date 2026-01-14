@@ -9,7 +9,9 @@ const JWT_SECRET = process.env.JWT_SECRET || "secret123";
 
 export async function GET(req) {
   try {
-    const token = req.cookies.get("token")?.value;
+    const { cookies } = await import("next/headers");
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -59,15 +61,23 @@ export async function GET(req) {
       });
     }
 
-    if (!subscription) {
+    // Get topic to check if it's free
+    const Topic = (await import("@/lib/models/Topic")).default;
+    const topic = await Topic.findOne({ topicId });
+    
+    if (!topic) {
+      return NextResponse.json({ error: "Topic not found" }, { status: 404 });
+    }
+
+    // If topic is free, allow access without subscription
+    // If topic is paid, require subscription
+    if (!topic.isFree && !subscription) {
       return NextResponse.json({ 
         error: "Active subscription required to access questions" 
       }, { status: 403 });
     }
 
-    // User has active subscription, allow access to all topics
-    // (Subscription grants access to all topics, similar to admin)
-    // Fetch questions for this topic
+    // User has access, fetch questions
     const questions = await TopicWiseMCQ.find({ topicId })
       .sort({ order: 1, createdAt: -1 })
       .lean();
@@ -78,4 +88,5 @@ export async function GET(req) {
     return NextResponse.json({ error: error.message || 'Failed to fetch questions' }, { status: 500 });
   }
 }
+
 

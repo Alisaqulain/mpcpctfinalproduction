@@ -31,6 +31,8 @@ function ExamModeContent() {
   const [typingTimeLeft, setTypingTimeLeft] = useState(null);
   const [isMainTimerPaused, setIsMainTimerPaused] = useState(false);
   const [pausedMainTime, setPausedMainTime] = useState(null);
+  const [showNotEligibleModal, setShowNotEligibleModal] = useState(false);
+  const [sectionAScore, setSectionAScore] = useState(0);
   const audioRef = useRef(null);
   const loggedImageQuestions = useRef(new Set()); // Track which questions we've already logged
   const searchParams = useSearchParams();
@@ -401,18 +403,34 @@ function ExamModeContent() {
             }
             
             // Set timer from exam data or restore from localStorage
+            // For RSCIT: Section A uses separate 15 min timer, Section B uses main 60 min timer
             if (data.data.exam.totalTime) {
-              const savedTimeLeft = localStorage.getItem('examTimeLeft');
-              if (savedTimeLeft) {
-                const savedTime = parseInt(savedTimeLeft, 10);
-                // Only use saved time if it's valid and less than total time
-                if (savedTime > 0 && savedTime <= data.data.exam.totalTime * 60) {
-                  setTimeLeft(savedTime);
+              const examKey = data.data.exam.key || '';
+              const currentSectionName = searchParams?.get('section') || data.data.sections?.[0]?.name || '';
+              
+              // Check if current section is a typing section (has typingTime)
+              const currentSectionData = sortedSections.find(s => s.name === currentSectionName);
+              const isTypingSec = currentSectionData && currentSectionData.typingTime;
+              
+              // For typing sections (like RSCIT Section A), don't set main timer here
+              // The typing timer will be set in the useEffect that detects typing sections
+              if (isTypingSec) {
+                // Set main timer to 60 minutes for Section B (will be paused during Section A)
+                setTimeLeft(data.data.exam.totalTime * 60); // 60 minutes for Section B
+              } else {
+                // For other sections or exams, use saved time or default
+                const savedTimeLeft = localStorage.getItem('examTimeLeft');
+                if (savedTimeLeft) {
+                  const savedTime = parseInt(savedTimeLeft, 10);
+                  // Only use saved time if it's valid and less than total time
+                  if (savedTime > 0 && savedTime <= data.data.exam.totalTime * 60) {
+                    setTimeLeft(savedTime);
+                  } else {
+                    setTimeLeft(data.data.exam.totalTime * 60);
+                  }
                 } else {
                   setTimeLeft(data.data.exam.totalTime * 60);
                 }
-              } else {
-                setTimeLeft(data.data.exam.totalTime * 60);
               }
             }
 
@@ -574,24 +592,54 @@ function ExamModeContent() {
 
   // Detect typing sections when section changes and set up typing timer
   useEffect(() => {
-    if (!section || sections.length === 0) {
+    if (!section || sections.length === 0 || !examData) {
       return;
     }
 
     // Find current section data
     const currentSectionData = sections.find(s => s.name === section);
     
+    // For RSCIT Section A: Use separate 15 min timer
+    // For RSCIT Section B: Use main 60 min timer (fresh, not remaining from Section A)
     if (currentSectionData && currentSectionData.typingTime) {
       // This is a typing section - pause main timer and start typing timer
-      console.log(`Typing section detected: ${currentSectionData.name}, typing time: ${currentSectionData.typingTime} minutes`);
+      console.log(`⏱️ Typing section detected: ${currentSectionData.name}, typing time: ${currentSectionData.typingTime} minutes`);
       setIsTypingSection(true);
-      setTypingTimeLeft(currentSectionData.typingTime * 60);
+      
+      // Check if there's a saved typing time in localStorage
+      const savedTypingTime = localStorage.getItem(`typingTimeLeft-${section}`);
+      let typingTimeToSet;
+      if (savedTypingTime) {
+        const savedTime = parseInt(savedTypingTime, 10);
+        if (savedTime > 0 && savedTime <= currentSectionData.typingTime * 60) {
+          typingTimeToSet = savedTime;
+          const m = Math.floor(typingTimeToSet / 60);
+          const s = typingTimeToSet % 60;
+          console.log(`⏱️ Restored typing time from localStorage: ${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
+        } else {
+          typingTimeToSet = currentSectionData.typingTime * 60;
+          const m = Math.floor(typingTimeToSet / 60);
+          const s = typingTimeToSet % 60;
+          console.log(`⏱️ Invalid saved time, setting fresh typing time: ${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
+        }
+      } else {
+        typingTimeToSet = currentSectionData.typingTime * 60;
+        const m = Math.floor(typingTimeToSet / 60);
+        const s = typingTimeToSet % 60;
+        console.log(`⏱️ No saved time, setting fresh typing time: ${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
+      }
+      setTypingTimeLeft(typingTimeToSet);
+      localStorage.setItem(`typingTimeLeft-${section}`, typingTimeToSet.toString());
+      
       setIsMainTimerPaused(true);
       // Save current main timer time so we can resume it later
       // Use functional update to get the latest timeLeft value
       setTimeLeft(prev => {
         // Save the current time before pausing
         setPausedMainTime(prev);
+        const m = Math.floor(prev / 60);
+        const s = prev % 60;
+        console.log(`⏱️ Main timer paused at: ${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
         return prev; // Keep the same time, timer is paused
       });
     } else {
@@ -599,16 +647,27 @@ function ExamModeContent() {
       console.log(`Regular section: ${section}`);
       setIsTypingSection(false);
       setTypingTimeLeft(null);
+      localStorage.removeItem(`typingTimeLeft-${section}`);
       setIsMainTimerPaused(false);
-      // Resume main timer from where it was paused
-      setPausedMainTime(prev => {
-        if (prev !== null) {
-          setTimeLeft(prev);
-        }
-        return null;
-      });
+      
+      // For RSCIT Section B: Set main timer to 60 minutes (don't add remaining time from Section A)
+      if (examData?.key === 'RSCIT' && section === 'Section B') {
+        // Section B gets fresh 60 minutes, not remaining time from Section A
+        console.log('RSCIT Section B: Setting fresh 60 minutes timer');
+        setTimeLeft(60 * 60); // 60 minutes for Section B
+        localStorage.setItem('examTimeLeft', (60 * 60).toString());
+        setPausedMainTime(null); // Clear paused time
+      } else {
+        // Resume main timer from where it was paused
+        setPausedMainTime(prev => {
+          if (prev !== null) {
+            setTimeLeft(prev);
+          }
+          return null;
+        });
+      }
     }
-  }, [section, sections]);
+  }, [section, sections, examData]);
 
   // Load tick sound after user interaction
   useEffect(() => {
@@ -653,6 +712,7 @@ function ExamModeContent() {
       setTypingTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
+          localStorage.removeItem(`typingTimeLeft-${section}`);
           // Auto-submit section when typing time expires
           if (section) {
             console.log('⏰ Typing time expired, auto-submitting section:', section);
@@ -663,7 +723,10 @@ function ExamModeContent() {
           }
           return 0;
         }
-        return prev - 1;
+        const newTime = prev - 1;
+        // Save typing time to localStorage
+        localStorage.setItem(`typingTimeLeft-${section}`, newTime.toString());
+        return newTime;
       });
     }, 1000);
     return () => clearInterval(interval);
@@ -684,6 +747,46 @@ function ExamModeContent() {
     const m = Math.floor(s / 60);
     const sec = s % 60;
     return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+  };
+
+  // Reset all answers and exam state
+  const handleResetExam = () => {
+    // Clear all answers
+    setSelectedAnswers({});
+    localStorage.removeItem('examAnswers');
+    
+    // Clear visited questions
+    setVisitedQuestions(new Set());
+    localStorage.removeItem('visitedQuestions');
+    
+    // Clear marked for review
+    setMarkedForReview(new Set());
+    localStorage.removeItem('markedForReview');
+    
+    // Reset current question index
+    setCurrentQuestionIndex(0);
+    
+    // Reset completed sections (remove Section A)
+    setCompletedSections(prev => {
+      const newSet = new Set([...prev]);
+      newSet.delete('Section A');
+      localStorage.setItem('completedSections', JSON.stringify([...newSet]));
+      return newSet;
+    });
+    
+    // Reset timer for Section A (15 minutes)
+    if (examData?.key === 'RSCIT' && section === 'Section A') {
+      const currentSectionData = sections.find(s => s.name === 'Section A');
+      if (currentSectionData && currentSectionData.typingTime) {
+        const freshTime = currentSectionData.typingTime * 60;
+        setTypingTimeLeft(freshTime);
+        localStorage.setItem(`typingTimeLeft-Section A`, freshTime.toString());
+      }
+    }
+    
+    // Close modal
+    setShowNotEligibleModal(false);
+    setSectionAScore(0);
   };
 
   // Get current question based on section, part, and index
@@ -923,6 +1026,24 @@ function ExamModeContent() {
     console.log('handleSubmitSection called for section:', section);
     console.log('Current completedSections:', Array.from(completedSections));
     console.log('Available sections:', sections.map(s => s.name));
+
+    // Check RSCIT eligibility: Section A requires minimum 12 marks to proceed to Section B
+    if (examData?.key === 'RSCIT' && section === 'Section A') {
+      const sectionAQuestions = questions['Section A'] || [];
+      let calculatedScore = 0;
+      sectionAQuestions.forEach(q => {
+        const answer = selectedAnswers[q._id];
+        if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
+          calculatedScore += (q.marks || 2);
+        }
+      });
+      
+      if (calculatedScore < 12) {
+        setSectionAScore(calculatedScore);
+        setShowNotEligibleModal(true);
+        return;
+      }
+    }
     
     // Prevent double submission - but still allow navigation to next section
     if (completedSections.has(section)) {
@@ -1198,6 +1319,37 @@ function ExamModeContent() {
                           }
                           return;
                         }
+
+                        // Check RSCIT eligibility: Section B requires Section A with minimum 12 marks
+                        if (examData?.key === 'RSCIT' && sec.name === 'Section B' && !completedSections.has('Section A')) {
+                          alert('Please complete Section A first before attempting Section B.');
+                          return;
+                        }
+
+                        // Check if Section A score >= 12 marks for RSCIT Section B
+                        if (examData?.key === 'RSCIT' && sec.name === 'Section B') {
+                          const sectionACompleted = completedSections.has('Section A');
+                          if (!sectionACompleted) {
+                            alert('Please complete Section A first before attempting Section B.');
+                            return;
+                          }
+                          
+                          // Check Section A score
+                          const sectionAAnswers = JSON.parse(localStorage.getItem('examAnswers') || '{}');
+                          const sectionAQuestions = questions['Section A'] || [];
+                          let sectionAScore = 0;
+                          sectionAQuestions.forEach(q => {
+                            const answer = sectionAAnswers[q._id];
+                            if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
+                              sectionAScore += (q.marks || 2);
+                            }
+                          });
+                          
+                          if (sectionAScore < 12) {
+                            alert(`You need minimum 12 marks in Section A to proceed to Section B. Your Section A score: ${sectionAScore} marks.`);
+                            return;
+                          }
+                        }
                         // Save current timer state before switching sections
                         const currentTime = timeLeft;
                         localStorage.setItem('examTimeLeft', currentTime.toString());
@@ -1295,6 +1447,37 @@ function ExamModeContent() {
                       }
                       return;
                     }
+
+                    // Check RSCIT eligibility: Section B requires Section A with minimum 12 marks
+                    if (examData?.key === 'RSCIT' && sec.name === 'Section B' && !completedSections.has('Section A')) {
+                      alert('Please complete Section A first before attempting Section B.');
+                      return;
+                    }
+
+                    // Check if Section A score >= 12 marks for RSCIT Section B
+                    if (examData?.key === 'RSCIT' && sec.name === 'Section B') {
+                      const sectionACompleted = completedSections.has('Section A');
+                      if (!sectionACompleted) {
+                        alert('Please complete Section A first before attempting Section B.');
+                        return;
+                      }
+                      
+                      // Check Section A score
+                      const sectionAAnswers = JSON.parse(localStorage.getItem('examAnswers') || '{}');
+                      const sectionAQuestions = questions['Section A'] || [];
+                      let sectionAScore = 0;
+                      sectionAQuestions.forEach(q => {
+                        const answer = sectionAAnswers[q._id];
+                        if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
+                          sectionAScore += (q.marks || 2);
+                        }
+                      });
+                      
+                      if (sectionAScore < 12) {
+                        alert(`You need minimum 12 marks in Section A to proceed to Section B. Your Section A score: ${sectionAScore} marks.`);
+                        return;
+                      }
+                    }
                     setSection(sec.name);
                     setCurrentQuestionIndex(0);
                     // Reset selected part and set first part if available
@@ -1346,7 +1529,13 @@ function ExamModeContent() {
                 {isSoundOn ? "🔊" : "🔇"}
               </button>
               <span className="text-lg">
-                {isTypingSection && typingTimeLeft !== null ? (
+                {/* For RSCIT Section A: Show typing timer, for others show main timer */}
+                {examData?.key === 'RSCIT' && section === 'Section A' && typingTimeLeft !== null ? (
+                  <>
+                    Typing Time: <b className="bg-orange-400 text-black px-3 mr-5">{formatTime(typingTimeLeft)}</b>
+                    <span className="text-xs ml-2 text-gray-600">(Main: {formatTime(timeLeft)})</span>
+                  </>
+                ) : isTypingSection && typingTimeLeft !== null ? (
                   <>
                     Typing Time: <b className="bg-orange-400 text-black px-3 mr-5">{formatTime(typingTimeLeft)}</b>
                     <span className="text-xs ml-2 text-gray-600">(Main: {formatTime(timeLeft)})</span>
@@ -1473,6 +1662,58 @@ function ExamModeContent() {
           }
           onComplete={(result) => {
             console.log("Typing test completed:", result);
+            
+            // Get the content that was supposed to be typed
+            const correctContent = currentQuestion.typingLanguage === "Hindi"
+              ? (currentQuestion.typingScriptType === "Inscript" 
+                  ? (currentQuestion.typingContent_hindi_inscript || currentQuestion.typingContent_hindi_ramington || "")
+                  : (currentQuestion.typingContent_hindi_ramington || ""))
+              : (currentQuestion.typingContent_english || "");
+            
+            // Calculate errors in format "THGe [The]" - word by word comparison
+            const errorStrings = [];
+            const typedWords = result.typedText.trim().split(/\s+/).filter(w => w.length > 0);
+            const correctWords = correctContent.trim().split(/\s+/).filter(w => w.length > 0);
+            
+            for (let i = 0; i < Math.min(typedWords.length, correctWords.length); i++) {
+              if (typedWords[i] !== correctWords[i]) {
+                errorStrings.push(`${typedWords[i]} [${correctWords[i]}]`);
+              }
+            }
+            
+            // Calculate CPCT metrics
+            const timeInMinutes = result.timeTaken ? result.timeTaken / 60 : 15; // Default 15 minutes if not provided
+            const correctWordsCount = typedWords.filter((w, i) => w === correctWords[i]).length;
+            const netSpeed = timeInMinutes > 0 ? Math.round(correctWordsCount / timeInMinutes) : 0;
+            
+            // Determine remarks
+            let remarks = "Fair";
+            if (netSpeed >= 50) remarks = "Excellent";
+            else if (netSpeed >= 40) remarks = "Very Good";
+            else if (netSpeed >= 30) remarks = "Good";
+            else if (netSpeed >= 20) remarks = "Fair";
+            else remarks = "Poor";
+            
+            // Save typing result to localStorage (for CPCT exam results)
+            const typingResultKey = currentQuestion.typingLanguage === "English" 
+              ? 'englishTypingResult' 
+              : 'hindiTypingResult';
+            
+            const typingResult = {
+              typedText: result.typedText,
+              mistakes: result.mistakes,
+              backspaceCount: result.backspaceCount,
+              wpm: result.wpm || 0,
+              accuracy: result.accuracy || 100,
+              netSpeed: netSpeed,
+              errors: errorStrings,
+              remarks: remarks,
+              timeTaken: result.timeTaken || (timeInMinutes * 60)
+            };
+            
+            localStorage.setItem(typingResultKey, JSON.stringify(typingResult));
+            console.log(`Saved ${currentQuestion.typingLanguage} typing result to localStorage:`, typingResult);
+            
             // Save typing result to selectedAnswers
             setSelectedAnswers(prev => ({
               ...prev,
@@ -1482,9 +1723,13 @@ function ExamModeContent() {
                 mistakes: result.mistakes,
                 backspaceCount: result.backspaceCount,
                 wpm: result.wpm || 0,
-                accuracy: result.accuracy || 0
+                accuracy: result.accuracy || 0,
+                errors: errorStrings,
+                netSpeed: netSpeed,
+                remarks: remarks
               }
             }));
+            
             // Auto-submit section after typing is complete
             setTimeout(() => {
               handleSubmitSection();
@@ -1498,7 +1743,7 @@ function ExamModeContent() {
             };
             localStorage.setItem(`typingProgress_${currentQuestion._id}`, JSON.stringify(progressData));
           }}
-          showTimer={true}
+          showTimer={false}
           duration={currentQuestion.typingDuration || 10}
           allowBackspace={currentQuestion.typingBackspaceEnabled !== false}
           language={currentQuestion.typingLanguage || "English"}
@@ -1546,11 +1791,14 @@ function ExamModeContent() {
               
               // For non-image questions without imageUrl, just show text
               if (!hasImageUrl) {
+                let questionText = viewLanguage === "हिन्दी" && currentQuestion?.question_hi 
+                  ? currentQuestion.question_hi 
+                  : currentQuestion?.question_en || currentQuestion?.question_hi || 'No question text available';
+                // Remove patterns like "(Question 57)", "(Question X)" from question text
+                questionText = questionText.replace(/\s*\(Question\s+\d+\)/gi, '').trim();
                 return (
                   <p className="mb-4">
-                    {viewLanguage === "हिन्दी" && currentQuestion?.question_hi 
-                      ? currentQuestion.question_hi 
-                      : currentQuestion?.question_en || currentQuestion?.question_hi || 'No question text available'}
+                    {questionText}
                   </p>
                 );
               }
@@ -1649,11 +1897,14 @@ function ExamModeContent() {
               
               // For non-image questions without imageUrl, just show text
               if (!hasImageUrl) {
+                let questionText = viewLanguage === "हिन्दी" && currentQuestion?.question_hi 
+                  ? currentQuestion.question_hi 
+                  : currentQuestion?.question_en || currentQuestion?.question_hi || 'No question text available';
+                // Remove patterns like "(Question 57)", "(Question X)" from question text
+                questionText = questionText.replace(/\s*\(Question\s+\d+\)/gi, '').trim();
                 return (
                   <p className="mb-4">
-                    {viewLanguage === "हिन्दी" && currentQuestion?.question_hi 
-                      ? currentQuestion.question_hi 
-                      : currentQuestion?.question_en || currentQuestion?.question_hi || 'No question text available'}
+                    {questionText}
                   </p>
                 );
               }
@@ -1997,6 +2248,48 @@ function ExamModeContent() {
           </button>
         </div>
       </div>
+
+      {/* Not Eligible Modal */}
+      {showNotEligibleModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div className="text-center">
+              <div className="mb-4">
+                <svg className="mx-auto h-16 w-16 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Sorry, Not Eligible</h2>
+              <p className="text-gray-600 mb-2">
+                You need minimum 12 marks in Section A to proceed to Section B.
+              </p>
+              <p className="text-gray-600 mb-6">
+                Your current score: <span className="font-bold text-red-600">{sectionAScore} marks</span>
+              </p>
+              <p className="text-gray-700 font-semibold mb-6">
+                Try again with fresh attempt?
+              </p>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => {
+                    setShowNotEligibleModal(false);
+                    setSectionAScore(0);
+                  }}
+                  className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors font-medium"
+                >
+                  No
+                </button>
+                <button
+                  onClick={handleResetExam}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

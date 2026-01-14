@@ -25,7 +25,11 @@ export async function POST(req) {
       totalCorrect: body.totalCorrect || 0,
       totalIncorrect: body.totalIncorrect || 0,
       totalScore: body.totalScore || 0,
+      totalMaxMarks: body.totalMaxMarks || 0,
       percentage: body.percentage || 0,
+      passingMarks: body.passingMarks || 0,
+      isPassed: body.isPassed || false,
+      typingResults: body.typingResults || [],
       timeTaken: body.timeTaken,
       submittedAt: new Date()
     });

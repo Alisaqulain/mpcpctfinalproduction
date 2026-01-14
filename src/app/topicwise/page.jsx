@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 function TopicWiseMCQPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [topics, setTopics] = useState([]);
-  const [selectedTopic, setSelectedTopic] = useState(null);
+  const [topicId, setTopicId] = useState(null);
+  const [topic, setTopic] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [questionsLoading, setQuestionsLoading] = useState(false);
@@ -14,395 +14,485 @@ function TopicWiseMCQPageContent() {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [language, setLanguage] = useState("en");
+  const [timeLeft, setTimeLeft] = useState(90 * 60); // 90 minutes in seconds
+  const [timerStarted, setTimerStarted] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [visitedQuestions, setVisitedQuestions] = useState(new Set());
+  const [markedForReview, setMarkedForReview] = useState(new Set());
 
-  useEffect(() => {
-    fetchTopics();
-  }, []);
-
-  // Auto-select topic from URL parameter
   useEffect(() => {
     const topicIdFromUrl = searchParams.get("topicId");
-    if (topicIdFromUrl && topics.length > 0 && !selectedTopic) {
-      const topic = topics.find(t => t.topicId === topicIdFromUrl);
-      if (topic) {
-        setSelectedTopic(topic);
-        fetchQuestions(topic.topicId);
-      }
+    if (topicIdFromUrl) {
+      setTopicId(topicIdFromUrl);
+      fetchQuestions(topicIdFromUrl);
+    } else {
+      setError("No topic ID provided");
+      setLoading(false);
     }
-  }, [topics, searchParams, selectedTopic]);
+  }, [searchParams]);
 
-  const fetchTopics = async () => {
-    setLoading(true);
+  // Initialize timer from localStorage or start fresh
+  useEffect(() => {
+    if (topicId && questions.length > 0 && !timerStarted) {
+      const savedTime = localStorage.getItem(`topicwise-timer-${topicId}`);
+      if (savedTime) {
+        const savedTimeInt = parseInt(savedTime, 10);
+        if (savedTimeInt > 0) {
+          setTimeLeft(savedTimeInt);
+        }
+      }
+      setTimerStarted(true);
+    }
+  }, [topicId, questions, timerStarted]);
+
+  // Timer countdown
+  useEffect(() => {
+    if (!timerStarted || showResults || !topicId || questions.length === 0) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleSubmit();
+          return 0;
+        }
+        const newTime = prev - 1;
+        localStorage.setItem(`topicwise-timer-${topicId}`, newTime.toString());
+        return newTime;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timerStarted, showResults, topicId, questions.length]);
+
+  const fetchQuestions = async (topicIdParam) => {
+    setQuestionsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/topicwise/my-topics", {
+      const res = await fetch(`/api/topicwise/questions?topicId=${topicIdParam}`, {
         credentials: "include",
       });
 
       if (res.ok) {
         const data = await res.json();
-        console.log('Topics fetched:', data.topics?.length || 0, 'topics');
-        console.log('Topics data:', data.topics);
-        setTopics(data.topics || []);
-        if (!data.isPaid) {
-          setError("subscription_required");
+        if (data.questions && data.questions.length > 0) {
+          // Use all questions (should be 100)
+          if (data.questions.length < 100) {
+            setError(`Only ${data.questions.length} questions found. This exam requires 100 questions. Please contact administrator.`);
+            return;
+          }
+          // Ensure exactly 100 questions are displayed
+          const questionsToDisplay = data.questions.slice(0, 100);
+          setQuestions(questionsToDisplay);
+          
+          // Load saved answers
+          const savedAnswers = localStorage.getItem(`topicwise-answers-${topicIdParam}`);
+          if (savedAnswers) {
+            try {
+              setSelectedAnswers(JSON.parse(savedAnswers));
+            } catch (e) {
+              console.error("Error loading saved answers:", e);
+            }
+          }
+        } else {
+          setError("No questions found for this topic");
         }
       } else if (res.status === 401) {
-        setError("Please login to view your topics");
+        setError("Please login to access questions");
       } else if (res.status === 403) {
-        const data = await res.json();
-        if (data.error === "Active subscription required") {
-          setError("subscription_required");
-        } else {
-          setError(data.error || "Access denied");
-        }
+        setError("Active subscription required to access this topic");
       } else {
-        setError("Failed to load topics");
+        setError("Failed to load questions");
       }
     } catch (error) {
-      console.error("Error fetching topics:", error);
-      setError("Failed to load topics");
+      console.error("Error fetching questions:", error);
+      setError("Failed to load questions");
     } finally {
+      setQuestionsLoading(false);
       setLoading(false);
     }
   };
 
-  const fetchQuestions = async (topicId) => {
-    setQuestionsLoading(true);
-    setSelectedAnswers({});
-    setShowResults(false);
-    try {
-      const res = await fetch(`/api/topicwise/questions?topicId=${topicId}`, {
-        credentials: "include",
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setQuestions(data.questions || []);
-      } else {
-        alert("Failed to load questions");
-      }
-    } catch (error) {
-      console.error("Error fetching questions:", error);
-      alert("Failed to load questions");
-    } finally {
-      setQuestionsLoading(false);
-    }
-  };
-
-  const handleTopicSelect = (topic) => {
-    setSelectedTopic(topic);
-    fetchQuestions(topic.topicId);
-  };
-
   const handleAnswerSelect = (questionId, answerIndex) => {
-    setSelectedAnswers((prev) => ({
-      ...prev,
+    const newAnswers = {
+      ...selectedAnswers,
       [questionId]: answerIndex,
-    }));
+    };
+    setSelectedAnswers(newAnswers);
+    if (topicId) {
+      localStorage.setItem(`topicwise-answers-${topicId}`, JSON.stringify(newAnswers));
+    }
+    
+    // Mark as visited
+    setVisitedQuestions((prev) => new Set([...prev, questionId]));
+  };
+
+  const handleSubmit = () => {
+    setShowResults(true);
+    if (topicId) {
+      localStorage.removeItem(`topicwise-timer-${topicId}`);
+    }
   };
 
   const calculateScore = () => {
     let correct = 0;
+    let total = questions.length;
+    
     questions.forEach((q) => {
-      if (selectedAnswers[q._id] === q.correctAnswer) {
+      const userAnswer = selectedAnswers[q._id || q.id];
+      if (userAnswer !== undefined && userAnswer === q.correctAnswer) {
         correct++;
       }
     });
-    return { correct, total: questions.length };
+
+    return { correct, total, score: correct, percentage: (correct / total) * 100 };
   };
 
-  const handleSubmit = () => {
-    if (Object.keys(selectedAnswers).length < questions.length) {
-      if (!confirm("You haven't answered all questions. Do you want to submit anyway?")) {
-        return;
-      }
+  const formatTime = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const goToQuestion = (index) => {
+    setCurrentQuestionIndex(index);
+    if (questions[index]) {
+      const qId = questions[index]._id || questions[index].id;
+      setVisitedQuestions((prev) => new Set([...prev, qId]));
     }
-    setShowResults(true);
   };
 
-  const handleReset = () => {
-    setSelectedAnswers({});
-    setShowResults(false);
+  const toggleMarkForReview = (questionId) => {
+    setMarkedForReview((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(questionId)) {
+        newSet.delete(questionId);
+      } else {
+        newSet.add(questionId);
+      }
+      return newSet;
+    });
   };
 
-  if (loading) {
+  if (loading || questionsLoading) {
     return (
-      <div className="min-h-screen flex justify-center items-center bg-[#fff]">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">Loading topics...</p>
+          <p className="text-xl">Loading questions...</p>
         </div>
       </div>
     );
   }
 
   if (error) {
-    if (error === "subscription_required") {
-      return (
-        <div className="min-h-screen flex justify-center items-center bg-[#fff] px-4">
-          <div className="w-full max-w-4xl border border-gray-300 px-4 sm:px-6 md:px-10 pt-10 sm:pt-14 md:pt-20 rounded-2xl">
-            <div className="text-center py-12">
-              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-8">
-                <h2 className="text-2xl font-bold text-yellow-800 mb-4">
-                  Subscription Required
-                </h2>
-                <p className="text-gray-700 mb-6">
-                  Topic Wise MCQ is available for paid students only. Please subscribe to access this feature.
-                </p>
-                <div className="flex gap-4 justify-center">
-                  <a
-                    href="/payment-app"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-semibold"
-                  >
-                    Subscribe Now
-                  </a>
-                  <a
-                    href="/price"
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-md font-semibold"
-                  >
-                    View Plans
-                  </a>
-                </div>
-              </div>
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center p-8 border border-red-300 rounded-lg bg-red-50">
+          <p className="text-red-700 text-xl mb-4">{error}</p>
+          <button
+            onClick={() => router.push("/exam")}
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+          >
+            Go Back to Exams
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (showResults) {
+    const { correct, total, score, percentage } = calculateScore();
+    const passingMarks = 50;
+    const isPassed = score >= passingMarks;
+
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
+          <h2 className="text-3xl font-bold text-center mb-6">Exam Results</h2>
+          
+          <div className={`p-6 rounded-lg mb-6 ${isPassed ? 'bg-green-50 border-2 border-green-500' : 'bg-red-50 border-2 border-red-500'}`}>
+            <div className="text-center">
+              <p className="text-2xl font-bold mb-2">
+                Score: {score} / {total}
+              </p>
+              <p className="text-xl mb-2">
+                Percentage: {percentage.toFixed(2)}%
+              </p>
+              <p className="text-lg font-semibold">
+                Passing Marks: {passingMarks}
+              </p>
+              <p className={`text-2xl font-bold mt-4 ${isPassed ? 'text-green-700' : 'text-red-700'}`}>
+                {isPassed ? "✅ PASSED" : "❌ FAILED"}
+              </p>
             </div>
           </div>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="min-h-screen flex justify-center items-center bg-[#fff] px-4">
-        <div className="w-full max-w-4xl border border-gray-300 px-4 sm:px-6 md:px-10 pt-10 sm:pt-14 md:pt-20 rounded-2xl">
-          <div className="text-center py-12">
-            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-8">
-              <p className="text-red-700">{error}</p>
-              <a
-                href="/login"
-                className="mt-4 inline-block text-blue-600 hover:text-blue-800 font-semibold underline"
-              >
-                Go to Login
-              </a>
-            </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Question Review</h3>
+            {questions.map((q, index) => {
+              const qId = q._id || q.id;
+              const userAnswer = selectedAnswers[qId];
+              const isCorrect = userAnswer === q.correctAnswer;
+              const isAnswered = userAnswer !== undefined;
+
+              return (
+                <div
+                  key={qId}
+                  className={`p-4 border-2 rounded-lg ${
+                    isCorrect
+                      ? "border-green-500 bg-green-50"
+                      : isAnswered
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="font-bold">Q{index + 1}</span>
+                    {isCorrect && <span className="text-green-700 font-semibold">✓ Correct</span>}
+                    {isAnswered && !isCorrect && <span className="text-red-700 font-semibold">✗ Incorrect</span>}
+                    {!isAnswered && <span className="text-gray-500 font-semibold">Not Answered</span>}
+                  </div>
+                  <p className="font-medium mb-2">
+                    {language === "en" ? q.question_en : q.question_hi}
+                  </p>
+                  <div className="space-y-1">
+                    {(language === "en" ? q.options_en : q.options_hi).map((opt, optIdx) => (
+                      <div
+                        key={optIdx}
+                        className={`p-2 rounded ${
+                          optIdx === q.correctAnswer
+                            ? "bg-green-200 font-semibold"
+                            : optIdx === userAnswer && optIdx !== q.correctAnswer
+                            ? "bg-red-200"
+                            : "bg-gray-100"
+                        }`}
+                      >
+                        {optIdx === q.correctAnswer && "✓ "}
+                        {optIdx === userAnswer && optIdx !== q.correctAnswer && "✗ "}
+                        {opt}
+                      </div>
+                    ))}
+                  </div>
+                  {q.explanation_en && (
+                    <div className="mt-2 p-2 bg-blue-50 rounded">
+                      <p className="text-sm">
+                        <strong>Explanation:</strong> {language === "en" ? q.explanation_en : q.explanation_hi}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-6 flex gap-4 justify-center">
+            <button
+              onClick={() => router.push("/exam")}
+              className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700"
+            >
+              Back to Exams
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-[#fff] px-4 py-10">
-      <div className="w-full max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-6 text-[#290c52]">
-          Topic Wise MCQ
-        </h1>
+  const currentQuestion = questions[currentQuestionIndex];
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>No questions available</p>
+      </div>
+    );
+  }
 
-        {!selectedTopic ? (
-          <div className="border border-gray-300 rounded-2xl p-6">
-            {topics.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-8">
-                  <p className="text-gray-600 mb-4">
-                    No topics assigned yet. Contact your administrator to get topics assigned to your account.
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Note: Topic Wise MCQ is available for paid students only.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <h2 className="text-xl font-semibold mb-4 text-[#290c52]">
-                  Select a Topic
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {topics.map((topic) => (
-                    <div
-                      key={topic._id}
-                      onClick={() => handleTopicSelect(topic)}
-                      className="border border-gray-200 rounded-xl shadow-md p-4 cursor-pointer hover:bg-[#290c52] hover:text-white transition-colors duration-300"
-                    >
-                      <h3 className="text-lg font-medium mb-2">{topic.topicName}</h3>
-                      {topic.description && (
-                        <p className="text-sm opacity-80">{topic.description}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+  const qId = currentQuestion._id || currentQuestion.id;
+  const isMarked = markedForReview.has(qId);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-md p-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-bold">Topic Wise MCQ Exam</h1>
+            {topic && <p className="text-sm text-gray-600">{topic.topicName}</p>}
           </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center border border-gray-300 rounded-xl p-4 bg-gray-50">
-              <div>
-                <h2 className="text-xl font-semibold text-[#290c52]">
-                  {selectedTopic.topicName}
-                </h2>
-                {selectedTopic.description && (
-                  <p className="text-sm text-gray-600">{selectedTopic.description}</p>
-                )}
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-sm text-gray-600">Time Remaining</p>
+              <p className={`text-2xl font-bold ${timeLeft < 600 ? "text-red-600" : ""}`}>
+                {formatTime(timeLeft)}
+              </p>
+            </div>
+            <button
+              onClick={() => setLanguage(language === "en" ? "hi" : "en")}
+              className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+            >
+              {language === "en" ? "हिंदी" : "English"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          {/* Question Navigation */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow p-4 sticky top-4">
+              <h3 className="font-semibold mb-3">Questions ({questions.length})</h3>
+              <div className="grid grid-cols-5 gap-2 max-h-[60vh] overflow-y-auto">
+                {questions.map((q, idx) => {
+                  const qId = q._id || q.id;
+                  const isAnswered = selectedAnswers[qId] !== undefined;
+                  const isCurrent = idx === currentQuestionIndex;
+                  const isMarkedQ = markedForReview.has(qId);
+                  const isVisited = visitedQuestions.has(qId);
+
+                  return (
+                    <button
+                      key={qId}
+                      onClick={() => goToQuestion(idx)}
+                      className={`w-10 h-10 rounded text-sm font-semibold ${
+                        isCurrent
+                          ? "bg-blue-600 text-white ring-2 ring-blue-300"
+                          : isAnswered
+                          ? "bg-green-500 text-white"
+                          : isVisited
+                          ? "bg-yellow-200 text-gray-700"
+                          : "bg-gray-200 text-gray-700"
+                      } ${isMarkedQ ? "ring-2 ring-purple-400" : ""}`}
+                      title={`Q${idx + 1}${isMarkedQ ? " (Marked)" : ""}`}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-4 space-y-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-500 rounded"></div>
+                  <span>Answered</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-yellow-200 rounded"></div>
+                  <span>Visited</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-gray-200 rounded"></div>
+                  <span>Not Visited</span>
+                </div>
               </div>
               <button
-                onClick={() => {
-                  setSelectedTopic(null);
-                  setQuestions([]);
-                  setSelectedAnswers({});
-                  setShowResults(false);
-                }}
-                className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-md"
+                onClick={handleSubmit}
+                className="w-full mt-4 bg-red-600 text-white py-2 rounded hover:bg-red-700 font-semibold"
               >
-                Back to Topics
+                Submit Exam
               </button>
             </div>
+          </div>
 
-            {questionsLoading ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Loading questions...</p>
-              </div>
-            ) : questions.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-8">
-                  <p className="text-gray-600">No questions available for this topic.</p>
+          {/* Question Display */}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    Question {currentQuestionIndex + 1} of {questions.length}
+                  </span>
+                  {isMarked && (
+                    <span className="ml-2 bg-purple-500 text-white px-2 py-1 rounded text-xs">
+                      Marked for Review
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => toggleMarkForReview(qId)}
+                    className={`px-3 py-1 rounded text-sm ${
+                      isMarked
+                        ? "bg-purple-500 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    {isMarked ? "Unmark" : "Mark for Review"}
+                  </button>
                 </div>
               </div>
-            ) : (
-              <div className="border border-gray-300 rounded-2xl p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex items-center gap-4">
-                    <label className="text-sm font-medium">
-                      Language:
-                      <select
-                        value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
-                        className="ml-2 border border-gray-300 rounded px-2 py-1"
-                      >
-                        <option value="en">English</option>
-                        <option value="hi">हिन्दी</option>
-                      </select>
-                    </label>
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {Object.keys(selectedAnswers).length} / {questions.length} answered
-                  </div>
-                </div>
 
-                <div className="space-y-6">
-                  {questions.map((question, index) => {
-                    const isCorrect = selectedAnswers[question._id] === question.correctAnswer;
-                    const userAnswer = selectedAnswers[question._id];
-                    const options = language === "hi" && question.options_hi?.length > 0
-                      ? question.options_hi
-                      : question.options_en;
-                    const questionText = language === "hi" && question.question_hi
-                      ? question.question_hi
-                      : question.question_en;
+              <div className="mb-6">
+                <p className="text-lg font-medium mb-4">
+                  {language === "en"
+                    ? currentQuestion.question_en
+                    : currentQuestion.question_hi}
+                </p>
 
+                {currentQuestion.imageUrl && (
+                  <div className="mb-4">
+                    <img
+                      src={currentQuestion.imageUrl}
+                      alt="Question"
+                      className="max-w-full h-auto rounded"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {(language === "en"
+                    ? currentQuestion.options_en
+                    : currentQuestion.options_hi
+                  ).map((option, optIdx) => {
+                    const isSelected = selectedAnswers[qId] === optIdx;
                     return (
-                      <div
-                        key={question._id}
-                        className={`border rounded-lg p-4 ${
-                          showResults
-                            ? isCorrect
-                              ? "bg-green-50 border-green-300"
-                              : "bg-red-50 border-red-300"
-                            : "bg-white border-gray-300"
+                      <label
+                        key={optIdx}
+                        className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition ${
+                          isSelected
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-300 hover:border-gray-400"
                         }`}
                       >
-                        <div className="flex items-start gap-2 mb-3">
-                          <span className="font-semibold text-[#290c52]">
-                            Q{index + 1}.
-                          </span>
-                          <p className="flex-1">{questionText}</p>
-                        </div>
-
-                        <div className="space-y-2 ml-6">
-                          {options.map((option, optIndex) => {
-                            const isSelected = userAnswer === optIndex;
-                            const isCorrectOption = optIndex === question.correctAnswer;
-
-                            return (
-                              <label
-                                key={optIndex}
-                                className={`flex items-center gap-2 p-2 rounded cursor-pointer ${
-                                  showResults
-                                    ? isCorrectOption
-                                      ? "bg-green-200"
-                                      : isSelected && !isCorrectOption
-                                      ? "bg-red-200"
-                                      : ""
-                                    : isSelected
-                                    ? "bg-blue-100"
-                                    : "hover:bg-gray-100"
-                                }`}
-                              >
-                                <input
-                                  type="radio"
-                                  name={`question-${question._id}`}
-                                  checked={isSelected}
-                                  onChange={() => handleAnswerSelect(question._id, optIndex)}
-                                  disabled={showResults}
-                                  className="cursor-pointer"
-                                />
-                                <span>
-                                  {String.fromCharCode(65 + optIndex)}. {option}
-                                </span>
-                                {showResults && isCorrectOption && (
-                                  <span className="ml-auto text-green-600 font-semibold">
-                                    ✓ Correct
-                                  </span>
-                                )}
-                              </label>
-                            );
-                          })}
-                        </div>
-
-                        {showResults && question.explanation_en && (
-                          <div className="mt-3 ml-6 p-3 bg-blue-50 rounded border border-blue-200">
-                            <p className="text-sm">
-                              <strong>Explanation:</strong>{" "}
-                              {language === "hi" && question.explanation_hi
-                                ? question.explanation_hi
-                                : question.explanation_en}
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                        <input
+                          type="radio"
+                          name={`question-${qId}`}
+                          checked={isSelected}
+                          onChange={() => handleAnswerSelect(qId, optIdx)}
+                          className="mr-3 w-5 h-5"
+                        />
+                        <span>{option}</span>
+                      </label>
                     );
                   })}
                 </div>
-
-                <div className="mt-6 flex justify-between items-center">
-                  {!showResults ? (
-                    <button
-                      onClick={handleSubmit}
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-semibold"
-                    >
-                      Submit Answers
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-4">
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-lg font-semibold text-[#290c52]">
-                          Score: {calculateScore().correct} / {calculateScore().total}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Percentage:{" "}
-                          {((calculateScore().correct / calculateScore().total) * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                      <button
-                        onClick={handleReset}
-                        className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-md font-semibold"
-                      >
-                        Reset
-                      </button>
-                    </div>
-                  )}
-                </div>
               </div>
-            )}
+
+              <div className="flex justify-between mt-6">
+                <button
+                  onClick={() => goToQuestion(Math.max(0, currentQuestionIndex - 1))}
+                  disabled={currentQuestionIndex === 0}
+                  className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() =>
+                    goToQuestion(
+                      Math.min(questions.length - 1, currentQuestionIndex + 1)
+                    )
+                  }
+                  disabled={currentQuestionIndex === questions.length - 1}
+                  className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -411,11 +501,8 @@ function TopicWiseMCQPageContent() {
 export default function TopicWiseMCQPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex justify-center items-center bg-[#fff]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
       </div>
     }>
       <TopicWiseMCQPageContent />

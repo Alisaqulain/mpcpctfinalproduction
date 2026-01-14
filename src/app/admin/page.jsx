@@ -21,6 +21,19 @@ export default function AdminPanel() {
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showCPCTImport, setShowCPCTImport] = useState(false);
+  const [cccBulkImportText, setCccBulkImportText] = useState('');
+  const [cccBulkImportExamId, setCccBulkImportExamId] = useState('');
+  const [cccBulkImporting, setCccBulkImporting] = useState(false);
+  const [cccQuestionBankText, setCccQuestionBankText] = useState('');
+  const [cccQuestionBankImporting, setCccQuestionBankImporting] = useState(false);
+  const [cccDistributing, setCccDistributing] = useState(false);
+  const [cccClearing, setCccClearing] = useState(false);
+  const [rscitSectionAText, setRscitSectionAText] = useState('');
+  const [rscitSectionBText, setRscitSectionBText] = useState('');
+  const [rscitSectionAImporting, setRscitSectionAImporting] = useState(false);
+  const [rscitSectionBImporting, setRscitSectionBImporting] = useState(false);
+  const [rscitDistributing, setRscitDistributing] = useState(false);
+  const [rscitClearing, setRscitClearing] = useState(false);
 
   // Check if user is admin
   useEffect(() => {
@@ -621,36 +634,64 @@ export default function AdminPanel() {
           </div>
 
           {/* Create 20 CPCT Exams */}
-          <div className="bg-green-50 border-2 border-green-400 rounded-lg p-4 mb-6">
-            <p className="text-sm text-green-900 mb-3 font-bold">
-              <strong>🚀 Create 20 CPCT Exams with Standard Pattern:</strong>
+          <div className="bg-purple-50 border-2 border-purple-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-purple-900 mb-3 font-bold">
+              <strong>🚀 CPCT Exams Management:</strong>
             </p>
-            <p className="text-xs text-green-700 mb-3">
-              This will create 20 CPCT exams with the new structure:
-              <br />• <strong>Section A:</strong> 75 minutes main exam timer - Contains 5 parts:
-              <br />&nbsp;&nbsp;&nbsp;1. IT SKILLS (52 questions)
-              <br />&nbsp;&nbsp;&nbsp;2. READING COMPREHENSION (5 questions)
-              <br />&nbsp;&nbsp;&nbsp;3. QUANTITATIVE APTITUDE (6 questions)
-              <br />&nbsp;&nbsp;&nbsp;4. GENERAL MENTAL ABILITY AND REASONING (6 questions)
-              <br />&nbsp;&nbsp;&nbsp;5. GENERAL AWARENESS (6 questions)
-              <br />• <strong>Section B:</strong> English Typing - 15 minutes separate timer
-              <br />• <strong>Section C:</strong> Hindi Typing - 15 minutes separate timer
-              <br />• First exam is FREE, others are PAID
-              <br />• Each question: 1 mark, no negative marking
+            <p className="text-xs text-purple-700 mb-3">
+              Create CPCT exams with structure (NO QUESTIONS - add manually):
+              <br />• <strong>Section A:</strong> 75 minutes timer, 5 parts (IT SKILLS, READING COMPREHENSION, QUANTITATIVE APTITUDE, GENERAL MENTAL ABILITY AND REASONING, GENERAL AWARENESS) - EMPTY, add questions manually
+              <br />• <strong>Section B:</strong> English Typing (15 minutes separate timer) - Linked to skill lessons
+              <br />• <strong>Section C:</strong> Hindi Typing (15 minutes separate timer) - Linked to skill lessons
+              <br />• Paper 1 → Lesson 1, Paper 2 → Lesson 2, etc.
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
               <button
                 onClick={async () => {
-                  if (!confirm('This will create 20 CPCT exams with sections and parts. Continue?')) return;
+                  if (!confirm('⚠️ WARNING: This will DELETE ALL CPCT exams, sections, parts, and questions!\n\nThis action cannot be undone!\n\nAre you sure you want to continue?')) return;
+                  if (!confirm('⚠️ FINAL CONFIRMATION: This will permanently delete all CPCT exams.\n\nThis is your last chance to cancel.\n\nContinue?')) return;
                   try {
                     setSaving(true);
-                    const res = await fetch('/api/admin/create-cpct-15-exams', {
+                    const res = await fetch('/api/admin/delete-all-cpct-exams', {
                       method: 'POST',
                       credentials: 'include'
                     });
                     const data = await res.json();
                     if (res.ok) {
-                      alert(`Success! Created ${data.exams.length} exams. ${data.summary.free} free, ${data.summary.paid} paid.`);
+                      alert(`✅ Success! Deleted all CPCT exams.\n\nDeleted:\n- ${data.deleted.exams} exams\n- ${data.deleted.sections} sections\n- ${data.deleted.parts} parts\n- ${data.deleted.questions} questions\n- Total: ${data.deleted.total} items`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to delete CPCT exams'));
+                    }
+                  } catch (error) {
+                    console.error('Error deleting CPCT exams:', error);
+                    alert('Failed to delete CPCT exams: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Deleting...' : '🗑️ Delete All CPCT Exams'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will create 20 CPCT exams with structure (Section A with 5 parts - NO QUESTIONS, Section B & C with typing linked to skill lessons). Continue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/create-cpct-exams-structure', {
+                      method: 'POST',
+                      credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      let message = `✅ Success! Created ${data.exams.length} CPCT exams with structure.\n\n${data.summary.free} free, ${data.summary.paid} paid.`;
+                      if (data.summary.skillLessonsLinked) {
+                        message += `\n\n✅ Linked ${data.summary.skillLessonsLinked} typing sections to skill lessons (Paper 1 → Lesson 1, Paper 2 → Lesson 2, etc.).`;
+                      }
+                      message += `\n\n📝 Note: Section A parts are created but empty - add questions manually.`;
+                      alert(message);
                       await fetchExams();
                     } else {
                       alert('Error: ' + (data.error || 'Failed to create exams'));
@@ -665,11 +706,11 @@ export default function AdminPanel() {
                 disabled={saving}
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
               >
-                {saving ? 'Creating...' : 'Create 20 CPCT Exams'}
+                {saving ? 'Creating...' : '✅ Create 20 CPCT Exams (Structure Only)'}
               </button>
               <button
                 onClick={async () => {
-                  if (!confirm('This will update all existing CPCT exams to the new 3-section structure (Section A with 5 parts, Section B English Typing, Section C Hindi Typing). Existing questions will be migrated where possible. Continue?')) return;
+                  if (!confirm('This will update all existing CPCT exams to the new 3-section structure (Section A with 5 parts, Section B English Typing, Section C Hindi Typing). Existing questions will be migrated where possible. This will also link typing sections to skill lessons (Paper 1 → Lesson 1, Paper 2 → Lesson 2, etc.). Continue?')) return;
                   try {
                     setSaving(true);
                     const res = await fetch('/api/admin/update-cpct-exams-structure', {
@@ -678,7 +719,11 @@ export default function AdminPanel() {
                     });
                     const data = await res.json();
                     if (res.ok) {
-                      alert(`Success! Updated ${data.exams.length} exams. ${data.summary.totalMigratedQuestions} questions migrated.`);
+                      let message = `Success! Updated ${data.exams.length} exams. ${data.summary.totalMigratedQuestions} questions migrated.`;
+                      if (data.summary.skillLessonsLinked) {
+                        message += `\n\n✅ Linked ${data.summary.skillLessonsLinked} typing sections to skill lessons.`;
+                      }
+                      alert(message);
                       await fetchExams();
                     } else {
                       alert('Error: ' + (data.error || 'Failed to update exams'));
@@ -904,53 +949,611 @@ export default function AdminPanel() {
             </div>
           </div>
 
-          {/* Create 20 RSCIT Exams */}
-          <div className="bg-orange-50 border-2 border-orange-400 rounded-lg p-4 mb-6">
-            <p className="text-sm text-orange-900 mb-3 font-bold">
-              <strong>🚀 Create 20 RSCIT Exams:</strong>
+          {/* Bulk Import CCC Questions */}
+          <div className="bg-purple-50 border-2 border-purple-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-purple-900 mb-3 font-bold">
+              <strong>📥 Bulk Import CCC Questions:</strong>
             </p>
-            <p className="text-xs text-orange-700 mb-3">
-              This will create 20 RSCIT exams with the following pattern:
-              <br />• 90 minutes duration
-              <br />• 50 questions total (100 marks)
-              <br />• Section A: 35 questions @ 2 marks each (70 marks)
-              <br />• Section B: 15 questions @ 2 marks each (30 marks)
-              <br />• One part "RSCIT" in each section
-              <br />• No negative marking
-              <br />• First exam is FREE, others are PAID
+            <p className="text-xs text-purple-700 mb-3">
+              Copy and paste questions in the following format:
+              <br />• <strong>Format 1:</strong> Question text (Hindi text?) A. Option1 B. Option2 C. Option3 D. Option4 Ans: A. Answer
+              <br />• <strong>Format 2:</strong> Question text (Hindi text?) A. Option1 (Hindi1) B. Option2 (Hindi2) C. Option3 (Hindi3) D. Option4 (Hindi4) Ans: A. Answer
+              <br />• Each question on a new line (separated by blank lines)
+              <br />• If you paste more than 100 questions, only the first 100 will be imported
+              <br />• Questions will replace existing questions for the selected exam
             </p>
-            <div className="flex gap-3">
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select CCC Exam:
+              </label>
+              <select
+                value={cccBulkImportExamId}
+                onChange={(e) => setCccBulkImportExamId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                disabled={cccBulkImporting || exams.length === 0}
+              >
+                <option value="">-- Select a CCC Exam --</option>
+                {exams.filter(exam => exam.key === 'CCC').map(exam => (
+                  <option key={exam._id} value={exam._id}>
+                    {exam.title} {exam.isFree ? '(FREE)' : '(PAID)'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Paste Questions Here:
+              </label>
+              <textarea
+                value={cccBulkImportText}
+                onChange={(e) => setCccBulkImportText(e.target.value)}
+                placeholder="Paste questions here in the format:&#10;Question text (Hindi text?) A. Option1 (Hindi1) B. Option2 (Hindi2) C. Option3 (Hindi3) D. Option4 (Hindi4) Ans: A. Answer&#10;&#10;Next question..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono text-sm"
+                rows={10}
+                disabled={cccBulkImporting || !cccBulkImportExamId}
+              />
+            </div>
+            <button
+              onClick={async () => {
+                if (!cccBulkImportExamId) {
+                  alert('Please select a CCC exam first');
+                  return;
+                }
+                if (!cccBulkImportText.trim()) {
+                  alert('Please paste questions first');
+                  return;
+                }
+                const selectedExam = exams.find(e => e._id === cccBulkImportExamId);
+                if (!confirm(`This will replace all existing questions for "${selectedExam?.title}". Continue?`)) return;
+                
+                try {
+                  setCccBulkImporting(true);
+                  const res = await fetch('/api/admin/bulk-import-ccc-questions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                      questionsText: cccBulkImportText,
+                      examId: cccBulkImportExamId
+                    })
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    let message = `Success! Imported ${data.imported} questions to "${data.examTitle}".`;
+                    if (data.parsingStats) {
+                      message += `\n\nParsing Stats:\n- Total blocks found: ${data.parsingStats.totalBlocks}\n- Successfully parsed: ${data.parsingStats.parsed}\n- Failed to parse: ${data.parsingStats.failed}`;
+                      if (data.parsingStats.wasLimited) {
+                        message += `\n- ⚠️ Limited to 100 questions (had ${data.parsingStats.originalParsed} total)`;
+                      }
+                    }
+                    if (data.warning) {
+                      message += `\n\n⚠️ ${data.warning}`;
+                    }
+                    alert(message);
+                    setCccBulkImportText('');
+                    // Refresh exams and questions if this exam is selected
+                    await fetchExams();
+                    if (selectedExam && String(selectedExam) === cccBulkImportExamId) {
+                      setSelectedSection(null);
+                      setSelectedPart(null);
+                      setQuestions([]);
+                      fetchSections(cccBulkImportExamId);
+                    }
+                  } else {
+                    alert('Error: ' + (data.error || 'Failed to import questions'));
+                  }
+                } catch (error) {
+                  console.error('Error importing CCC questions:', error);
+                  alert('Failed to import questions: ' + error.message);
+                } finally {
+                  setCccBulkImporting(false);
+                }
+              }}
+              disabled={cccBulkImporting || !cccBulkImportExamId || !cccBulkImportText.trim()}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+            >
+              {cccBulkImporting ? 'Importing Questions...' : 'Import CCC Questions'}
+            </button>
+      </div>
+
+          {/* CCC Question Bank Management */}
+          <div className="bg-indigo-50 border-2 border-indigo-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-indigo-900 mb-3 font-bold">
+              <strong>📚 CCC Question Bank Management (20 Exams - 2000 Questions):</strong>
+            </p>
+            <p className="text-xs text-indigo-700 mb-3">
+              This system allows you to import 600+ questions into a question bank, then automatically distribute them across all 20 CCC exams (100 questions each, shuffled).
+              <br />• <strong>Step 1:</strong> Paste questions below (you can paste in parts - each import will ADD to the bank, not replace)
+              <br />• <strong>Step 2:</strong> Click "Import to Question Bank" - you can do this multiple times with different batches
+              <br />• <strong>Step 3:</strong> Click "Remove Current Questions" to clear existing questions from all CCC exams (optional)
+              <br />• <strong>Step 4:</strong> Click "Distribute Questions to All Exams" to assign 100 shuffled questions to each of the 20 CCC exams
+            </p>
+            
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Paste All 600+ Questions Here:
+              </label>
+              <textarea
+                value={cccQuestionBankText}
+                onChange={(e) => setCccQuestionBankText(e.target.value)}
+                placeholder="Paste all questions here in the format:&#10;Question text (Hindi text?) A. Option1 (Hindi1) B. Option2 (Hindi2) C. Option3 (Hindi3) D. Option4 (Hindi4) Ans: A. Answer&#10;&#10;Next question..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm"
+                rows={15}
+                disabled={cccQuestionBankImporting || cccDistributing || cccClearing}
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-3">
               <button
                 onClick={async () => {
-                  if (!confirm('This will create 20 RSCIT exams with sections, parts, and 50 questions each. Continue?')) return;
+                  if (!cccQuestionBankText.trim()) {
+                    alert('Please paste questions first');
+                    return;
+                  }
+                  if (!confirm('This will ADD questions to the CCC question bank (existing questions will remain). Continue?')) return;
+                  
+                  try {
+                    setCccQuestionBankImporting(true);
+                    const res = await fetch('/api/admin/import-ccc-question-bank', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({
+                        questionsText: cccQuestionBankText
+                      })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      let message = `✅ Success! Imported ${data.imported} questions into CCC question bank.\n\n`;
+                      message += `Total questions in bank now: ${data.totalInBank}\n`;
+                      message += `Failed to parse: ${data.failed || 0} questions`;
+                      if (data.wasAppended) {
+                        message += `\n\n(Questions were added to existing bank)`;
+                      }
+                      alert(message);
+                      setCccQuestionBankText('');
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to import question bank'));
+                    }
+                  } catch (error) {
+                    console.error('Error importing CCC question bank:', error);
+                    alert('Failed to import question bank: ' + error.message);
+                  } finally {
+                    setCccQuestionBankImporting(false);
+                  }
+                }}
+                disabled={cccQuestionBankImporting || cccDistributing || cccClearing || !cccQuestionBankText.trim()}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {cccQuestionBankImporting ? 'Importing...' : '📥 Import to Question Bank'}
+              </button>
+
+              <button
+                onClick={async () => {
+                  if (!confirm('⚠️ WARNING: This will remove ALL questions from ALL 20 CCC exams.\n\nThe question bank will be PRESERVED so you can redistribute questions.\n\nThis action cannot be undone!\n\nAre you sure you want to continue?')) return;
+                  if (!confirm('⚠️ FINAL CONFIRMATION: This will delete all CCC exam questions (but keep the question bank).\n\nThis is your last chance to cancel.\n\nContinue?')) return;
+                  
+                  try {
+                    setCccClearing(true);
+                    const res = await fetch('/api/admin/clear-all-ccc-questions', {
+                      method: 'POST',
+                      credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      let message = `✅ Success! Cleared all CCC exam questions.\n\nDeleted:\n- ${data.deleted.examQuestions} exam questions\n- Total: ${data.deleted.total} questions\n- Exams affected: ${data.examsAffected}`;
+                      if (data.note) {
+                        message += `\n\n📝 ${data.note}`;
+                      }
+                      alert(message);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to clear questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error clearing CCC questions:', error);
+                    alert('Failed to clear questions: ' + error.message);
+                  } finally {
+                    setCccClearing(false);
+                  }
+                }}
+                disabled={cccQuestionBankImporting || cccDistributing || cccClearing}
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {cccClearing ? 'Clearing...' : '🗑️ Remove Current Questions'}
+              </button>
+
+              <button
+                onClick={async () => {
+                  if (!confirm('This will distribute questions from the question bank to all 20 CCC exams (100 questions each, shuffled).\n\nMake sure you have imported questions to the bank first.\n\nContinue?')) return;
+                  
+                  try {
+                    setCccDistributing(true);
+                    const res = await fetch('/api/admin/distribute-ccc-questions', {
+                      method: 'POST',
+                      credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      let message = `✅ Success! Distributed questions to ${data.results.length} CCC exams.\n\n`;
+                      message += `Total questions in bank: ${data.totalQuestionsInBank}\n\n`;
+                      message += `Exams updated:\n`;
+                      data.results.forEach((r, idx) => {
+                        message += `${idx + 1}. ${r.examTitle}: ${r.questionsAdded} questions\n`;
+                      });
+                      if (data.errors && data.errors.length > 0) {
+                        message += `\n⚠️ Errors:\n`;
+                        data.errors.forEach(e => {
+                          message += `- ${e.exam}: ${e.error}\n`;
+                        });
+                      }
+                      alert(message);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to distribute questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error distributing CCC questions:', error);
+                    alert('Failed to distribute questions: ' + error.message);
+                  } finally {
+                    setCccDistributing(false);
+                  }
+                }}
+                disabled={cccQuestionBankImporting || cccDistributing || cccClearing}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {cccDistributing ? 'Distributing...' : '🚀 Distribute Questions to All Exams'}
+              </button>
+            </div>
+          </div>
+
+          {/* RSCIT Question Bank Management */}
+          <div className="bg-cyan-50 border-2 border-cyan-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-cyan-900 mb-3 font-bold">
+              <strong>📚 RSCIT Question Bank Management (Section A & B):</strong>
+            </p>
+            <p className="text-xs text-cyan-700 mb-3">
+              This system allows you to import questions separately for Section A (15 questions) and Section B (35 questions), then automatically distribute them across all RSCIT exams.
+              <br />• <strong>Section A:</strong> 15 questions, 2 marks each, 15 min timer, minimum 12 marks required
+              <br />• <strong>Section B:</strong> 35 questions, 2 marks each, 60 min timer, minimum 28 marks required
+              <br />• <strong>Step 1:</strong> Paste Section A questions and click "Import Section A"
+              <br />• <strong>Step 2:</strong> Paste Section B questions and click "Import Section B" (you can paste in parts - each import will ADD to the bank)
+              <br />• <strong>Step 3:</strong> Click "Remove Current Questions" to clear existing questions from all RSCIT exams (optional)
+              <br />• <strong>Step 4:</strong> Click "Distribute Questions to All Exams" to assign 15 Section A + 35 Section B questions to each exam
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {/* Section A */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Section A Questions (15 per exam):
+                </label>
+                <textarea
+                  value={rscitSectionAText}
+                  onChange={(e) => setRscitSectionAText(e.target.value)}
+                  placeholder="Paste Section A questions here..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 font-mono text-sm"
+                  rows={12}
+                  disabled={rscitSectionAImporting || rscitSectionBImporting || rscitDistributing || rscitClearing}
+                />
+                <button
+                  onClick={async () => {
+                    if (!rscitSectionAText.trim()) {
+                      alert('Please paste Section A questions first');
+                      return;
+                    }
+                    if (!confirm('This will ADD Section A questions to the RSCIT question bank (existing questions will remain). Continue?')) return;
+                    
+                    try {
+                      setRscitSectionAImporting(true);
+                      const res = await fetch('/api/admin/import-rscit-question-bank', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                          questionsText: rscitSectionAText,
+                          section: 'A'
+                        })
+                      });
+                      const data = await res.json();
+                      if (res.ok) {
+                        let message = `✅ Success! Imported ${data.imported} Section A questions into RSCIT question bank.\n\n`;
+                        message += `Total Section A questions in bank now: ${data.totalInBank}\n`;
+                        message += `Failed to parse: ${data.failed || 0} questions`;
+                        if (data.wasAppended) {
+                          message += `\n\n(Questions were added to existing bank)`;
+                        }
+                        alert(message);
+                        setRscitSectionAText('');
+                      } else {
+                        alert('Error: ' + (data.error || 'Failed to import Section A questions'));
+                      }
+                    } catch (error) {
+                      console.error('Error importing RSCIT Section A questions:', error);
+                      alert('Failed to import Section A questions: ' + error.message);
+                    } finally {
+                      setRscitSectionAImporting(false);
+                    }
+                  }}
+                  disabled={rscitSectionAImporting || rscitSectionBImporting || rscitDistributing || rscitClearing || !rscitSectionAText.trim()}
+                  className="mt-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400 w-full"
+                >
+                  {rscitSectionAImporting ? 'Importing...' : '📥 Import Section A'}
+                </button>
+              </div>
+
+              {/* Section B */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Section B Questions (35 per exam):
+                </label>
+                <textarea
+                  value={rscitSectionBText}
+                  onChange={(e) => setRscitSectionBText(e.target.value)}
+                  placeholder="Paste Section B questions here..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 font-mono text-sm"
+                  rows={12}
+                  disabled={rscitSectionAImporting || rscitSectionBImporting || rscitDistributing || rscitClearing}
+                />
+                <button
+                  onClick={async () => {
+                    if (!rscitSectionBText.trim()) {
+                      alert('Please paste Section B questions first');
+                      return;
+                    }
+                    if (!confirm('This will ADD Section B questions to the RSCIT question bank (existing questions will remain). Continue?')) return;
+                    
+                    try {
+                      setRscitSectionBImporting(true);
+                      const res = await fetch('/api/admin/import-rscit-question-bank', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                          questionsText: rscitSectionBText,
+                          section: 'B'
+                        })
+                      });
+                      const data = await res.json();
+                      if (res.ok) {
+                        let message = `✅ Success! Imported ${data.imported} Section B questions into RSCIT question bank.\n\n`;
+                        message += `Total Section B questions in bank now: ${data.totalInBank}\n`;
+                        message += `Failed to parse: ${data.failed || 0} questions`;
+                        if (data.wasAppended) {
+                          message += `\n\n(Questions were added to existing bank)`;
+                        }
+                        alert(message);
+                        setRscitSectionBText('');
+                      } else {
+                        alert('Error: ' + (data.error || 'Failed to import Section B questions'));
+                      }
+                    } catch (error) {
+                      console.error('Error importing RSCIT Section B questions:', error);
+                      alert('Failed to import Section B questions: ' + error.message);
+                    } finally {
+                      setRscitSectionBImporting(false);
+                    }
+                  }}
+                  disabled={rscitSectionAImporting || rscitSectionBImporting || rscitDistributing || rscitClearing || !rscitSectionBText.trim()}
+                  className="mt-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400 w-full"
+                >
+                  {rscitSectionBImporting ? 'Importing...' : '📥 Import Section B'}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3 mt-4">
+              <button
+                onClick={async () => {
+                  if (!confirm('⚠️ WARNING: This will remove ALL questions from ALL RSCIT exams.\n\nThe question banks will be PRESERVED so you can redistribute questions.\n\nThis action cannot be undone!\n\nAre you sure you want to continue?')) return;
+                  if (!confirm('⚠️ FINAL CONFIRMATION: This will delete all RSCIT exam questions (but keep the question banks).\n\nThis is your last chance to cancel.\n\nContinue?')) return;
+                  
+                  try {
+                    setRscitClearing(true);
+                    const res = await fetch('/api/admin/clear-all-rscit-questions', {
+                      method: 'POST',
+                      credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      let message = `✅ Success! Cleared all RSCIT exam questions.\n\nDeleted:\n- ${data.deleted.examQuestions} exam questions\n- Total: ${data.deleted.total} questions\n- Exams affected: ${data.examsAffected}`;
+                      if (data.note) {
+                        message += `\n\n📝 ${data.note}`;
+                      }
+                      alert(message);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to clear questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error clearing RSCIT questions:', error);
+                    alert('Failed to clear questions: ' + error.message);
+                  } finally {
+                    setRscitClearing(false);
+                  }
+                }}
+                disabled={rscitSectionAImporting || rscitSectionBImporting || rscitDistributing || rscitClearing}
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {rscitClearing ? 'Clearing...' : '🗑️ Remove Current Questions'}
+              </button>
+
+              <button
+                onClick={async () => {
+                  if (!confirm('This will distribute questions from the question banks to all RSCIT exams (15 Section A + 35 Section B questions each, shuffled).\n\nMake sure you have imported questions to both banks first.\n\nContinue?')) return;
+                  
+                  try {
+                    setRscitDistributing(true);
+                    const res = await fetch('/api/admin/distribute-rscit-questions', {
+                      method: 'POST',
+                      credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      let message = `✅ Success! Distributed questions to ${data.results.length} RSCIT exams.\n\n`;
+                      message += `Total questions in banks:\n- Section A: ${data.totalQuestionsInBank.sectionA}\n- Section B: ${data.totalQuestionsInBank.sectionB}\n\n`;
+                      message += `Exams updated:\n`;
+                      data.results.forEach((r, idx) => {
+                        message += `${idx + 1}. ${r.examTitle}: ${r.sectionAQuestions} Section A + ${r.sectionBQuestions} Section B = ${r.totalQuestions} total\n`;
+                      });
+                      if (data.errors && data.errors.length > 0) {
+                        message += `\n⚠️ Errors:\n`;
+                        data.errors.forEach(e => {
+                          message += `- ${e.exam}: ${e.error}\n`;
+                        });
+                      }
+                      alert(message);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to distribute questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error distributing RSCIT questions:', error);
+                    alert('Failed to distribute questions: ' + error.message);
+                  } finally {
+                    setRscitDistributing(false);
+                  }
+                }}
+                disabled={rscitSectionAImporting || rscitSectionBImporting || rscitDistributing || rscitClearing}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {rscitDistributing ? 'Distributing...' : '🚀 Distribute Questions to All Exams'}
+              </button>
+            </div>
+          </div>
+
+          {/* Delete All RSCIT Exams */}
+          <div className="bg-red-50 border-2 border-red-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-red-900 mb-3 font-bold">
+              <strong>🗑️ Delete All RSCIT Exams:</strong>
+            </p>
+            <p className="text-xs text-red-700 mb-3">
+              <strong>WARNING:</strong> This will permanently delete ALL RSCIT exams (RSCIT Exam 1, RSCIT Exam 2, etc.) and ALL related data including:
+              <br />• All sections
+              <br />• All parts
+              <br />• All questions
+              <br />• This action cannot be undone!
+            </p>
+            <button
+              onClick={async () => {
+                if (!confirm('⚠️ WARNING: This will DELETE ALL RSCIT EXAMS and ALL related data (sections, parts, questions).\n\nThis action CANNOT be undone!\n\nAre you absolutely sure you want to continue?')) return;
+                
+                if (!confirm('⚠️ FINAL CONFIRMATION: You are about to delete ALL RSCIT exams.\n\nThis is your last chance to cancel.\n\nContinue with deletion?')) return;
+                
                 try {
                   setSaving(true);
-                  const res = await fetch('/api/admin/create-rscit-15-exams', {
+                  const res = await fetch('/api/admin/delete-all-rscit-exams', {
                     method: 'POST',
                     credentials: 'include'
                   });
                   const data = await res.json();
                   if (res.ok) {
-                    alert(`Success! Created ${data.exams.length} exams. ${data.summary.free} free, ${data.summary.paid} paid.`);
+                    alert(`✅ ${data.message}\n\nDeleted:\n- ${data.deleted.exams} exam(s): ${data.deleted.examTitles.join(', ')}\n- ${data.deleted.sections} sections\n- ${data.deleted.parts} parts\n- ${data.deleted.questions} questions`);
                     await fetchExams();
                   } else {
-                    alert('Error: ' + (data.error || 'Failed to create exams'));
+                    alert('Error: ' + (data.error || 'Failed to delete RSCIT exams'));
                   }
                 } catch (error) {
-                  console.error('Error creating exams:', error);
-                  alert('Failed to create exams: ' + error.message);
+                  console.error('Error deleting RSCIT exams:', error);
+                  alert('Failed to delete RSCIT exams: ' + error.message);
                 } finally {
                   setSaving(false);
                 }
               }}
               disabled={saving}
-              className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
             >
-              {saving ? 'Creating...' : 'Create 20 RSCIT Exams'}
+              {saving ? 'Deleting...' : '🗑️ Delete ALL RSCIT Exams'}
+            </button>
+          </div>
+
+          {/* Update RSCIT Exams */}
+          <div className="bg-orange-50 border-2 border-orange-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-orange-900 mb-3 font-bold">
+              <strong>🚀 Update RSCIT Exams:</strong>
+            </p>
+            <p className="text-xs text-orange-700 mb-3">
+              This will update all existing RSCIT exams with the following pattern:
+              <br />• Total time: 90 minutes (Section A: 15 min separate timer, Section B: 60 min main timer)
+              <br />• 50 questions total (100 marks)
+              <br />• <strong>Section A FIRST:</strong> 15 questions @ 2 marks each (30 marks) - 15 minutes separate timer - Minimum 12 marks required to proceed
+              <br />• <strong>Section B SECOND:</strong> 35 questions @ 2 marks each (70 marks) - 60 minutes main timer (fresh, not remaining from Section A) - Minimum 28 marks required to pass
+              <br />• One part "RSCIT" in each section
+              <br />• <strong>Passing Criteria:</strong> Minimum 12 marks in Section A AND minimum 28 marks in Section B
+              <br />• No negative marking
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  if (!confirm('This will update all existing RSCIT exams with new structure: Section A first (15 min, 15 questions, min 12 marks), Section B second (60 min, 35 questions, min 28 marks). Continue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/update-rscit-exams-structure', {
+                      method: 'POST',
+                      credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Success! Updated ${data.exams.length} RSCIT exams with new structure.`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to update exams'));
+                    }
+                  } catch (error) {
+                    console.error('Error updating exams:', error);
+                    alert('Failed to update exams: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Updating...' : 'Update Existing RSCIT Exams'}
               </button>
               <button
                 onClick={async () => {
-                  if (!confirm('This will import RSCIT syllabus-based questions for exams 1-5. Continue?')) return;
+                  const examNumbers = prompt('Enter exam numbers to import questions for (e.g., 1,2,3,4,5 or just press OK for all):');
+                  if (examNumbers === null) return; // User cancelled
+                  
+                  let examNums = [];
+                  if (examNumbers.trim()) {
+                    examNums = examNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+                  }
+                  
+                  if (!confirm(`This will import REAL questions from question bank for RSCIT Exam${examNums.length > 0 ? 's ' + examNums.join(', ') : 's (all)'}.\n\nThis will REPLACE existing placeholder questions with real questions.\n\nContinue?`)) return;
+                  
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/import-rscit-questions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ examNumbers: examNums.length > 0 ? examNums : undefined })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`✅ Success! Imported real questions for ${data.imported || 0} exam(s).\n\n${data.message || ''}`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to import questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error importing questions:', error);
+                    alert('Failed to import questions: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Importing...' : 'Import Real RSCIT Questions'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will import REAL questions from question bank for RSCIT Exams 1, 2, 3, 4, and 5.\n\nThis will REPLACE existing placeholder questions with real questions.\n\nContinue?')) return;
+                  
                   try {
                     setSaving(true);
                     const res = await fetch('/api/admin/import-rscit-questions', {
@@ -961,7 +1564,7 @@ export default function AdminPanel() {
                     });
                     const data = await res.json();
                     if (res.ok) {
-                      alert(`Success! Imported questions for ${data.results.length} exam(s).`);
+                      alert(`✅ Success! Imported real questions for exams 1-5.\n\n${data.message || ''}\n\nImported: ${data.imported || 0} exam(s)`);
                       await fetchExams();
                     } else {
                       alert('Error: ' + (data.error || 'Failed to import questions'));
@@ -976,11 +1579,12 @@ export default function AdminPanel() {
                 disabled={saving}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
               >
-                {saving ? 'Importing...' : 'Import RSCIT Questions (Exams 1-5)'}
+                {saving ? 'Importing...' : 'Import Real Questions (Exams 1-5)'}
               </button>
               <button
                 onClick={async () => {
-                  if (!confirm('This will import RSCIT syllabus-based questions for exams 6-10. These questions will be different from exams 1-5. Continue?')) return;
+                  if (!confirm('This will import REAL questions from question bank for RSCIT Exams 6, 7, 8, 9, and 10.\n\nThis will REPLACE existing placeholder questions with real questions.\n\nContinue?')) return;
+                  
                   try {
                     setSaving(true);
                     const res = await fetch('/api/admin/import-rscit-questions', {
@@ -991,7 +1595,7 @@ export default function AdminPanel() {
                     });
                     const data = await res.json();
                     if (res.ok) {
-                      alert(`Success! Imported questions for ${data.results.length} exam(s).`);
+                      alert(`✅ Success! Imported real questions for exams 6-10.\n\n${data.message || ''}\n\nImported: ${data.imported || 0} exam(s)`);
                       await fetchExams();
                     } else {
                       alert('Error: ' + (data.error || 'Failed to import questions'));
@@ -1006,52 +1610,23 @@ export default function AdminPanel() {
                 disabled={saving}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
               >
-                {saving ? 'Importing...' : 'Import RSCIT Questions (Exams 6-10)'}
+                {saving ? 'Importing...' : 'Import Real Questions (Exams 6-10)'}
               </button>
               <button
                 onClick={async () => {
-                  if (!confirm('This will import RSCIT syllabus-based questions for exams 11-15. These questions will be different from exams 1-10. Continue?')) return;
+                  if (!confirm('This will import REAL questions from question bank for RSCIT Exams 11, 12, 13, 14, 15, 16, 17, 18, 19, and 20.\n\nThis will REPLACE existing placeholder questions with real questions.\n\nContinue?')) return;
+                  
                   try {
                     setSaving(true);
                     const res = await fetch('/api/admin/import-rscit-questions', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       credentials: 'include',
-                      body: JSON.stringify({ examNumbers: [11, 12, 13, 14, 15] })
+                      body: JSON.stringify({ examNumbers: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20] })
                     });
                     const data = await res.json();
                     if (res.ok) {
-                      alert(`Success! Imported questions for ${data.results.length} exam(s).`);
-                      await fetchExams();
-                    } else {
-                      alert('Error: ' + (data.error || 'Failed to import questions'));
-                    }
-                  } catch (error) {
-                    console.error('Error importing questions:', error);
-                    alert('Failed to import questions: ' + error.message);
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-                disabled={saving}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
-              >
-                {saving ? 'Importing...' : 'Import RSCIT Questions (Exams 11-15)'}
-              </button>
-              <button
-                onClick={async () => {
-                  if (!confirm('This will import RSCIT syllabus-based questions for exams 16-20. These questions will be different from exams 1-15. Continue?')) return;
-                  try {
-                    setSaving(true);
-                    const res = await fetch('/api/admin/import-rscit-questions', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      credentials: 'include',
-                      body: JSON.stringify({ examNumbers: [16, 17, 18, 19, 20] })
-                    });
-                    const data = await res.json();
-                    if (res.ok) {
-                      alert(`Success! Imported questions for ${data.results.length} exam(s).`);
+                      alert(`✅ Success! Imported real questions for exams 11-20.\n\n${data.message || ''}\n\nImported: ${data.imported || 0} exam(s)`);
                       await fetchExams();
                     } else {
                       alert('Error: ' + (data.error || 'Failed to import questions'));
@@ -1066,7 +1641,109 @@ export default function AdminPanel() {
                 disabled={saving}
                 className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
               >
-                {saving ? 'Importing...' : 'Import RSCIT Questions (Exams 16-20)'}
+                {saving ? 'Importing...' : 'Import Real Questions (Exams 11-20)'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will remove [V51], [V52], etc. tags from ALL RSCIT questions.\n\nThis will clean question text, options, and explanations.\n\nContinue?')) return;
+                  
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/clean-rscit-questions', {
+                      method: 'POST',
+                      credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`✅ Success! Cleaned ${data.updated} questions out of ${data.totalQuestions} total questions.`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to clean questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error cleaning questions:', error);
+                    alert('Failed to clean questions: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Cleaning...' : 'Remove [V51] Tags from All Questions'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will RE-IMPORT questions for ALL RSCIT exams (1-20) with improved duplicate prevention.\n\nThis will:\n- Check for duplicates across all exams\n- Ensure each exam gets unique questions\n- Clean question text (remove tags)\n\nContinue?')) return;
+                  
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/import-rscit-questions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ examNumbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20] })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`✅ Success! Re-imported questions for all 20 exams.\n\n${data.message || ''}\n\nImported: ${data.imported || 0} exam(s)`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to import questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error importing questions:', error);
+                    alert('Failed to import questions: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Re-importing...' : 'Re-import All Questions (Exams 1-20) - No Duplicates'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will create/update 20 RSCIT exams with the following structure:\n\n' +
+                    'Each exam has:\n' +
+                    '• Section A: 15 questions, 15 min timer, 2 marks each, minimum 12 marks to proceed\n' +
+                    '• Section B: 35 questions, 60 min timer (fresh, not remaining from A), 2 marks each, minimum 28 marks to pass\n' +
+                    '• Total: 50 questions per exam\n' +
+                    '• Passing: Must pass both sections (A >= 12 AND B >= 28)\n\n' +
+                    'This will DELETE and RECREATE all sections, parts, and questions for existing exams.\n\n' +
+                    'Continue?')) return;
+                  
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/create-20-rscit-exams', {
+                      method: 'POST',
+                      credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`✅ Success! Created/updated ${data.created.length} RSCIT exams.\n\n` +
+                        `Summary:\n` +
+                        `• Total exams: ${data.summary.totalExams}\n` +
+                        `• Total questions: ${data.summary.totalQuestions}\n` +
+                        `• Section A questions: ${data.summary.sectionAQuestions}\n` +
+                        `• Section B questions: ${data.summary.sectionBQuestions}\n\n` +
+                        (data.errors && data.errors.length > 0 ? `Errors: ${data.errors.length}\n` : ''));
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to create exams'));
+                    }
+                  } catch (error) {
+                    console.error('Error creating exams:', error);
+                    alert('Failed to create exams: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Creating...' : 'Create 20 RSCIT Exams'}
               </button>
             </div>
           </div>
@@ -1173,7 +1850,7 @@ export default function AdminPanel() {
                             Type: {exam.key} • {exam.totalQuestions} questions • {exam.totalTime} min
                           </div>
                         </button>
-                        <div className={`px-4 pb-2 flex gap-2 ${selectedExam === exam._id ? 'border-t border-purple-300 pt-2' : ''}`}>
+                        <div className={`px-4 pb-2 flex gap-2 flex-wrap ${selectedExam === exam._id ? 'border-t border-purple-300 pt-2' : ''}`}>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1187,6 +1864,51 @@ export default function AdminPanel() {
                             }`}
                           >
                             Edit
+                          </button>
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (!confirm(`⚠️ This will delete ALL questions for "${exam.title}". This action cannot be undone!\n\nAre you sure you want to continue?`)) return;
+                              try {
+                                setSaving(true);
+                                const res = await fetch('/api/admin/clear-exam-questions', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  credentials: 'include',
+                                  body: JSON.stringify({ examId: exam._id })
+                                });
+                                const data = await res.json();
+                                if (res.ok) {
+                                  const msg = `Success! Cleared all questions for "${exam.title}":\n\n` +
+                                    (data.deletedData.questions > 0 ? `• ${data.deletedData.questions} questions deleted\n` : '') +
+                                    (data.deletedData.topicWiseMCQs > 0 ? `• ${data.deletedData.topicWiseMCQs} topic-wise MCQs deleted\n` : '') +
+                                    (data.deletedData.parts > 0 ? `• ${data.deletedData.parts} parts deleted\n` : '');
+                                  alert(msg);
+                                  // Refresh questions if this exam is selected
+                                  if (selectedExam === exam._id) {
+                                    setSelectedSection(null);
+                                    setSelectedPart(null);
+                                    setQuestions([]);
+                                    fetchSections(exam._id);
+                                  }
+                                } else {
+                                  alert('Error: ' + (data.error || 'Failed to clear questions'));
+                                }
+                              } catch (error) {
+                                console.error('Error clearing questions:', error);
+                                alert('Failed to clear questions: ' + error.message);
+                              } finally {
+                                setSaving(false);
+                              }
+                            }}
+                            disabled={saving}
+                            className={`text-xs px-2 py-1 rounded ${
+                              selectedExam === exam._id
+                                ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                                : 'bg-orange-600 hover:bg-orange-700 text-white'
+                            } disabled:bg-gray-400`}
+                          >
+                            Clear Questions
                           </button>
                           <button
                             onClick={(e) => {
@@ -5627,15 +6349,24 @@ function TopicWiseMCQAdmin(){
   const [showTopicForm, setShowTopicForm] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [bulkImportText, setBulkImportText] = useState('');
+  const [bulkImportTopicId, setBulkImportTopicId] = useState('');
+  const [bulkImporting, setBulkImporting] = useState(false);
 
   const refreshTopics = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/topicwise/topics');
+      const res = await fetch('/api/admin/topicwise/topics', {
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch topics: ${res.status} ${res.statusText}`);
+      }
       const data = await res.json();
       setTopics(data.topics || []);
     } catch (error) {
       console.error('Failed to fetch topics:', error);
+      alert('Failed to load topics: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -5674,7 +6405,8 @@ function TopicWiseMCQAdmin(){
       const body = {
         topicId: topicId,
         topicName: formData.topicName,
-        topicName_hi: formData.topicName_hi || ''
+        topicName_hi: formData.topicName_hi || '',
+        isFree: formData.isFree || false
       };
       const res = await fetch('/api/admin/topicwise/topics', {
         method: 'POST',
@@ -5841,54 +6573,218 @@ function TopicWiseMCQAdmin(){
 
   return (
     <div className="mt-4">
-          {/* Create 10 Topics with 100 Questions Each */}
+          {/* Create 10 Topic-Wise Exams */}
           <div className="bg-teal-50 border-2 border-teal-400 rounded-lg p-4 mb-6">
             <p className="text-sm text-teal-900 mb-3 font-bold">
-              <strong>🚀 Create 10 Topics with 100 Questions Each:</strong>
+              <strong>🚀 Create 10 Topic-Wise Exams:</strong>
             </p>
             <p className="text-xs text-teal-700 mb-3">
-              This will create 10 topics in Topic Wise MCQ with 100 questions each:
-              <br />• 1. Computers and their evolution and types
-              <br />• 2. Computer generations & Printers
-              <br />• 3. All types of memory
-              <br />• 4. Software and its types and hardware, input and output devices
-              <br />• 5. All programming languages
-              <br />• 6. Data communication media
-              <br />• 7. Internet browsers and search engines, mail sites, viruses, and network media and topology
-              <br />• 8. Microsoft Office (Word, Excel, PowerPoint)
-              <br />• 9. All shortcut keys
-              <br />• 10. Important sorts of notes
-              <br />• The "das" topic will be deleted if it exists
-              <br />• All questions can be edited later through the admin panel
+              This will create 10 topic-wise exams with the following configuration:
+              <br />• Each exam: 100 questions, 90 minutes duration
+              <br />• Passing marks: 50 marks (50%)
+              <br />• First topic (Computers and their evolution and types) is FREE
+              <br />• All other 9 topics are PAID
+              <br />
+              <br /><strong>Topics:</strong>
+              <br />1. Computers and their evolution and types (FREE)
+              <br />2. Computer generations & Printers (PAID)
+              <br />3. All types of memory (PAID)
+              <br />4. Software and its types and hardware, input and output devices (PAID)
+              <br />5. All programming languages (PAID)
+              <br />6. Data communication media (PAID)
+              <br />7. Internet browsers and search engines, mail sites, viruses, and network media and topology (PAID)
+              <br />8. Microsoft Office (Word, Excel, PowerPoint) (PAID)
+              <br />9. All shortcut keys (PAID)
+              <br />10. Important sorts of notes (PAID)
             </p>
-        <button
-          onClick={async () => {
-            if (!confirm('This will create/update 10 topics with 100 questions each. The "das" topic will be deleted. Continue?')) return;
-            try {
-              setSaving(true);
-              const res = await fetch('/api/admin/create-topicwise-topics', {
-                method: 'POST',
-                credentials: 'include'
-              });
-              const data = await res.json();
-              if (res.ok) {
-                alert(`Success! Created/updated ${data.topics.length} topics with ${data.summary.totalQuestions} total questions.`);
-                await refreshTopics();
-              } else {
-                alert('Error: ' + (data.error || 'Failed to create topics'));
-              }
-            } catch (error) {
-              console.error('Error creating topics:', error);
-              alert('Failed to create topics: ' + error.message);
-            } finally {
-              setSaving(false);
-            }
-          }}
-          disabled={saving}
-          className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
-        >
-          {saving ? 'Creating...' : 'Create 10 Topics with 100 Questions Each'}
-        </button>
+            <button
+              onClick={async () => {
+                if (!confirm('This will create/update 10 topic-wise exams with proper structure. The first topic will be FREE, others will be PAID. Continue?')) return;
+                try {
+                  setSaving(true);
+                  const res = await fetch('/api/admin/create-topicwise-exams', {
+                    method: 'POST',
+                    credentials: 'include'
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    const successMsg = `Success! Created ${data.createdExams.length} topic-wise exams.\n\n` +
+                      data.createdExams.map((exam, idx) => 
+                        `${idx + 1}. ${exam.topicName} (${exam.isFree ? 'FREE' : 'PAID'})`
+                      ).join('\n');
+                    alert(successMsg);
+                    await refreshTopics();
+                  } else {
+                    alert('Error: ' + (data.error || 'Failed to create topic-wise exams'));
+                  }
+                } catch (error) {
+                  console.error('Error creating topic-wise exams:', error);
+                  alert('Failed to create topic-wise exams: ' + error.message);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+              disabled={saving}
+              className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+            >
+              {saving ? 'Creating Exams...' : 'Create 10 Topic-Wise Exams'}
+            </button>
+      </div>
+
+          {/* Bulk Import Questions */}
+          <div className="bg-blue-50 border-2 border-blue-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-blue-900 mb-3 font-bold">
+              <strong>📥 Bulk Import Questions:</strong>
+            </p>
+            <p className="text-xs text-blue-700 mb-3">
+              Copy and paste questions in the following format:
+              <br />• <strong>Format 1:</strong> Question text (Hindi text?) A. Option1 B. Option2 C. Option3 D. Option4 Ans: A. Answer
+              <br />• <strong>Format 2:</strong> Question text (Hindi text?) A. Option1 (Hindi1) B. Option2 (Hindi2) C. Option3 (Hindi3) D. Option4 (Hindi4) Ans: A. Answer
+              <br />• Each question on a new line (separated by blank lines)
+              <br />• If you paste more than 100 questions, only the first 100 will be imported
+              <br />• Questions will be automatically parsed and added to the selected topic
+            </p>
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Topic:
+              </label>
+              <select
+                value={bulkImportTopicId}
+                onChange={(e) => setBulkImportTopicId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                disabled={bulkImporting || topics.length === 0}
+              >
+                <option value="">-- Select a Topic --</option>
+                {topics.map(topic => (
+                  <option key={topic.topicId} value={topic.topicId}>
+                    {topic.topicName} {topic.isFree ? '(FREE)' : '(PAID)'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Paste Questions Here:
+              </label>
+              <textarea
+                value={bulkImportText}
+                onChange={(e) => setBulkImportText(e.target.value)}
+                placeholder="Paste questions here in the format:&#10;Question text (Hindi text?) A. Option1 B. Option2 C. Option3 D. Option4 Ans: A. Answer&#10;&#10;Next question..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                rows={10}
+                disabled={bulkImporting || !bulkImportTopicId}
+              />
+            </div>
+            <button
+              onClick={async () => {
+                if (!bulkImportTopicId) {
+                  alert('Please select a topic first');
+                  return;
+                }
+                if (!bulkImportText.trim()) {
+                  alert('Please paste questions first');
+                  return;
+                }
+                if (!confirm(`This will import questions to "${topics.find(t => t.topicId === bulkImportTopicId)?.topicName}". Continue?`)) return;
+                
+                try {
+                  setBulkImporting(true);
+                  const res = await fetch('/api/admin/bulk-import-topicwise-questions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                      questionsText: bulkImportText,
+                      topicId: bulkImportTopicId
+                    })
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    let message = `Success! Imported ${data.imported} questions.\nTotal questions in topic: ${data.totalQuestions}`;
+                    if (data.parsingStats) {
+                      message += `\n\nParsing Stats:\n- Total blocks found: ${data.parsingStats.totalBlocks}\n- Successfully parsed: ${data.parsingStats.parsed}\n- Failed to parse: ${data.parsingStats.failed}`;
+                      if (data.parsingStats.wasLimited) {
+                        message += `\n- ⚠️ Limited to 100 questions (had ${data.parsingStats.totalBlocks} total)`;
+                      }
+                    }
+                    if (data.warning) {
+                      message += `\n\n⚠️ ${data.warning}`;
+                    }
+                    alert(message);
+                    setBulkImportText('');
+                    if (selectedTopic === bulkImportTopicId) {
+                      await refreshQuestions(selectedTopic);
+                    }
+                  } else {
+                    alert('Error: ' + (data.error || 'Failed to import questions'));
+                  }
+                } catch (error) {
+                  console.error('Error importing questions:', error);
+                  alert('Failed to import questions: ' + error.message);
+                } finally {
+                  setBulkImporting(false);
+                }
+              }}
+              disabled={bulkImporting || !bulkImportTopicId || !bulkImportText.trim()}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+            >
+              {bulkImporting ? 'Importing Questions...' : 'Import Questions'}
+            </button>
+      </div>
+
+          {/* Delete All Topic-Wise Questions & Papers */}
+          <div className="bg-red-50 border-2 border-red-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-red-900 mb-3 font-bold">
+              <strong>⚠️ Delete All Topic-Wise Questions & Papers:</strong>
+            </p>
+            <p className="text-xs text-red-700 mb-3">
+              This will permanently delete:
+              <br />• All topic-wise MCQ questions
+              <br />• All topics
+              <br />• All topic-wise exams (papers)
+              <br />• All sections and parts related to topic-wise exams
+              <br />• All questions related to topic-wise exams
+              <br />
+              <br /><strong>Warning:</strong> This action cannot be undone!
+            </p>
+            <button
+              onClick={async () => {
+                if (!confirm('⚠️ WARNING: This will permanently delete ALL topic-wise questions, topics, and papers. This action cannot be undone!\n\nAre you absolutely sure you want to continue?')) return;
+                if (!confirm('This is your last chance. Click OK to permanently delete everything.')) return;
+                try {
+                  setSaving(true);
+                  const res = await fetch('/api/admin/delete-all-topicwise', {
+                    method: 'POST',
+                    credentials: 'include'
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    const successMsg = `Success! Deleted all topic-wise data:\n\n` +
+                      `• ${data.deletedData.topicWiseMCQs} MCQ questions\n` +
+                      `• ${data.deletedData.topics} topics\n` +
+                      `• ${data.deletedData.exams} exams\n` +
+                      `• ${data.deletedData.sections} sections\n` +
+                      `• ${data.deletedData.parts} parts\n` +
+                      `• ${data.deletedData.questions} exam questions`;
+                    alert(successMsg);
+                    await refreshTopics();
+                    setSelectedTopic(null);
+                    setQuestions([]);
+                  } else {
+                    alert('Error: ' + (data.error || 'Failed to delete topic-wise data'));
+                  }
+                } catch (error) {
+                  console.error('Error deleting topic-wise data:', error);
+                  alert('Failed to delete topic-wise data: ' + error.message);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+              disabled={saving}
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+            >
+              {saving ? 'Deleting...' : 'Delete All Questions & Papers'}
+            </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -5921,10 +6817,19 @@ function TopicWiseMCQAdmin(){
                     onClick={() => setSelectedTopic(topic.topicId)}
                     className="cursor-pointer"
                   >
-                    <div className="font-medium">{topic.topicName}</div>
-                    {topic.topicName_hi && <div className="text-xs text-gray-600 mt-1">{topic.topicName_hi}</div>}
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="font-medium">{topic.topicName}</div>
+                        {topic.topicName_hi && <div className="text-xs text-gray-600 mt-1">{topic.topicName_hi}</div>}
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded ml-2 ${
+                        topic.isFree ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {topic.isFree ? 'FREE' : 'PAID'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex gap-2 mt-2 flex-wrap">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -5933,6 +6838,40 @@ function TopicWiseMCQAdmin(){
                       className="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
                     >
                       Edit
+                    </button>
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (!confirm(`⚠️ This will delete ALL questions for "${topic.topicName}". This action cannot be undone!\n\nAre you sure you want to continue?`)) return;
+                        try {
+                          setSaving(true);
+                          const res = await fetch('/api/admin/clear-topic-questions', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ topicId: topic.topicId })
+                          });
+                          const data = await res.json();
+                          if (res.ok) {
+                            alert(`Success! Cleared all questions for "${topic.topicName}":\n\n• ${data.deletedCount} questions deleted`);
+                            // Refresh questions if this topic is selected
+                            if (selectedTopic === topic.topicId) {
+                              await refreshQuestions(selectedTopic);
+                            }
+                          } else {
+                            alert('Error: ' + (data.error || 'Failed to clear questions'));
+                          }
+                        } catch (error) {
+                          console.error('Error clearing questions:', error);
+                          alert('Failed to clear questions: ' + error.message);
+                        } finally {
+                          setSaving(false);
+                        }
+                      }}
+                      disabled={saving}
+                      className="bg-orange-600 hover:bg-orange-700 text-white px-2 py-1 rounded text-xs disabled:bg-gray-400"
+                    >
+                      Clear Questions
                     </button>
                     <button
                       onClick={(e) => {
@@ -6301,7 +7240,8 @@ function TopicForm({ topic, onSave, onCancel, saving, error }) {
   const [formData, setFormData] = useState({
     topicId: topic?.topicId || '',
     topicName: topic?.topicName || '',
-    topicName_hi: topic?.topicName_hi || ''
+    topicName_hi: topic?.topicName_hi || '',
+    isFree: topic?.isFree || false
   });
 
   useEffect(() => {
@@ -6309,13 +7249,15 @@ function TopicForm({ topic, onSave, onCancel, saving, error }) {
       setFormData({
         topicId: topic.topicId || '',
         topicName: topic.topicName || '',
-        topicName_hi: topic.topicName_hi || ''
+        topicName_hi: topic.topicName_hi || '',
+        isFree: topic.isFree || false
       });
     } else {
       setFormData({
         topicId: '',
         topicName: '',
-        topicName_hi: ''
+        topicName_hi: '',
+        isFree: false
       });
     }
   }, [topic]);
@@ -6365,6 +7307,17 @@ function TopicForm({ topic, onSave, onCancel, saving, error }) {
             onChange={(e) => setFormData({...formData, topicName_hi: e.target.value})}
             className="w-full border rounded px-3 py-2 text-sm"
           />
+        </div>
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.isFree}
+              onChange={(e) => setFormData({...formData, isFree: e.target.checked})}
+              className="w-5 h-5"
+            />
+            <span className="text-sm font-medium">Make this topic FREE</span>
+          </label>
         </div>
         <div className="flex gap-2 mt-6">
           <button 

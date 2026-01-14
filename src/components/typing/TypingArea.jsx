@@ -21,6 +21,16 @@ export default function TypingArea({
   const [startTime, setStartTime] = useState(null);
   const inputRef = useRef(null);
   const audioRef = useRef(null);
+  const wordRefs = useRef([]);
+  const containerRef = useRef(null);
+  
+  // Split content into words for word mode
+  const words = mode === "word" && content 
+    ? content.trim().split(/\s+/).filter(w => w.length > 0)
+    : [];
+  const typedWords = mode === "word" && typedText
+    ? typedText.trim().split(/\s+/).filter(w => w.length > 0)
+    : [];
 
   useEffect(() => {
     if (showTimer && timeLeft !== null && isActive && timeLeft > 0) {
@@ -41,11 +51,21 @@ export default function TypingArea({
   useEffect(() => {
     if (onProgress && startTime) {
       const elapsed = (Date.now() - startTime) / 1000 / 60; // minutes
-      const words = typedText.trim().split(/\s+/).length;
-      const wpm = elapsed > 0 ? Math.round(words / elapsed) : 0;
-      const accuracy = typedText.length > 0 
-        ? Math.round(((typedText.length - mistakes) / typedText.length) * 100)
-        : 100;
+      let wpm = 0;
+      let accuracy = 100;
+      
+      if (mode === "word") {
+        const wordsTyped = typedWords.length;
+        wpm = elapsed > 0 ? Math.round(wordsTyped / elapsed) : 0;
+        const correctWords = typedWords.filter((word, i) => word === words[i]).length;
+        accuracy = wordsTyped > 0 ? Math.round((correctWords / wordsTyped) * 100) : 100;
+      } else {
+        const words = typedText.trim().split(/\s+/).length;
+        wpm = elapsed > 0 ? Math.round(words / elapsed) : 0;
+        accuracy = typedText.length > 0 
+          ? Math.round(((typedText.length - mistakes) / typedText.length) * 100)
+          : 100;
+      }
       
       onProgress({
         wpm,
@@ -55,17 +75,68 @@ export default function TypingArea({
         timeLeft
       });
     }
-  }, [typedText, mistakes, backspaceCount, timeLeft, startTime, onProgress]);
+  }, [typedText, typedWords, mistakes, backspaceCount, timeLeft, startTime, onProgress, mode, words]);
 
-  const handleKeyPress = (e) => {
-    if (!isActive && typedText.length === 0) {
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setTypedText(value);
+    
+    if (!isActive && value.length > 0) {
       setIsActive(true);
       setStartTime(Date.now());
     }
+    
+    if (mode === "word") {
+      const currentTypedWords = value.trim().split(/\s+/).filter(w => w.length > 0);
+      const currentWordIndex = currentTypedWords.length - 1;
+      
+      // Check if space was pressed (word completed)
+      if (value.endsWith(" ") && currentWordIndex >= 0) {
+        const typedWord = currentTypedWords[currentWordIndex];
+        const correctWord = words[currentWordIndex] || "";
+        
+        if (typedWord !== correctWord) {
+          setMistakes((prev) => prev + 1);
+        }
+        
+        // Scroll to next word
+        const nextWordIndex = currentWordIndex + 1;
+        if (nextWordIndex < words.length && wordRefs.current[nextWordIndex] && containerRef.current) {
+          wordRefs.current[nextWordIndex].scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "start",
+          });
+        }
+        
+        // Check if all words completed
+        if (nextWordIndex >= words.length) {
+          setIsActive(false);
+          if (onComplete) {
+            const finalTypedWords = value.trim().split(/\s+/).filter(w => w.length > 0);
+            const correctWordsCount = finalTypedWords.filter((w, i) => w === words[i]).length;
+            const totalWords = finalTypedWords.length;
+            const wrongWordsCount = totalWords - correctWordsCount;
+            const accuracy = totalWords > 0 
+              ? Math.round((correctWordsCount / totalWords) * 100)
+              : 100;
+            const elapsed = startTime ? (Date.now() - startTime) / 1000 / 60 : 0;
+            const wpm = elapsed > 0 ? Math.round(totalWords / elapsed) : 0;
+            
+            onComplete({ 
+              typedText: value, 
+              mistakes: wrongWordsCount,
+              backspaceCount,
+              wpm,
+              accuracy
+            });
+          }
+        }
+      }
+    }
+  };
 
-    const expectedChar = content[currentIndex];
-    const pressedChar = e.key;
-
+  const handleKeyPress = (e) => {
     // Play sound
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
@@ -73,6 +144,14 @@ export default function TypingArea({
     }
 
     if (mode === "character") {
+      if (!isActive && typedText.length === 0) {
+        setIsActive(true);
+        setStartTime(Date.now());
+      }
+
+      const expectedChar = content[currentIndex];
+      const pressedChar = e.key;
+
       // Character mode - single character at a time
       if (pressedChar === expectedChar) {
         setTypedText((prev) => prev + pressedChar);
@@ -91,49 +170,70 @@ export default function TypingArea({
         setMistakes((prev) => prev + 1);
       }
     } else {
-      // Word/Paragraph mode
-      if (pressedChar === "Backspace") {
+      // Word mode - handle backspace
+      if (e.key === "Backspace") {
         if (allowBackspace) {
           setBackspaceCount((prev) => prev + 1);
-          setTypedText((prev) => prev.slice(0, -1));
-          setCurrentIndex((prev) => Math.max(0, prev - 1));
-        }
-      } else if (pressedChar.length === 1) {
-        const expectedChar = content[currentIndex];
-        if (pressedChar === expectedChar) {
-          setTypedText((prev) => prev + pressedChar);
-          setCurrentIndex((prev) => {
-            const newIndex = prev + 1;
-            if (newIndex >= content.length) {
-              setIsActive(false);
-              if (onComplete) {
-                onComplete({ typedText: typedText + pressedChar, mistakes, backspaceCount });
-              }
-            }
-            return newIndex;
-          });
         } else {
-          setMistakes((prev) => prev + 1);
-          setTypedText((prev) => prev + pressedChar);
-          setCurrentIndex((prev) => prev + 1);
+          e.preventDefault();
         }
       }
     }
   };
 
-  const getDisplayText = () => {
-    if (mode === "character") {
-      return content;
+  const renderColoredWords = () => {
+    if (mode !== "word" || words.length === 0) return null;
+    
+    let pointer = 0;
+    // Split content into lines for better display
+    const lines = [];
+    let currentLine = "";
+    for (const word of words) {
+      if ((currentLine + " " + word).length > 80 && currentLine) {
+        lines.push(currentLine.trim());
+        currentLine = word;
+      } else {
+        currentLine = currentLine ? currentLine + " " + word : word;
+      }
     }
-    return content;
-  };
-
-  const getTypedDisplay = () => {
-    return typedText;
-  };
-
-  const getRemainingDisplay = () => {
-    return content.slice(currentIndex);
+    if (currentLine) {
+      lines.push(currentLine.trim());
+    }
+    
+    return lines.map((line, lineIndex) => {
+      const lineWords = line.trim().split(/\s+/);
+      return (
+        <p
+          key={lineIndex}
+          className="mb-1 break-words flex items-center"
+          ref={lineIndex === 0 ? containerRef : null}
+        >
+          {lineWords.map((word, i) => {
+            const index = pointer++;
+            let className = "";
+            if (typedWords.length - 1 > index) {
+              // Completed word - green if correct, red if wrong
+              className = typedWords[index] === word ? "text-green-600" : "text-red-600";
+            } else if (typedWords.length - 1 === index) {
+              // Current word being typed - blue background
+              className = "bg-blue-500 text-white px-1 rounded";
+            } else {
+              // Not typed yet - gray
+              className = "text-gray-500";
+            }
+            return (
+              <span
+                key={i}
+                ref={(el) => (wordRefs.current[index] = el)}
+                className={`${className} mr-1`}
+              >
+                {word}
+              </span>
+            );
+          })}
+        </p>
+      );
+    });
   };
 
   return (
@@ -157,24 +257,43 @@ export default function TypingArea({
         className="w-full p-6 bg-gray-50 border-2 border-gray-300 rounded-lg text-lg md:text-xl font-mono min-h-[200px] cursor-text"
         onClick={() => inputRef.current?.focus()}
       >
-        <div className="whitespace-pre-wrap break-words">
-          <span className="text-green-600">{getTypedDisplay()}</span>
-          <span className="bg-yellow-200">{content[currentIndex] || ""}</span>
-          <span className="text-gray-400">{getRemainingDisplay().slice(1)}</span>
-        </div>
+        {mode === "word" ? (
+          <div className="whitespace-pre-wrap break-words">
+            {renderColoredWords()}
+          </div>
+        ) : (
+          <div className="whitespace-pre-wrap break-words">
+            <span className="text-green-600">{typedText}</span>
+            <span className="bg-yellow-200">{content[currentIndex] || ""}</span>
+            <span className="text-gray-400">{content.slice(currentIndex + 1)}</span>
+          </div>
+        )}
       </div>
 
-      {/* Input for capturing keystrokes - positioned off-screen but functional */}
-      <input
-        ref={inputRef}
-        type="text"
-        value=""
-        onChange={() => {}}
-        onKeyDown={handleKeyPress}
-        className="absolute opacity-0 pointer-events-none"
-        autoFocus
-        tabIndex={-1}
-      />
+      {/* Input for capturing keystrokes */}
+      {mode === "word" ? (
+        <textarea
+          ref={inputRef}
+          value={typedText}
+          onChange={handleChange}
+          onKeyDown={handleKeyPress}
+          className="absolute opacity-0 pointer-events-none w-0 h-0"
+          autoFocus
+          tabIndex={-1}
+          spellCheck={false}
+        />
+      ) : (
+        <input
+          ref={inputRef}
+          type="text"
+          value=""
+          onChange={() => {}}
+          onKeyDown={handleKeyPress}
+          className="absolute opacity-0 pointer-events-none"
+          autoFocus
+          tabIndex={-1}
+        />
+      )}
 
       {/* Progress Indicator */}
       {mode === "character" && (
