@@ -143,7 +143,7 @@ function NotesPageContent() {
                       </a>
                     ) : (
                     <a
-                      href={file.fileUrl}
+                      href={`/api/downloads/file?file=${encodeURIComponent(file.fileUrl)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="bg-pink-300 hover:bg-yellow-500 text-black px-6 py-3 text-sm font-semibold rounded-md shadow-md transition-colors"
