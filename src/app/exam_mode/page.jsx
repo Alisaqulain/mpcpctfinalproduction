@@ -1393,22 +1393,27 @@ function ExamModeContent() {
               </div>
             )}
           </div>
-          <div className="flex items-center justify-end mt-2">
+          <div className="flex items-center justify-end mt-2 gap-2">
             <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
               {isSoundOn ? "🔊" : "🔇"}
             </button>
-            <span className="text-lg ml-2">
-              {isTypingSection && typingTimeLeft !== null ? (
-                <>
-                  Typing Time: <b className="bg-orange-400 text-black px-3">{formatTime(typingTimeLeft)}</b>
-                  <span className="text-xs ml-2 text-gray-600">(Main: {formatTime(timeLeft)})</span>
-                </>
-              ) : (
-                <>
-                  Time Left: <b className="bg-blue-400 text-black px-3">{formatTime(timeLeft)}</b>
-                </>
-              )}
-            </span>
+            {isTypingSection && typingTimeLeft !== null ? (
+              <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
+                  <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">📊 Total Exam:</span>
+                  <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">{formatTime(timeLeft)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-blue-600">⏱️ Time Left:</span>
+                <b className="bg-blue-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(timeLeft)}</b>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1528,24 +1533,35 @@ function ExamModeContent() {
               <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
                 {isSoundOn ? "🔊" : "🔇"}
               </button>
-              <span className="text-lg">
-                {/* For RSCIT Section A: Show typing timer, for others show main timer */}
-                {examData?.key === 'RSCIT' && section === 'Section A' && typingTimeLeft !== null ? (
-                  <>
-                    Typing Time: <b className="bg-orange-400 text-black px-3 mr-5">{formatTime(typingTimeLeft)}</b>
-                    <span className="text-xs ml-2 text-gray-600">(Main: {formatTime(timeLeft)})</span>
-                  </>
-                ) : isTypingSection && typingTimeLeft !== null ? (
-                  <>
-                    Typing Time: <b className="bg-orange-400 text-black px-3 mr-5">{formatTime(typingTimeLeft)}</b>
-                    <span className="text-xs ml-2 text-gray-600">(Main: {formatTime(timeLeft)})</span>
-                  </>
-                ) : (
-                  <>
-                    Time Left: <b className="bg-blue-400 text-black px-3 mr-5">{formatTime(timeLeft)}</b>
-                  </>
-                )}
-              </span>
+              {/* For RSCIT Section A: Show typing timer, for others show main timer */}
+              {examData?.key === 'RSCIT' && section === 'Section A' && typingTimeLeft !== null ? (
+                <div className="flex flex-col items-end gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
+                    <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">📊 Total Exam:</span>
+                    <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">{formatTime(timeLeft)}</span>
+                  </div>
+                </div>
+              ) : isTypingSection && typingTimeLeft !== null ? (
+                <div className="flex flex-col items-end gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
+                    <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">📊 Total Exam:</span>
+                    <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">{formatTime(timeLeft)}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-blue-600">⏱️ Time Left:</span>
+                  <b className="bg-blue-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(timeLeft)}</b>
+                </div>
+              )}
             </div>
           </div>
           
@@ -1639,7 +1655,7 @@ function ExamModeContent() {
       </div>
     ) : currentQuestion?.questionType === "TYPING" ? (
       // Typing Section UI
-      <div className="p-6">
+      <div className="p-4 md:p-6 overflow-hidden">
         <div className="bg-blue-50 p-4 rounded-lg mb-4">
           <h2 className="text-lg font-semibold text-blue-800 mb-2">Typing Test - {section}</h2>
           <ul className="text-blue-700 space-y-1 text-sm">
@@ -1652,14 +1668,15 @@ function ExamModeContent() {
             <li>• Type the text exactly as shown</li>
           </ul>
         </div>
-        <TypingArea
-          content={
-            currentQuestion.typingLanguage === "Hindi"
-              ? (currentQuestion.typingScriptType === "Inscript" 
-                  ? (currentQuestion.typingContent_hindi_inscript || currentQuestion.typingContent_hindi_ramington || "किताब ज्ञान का भंडार होती है। इनमें हर तरह का ज्ञान भरा होता है। ये मानव की सबसे बेहतरीन मित्र होती है।")
-                  : (currentQuestion.typingContent_hindi_ramington || "किताब ज्ञान का भंडार होती है। इनमें हर तरह का ज्ञान भरा होता है। ये मानव की सबसे बेहतरीन मित्र होती है।"))
-              : (currentQuestion.typingContent_english || "The quick brown fox jumps over the lazy dog. Practice typing to improve your speed and accuracy. This is a sample English typing test for RSCIT exam preparation. Type carefully and focus on accuracy. Speed will come with practice. Keep your fingers on the home row and maintain proper posture while typing.")
-          }
+        <div className="w-full overflow-hidden">
+          <TypingArea
+            content={
+              currentQuestion.typingLanguage === "Hindi"
+                ? (currentQuestion.typingScriptType === "Inscript" 
+                    ? (currentQuestion.typingContent_hindi_inscript || currentQuestion.typingContent_hindi_ramington || "किताब ज्ञान का भंडार होती है। इनमें हर तरह का ज्ञान भरा होता है। ये मानव की सबसे बेहतरीन मित्र होती है।")
+                    : (currentQuestion.typingContent_hindi_ramington || "किताब ज्ञान का भंडार होती है। इनमें हर तरह का ज्ञान भरा होता है। ये मानव की सबसे बेहतरीन मित्र होती है।"))
+                : (currentQuestion.typingContent_english || "The quick brown fox jumps over the lazy dog. Practice typing to improve your speed and accuracy. This is a sample English typing test for RSCIT exam preparation. Type carefully and focus on accuracy. Speed will come with practice. Keep your fingers on the home row and maintain proper posture while typing.")
+            }
           onComplete={(result) => {
             console.log("Typing test completed:", result);
             
@@ -1750,6 +1767,7 @@ function ExamModeContent() {
           scriptType={currentQuestion.typingLanguage === "Hindi" ? (currentQuestion.typingScriptType || "Ramington Gail") : null}
           mode="word"
         />
+        </div>
       </div>
     ) : (
       <>
@@ -2149,6 +2167,27 @@ function ExamModeContent() {
       {/* Sidebar - Desktop */}
       <div className="hidden lg:block w-full lg:w-60 bg-blue-50 border-l shadow-lg max-h-[100vh] overflow-y-auto sticky top-0 mt-3">
         <div className="p-4 text-sm h-full">
+          {/* Timer Display in Sidebar */}
+          <div className="bg-white rounded-lg p-3 mb-4 border-2 border-orange-300 shadow-md">
+            {isTypingSection && typingTimeLeft !== null ? (
+              <div className="space-y-2">
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-orange-600 mb-1">⏱️ Section Timer (Active)</div>
+                  <div className="text-2xl font-bold bg-orange-400 text-black px-4 py-2 rounded">{formatTime(typingTimeLeft)}</div>
+                </div>
+                <div className="border-t pt-2 text-center">
+                  <div className="text-xs text-gray-500 mb-1">📊 Total Exam Time</div>
+                  <div className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded">{formatTime(timeLeft)}</div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center">
+                <div className="text-xs font-semibold text-blue-600 mb-1">⏱️ Exam Timer</div>
+                <div className="text-2xl font-bold bg-blue-400 text-black px-4 py-2 rounded">{formatTime(timeLeft)}</div>
+              </div>
+            )}
+          </div>
+          
           <div className="flex flex-col items-center py-6">
             <img src="/lo.jpg" className="w-24 h-24 rounded-full border-2" />
             <p className="mt-2 font-semibold text-blue-800">{userName}</p>

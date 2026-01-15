@@ -99,13 +99,14 @@ export default function TypingArea({
           setMistakes((prev) => prev + 1);
         }
         
-        // Scroll to next word
+        // Scroll to current/next word to keep it visible
         const nextWordIndex = currentWordIndex + 1;
-        if (nextWordIndex < words.length && wordRefs.current[nextWordIndex] && containerRef.current) {
-          wordRefs.current[nextWordIndex].scrollIntoView({
+        const wordToScroll = wordRefs.current[nextWordIndex] || wordRefs.current[currentWordIndex];
+        if (wordToScroll && containerRef.current) {
+          wordToScroll.scrollIntoView({
             behavior: "smooth",
-            block: "nearest",
-            inline: "start",
+            block: "center",
+            inline: "nearest",
           });
         }
         
@@ -185,55 +186,33 @@ export default function TypingArea({
     if (mode !== "word" || words.length === 0) return null;
     
     let pointer = 0;
-    // Split content into lines for better display
-    const lines = [];
-    let currentLine = "";
-    for (const word of words) {
-      if ((currentLine + " " + word).length > 80 && currentLine) {
-        lines.push(currentLine.trim());
-        currentLine = word;
-      } else {
-        currentLine = currentLine ? currentLine + " " + word : word;
-      }
-    }
-    if (currentLine) {
-      lines.push(currentLine.trim());
-    }
     
-    return lines.map((line, lineIndex) => {
-      const lineWords = line.trim().split(/\s+/);
-      return (
-        <p
-          key={lineIndex}
-          className="mb-1 break-words flex items-center"
-          ref={lineIndex === 0 ? containerRef : null}
-        >
-          {lineWords.map((word, i) => {
-            const index = pointer++;
-            let className = "";
-            if (typedWords.length - 1 > index) {
-              // Completed word - green if correct, red if wrong
-              className = typedWords[index] === word ? "text-green-600" : "text-red-600";
-            } else if (typedWords.length - 1 === index) {
-              // Current word being typed - blue background
-              className = "bg-blue-500 text-white px-1 rounded";
-            } else {
-              // Not typed yet - gray
-              className = "text-gray-500";
-            }
-            return (
-              <span
-                key={i}
-                ref={(el) => (wordRefs.current[index] = el)}
-                className={`${className} mr-1`}
-              >
-                {word}
-              </span>
-            );
-          })}
-        </p>
-      );
-    });
+    return (
+      <div className="space-y-1">
+        {words.map((word, index) => {
+          let className = "";
+          if (typedWords.length - 1 > index) {
+            // Completed word - green if correct, red if wrong
+            className = typedWords[index] === word ? "text-green-600" : "text-red-600";
+          } else if (typedWords.length - 1 === index) {
+            // Current word being typed - blue background
+            className = "bg-blue-500 text-white px-1 rounded";
+          } else {
+            // Not typed yet - gray
+            className = "text-gray-500";
+          }
+          return (
+            <span
+              key={index}
+              ref={(el) => (wordRefs.current[index] = el)}
+              className={`${className} mr-1 inline-block`}
+            >
+              {word}{" "}
+            </span>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -254,15 +233,16 @@ export default function TypingArea({
 
       {/* Typing Area */}
       <div
-        className="w-full p-6 bg-gray-50 border-2 border-gray-300 rounded-lg text-lg md:text-xl font-mono min-h-[200px] cursor-text"
+        className="w-full p-6 bg-gray-50 border-2 border-gray-300 rounded-lg text-lg md:text-xl font-mono min-h-[200px] max-h-[500px] overflow-y-auto cursor-text"
         onClick={() => inputRef.current?.focus()}
+        ref={containerRef}
       >
         {mode === "word" ? (
-          <div className="whitespace-pre-wrap break-words">
+          <div className="whitespace-pre-wrap break-words leading-relaxed">
             {renderColoredWords()}
           </div>
         ) : (
-          <div className="whitespace-pre-wrap break-words">
+          <div className="whitespace-pre-wrap break-words leading-relaxed">
             <span className="text-green-600">{typedText}</span>
             <span className="bg-yellow-200">{content[currentIndex] || ""}</span>
             <span className="text-gray-400">{content.slice(currentIndex + 1)}</span>

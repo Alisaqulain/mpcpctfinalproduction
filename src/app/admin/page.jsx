@@ -34,6 +34,10 @@ export default function AdminPanel() {
   const [rscitSectionBImporting, setRscitSectionBImporting] = useState(false);
   const [rscitDistributing, setRscitDistributing] = useState(false);
   const [rscitClearing, setRscitClearing] = useState(false);
+  const [cpctTypingExamId, setCpctTypingExamId] = useState('');
+  const [cpctEnglishTypingContent, setCpctEnglishTypingContent] = useState('');
+  const [cpctHindiTypingContent, setCpctHindiTypingContent] = useState('');
+  const [cpctTypingSaving, setCpctTypingSaving] = useState(false);
 
   // Check if user is admin
   useEffect(() => {
@@ -112,6 +116,41 @@ export default function AdminPanel() {
     const res = await fetch(url.toString());
     const data = await res.json();
     setParts(data.parts || []);
+  };
+
+  const loadExistingTypingContent = async (examId) => {
+    try {
+      // Fetch sections to get Section B and Section C
+      const sectionsRes = await fetch(`/api/admin/sections?examId=${examId}`);
+      const sectionsData = await sectionsRes.json();
+      const sections = sectionsData.sections || [];
+      
+      const sectionB = sections.find(s => s.name === 'Section B');
+      const sectionC = sections.find(s => s.name === 'Section C');
+      
+      if (sectionB) {
+        // Fetch English typing question
+        const questionsRes = await fetch(`/api/admin/questions?examId=${examId}&sectionId=${sectionB._id}`);
+        const questionsData = await questionsRes.json();
+        const englishQuestion = questionsData.questions?.find(q => q.questionType === 'TYPING' && q.typingLanguage === 'English');
+        if (englishQuestion) {
+          setCpctEnglishTypingContent(englishQuestion.typingContent_english || '');
+        }
+      }
+      
+      if (sectionC) {
+        // Fetch Hindi typing question
+        const questionsRes = await fetch(`/api/admin/questions?examId=${examId}&sectionId=${sectionC._id}`);
+        const questionsData = await questionsRes.json();
+        const hindiQuestion = questionsData.questions?.find(q => q.questionType === 'TYPING' && q.typingLanguage === 'Hindi');
+        if (hindiQuestion) {
+          // Prefer Ramington, fallback to Inscript
+          setCpctHindiTypingContent(hindiQuestion.typingContent_hindi_ramington || hindiQuestion.typingContent_hindi_inscript || '');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading existing typing content:', error);
+    }
   };
 
   const fetchQuestions = async (examId, sectionId, partId) => {
@@ -1746,6 +1785,113 @@ export default function AdminPanel() {
                 {saving ? 'Creating...' : 'Create 20 RSCIT Exams'}
               </button>
             </div>
+          </div>
+
+          {/* CPCT Typing Content Management */}
+          <div className="bg-purple-50 border-2 border-purple-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-purple-900 mb-3 font-bold">
+              <strong>⌨️ Manage CPCT Typing Content:</strong>
+            </p>
+            <p className="text-xs text-purple-700 mb-3">
+              Select a CPCT exam and paste English/Hindi typing content. This will update or create typing questions in Section B (English) and Section C (Hindi).
+              <br />If content already exists, it will be overwritten.
+            </p>
+            
+            <div className="space-y-3 mb-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select CPCT Exam:</label>
+                <select
+                  value={cpctTypingExamId}
+                  onChange={(e) => {
+                    setCpctTypingExamId(e.target.value);
+                    // Load existing content if exam is selected
+                    if (e.target.value) {
+                      loadExistingTypingContent(e.target.value);
+                    } else {
+                      setCpctEnglishTypingContent('');
+                      setCpctHindiTypingContent('');
+                    }
+                  }}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm"
+                >
+                  <option value="">-- Select Exam --</option>
+                  {exams.filter(e => e.key === 'CPCT').map(exam => (
+                    <option key={exam._id} value={exam._id}>{exam.title}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">English Typing Content (Section B):</label>
+                <textarea
+                  value={cpctEnglishTypingContent}
+                  onChange={(e) => setCpctEnglishTypingContent(e.target.value)}
+                  placeholder="Paste English typing content here..."
+                  className="w-full h-32 border border-gray-300 rounded p-2 text-sm font-mono"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Hindi Typing Content (Section C):</label>
+                <textarea
+                  value={cpctHindiTypingContent}
+                  onChange={(e) => setCpctHindiTypingContent(e.target.value)}
+                  placeholder="Paste Hindi typing content here..."
+                  className="w-full h-32 border border-gray-300 rounded p-2 text-sm font-mono"
+                />
+              </div>
+            </div>
+            
+            <button
+              onClick={async () => {
+                if (!cpctTypingExamId) {
+                  alert('Please select an exam first!');
+                  return;
+                }
+                
+                if (!cpctEnglishTypingContent.trim() && !cpctHindiTypingContent.trim()) {
+                  alert('Please enter at least one typing content (English or Hindi)!');
+                  return;
+                }
+                
+                if (!confirm('This will update/overwrite typing content for the selected exam. Continue?')) {
+                  return;
+                }
+                
+                setCpctTypingSaving(true);
+                try {
+                  const res = await fetch('/api/admin/update-cpct-typing-content', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                      examId: cpctTypingExamId,
+                      englishContent: cpctEnglishTypingContent.trim() || null,
+                      hindiContent: cpctHindiTypingContent.trim() || null
+                    })
+                  });
+                  
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(`✅ ${data.message}\n\nEnglish: ${data.results.english}\nHindi: ${data.results.hindi}`);
+                    // Refresh questions if exam is selected
+                    if (selectedExam === cpctTypingExamId && selectedSection) {
+                      fetchQuestions(selectedExam, selectedSection, selectedPart);
+                    }
+                  } else {
+                    alert('Failed: ' + (data.error || 'Unknown error'));
+                  }
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                } finally {
+                  setCpctTypingSaving(false);
+                }
+              }}
+              disabled={cpctTypingSaving || !cpctTypingExamId}
+              className="bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700 text-sm font-bold disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {cpctTypingSaving ? 'Saving...' : '💾 Save Typing Content'}
+            </button>
           </div>
 
           {/* CPCT Real Paper Import - One Time Import */}
