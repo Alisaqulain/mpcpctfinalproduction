@@ -8,7 +8,7 @@ const createJestConfig = nextJest({
 // Add any custom config to be passed to Jest
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  testEnvironment: 'jest-environment-jsdom',
+  testEnvironment: 'node',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
@@ -21,6 +21,9 @@ const customJestConfig = {
     'src/app/**/*.{js,jsx}',
     '!src/app/**/*.test.{js,jsx}',
     '!src/app/**/layout.js',
+  ],
+  transformIgnorePatterns: [
+    'node_modules/(?!(mongodb|bson|jose)/)',
   ],
 }
 

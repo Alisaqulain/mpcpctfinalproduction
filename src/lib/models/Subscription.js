@@ -19,6 +19,10 @@ const SubscriptionSchema = new mongoose.Schema({
   }, // Can be: "oneMonth", "threeMonths", "sixMonths", "basic", "premium", "lifetime", "referral_reward", etc.
   price: { type: Number, required: true },
   paymentId: { type: String },
+  // Shared membership fields
+  sharedLimit: { type: Number, default: 3 }, // Maximum number of users who can share this membership
+  ownerRewardGranted: { type: Boolean, default: false }, // Whether owner has received the reward for all 3 activations
+  shareToken: { type: String, unique: true, sparse: true }, // Unique token for sharing this subscription
 }, { timestamps: true });
 
 // Index for efficient queries

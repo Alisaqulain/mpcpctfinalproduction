@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 import User from '@/lib/models/User';
+import Subscription from '@/lib/models/Subscription';
+import SharedMembership from '@/lib/models/SharedMembership';
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mpcpct-test';
 
@@ -32,6 +34,8 @@ export async function disconnectTestDb() {
 export async function clearTestDb() {
   if (connection) {
     await User.deleteMany({});
+    await Subscription.deleteMany({});
+    await SharedMembership.deleteMany({});
   }
 }
 
@@ -54,5 +58,60 @@ export async function createTestUser(userData = {}) {
   }
 
   return await User.create(defaultUser);
+}
+
+export async function createTestSubscription(subscriptionData = {}) {
+  const defaultSubscription = {
+    userId: subscriptionData.userId,
+    type: 'all',
+    status: 'active',
+    startDate: new Date(),
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+    plan: 'oneMonth',
+    price: 299,
+    paymentId: `PAY_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    sharedLimit: 3,
+    ownerRewardGranted: false,
+    ...subscriptionData,
+  };
+
+  return await Subscription.create(defaultSubscription);
+}
+
+export async function createTestSharedMembership(sharedMembershipData = {}) {
+  const defaultSharedMembership = {
+    subscriptionId: sharedMembershipData.subscriptionId,
+    sharedUserId: sharedMembershipData.sharedUserId,
+    activatedAt: new Date(),
+    ...sharedMembershipData,
+  };
+
+  return await SharedMembership.create(defaultSharedMembership);
+}
+
+export function createMockRequest(body = {}, cookies = {}) {
+  return {
+    json: async () => body,
+    cookies: {
+      get: (name) => cookies[name] ? { value: cookies[name] } : undefined,
+    },
+    headers: {
+      get: (name) => undefined,
+    },
+  };
+}
+
+export function createMockGetRequest(searchParams = {}, cookies = {}) {
+  const url = new URL('http://localhost:3000/api/test');
+  Object.keys(searchParams).forEach(key => {
+    url.searchParams.set(key, searchParams[key]);
+  });
+
+  return {
+    url: url.toString(),
+    cookies: {
+      get: (name) => cookies[name] ? { value: cookies[name] } : undefined,
+    },
+  };
 }
 

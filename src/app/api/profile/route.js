@@ -63,6 +63,7 @@ export async function GET(request) {
         referralRewards: user.referralRewards || 0
       },
       subscription: activeSubscription ? {
+        _id: activeSubscription._id,
         id: activeSubscription._id,
         type: activeSubscription.type,
         plan: activeSubscription.plan,

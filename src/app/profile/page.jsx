@@ -299,10 +299,18 @@ export default function ProfilePage() {
                     </a>
                   </div>
                 ) : (
-                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-blue-800 text-sm">
-                      Your subscription is active and you have full access to all content.
-                    </p>
+                  <div className="mt-4 space-y-3">
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-blue-800 text-sm">
+                        Your subscription is active and you have full access to all content.
+                      </p>
+                    </div>
+                    <a
+                      href="/shared-membership"
+                      className="block w-full px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-center font-semibold transition-colors"
+                    >
+                      🎁 Share Membership (Get +1 Month Reward)
+                    </a>
                   </div>
                 )}
               </div>
