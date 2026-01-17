@@ -178,10 +178,13 @@ const App = () => {
           }
           
           .home-welcome-text {
-            font-size: 1.20rem !important;
-            padding-top: 1.75rem !important;
-            padding-bottom: 1.5rem !important;
+            font-size: 1.15rem !important;
+            padding-top: 1.5rem !important;
+            padding-bottom: 1.25rem !important;
             top: -9.25rem !important;
+            width: 15% !important;
+            border-top-left-radius: 0.5rem !important;
+            border-top-right-radius: 0.5rem !important;
           }
           
           .home-info-box {
@@ -219,6 +222,15 @@ const App = () => {
           .home-card-container {
             gap: 2.5rem !important;
             margin-left: 8rem !important;
+          }
+          .home-welcome-text {
+            font-size: 1.20rem !important;
+            padding-top: 1.75rem !important;
+            padding-bottom: 1.5rem !important;
+            top: -9.25rem !important;
+            width: 14.2% !important;
+            border-top-left-radius: 5 !important;
+            border-top-right-radius: 5 !important;
           }
           
           .home-card {
@@ -267,6 +279,16 @@ const App = () => {
             gap: 3rem !important;
             margin-left: 9rem !important;
           }
+
+           .home-welcome-text {
+            font-size: 1.25rem !important;
+            padding-top: 1.75rem !important;
+            padding-bottom: 1.5rem !important;
+            top: -9.25rem !important;
+            width: 15% !important;
+            border-top-left-radius: 0.75rem !important;
+            border-top-right-radius: 0.75rem !important;
+          }
           
           .home-card {
             width: 22rem !important;
@@ -303,7 +325,7 @@ const App = () => {
         }
         
         /* Medium desktop screens (1200px - 1399px) */
-        @media (min-width: 1200px) and (max-width: 1399px) {
+        @media (width >= 1200px) and (width <= 1399px) {
           .home-title {
             font-size: 2.75rem !important;
           }
@@ -315,6 +337,16 @@ const App = () => {
           .home-card-container {
             gap: 1.75rem !important;
             margin-left: 9rem !important;
+          }
+
+           .home-welcome-text {
+            font-size: 1.25rem !important;
+            padding-top: 1.75rem !important;
+            padding-bottom: 1.5rem !important;
+            top: -9.25rem !important;
+            width: 14% !important;
+            border-top-left-radius: 0.75rem !important;
+            border-top-right-radius: 0.75rem !important;
           }
           
           .home-card {
@@ -368,6 +400,16 @@ const App = () => {
             width: 16rem !important;
             height: 14rem !important;
           }
+
+           .home-welcome-text {
+            font-size: 1.25rem !important;
+            padding-top: 1.75rem !important;
+            padding-bottom: 1.5rem !important;
+            top: -9.25rem !important;
+            width: 19% !important;
+            border-top-left-radius: 0.75rem !important;
+            border-top-right-radius: 0.75rem !important;
+          }
           
           .home-card-image {
             height: 10rem !important;
@@ -399,7 +441,39 @@ const App = () => {
         /* Tablet and below - keep existing responsive behavior */
         @media (max-width: 1023px) {
           /* Keep existing mobile/tablet styles */
+           .home-welcome-text {
+            font-size: 1.25rem !important;
+            padding-top: 1.75rem !important;
+            padding-bottom: 1.5rem !important;
+            top: -9.25rem !important;
+            width: 15% !important;
+            border-top-left-radius: 0.75rem !important;
+            border-top-right-radius: 0.75rem !important;
+          }
         }
+
+        @media (min-width: 1250px) and (max-width: 1299px) {
+           .home-welcome-text {
+            font-size: 1.25rem !important;
+            padding-top: 1.75rem !important;
+            padding-bottom: 1.5rem !important;
+            top: -9.25rem !important;
+            width: 13% !important;
+            border-top-left-radius: 0.75rem !important;
+            border-top-right-radius: 0.75rem !important;
+          }
+      }}
+        @media (min-width: 1359px) and (max-width: 1399px) {
+           .home-welcome-text {
+            font-size: 1.25rem !important;
+            padding-top: 1.75rem !important;
+            padding-bottom: 1.5rem !important;
+            top: -9.25rem !important;
+            width: 19% !important;
+            border-top-left-radius: 0.75rem !important;
+            border-top-right-radius: 0.75rem !important;
+          }
+      }}
       `}</style>
       
       <div
