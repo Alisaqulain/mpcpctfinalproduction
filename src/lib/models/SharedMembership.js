@@ -33,3 +33,9 @@ SharedMembershipSchema.index({ subscriptionId: 1, activatedAt: 1 });
 export default mongoose.models.SharedMembership || mongoose.model("SharedMembership", SharedMembershipSchema);
 
 
+
+
+
+
+
+

@@ -431,11 +431,12 @@ const App = () => {
                     key={label}
                     className="w-full sm:w-72 h-auto md:h-64 rounded-xl overflow-hidden shadow-md border-4 md:border-8 border-[#290c52] bg-white cursor-pointer transform transition-transform duration-300 hover:scale-105 home-card"
                   >
-                    <div className="h-20 w-full md:h-48 md:w-full home-card-image">
-                      <img
+                    <div className="h-20 w-full md:h-48 md:w-full home-card-image relative">
+                      <Image
                         src={img}
                         alt={label + " icon"}
-                        className="h-full w-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     </div>
                     <div

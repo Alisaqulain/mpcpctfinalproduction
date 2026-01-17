@@ -943,14 +943,14 @@ function ExamResultContent() {
                                   Total Errors: <span>{errors.length} Typed [Record]</span>
                                 </h4>
                               </div>
-                              <div className="space-y-0.5">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-3 gap-y-2">
                                 {errors.map((error, errorIndex) => {
                                   // Parse error format: "THGe [The]" -> typed: "THGe", correct: "The"
                                   const match = error.match(/^(.+?)\s*\[(.+?)\]$/);
                                   if (match) {
                                     const [, typedWord, correctWord] = match;
                                     return (
-                                      <div key={errorIndex} className="text-base leading-tight">
+                                      <div key={errorIndex} className="text-sm leading-tight break-words">
                                         <span className="text-red-600 font-semibold">{typedWord}</span>
                                         {' '}
                                         <span className="text-gray-700">[</span>
@@ -962,7 +962,7 @@ function ExamResultContent() {
                                   } else {
                                     // Fallback for errors not in expected format
                                     return (
-                                      <div key={errorIndex} className="text-base leading-tight">
+                                      <div key={errorIndex} className="text-sm leading-tight break-words">
                                         {error}
                                         {errorIndex < errors.length - 1 && ','}
                                       </div>

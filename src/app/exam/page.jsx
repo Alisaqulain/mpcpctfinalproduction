@@ -124,38 +124,45 @@ export default function ExamSection() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#fff] px-4 py-10">
-      <div className="w-full max-w-4xl">
-        {/* Title */}
-        <h1 className="text-2xl font-bold text-center mb-6">Exam Mode</h1>
+    <div className="min-h-screen bg-[#fff] flex flex-col">
+      {/* Fixed Header Section - Title and Tabs */}
+      <div className="sticky top-0 z-50 bg-white shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          {/* Title */}
+          <h1 className="text-2xl font-bold text-center mb-4">Exam Mode</h1>
 
-        {/* Tab Navigation */}
-        <div className="flex border border-gray-300 rounded-full overflow-hidden shadow-sm mb-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`w-1/4 py-4 text-[10px] md:text-[16px] font-medium transition-colors duration-300 border-l border-gray-300 ${
-                activeTab === tab.id
-                  ? "bg-[#290c52] text-white"
-                  : "bg-transparent text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center py-8">
-            <p className="text-gray-600">Loading exams...</p>
+          {/* Tab Navigation */}
+          <div className="flex border border-gray-300 rounded-full overflow-hidden shadow-sm">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`w-1/4 py-4 text-[10px] md:text-[16px] font-medium transition-colors duration-300 border-l border-gray-300 ${
+                  activeTab === tab.id
+                    ? "bg-[#290c52] text-white"
+                    : "bg-transparent text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* Content based on active tab */}
-        {!loading && (
-          <div className="space-y-4">
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          {/* Loading State */}
+          {loading && (
+            <div className="text-center py-8">
+              <p className="text-gray-600">Loading exams...</p>
+            </div>
+          )}
+
+          {/* Content based on active tab */}
+          {!loading && (
+            <div className="space-y-4">
             {activeTab === "exam" ? (
               // Topic Wise MCQ Section
               <>
@@ -197,32 +204,32 @@ export default function ExamSection() {
                     {topics.map((topic) => (
                       <div
                         key={topic._id}
-                        className="relative border border-gray-200 rounded-xl shadow-md p-4 flex justify-between items-center hover:bg-[#290c52] hover:text-white transition-colors duration-300"
+                        className="relative border border-gray-200 rounded-xl shadow-md p-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-[#290c52] hover:text-white transition-colors duration-300"
                       >
                         {/* Red corner ribbon */}
                         <div className="absolute top-[-7] left-[-9]">
                           <img src="/newr.png" alt="" className="w-18 h-14" />
                         </div>
 
-                        {/* Title with Free/Premium badge */}
-                        <div className="flex items-center gap-2 pl-4">
-                          <div className="text-md font-medium">{topic.topicName || topic.topicName_hi}</div>
+                        {/* Title with Free/Premium badge - Left side */}
+                        <div className="flex items-center gap-2 pl-4 flex-1 min-w-0">
+                          <div className="text-md font-medium break-words flex-1">{topic.topicName || topic.topicName_hi}</div>
                           {topic.isFree === false && (
-                            <span className="bg-yellow-500 text-black text-xs font-semibold px-2 py-1 rounded">
+                            <span className="bg-yellow-500 text-black text-xs font-semibold px-2 py-1 rounded flex-shrink-0">
                               Premium
                             </span>
                           )}
                           {topic.isFree === true && (
-                            <span className="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded">
+                            <span className="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded flex-shrink-0">
                               Free
                             </span>
                           )}
                         </div>
 
-                        {/* Start Practice Button */}
+                        {/* Start Practice Button - Right side */}
                         <button 
                           onClick={() => router.push(`/topicwise?topicId=${topic.topicId}`)}
-                          className="relative bg-pink-300 hover:bg-yellow-500 text-black px-4 md:px-6 py-3 text-sm font-semibold rounded-md shadow-md cursor-pointer"
+                          className="relative bg-pink-300 hover:bg-yellow-500 text-black px-4 md:px-6 py-3 text-sm font-semibold rounded-md shadow-md cursor-pointer flex-shrink-0"
                         >
                           Start Practice
                           <img src="/new1.png" alt="" className="w-12 h-14 top-[-16] right-[-12] absolute" />
@@ -239,30 +246,30 @@ export default function ExamSection() {
                   getCurrentExams().map((exam) => (
                     <div
                       key={exam._id}
-                      className="relative border border-gray-200 rounded-xl shadow-md p-4 flex justify-between items-center hover:bg-[#290c52] hover:text-white transition-colors duration-300"
+                      className="relative border border-gray-200 rounded-xl shadow-md p-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-[#290c52] hover:text-white transition-colors duration-300"
                     >
                       {/* Red corner ribbon */}
                       <div className="absolute top-[-7] left-[-9]">
                         <img src="/newr.png" alt="" className="w-18 h-14" />
                       </div>
 
-                      {/* Title with Free/Premium badge */}
-                      <div className="flex items-center gap-2 pl-4">
-                        <div className="text-md font-medium">{exam.title}</div>
+                      {/* Title with Free/Premium badge - Left side */}
+                      <div className="flex items-center gap-2 pl-4 flex-1 min-w-0">
+                        <div className="text-md font-medium break-words flex-1">{exam.title}</div>
                         {exam.isFree === false && (
-                          <span className="bg-yellow-500 text-black text-xs font-semibold px-2 py-1 rounded">
+                          <span className="bg-yellow-500 text-black text-xs font-semibold px-2 py-1 rounded flex-shrink-0">
                             Premium
                           </span>
                         )}
                         {exam.isFree === true && (
-                          <span className="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded">
+                          <span className="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded flex-shrink-0">
                             Free
                           </span>
                         )}
                       </div>
 
-                      {/* Start Exam Button */}
-                      <button className="relative bg-pink-300 hover:bg-yellow-500 text-black px-4 md:px-6 py-3 text-sm font-semibold rounded-md shadow-md">
+                      {/* Start Exam Button - Right side */}
+                      <button className="relative bg-pink-300 hover:bg-yellow-500 text-black px-4 md:px-6 py-3 text-sm font-semibold rounded-md shadow-md flex-shrink-0">
                         <a href={getExamRoute(getCurrentExamKey(), exam._id)}> Start Exam</a>
                         <img src="/new1.png" alt="" className="w-12 h-14 top-[-16] right-[-12] absolute" />
                       </button>
@@ -275,8 +282,9 @@ export default function ExamSection() {
                 )}
               </>
             )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -69,6 +69,12 @@ function ExamModeContent() {
         if (savedLang) {
           setQuestionLanguage(savedLang);
         }
+        
+        // Load view language preference
+        const savedViewLang = localStorage.getItem('viewLanguage');
+        if (savedViewLang) {
+          setViewLanguage(savedViewLang);
+        }
 
         // Get exam ID from localStorage
         const examId = localStorage.getItem('currentExamId');
@@ -1619,9 +1625,13 @@ function ExamModeContent() {
       <div className="flex items-center gap-2">
         <p>View in:</p>
         <select 
-          className="text-black text-xs bg-white"
+          className="text-black text-xs bg-white px-2 py-1 rounded"
           value={viewLanguage}
-          onChange={(e) => setViewLanguage(e.target.value)}
+          onChange={(e) => {
+            const newLang = e.target.value;
+            setViewLanguage(newLang);
+            localStorage.setItem('viewLanguage', newLang);
+          }}
         >
           <option value="English">English</option>
           <option value="हिन्दी">हिन्दी</option>

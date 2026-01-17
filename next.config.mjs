@@ -9,6 +9,12 @@ const nextConfig = {
   // Enable strict mode
   reactStrictMode: true,
   
+  // Exclude pdf-parse from bundling (CommonJS module that doesn't work well when bundled)
+  // This prevents the "Class constructor cannot be invoked without 'new'" error
+  experimental: {
+    serverExternalPackages: ['pdf-parse'],
+  },
+  
   // Compression
   compress: true,
   
@@ -22,6 +28,23 @@ const nextConfig = {
       config.resolve.fallback = {
         ...config.resolve.fallback,
       };
+    }
+    // Exclude pdf-parse from bundling on server side to avoid class constructor errors
+    if (isServer) {
+      config.externals = config.externals || [];
+      if (Array.isArray(config.externals)) {
+        config.externals.push('pdf-parse');
+      } else if (typeof config.externals === 'function') {
+        const originalExternals = config.externals;
+        config.externals = (context, request, callback) => {
+          if (request === 'pdf-parse') {
+            return callback(null, 'commonjs pdf-parse');
+          }
+          return originalExternals(context, request, callback);
+        };
+      } else {
+        config.externals['pdf-parse'] = 'commonjs pdf-parse';
+      }
     }
     return config;
   },

@@ -492,7 +492,7 @@ export default function TypingTutor() {
                 )}
                 <button
                   onClick={() => setShowUploadForm(!showUploadForm)}
-                  className="bg-[#290c52] hover:bg-[#3d1470] text-white px-3 py-1 rounded text-xs font-semibold transition-colors"
+                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-semibold transition-colors"
                 >
                   {showUploadForm ? 'Cancel' : '+ Upload'}
                 </button>
@@ -723,7 +723,7 @@ export default function TypingTutor() {
           </div>
 
           {/* Exercise Preview - Right Content */}
-          <div className="flex-1 p-4 md:p-6 bg-white border-l border-gray-200">
+          <div className="flex-1 p-4 md:p-6 bg-white border-l border-gray-200 w-full">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-base md:text-lg font-semibold text-gray-800">
                 {selectedExercise ? selectedExercise.name : "Exercise Preview"}
@@ -735,9 +735,9 @@ export default function TypingTutor() {
                 </div>
               )}
             </div>
-            <div className="border-2 border-gray-300 p-4 md:p-6 text-sm md:text-base leading-relaxed h-[150px] md:h-[450px] overflow-y-auto bg-gray-50 rounded-lg shadow-inner font-serif">
+            <div className="border-2 border-gray-300 p-4 md:p-6 text-sm md:text-base leading-relaxed h-[150px] md:h-[450px] overflow-y-auto bg-gray-50 rounded-lg shadow-inner font-serif w-full" style={{ wordWrap: 'normal', overflowWrap: 'normal', wordBreak: 'normal', whiteSpace: 'normal', hyphens: 'none' }}>
               {previewContent ? (
-                <div className="text-gray-800 whitespace-pre-wrap">{previewContent}</div>
+                <div className="text-gray-800 whitespace-pre-wrap w-full" style={{ wordWrap: 'normal', overflowWrap: 'normal', wordBreak: 'normal', whiteSpace: 'pre-wrap', hyphens: 'none', width: '100%', maxWidth: '100%' }}>{previewContent}</div>
               ) : (
                 <div className="text-gray-400 text-center py-20">
                   <p className="text-lg mb-2">No exercise selected</p>
@@ -786,24 +786,26 @@ export default function TypingTutor() {
 
           {/* Exam Description & Start Button */}
           <div className="flex-1 p-4 md:p-6 bg-white">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+            <div className="flex flex-col gap-4 mb-4">
               <h3 className="text-base md:text-lg font-semibold text-gray-800">Exam Description</h3>
-              <a
-                href={selected ? `/typing?exercise=${selected}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}&duration=${duration}&backspace=${backspace}` : '#'}
-                className={`w-full md:w-auto px-10 md:px-60 py-3 rounded-lg  text-sm md:text-base font-semibold shadow-md transition-all text-center mr-0 md:mr-28 ${
-                  selected 
-                    ? 'bg-green-600 text-white hover:bg-[#3d1470] transform hover:scale-105' 
-                    : 'bg-gray-400 text-white cursor-not-allowed'
-                }`}
-                onClick={(e) => {
-                  if (!selected) {
-                    e.preventDefault();
-                    alert('Please select an exercise first');
-                  }
-                }}
-              >
-                {selected ? '▶ Start Test' : 'Select an Exercise First'}
-              </a>
+              <div className="flex justify-center">
+                <a
+                  href={selected ? `/typing?exercise=${selected}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}&duration=${duration}&backspace=${backspace}` : '#'}
+                  className={`px-50 py-3 rounded-lg text-xl md:text-2xl font-semibold shadow-md transition-all text-center ${
+                    selected 
+                      ? 'bg-green-600 text-white hover:bg-[#3d1470] transform hover:scale-105' 
+                      : 'bg-gray-400 text-white cursor-not-allowed'
+                  }`}
+                  onClick={(e) => {
+                    if (!selected) {
+                      e.preventDefault();
+                      alert('Please select an exercise first');
+                    }
+                  }}
+                >
+                  {selected ? '▶ Start Test' : 'Select an Exercise First'}
+                </a>
+              </div>
             </div>
             <div className="bg-[#290c52]/10 border-l-4 border-[#290c52] p-4 rounded-r-lg">
               <p className="text-sm md:text-base text-gray-700 leading-relaxed text-justify">

@@ -326,14 +326,14 @@ function SkillTestResultContent() {
           </div>
           {result.errors && result.errors.length > 0 && (
             <div className="mt-3 border border-gray-300 p-3 bg-gray-50 rounded">
-              <div className="space-y-0.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-3 gap-y-2">
                 {result.errors.map((error, index) => {
                   // Parse error format: "THGe [The]" -> typed: "THGe", correct: "The"
                   const match = error.match(/^(.+?)\s*\[(.+?)\]$/);
                   if (match) {
                     const [, typedWord, correctWord] = match;
                     return (
-                      <div key={index} className="text-base leading-tight">
+                      <div key={index} className="text-sm leading-tight break-words">
                         <span className="text-red-600 font-semibold">{typedWord}</span>
                         {' '}
                         <span className="text-gray-700">[</span>
@@ -345,7 +345,7 @@ function SkillTestResultContent() {
                   } else {
                     // Fallback for errors not in expected format
                     return (
-                      <div key={index} className="text-base leading-tight">
+                      <div key={index} className="text-sm leading-tight break-words">
                         {error}
                         {index < result.errors.length - 1 && ','}
                       </div>

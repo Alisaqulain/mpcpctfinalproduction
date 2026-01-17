@@ -38,6 +38,16 @@ export default function AdminPanel() {
   const [cpctEnglishTypingContent, setCpctEnglishTypingContent] = useState('');
   const [cpctHindiTypingContent, setCpctHindiTypingContent] = useState('');
   const [cpctTypingSaving, setCpctTypingSaving] = useState(false);
+  const [cpctPdfExamId, setCpctPdfExamId] = useState('');
+  const [cpctPdfFile, setCpctPdfFile] = useState(null);
+  const [cpctPdfUploading, setCpctPdfUploading] = useState(false);
+  const [cpctPdfPaperName, setCpctPdfPaperName] = useState('');
+  const [cpctTextExamId, setCpctTextExamId] = useState('');
+  const [cpctTextPartId, setCpctTextPartId] = useState('');
+  const [cpctTextPaperName, setCpctTextPaperName] = useState('');
+  const [cpctTextQuestions, setCpctTextQuestions] = useState('');
+  const [cpctTextImporting, setCpctTextImporting] = useState(false);
+  const [cpctTextParts, setCpctTextParts] = useState([]);
 
   // Check if user is admin
   useEffect(() => {
@@ -665,6 +675,116 @@ export default function AdminPanel() {
 
       {activeTab==='exams' && (
         <>
+          {/* CPCT PDF Upload and Import - MOVED TO TOP */}
+          <div className="bg-green-50 border-2 border-green-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-green-900 mb-3 font-bold">
+              <strong>📄 Upload CPCT Exam PDF:</strong>
+            </p>
+            <p className="text-xs text-green-700 mb-3">
+              Upload a CPCT exam PDF file (e.g., 21th_Nov_2025_QP_Shift2.pdf). The system will automatically extract all questions and typing content.
+              <br />Existing questions will be updated, new questions will be created.
+            </p>
+            
+            <div className="space-y-3 mb-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select CPCT Exam:</label>
+                <select
+                  value={cpctPdfExamId}
+                  onChange={(e) => setCpctPdfExamId(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm"
+                >
+                  <option value="">-- Select Exam --</option>
+                  {exams.filter(e => e.key === 'CPCT').map(exam => (
+                    <option key={exam._id} value={exam._id}>{exam.title}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Paper Name (Optional):</label>
+                <input
+                  type="text"
+                  value={cpctPdfPaperName}
+                  onChange={(e) => setCpctPdfPaperName(e.target.value)}
+                  placeholder="e.g., 21th Nov 2025 Shift2 QP1"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">This will be stored for reference</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Upload PDF File:</label>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => setCpctPdfFile(e.target.files?.[0] || null)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm"
+                />
+                {cpctPdfFile && (
+                  <p className="text-xs text-gray-600 mt-1">Selected: {cpctPdfFile.name}</p>
+                )}
+              </div>
+            </div>
+            
+            <button
+              onClick={async () => {
+                if (!cpctPdfExamId) {
+                  alert('Please select an exam first!');
+                  return;
+                }
+                
+                if (!cpctPdfFile) {
+                  alert('Please select a PDF file!');
+                  return;
+                }
+                
+                if (!confirm('This will import/update all questions and typing content from the PDF. Continue?')) {
+                  return;
+                }
+                
+                setCpctPdfUploading(true);
+                try {
+                  const formData = new FormData();
+                  formData.append('pdf', cpctPdfFile);
+                  formData.append('examId', cpctPdfExamId);
+                  if (cpctPdfPaperName.trim()) {
+                    formData.append('paperName', cpctPdfPaperName.trim());
+                  }
+                  
+                  const res = await fetch('/api/admin/import-cpct-pdf', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                  });
+                  
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(`✅ ${data.message}\n\nImported: ${data.imported} questions\nErrors: ${data.errors || 0}`);
+                    // Refresh questions if exam is selected
+                    if (selectedExam === cpctPdfExamId && selectedSection) {
+                      fetchQuestions(selectedExam, selectedSection, selectedPart);
+                    }
+                    // Reset form
+                    setCpctPdfFile(null);
+                    setCpctPdfPaperName('');
+                    const fileInput = document.querySelector('input[type="file"]');
+                    if (fileInput) fileInput.value = '';
+                  } else {
+                    alert('Failed: ' + (data.error || 'Unknown error') + (data.details ? '\n' + data.details : ''));
+                  }
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                } finally {
+                  setCpctPdfUploading(false);
+                }
+              }}
+              disabled={cpctPdfUploading || !cpctPdfExamId || !cpctPdfFile}
+              className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700 text-sm font-bold disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {cpctPdfUploading ? 'Uploading & Processing...' : '📤 Upload & Import PDF'}
+            </button>
+          </div>
+
           {/* Instructions */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-800">
@@ -778,6 +898,43 @@ export default function AdminPanel() {
                 className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
               >
                 {saving ? 'Updating...' : 'Update Existing CPCT Exams to New Structure'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('This will DELETE and RECREATE CPCT Exam 1 and Exam 2 with the same structure as other exams.\n\nExam 1 will be FREE, Exam 2 will be PAID.\n\nAll existing data for these exams will be deleted.\n\nContinue?')) return;
+                  try {
+                    setSaving(true);
+                    const res = await fetch('/api/admin/recreate-cpct-exams-1-2', {
+                      method: 'POST',
+                      credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      let message = `✅ Success! Recreated CPCT Exam 1 and Exam 2.\n\n`;
+                      message += `Deleted: ${data.deleted.length} exam(s)\n`;
+                      message += `Created: ${data.created.length} exam(s)\n`;
+                      message += `- Exam 1: ${data.created.find(e => e.title === 'CPCT Exam 1')?.isFree ? 'FREE' : 'PAID'}\n`;
+                      message += `- Exam 2: ${data.created.find(e => e.title === 'CPCT Exam 2')?.isFree ? 'FREE' : 'PAID'}\n`;
+                      if (data.summary.skillLessonsLinked) {
+                        message += `\n✅ Linked ${data.summary.skillLessonsLinked} typing sections to skill lessons.`;
+                      }
+                      message += `\n\n📝 Note: Section A parts are created but empty - add questions manually.`;
+                      alert(message);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to recreate exams'));
+                    }
+                  } catch (error) {
+                    console.error('Error recreating exams:', error);
+                    alert('Failed to recreate exams: ' + error.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {saving ? 'Recreating...' : '🔄 Recreate CPCT Exam 1 & 2 (Make Exam 1 Free)'}
               </button>
               <button
                 onClick={async () => {
@@ -1894,6 +2051,176 @@ export default function AdminPanel() {
             </button>
           </div>
 
+          {/* CPCT Text Questions Import - Part Specific */}
+          <div className="bg-teal-50 border-2 border-teal-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-teal-900 mb-3 font-bold">
+              <strong>📝 Import CPCT Questions by Part (Text Format):</strong>
+            </p>
+            <p className="text-xs text-teal-700 mb-3">
+              Select exam, part, enter paper name, and paste questions in the format shown below.
+              <br />Supports both regular MCQ questions and Reading Comprehension passages with sub-questions.
+              <br />Questions should include both English and Hindi versions with options.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select CPCT Exam:</label>
+                <select
+                  value={cpctTextExamId}
+                  onChange={async (e) => {
+                    setCpctTextExamId(e.target.value);
+                    setCpctTextPartId(''); // Reset part when exam changes
+                    setCpctTextParts([]); // Reset parts
+                    if (e.target.value) {
+                      await fetchSections(e.target.value);
+                      // Fetch parts for Section A
+                      const sectionsData = await fetch(`/api/admin/sections?examId=${e.target.value}`).then(r => r.json());
+                      const sectionA = sectionsData.sections?.find(s => s.name === 'Section A');
+                      if (sectionA) {
+                        const partsRes = await fetch(`/api/admin/parts?examId=${e.target.value}&sectionId=${sectionA._id}`).then(r => r.json());
+                        setCpctTextParts(partsRes.parts || []);
+                      }
+                    }
+                  }}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="">-- Select Exam --</option>
+                  {exams.filter(e => e.key === 'CPCT').map(exam => (
+                    <option key={exam._id} value={exam._id}>{exam.title}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select Part (Section A):</label>
+                <select
+                  value={cpctTextPartId}
+                  onChange={(e) => setCpctTextPartId(e.target.value)}
+                  disabled={!cpctTextExamId || cpctTextParts.length === 0}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100"
+                >
+                  <option value="">-- Select Part --</option>
+                  {cpctTextParts.map(part => (
+                    <option key={part._id} value={part._id}>{part.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Paper Name:</label>
+                <input
+                  type="text"
+                  value={cpctTextPaperName}
+                  onChange={(e) => setCpctTextPaperName(e.target.value)}
+                  placeholder="e.g., 21st Nov 2025 Shift2 QP1"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+            
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Paste Questions (English + Hindi):</label>
+              <textarea
+                value={cpctTextQuestions}
+                onChange={(e) => setCpctTextQuestions(e.target.value)}
+                placeholder={`Paste questions in this format:
+
+REGULAR MCQ:
+Question Number : 1 Question Id : 2549896609 Question Type : MCQ
+A thread in an OS is a/an ______.
+Options :
+1.  heavy weight process
+2.  multi-process
+3.  inter thread process
+4.  light weight process
+OS में, थ्रेड एक ______ होती है।
+Options :
+1.  भारी प्रक्रिया (Heavy weight process)
+...
+
+READING COMPREHENSION:
+[Passage in English]
+The Turner kids were not used to snow...
+[Passage in Hindi]
+टनर के बच्चे बर्फ के अभ्यस्त नहीं थे...
+Question Type : COMPREHENSION
+Sub questions
+
+Question Number : 53 Question Id : 25498921464 Question Type : MCQ
+The Turner kids were not used to snow because:
+Options :
+1.  it had never snowed there
+2.  it snowed only sparsely
+3.  they always stayed indoors
+4.  schools remained shut
+टनर के बच्चे बर्फ के अभ्यस्त क्यों नहीं थे?
+Options :
+1.  क्योंकि वहां कभी भी बर्फबारी नहीं हुई थी
+2.  क्योंकि वहां बहुत कम बर्फबारी होती थी
+...`}
+                className="w-full h-60 border border-gray-300 rounded-lg p-3 text-sm font-mono text-xs"
+                disabled={cpctTextImporting}
+              />
+            </div>
+            
+            <button
+              onClick={async () => {
+                if (!cpctTextExamId) {
+                  alert('Please select an exam first!');
+                  return;
+                }
+                
+                if (!cpctTextPartId) {
+                  alert('Please select a part first!');
+                  return;
+                }
+                
+                if (!cpctTextQuestions.trim()) {
+                  alert('Please paste questions text first!');
+                  return;
+                }
+                
+                if (!confirm('This will import questions to the selected part.\n\nAll questions will be set as FREE.\n\nContinue?')) return;
+                
+                setCpctTextImporting(true);
+                try {
+                  const res = await fetch('/api/admin/import-cpct-text-questions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                      examId: cpctTextExamId,
+                      partId: cpctTextPartId,
+                      paperName: cpctTextPaperName.trim(),
+                      questionsText: cpctTextQuestions.trim()
+                    })
+                  });
+                  
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(`✅ Success! Imported ${data.imported} questions.\n\nErrors: ${data.errors || 0}`);
+                    setCpctTextQuestions('');
+                    setCpctTextPaperName('');
+                    // Refresh questions if this part is selected
+                    if (selectedPart === cpctTextPartId) {
+                      fetchQuestions(cpctTextExamId, sections.find(s => parts.find(p => p._id === cpctTextPartId)?.sectionId === s._id)?._id, cpctTextPartId);
+                    }
+                  } else {
+                    alert('Failed: ' + (data.error || 'Unknown error'));
+                  }
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                } finally {
+                  setCpctTextImporting(false);
+                }
+              }}
+              disabled={cpctTextImporting || !cpctTextExamId || !cpctTextPartId || !cpctTextQuestions.trim()}
+              className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {cpctTextImporting ? 'Importing...' : '📥 Import Questions'}
+            </button>
+          </div>
+
           {/* CPCT Real Paper Import - One Time Import */}
           <div className="bg-blue-50 border-2 border-blue-400 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-900 mb-3 font-bold">
@@ -2153,9 +2480,9 @@ export default function AdminPanel() {
                 ) : (
                   <ul className="space-y-2">
             {parts.map(part => (
-              <li key={part._id}>
+              <li key={part._id} className="flex gap-2">
                         <button 
-                          className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                          className={`flex-1 text-left px-4 py-3 rounded-lg border transition-colors ${
                             selectedPart === part._id 
                               ? 'bg-purple-600 text-white border-purple-600' 
                               : 'bg-white hover:bg-gray-50 border-gray-200'
@@ -2166,6 +2493,41 @@ export default function AdminPanel() {
                           }}
                         >
                           <div className="font-medium">{part.name}</div>
+                        </button>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (!confirm(`⚠️ This will delete ALL questions from part "${part.name}". This action cannot be undone!\n\nAre you sure you want to continue?`)) return;
+                            try {
+                              setSaving(true);
+                              const res = await fetch('/api/admin/clear-part-questions', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: JSON.stringify({ partId: part._id })
+                              });
+                              const data = await res.json();
+                              if (res.ok) {
+                                alert(`✅ Success! Cleared ${data.deletedCount} questions from part "${part.name}"`);
+                                // Refresh questions if this part is selected
+                                if (selectedPart === part._id) {
+                                  setQuestions([]);
+                                  fetchQuestions(selectedExam, selectedSection, part._id);
+                                }
+                              } else {
+                                alert('Failed: ' + (data.error || 'Unknown error'));
+                              }
+                            } catch (error) {
+                              alert('Error: ' + error.message);
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                          disabled={saving}
+                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                          title="Clear all questions from this part"
+                        >
+                          🗑️
                         </button>
               </li>
             ))}

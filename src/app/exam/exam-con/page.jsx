@@ -188,12 +188,13 @@ export default function ExamInstructions() {
           {/* Start Test Button */}
           <div className="mt-6 text-center">
             <button 
+              type="button"
               onClick={() => {
                 // Store question language preference
                 localStorage.setItem('questionLanguage', questionLanguage);
                 window.location.href = "/exam_mode";
               }}
-              className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded shadow"
+              className="bg-green-500 hover:bg-green-600 text-white font-semibold px-12 py-4 text-lg md:text-xl rounded shadow-lg"
             >
               Start Test
             </button>

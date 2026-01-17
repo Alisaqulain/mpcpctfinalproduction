@@ -45,7 +45,7 @@ function DesktopView({
       <div className="flex flex-col-reverse lg:flex-row gap-6">
         {/* Typing Area */}
         <div className="w-[90%] lg:w-[110%] mx-auto">
-          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg ml-5 mt-[-25]">
+          <div className="bg-white p-2 lg:p-3 mr-10 md:p-6 rounded-xl shadow-lg ml-5 mt-[-25]">
             {/* Results Display */}
             {isCompleted && (
               <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
@@ -96,7 +96,7 @@ function DesktopView({
               </div>
             ) : (
               <>
-                <div className="text-sm leading-relaxed mb-4 overflow-auto min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px] mt-4 break-words font-sans" style={{ fontSize: `${fontSize}px` }}>
+                <div className="text-sm leading-tight mb-2 lg:mb-2 overflow-y-auto min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px] mt-2 lg:mt-2 break-words font-sans w-full" style={{ fontSize: `${fontSize}px`, width: '100%', maxWidth: '100%' }}>
                   {renderColoredWords()}
                 </div>
                 <textarea
@@ -333,7 +333,7 @@ function PortraitView({
               </div>
             ) : (
               <>
-                <div className="text-sm leading-relaxed mb-4 overflow-auto min-h-[200px] max-h-[100px] mt-4 break-words font-sans" style={{ fontSize: `${fontSize}px` }}>
+                <div className="text-sm leading-tight mb-4 overflow-y-auto min-h-[200px] max-h-[100px] mt-4 break-words font-sans w-full" style={{ fontSize: `${fontSize}px`, width: '100%', maxWidth: '100%' }}>
                   {renderColoredWords()}
                 </div>
                 <textarea
@@ -519,10 +519,11 @@ function LandscapeView({
   textareaRef
 }) {
   return (
-    <div className="landscape-mobile-container">
-      <button className="absolute md:hidden right-3 top-5 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md" style={{ padding: '0.8vh 2vw', fontSize: 'clamp(9px, 1.8vw, 12px)', minHeight: '4vh', right: '1vw', top: '1vh' }}>
-        <a href="/skill_test">close</a>
+    <>
+      <button className="fixed md:hidden right-2 top-2 z-[9999] border-2 border-gray-600 text-white bg-red-500 hover:bg-red-600 rounded-md shadow-lg" style={{ padding: '0.8vh 2vw', fontSize: 'clamp(9px, 1.8vw, 12px)', minHeight: '4vh', position: 'fixed', zIndex: 9999 }}>
+        <a href="/skill_test" className="font-semibold">close</a>
       </button>
+      <div className="landscape-mobile-container">
 
       <div className="flex flex-row gap-6">
         {/* Typing Area */}
@@ -593,7 +594,7 @@ function LandscapeView({
               </div>
             ) : (
               <>
-                <div className="text-sm leading-relaxed mb-4 overflow-auto min-h-[180px] max-h-[250px] mt-4 break-words font-sans" style={{ minHeight: '30vh', maxHeight: '25vh', fontSize: 'clamp(10px, 2vw, 14px)', lineHeight: '1.4' }}>
+                <div className="text-sm leading-tight mb-4 overflow-y-auto min-h-[180px] max-h-[250px] mt-4 break-words font-sans w-full" style={{ minHeight: '30vh', maxHeight: '25vh', fontSize: 'clamp(10px, 2vw, 14px)', lineHeight: '1.2', width: '100%', maxWidth: '100%' }}>
                   {renderColoredWords(true)}
                 </div>
                 <textarea
@@ -704,7 +705,8 @@ function LandscapeView({
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -800,27 +802,18 @@ function TypingTutorForm() {
               }
             }
 
-            // Split content into lines (max ~80 characters per line for better display)
+            // Remove all line breaks from uploaded content and join into continuous text
             if (exerciseContent && exerciseContent.trim()) {
-              const words = exerciseContent.trim().split(/\s+/).filter(w => w.length > 0);
-              if (words.length > 0) {
-                const lines = [];
-                let currentLine = "";
-                for (const word of words) {
-                  if ((currentLine + " " + word).length > 80 && currentLine) {
-                    lines.push(currentLine.trim());
-                    currentLine = word;
-                  } else {
-                    currentLine = currentLine ? currentLine + " " + word : word;
-                  }
-                }
-                if (currentLine) {
-                  lines.push(currentLine.trim());
-                }
-                setContent(lines.length > 0 ? lines : []);
-              } else {
-                setContent([]);
-              }
+              // Remove all line breaks and normalize whitespace
+              const normalizedContent = exerciseContent
+                .replace(/\r\n/g, ' ')
+                .replace(/\r/g, ' ')
+                .replace(/\n/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+              
+              // Store as single continuous line - browser will wrap naturally based on container width
+              setContent([normalizedContent]);
             } else {
               setContent([]);
             }
@@ -1248,13 +1241,21 @@ function TypingTutorForm() {
       return (
         <p
           key={lineIndex}
-          className="mb-1 break-words h-[40px] flex items-center"
+          className="mb-0 break-words w-full"
           style={isLandscapeMode ? { 
             fontSize: `clamp(10px, 2vw, ${fontSize}px)`, 
             height: 'auto', 
-            minHeight: '3vh', 
-            marginBottom: '0.3vh' 
-          } : { fontSize: `${fontSize}px` }}
+            minHeight: 'auto', 
+            marginBottom: '0.2vh',
+            lineHeight: '1.2',
+            width: '100%',
+            maxWidth: '100%'
+          } : { 
+            fontSize: `${fontSize}px`,
+            lineHeight: '1.2',
+            width: '100%',
+            maxWidth: '100%'
+          }}
           ref={lineIndex === 0 ? containerRef : null}
         >
           {lineWords.map((word, i) => {
@@ -1271,7 +1272,7 @@ function TypingTutorForm() {
               <span
                 key={i}
                 ref={(el) => (wordRefs.current[index] = el)}
-                className={`${className} mr-1`}
+                className={`${className} mr-1 inline-block`}
               >
                 {word}
               </span>
@@ -1334,6 +1335,40 @@ function TypingTutorForm() {
   return (
     <div className="min-h-screen bg-[#290c52] bg-[url('/bg.jpg')] mt-30 md:mt-0  bg-cover bg-center bg-no-repeat px-4 py-6 md:px-14 md:py-12 md:mx-8 md:my-8 rounded-[0px] md:rounded-[100px] typing-background-container">
       <style jsx>{`
+        @media (max-width: 767px) and (orientation: portrait) {
+          html, body {
+            overflow: hidden !important;
+            height: 100vh !important;
+            position: fixed !important;
+            width: 100% !important;
+          }
+          .typing-background-container {
+            height: 100vh !important;
+            overflow: hidden !important;
+            position: fixed !important;
+            width: 100vw !important;
+          }
+          /* Hide scrollbar for sidebar in mobile */
+          .w-full.text-white::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+          }
+          .w-full.text-white {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+          }
+          /* Keep typing box scrollable but hide its scrollbar */
+          .overflow-y-auto::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+          }
+          .overflow-y-auto {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+          }
+        }
         @media (max-width: 1024px) and (orientation: landscape),
                (max-width: 767px) and (orientation: landscape),
                (max-height: 600px) and (orientation: landscape),
@@ -1355,6 +1390,13 @@ function TypingTutorForm() {
             padding: 0 !important;
             max-width: 100vw !important;
             min-height: 100vh !important;
+          }
+          /* Close button in landscape - ensure visibility */
+          button[class*="fixed"][class*="md:hidden"] {
+            position: fixed !important;
+            z-index: 9999 !important;
+            display: block !important;
+            visibility: visible !important;
           }
           /* Landscape mobile layout adjustments */
           .landscape-mobile-container {
