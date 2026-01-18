@@ -6,6 +6,7 @@ export default function ExamInstructions() {
   const [userName, setUserName] = useState("User");
   const [examData, setExamData] = useState(null);
   const [questionLanguage, setQuestionLanguage] = useState("English");
+  const [isAgreed, setIsAgreed] = useState(false);
 
   useEffect(() => {
     // Load user data from localStorage
@@ -169,7 +170,12 @@ export default function ExamInstructions() {
           {/* Checkbox Disclaimer */}
           <div className="text-xs md:text-sm mt-4">
             <label className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1" defaultChecked />
+              <input 
+                type="checkbox" 
+                className="mt-1" 
+                checked={isAgreed}
+                onChange={(e) => setIsAgreed(e.target.checked)}
+              />
 
               <span className="text-[13px]">
                 {language === "हिन्दी" || language === "Hindi" ? (
@@ -190,11 +196,17 @@ export default function ExamInstructions() {
             <button 
               type="button"
               onClick={() => {
+                if (!isAgreed) return;
                 // Store question language preference
                 localStorage.setItem('questionLanguage', questionLanguage);
                 window.location.href = "/exam_mode";
               }}
-              className="bg-green-500 hover:bg-green-600 text-white font-semibold px-12 py-4 text-lg md:text-xl rounded shadow-lg"
+              disabled={!isAgreed}
+              className={`font-semibold px-12 py-4 text-lg md:text-xl rounded shadow-lg ${
+                isAgreed 
+                  ? "bg-green-500 hover:bg-green-600 text-white cursor-pointer" 
+                  : "bg-gray-400 text-gray-200 cursor-not-allowed"
+              }`}
             >
               Start Test
             </button>

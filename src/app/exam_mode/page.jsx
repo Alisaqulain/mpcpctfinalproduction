@@ -738,6 +738,14 @@ function ExamModeContent() {
     return () => clearInterval(interval);
   }, [isTypingSection, typingTimeLeft, section]);
 
+  // Stop sound immediately when muted
+  useEffect(() => {
+    if (!isSoundOn && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  }, [isSoundOn]);
+
   // Play sound each second
   useEffect(() => {
     if (isSoundOn && audioRef.current && timeLeft > 0) {
@@ -1404,15 +1412,9 @@ function ExamModeContent() {
               {isSoundOn ? "🔊" : "🔇"}
             </button>
             {isTypingSection && typingTimeLeft !== null ? (
-              <div className="flex flex-col items-end gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
-                  <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">📊 Total Exam:</span>
-                  <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">{formatTime(timeLeft)}</span>
-                </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
+                <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
               </div>
             ) : (
               <div className="flex items-center gap-2">
@@ -1541,26 +1543,14 @@ function ExamModeContent() {
               </button>
               {/* For RSCIT Section A: Show typing timer, for others show main timer */}
               {examData?.key === 'RSCIT' && section === 'Section A' && typingTimeLeft !== null ? (
-                <div className="flex flex-col items-end gap-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
-                    <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">📊 Total Exam:</span>
-                    <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">{formatTime(timeLeft)}</span>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
+                  <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
                 </div>
               ) : isTypingSection && typingTimeLeft !== null ? (
-                <div className="flex flex-col items-end gap-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
-                    <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">📊 Total Exam:</span>
-                    <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">{formatTime(timeLeft)}</span>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
+                  <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -2177,27 +2167,6 @@ function ExamModeContent() {
       {/* Sidebar - Desktop */}
       <div className="hidden lg:block w-full lg:w-60 bg-blue-50 border-l shadow-lg max-h-[100vh] overflow-y-auto sticky top-0 mt-3">
         <div className="p-4 text-sm h-full">
-          {/* Timer Display in Sidebar */}
-          <div className="bg-white rounded-lg p-3 mb-4 border-2 border-orange-300 shadow-md">
-            {isTypingSection && typingTimeLeft !== null ? (
-              <div className="space-y-2">
-                <div className="text-center">
-                  <div className="text-xs font-semibold text-orange-600 mb-1">⏱️ Section Timer (Active)</div>
-                  <div className="text-2xl font-bold bg-orange-400 text-black px-4 py-2 rounded">{formatTime(typingTimeLeft)}</div>
-                </div>
-                <div className="border-t pt-2 text-center">
-                  <div className="text-xs text-gray-500 mb-1">📊 Total Exam Time</div>
-                  <div className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded">{formatTime(timeLeft)}</div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center">
-                <div className="text-xs font-semibold text-blue-600 mb-1">⏱️ Exam Timer</div>
-                <div className="text-2xl font-bold bg-blue-400 text-black px-4 py-2 rounded">{formatTime(timeLeft)}</div>
-              </div>
-            )}
-          </div>
-          
           <div className="flex flex-col items-center py-6">
             <img src="/lo.jpg" className="w-24 h-24 rounded-full border-2" />
             <p className="mt-2 font-semibold text-blue-800">{userName}</p>
@@ -2228,33 +2197,6 @@ function ExamModeContent() {
 
           {section && (
             <>
-              <h2 className="font-bold mb-2 text-white-50 text-center bg-[#290c52] text-[12px] text-white py-2">{section}</h2>
-              <h2 className="font-bold mb-2 text-white-50">Choose a Question</h2>
-              {/* Parts Nav (Mobile) - Show if current section has parts */}
-              {currentSectionParts.length > 0 && (
-                <div className="mb-3">
-                  <div className="flex gap-2 overflow-x-auto pb-2">
-                    <span className="text-xs font-semibold text-gray-700 whitespace-nowrap">Parts:</span>
-                    {currentSectionParts.map((part) => (
-                      <button
-                        key={part._id}
-                        onClick={() => {
-                          setSelectedPart(part.name);
-                          setCurrentQuestionIndex(0);
-                        }}
-                        className={`${
-                          selectedPart === part.name
-                            ? "bg-blue-600 text-white"
-                            : "bg-white text-blue-700 border border-gray-300"
-                        } px-3 py-1 text-xs rounded whitespace-nowrap`}
-                      >
-                        {part.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
               <div className="grid grid-cols-4 gap-2 mb-4">
                 {currentQuestions && currentQuestions.length > 0 ? (
                   currentQuestions.map((q, i) => {

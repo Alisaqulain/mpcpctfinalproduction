@@ -269,20 +269,20 @@ function PortraitView({
 }) {
   return (
     <>
-      <button className="absolute md:hidden right-3 top-5 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md">
+      <button className="absolute md:hidden right-3 top-20 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md">
         <a href="/skill_test">close</a>
       </button>
 
       <div className="flex flex-col-reverse gap-6">
         {/* Typing Area */}
         <div className="w-[90%] mx-auto">
-          <p className="block lg:hidden text-md mb-15 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-center font-bold">
+          <p className="block lg:hidden text-md mb-20 mt-[-30px] text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-center font-bold">
             Typing Tutor
             <br />
             <span className="text-xs font-normal text-white">(Type the words as they appear below)</span>
           </p>
 
-          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg mt-[-25] w-full">
+          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg mt-[-45] w-full">
             {/* Results Display */}
             {isCompleted && (
               <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
@@ -520,7 +520,18 @@ function LandscapeView({
 }) {
   return (
     <>
-      <button className="fixed md:hidden right-2 top-2 z-[9999] border-2 border-gray-600 text-white bg-red-500 hover:bg-red-600 rounded-md shadow-lg" style={{ padding: '0.8vh 2vw', fontSize: 'clamp(9px, 1.8vw, 12px)', minHeight: '4vh', position: 'fixed', zIndex: 9999 }}>
+      <button 
+        className="fixed md:hidden right-2 top-2 z-[9999] border-2 border-gray-600 text-white bg-red-500 hover:bg-red-600 rounded-md shadow-lg" 
+        style={{ 
+          padding: '0.8vh 2vw', 
+          fontSize: 'clamp(9px, 1.8vw, 12px)', 
+          minHeight: '4vh', 
+          position: 'fixed', 
+          zIndex: 9999,
+          display: 'block',
+          visibility: 'visible'
+        }}
+      >
         <a href="/skill_test" className="font-semibold">close</a>
       </button>
       <div className="landscape-mobile-container">
@@ -1367,6 +1378,59 @@ function TypingTutorForm() {
           .overflow-y-auto {
             scrollbar-width: none !important;
             -ms-overflow-style: none !important;
+          }
+        }
+        /* iPhone SE and Samsung S8+ portrait view - enable vertical scrolling */
+        @media (max-width: 375px) and (orientation: portrait),
+               (max-width: 360px) and (orientation: portrait),
+               (max-height: 667px) and (max-width: 375px) and (orientation: portrait),
+               (max-height: 740px) and (max-width: 360px) and (orientation: portrait),
+               (max-height: 800px) and (max-width: 400px) and (orientation: portrait) {
+          /* Make background container scrollable on small devices */
+          .typing-background-container {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+            height: 100vh !important;
+            position: relative !important;
+            padding: 1vh 2vw !important;
+            scrollbar-width: thin !important;
+            scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1) !important;
+          }
+          /* Show vertical scrollbar for background container on small devices */
+          .typing-background-container::-webkit-scrollbar {
+            width: 8px !important;
+            display: block !important;
+          }
+          .typing-background-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 4px !important;
+          }
+          .typing-background-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.4) !important;
+            border-radius: 4px !important;
+          }
+          .typing-background-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.6) !important;
+          }
+          /* Allow parent container to expand */
+          .max-w-7xl.mx-auto {
+            overflow-y: visible !important;
+            max-height: none !important;
+            height: auto !important;
+          }
+          /* Enable vertical scrolling for portrait view main container on small devices */
+          .flex.flex-col-reverse.gap-6 {
+            overflow-y: visible !important;
+            overflow-x: hidden !important;
+            height: auto !important;
+            min-height: auto !important;
+          }
+          /* Ensure typing area doesn't overflow */
+          .w-\[90\%\].mx-auto {
+            overflow-x: hidden !important;
+            max-width: 100% !important;
+            width: 90% !important;
           }
         }
         @media (max-width: 1024px) and (orientation: landscape),

@@ -177,12 +177,15 @@ const App = () => {
             margin-top: -9.1875rem !important;
           }
           
-          .home-welcome-text {
-            font-size: 1.20rem !important;
-            padding-top: 1.75rem !important;
-            padding-bottom: 1.5rem !important;
-            top: -9.25rem !important;
-          }
+          // .home-welcome-text {
+          //   font-size: 1.15rem !important;
+          //   padding-top: 1.5rem !important;
+          //   padding-bottom: 1.25rem !important;
+          //   top: -9.25rem !important;
+          //   width: 15% !important;
+          //   border-top-left-radius: 0.5rem !important;
+          //   border-top-right-radius: 0.5rem !important;
+          // }
           
           .home-info-box {
             margin-top: 8.75rem !important;
@@ -220,7 +223,20 @@ const App = () => {
             gap: 2.5rem !important;
             margin-left: 8rem !important;
           }
-          
+          // .home-welcome-text {
+          //   font-size: 1.20rem !important;
+          //   padding-top: 1.75rem !important;
+          //   padding-bottom: 1.5rem !important;
+          //   top: -9.25rem !important;
+          //   width: 14.2% !important;
+          //   border-top-left-radius: 5 !important;
+          //   border-top-right-radius: 5 !important;
+          // }
+          .hello{
+          width: 100% !important;
+          border-radius-top: 5px !important;
+          }
+
           .home-card {
             width: 20rem !important;
             height: 18rem !important;
@@ -267,6 +283,16 @@ const App = () => {
             gap: 3rem !important;
             margin-left: 9rem !important;
           }
+
+          //  .home-welcome-text {
+          //   font-size: 1.25rem !important;
+          //   padding-top: 1.75rem !important;
+          //   padding-bottom: 1.5rem !important;
+          //   top: -9.25rem !important;
+          //   width: 15% !important;
+          //   border-top-left-radius: 0.75rem !important;
+          //   border-top-right-radius: 0.75rem !important;
+          // }
           
           .home-card {
             width: 22rem !important;
@@ -303,7 +329,7 @@ const App = () => {
         }
         
         /* Medium desktop screens (1200px - 1399px) */
-        @media (min-width: 1200px) and (max-width: 1399px) {
+        @media (width >= 1200px) and (width <= 1399px) {
           .home-title {
             font-size: 2.75rem !important;
           }
@@ -316,6 +342,16 @@ const App = () => {
             gap: 1.75rem !important;
             margin-left: 9rem !important;
           }
+
+          //  .home-welcome-text {
+          //   font-size: 1.25rem !important;
+          //   padding-top: 1.75rem !important;
+          //   padding-bottom: 1.5rem !important;
+          //   top: -9.25rem !important;
+          //   width: 14% !important;
+          //   border-top-left-radius: 0.75rem !important;
+          //   border-top-right-radius: 0.75rem !important;
+          // }
           
           .home-card {
             width: 17rem !important;
@@ -368,6 +404,16 @@ const App = () => {
             width: 16rem !important;
             height: 14rem !important;
           }
+
+          //  .home-welcome-text {
+          //   font-size: 1.25rem !important;
+          //   padding-top: 1.75rem !important;
+          //   padding-bottom: 1.5rem !important;
+          //   top: -9.25rem !important;
+          //   width: 19% !important;
+          //   border-top-left-radius: 0.75rem !important;
+          //   border-top-right-radius: 0.75rem !important;
+          // }
           
           .home-card-image {
             height: 10rem !important;
@@ -399,7 +445,39 @@ const App = () => {
         /* Tablet and below - keep existing responsive behavior */
         @media (max-width: 1023px) {
           /* Keep existing mobile/tablet styles */
-        }
+        //    .home-welcome-text {
+        //     font-size: 1.25rem !important;
+        //     padding-top: 1.75rem !important;
+        //     padding-bottom: 1.5rem !important;
+        //     top: -9.25rem !important;
+        //     width: 15% !important;
+        //     border-top-left-radius: 0.75rem !important;
+        //     border-top-right-radius: 0.75rem !important;
+        //   }
+        // }
+
+      //   @media (min-width: 1250px) and (max-width: 1299px) {
+      //      .home-welcome-text {
+      //       font-size: 1.25rem !important;
+      //       padding-top: 1.75rem !important;
+      //       padding-bottom: 1.5rem !important;
+      //       top: -9.25rem !important;
+      //       width: 13% !important;
+      //       border-top-left-radius: 0.75rem !important;
+      //       border-top-right-radius: 0.75rem !important;
+      //     }
+      // }}
+      //   @media (min-width: 1359px) and (max-width: 1399px) {
+      //      .home-welcome-text {
+      //       font-size: 1.25rem !important;
+      //       padding-top: 1.75rem !important;
+      //       padding-bottom: 1.5rem !important;
+      //       top: -9.25rem !important;
+      //       width: 19% !important;
+      //       border-top-left-radius: 0.75rem !important;
+      //       border-top-right-radius: 0.75rem !important;
+      //     }
+      // }}
       `}</style>
       
       <div
@@ -429,7 +507,7 @@ const App = () => {
                 const card = (
                   <div
                     key={label}
-                    className="w-full sm:w-72 h-auto md:h-64 rounded-xl overflow-hidden shadow-md border-4 md:border-8 border-[#290c52] bg-white cursor-pointer transform transition-transform duration-300 hover:scale-105 home-card"
+                    className="w-25 sm:w-72 h-auto md:h-64 rounded-xl overflow-hidden shadow-md border-4 md:border-8 border-[#290c52] bg-white cursor-pointer transform transition-transform duration-300 hover:scale-105 home-card"
                   >
                     <div className="h-20 w-full md:h-48 md:w-full home-card-image relative">
                       <Image
@@ -502,12 +580,15 @@ const App = () => {
               </div>
             ) : (
               <>
-                <span className="text-pink-300 font-semibold text-[20px] border-2 border-[#290c52] bg-[#290c52] pt-4 md:pt-7 pb-0 md:pb-6 text-center w-full lg:w-48 absolute right-0 lg:right-[-16px] z-10 top-[155px] rounded-tl-lg rounded-tr-lg md:rounded-none lg:top-[-148px] home-welcome-text">
+                {/* <span className="text-pink-300 font-semibold text-[20px] border-2 border-[#290c52] bg-[#290c52] pt-4 md:pt-7 pb-0 md:pb-6 text-center w-full lg:w-48 absolute right-0 lg:right-[-16px] z-10 top-[155px] rounded-tl-lg rounded-tr-lg md:rounded-none lg:top-[-148px] home-welcome-text">
+                  Welcome Back
+                </span> */}
+
+                <div className="w-full lg:w-48 border-2 border-[#290c52] bg-gray-50 shadow-lg p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:h-[620px] rounded-lg animate-fadeInUp lg:mt-[-147px]  home-login-box">
+                <span className="text-pink-300 font-semibold text-[20px] border-2 border-[#290c52] bg-[#290c52] pt-4 md:pt-7 pb-0 md:pb-4 text-center w-full lg:w-45 absolute right-0 lg:right-[0px] z-10 top-[0px] rounded-tl-lg rounded-tr-lg md:rounded-none lg:top-[-0px] hello">
                   Welcome Back
                 </span>
-
-                <div className="w-full lg:w-48 border-2 border-[#290c52] bg-gray-50 shadow-lg p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:h-[620px] rounded-lg animate-fadeInUp lg:mt-[-147px] home-login-box">
-                  <div className="font-semibold text-pink-300 text-xl text-center mt-0 md:mt-16">
+                  <div className="font-semibold text-pink-300 text-xl text-center mt-5 md:mt-16">
                     <span className="font-normal text-black text-sm md:text-[14px] block md:inline md:ml-2 ">
                       Login to your MPCPCT Account
                     </span>
