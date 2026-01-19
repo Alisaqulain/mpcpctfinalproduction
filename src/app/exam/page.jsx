@@ -228,7 +228,7 @@ export default function ExamSection() {
 
                         {/* Start Practice Button - Right side */}
                         <button 
-                          onClick={() => router.push(`/topicwise?topicId=${topic.topicId}`)}
+                          onClick={() => router.push(getExamRoute("CUSTOM", topic.topicId))}
                           className="relative bg-pink-300 hover:bg-yellow-500 text-black px-4 md:px-6 py-3 text-sm font-semibold rounded-md shadow-md cursor-pointer flex-shrink-0"
                         >
                           Start Practice

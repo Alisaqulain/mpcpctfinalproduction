@@ -36,6 +36,10 @@ function ExamModeContent() {
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [showQuestionPaperModal, setShowQuestionPaperModal] = useState(false);
   const [modalLanguage, setModalLanguage] = useState("हिन्दी");
+  const [showTestDropdown, setShowTestDropdown] = useState(false);
+  const [selectedTest, setSelectedTest] = useState("CPCT Actual");
+
+
   const audioRef = useRef(null);
   const loggedImageQuestions = useRef(new Set()); // Track which questions we've already logged
   const searchParams = useSearchParams();
@@ -66,6 +70,46 @@ function ExamModeContent() {
             console.error('Error parsing user data:', error);
           }
         }
+
+        const questions = {
+          "COMPUTER PROFICIENCY": {
+            question: "The term EDVAC stands for:",
+            options: [
+              "Electronic Data Variable Automatic Computer",
+              "Electronic Discrete Variable Automatic Computer",
+              "Electronic Distinct Variable Automatic Computer",
+              "Electronic Disk Variable Automatic Computer",
+            ],
+          },
+          "READING COMPREHENSION": {
+            passage: `बहुत समय पहले, एक बड़े जंगल के पास बसे एक छोटे से गाँव में बहुत समय पहले, एक बड़े जंगल के पास बसे एक छोटे से गाँव में...`,
+            question: "Who is the author of 'Wings of Fire'?",
+            options: [
+              "A. P. J. Abdul Kalam",
+              "Rabindranath Tagore",
+              "Jawaharlal Nehru",
+              "R. K. Narayan",
+            ],
+          },
+          "QUANTITATIVE APTITUDE": {
+            question: "What is the square root of 144?",
+            options: ["10", "12", "14", "16"],
+          },
+          "GENERAL MENTAL ABILITY": {
+            question: "If CAT = 24 and DOG = 26, then BAT = ?",
+            options: ["22", "24", "26", "28"],
+          },
+          "GENERAL AWARENESS": {
+            question: "Who is the current president of India?",
+            options: [
+              "Narendra Modi",
+              "Droupadi Murmu",
+              "Ram Nath Kovind",
+              "Pratibha Patil",
+            ],
+          },
+        };
+      
 
         // Load question language preference
         const savedLang = localStorage.getItem('questionLanguage');
@@ -806,6 +850,8 @@ function ExamModeContent() {
     setSectionAScore(0);
   };
 
+  const testTypes = ["CPCT Actual", "English Typing", "हिंदी टाइपिंग"];
+
   // Get current question based on section, part, and index
   const getCurrentQuestion = useCallback(() => {
     if (!section) return null;
@@ -1297,14 +1343,7 @@ function ExamModeContent() {
         </div>
 
         {/* Exam Title (Mobile & Desktop) */}
-        {examData && (
-          <div className="bg-white-50 border-b border-gray-300 px-4 py-4 mt-10">
-            <h2 className="text-lg md:text-xl font-semibold text-[#290c52] text-center">
-              {examData.title || 'Exam'}
-            </h2>
-          </div>
-        )}
-
+     
         {/* Section Dropdown (Mobile) */}
         <div className="lg:hidden border-b px-4 py-3 border-y-gray-200 bg-[#fff]">
           <div className="relative">
@@ -1440,163 +1479,83 @@ function ExamModeContent() {
         </div>
 
         {/* Section Nav (Desktop) */}
-        <div className="hidden lg:flex flex-col border-b border-y-gray-200 bg-[#fff]">
-          <div className="flex text-xs overflow-x-auto pl-8">
-            {sections.map((sec, index) => {
-              const isCompleted = completedSections.has(sec.name);
-              const isCurrentSection = section === sec.name;
-              
-              // Check if this section can be accessed
-              // Rules:
-              // 1. Current section - always accessible
-              // 2. Completed sections - locked, cannot access
-              // 3. Previous sections that are not completed - cannot access
-              // 4. Next section - only accessible if current section is completed
-              const currentSectionIndex = sections.findIndex(s => s.name === section);
-              const thisSectionIndex = index;
-              const isPreviousSection = thisSectionIndex < currentSectionIndex;
-              const isNextSection = thisSectionIndex > currentSectionIndex;
-              const canAccess = isCurrentSection || 
-                (isNextSection && completedSections.has(section)) ||
-                (isPreviousSection && !isCompleted);
-              const isLocked = !canAccess;
-              
-              return (
-                <button
-                  key={sec._id}
-                  onClick={() => {
-                    // Prevent navigation to locked sections
-                    if (isLocked || isCompleted) {
-                      if (isCompleted) {
-                        alert('This section is already completed and locked.');
-                      } else {
-                        alert('Please complete the current section before moving to the next section.');
-                      }
-                      return;
-                    }
+        
+        {/* Test Type Tabs (Desktop) */}
+        <div className="hidden lg:flex bg-white-50 border-b border-gray-300 px-4 py-4 gap-2 text-xs mt-10 overflow-x-auto">
+          {testTypes.map((test) => (
+            <button
+              key={test}
+              className={`${
+                selectedTest === test
+                  ? "bg-[#290c52] text-white font-semibold px-2 py-3 border-2 border-gray-300 rounded"
+                  : "border px-2 py-2 rounded border-gray-300"
+              } whitespace-nowrap`}
+              onClick={() => setSelectedTest(test)}
+            >
+              {test}
+            </button>
+          ))}
+        </div>
 
-                    // Check RSCIT eligibility: Section B requires Section A with minimum 12 marks
-                    if (examData?.key === 'RSCIT' && sec.name === 'Section B' && !completedSections.has('Section A')) {
-                      alert('Please complete Section A first before attempting Section B.');
-                      return;
-                    }
+        {/* Section Dropdown (Mobile) */}
+        <div className="lg:hidden border-b px-4 py-3 border-y-gray-200 bg-[#fff]">
+          <div className="relative">
+            <button 
+              className="w-full bg-white text-blue-700 px-4 py-3 border border-gray-300 rounded text-left flex justify-between items-center"
+              onClick={() => setShowSectionDropdown(!showSectionDropdown)}
+            >
+              <span>{section}</span>
+              <span>{showSectionDropdown ? "▲" : "▼"}</span>
+            </button>
+            {showSectionDropdown && (
+              <div className="absolute z-20 w-full bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto">
+                {Object.keys(questions).map((sec) => (
+                  <button
+                    key={sec}
+                    className={`w-full px-4 py-2 text-left hover:bg-gray-100 ${
+                      section === sec ? "bg-gray-200" : ""
+                    }`}
+                    onClick={() => {
+                      setSection(sec);
+                      setShowSectionDropdown(false);
+                    }}
+                  >
+                    {sec}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center justify-end mt-2">
+            <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
+              {isSoundOn ? "🔊" : "🔇"}
+            </button>
+            <span className="text-lg ml-2">Time Left: <b className="bg-blue-400 text-black px-3">{formatTime(timeLeft)}</b></span>
+          </div>
+        </div>
 
-                    // Check if Section A score >= 12 marks for RSCIT Section B
-                    if (examData?.key === 'RSCIT' && sec.name === 'Section B') {
-                      const sectionACompleted = completedSections.has('Section A');
-                      if (!sectionACompleted) {
-                        alert('Please complete Section A first before attempting Section B.');
-                        return;
-                      }
-                      
-                      // Check Section A score
-                      const sectionAAnswers = JSON.parse(localStorage.getItem('examAnswers') || '{}');
-                      const sectionAQuestions = questions['Section A'] || [];
-                      let sectionAScore = 0;
-                      sectionAQuestions.forEach(q => {
-                        const answer = sectionAAnswers[q._id];
-                        if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
-                          sectionAScore += (q.marks || 2);
-                        }
-                      });
-                      
-                      if (sectionAScore < 12) {
-                        alert(`You need minimum 12 marks in Section A to proceed to Section B. Your Section A score: ${sectionAScore} marks.`);
-                        return;
-                      }
-                    }
-                    setSection(sec.name);
-                    setCurrentQuestionIndex(0);
-                    // Reset selected part and set first part if available
-                    const sectionParts = parts.filter(p => {
-                      const pSectionId = String(p.sectionId).trim();
-                      const secIdStr = String(sec.id).trim();
-                      const secIdObj = String(sec._id).trim();
-                      return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
-                    }).sort((a, b) => (a.order || 0) - (b.order || 0));
-                    if (sectionParts.length > 0) {
-                      setSelectedPart(sectionParts[0].name);
-                    } else {
-                      setSelectedPart(null);
-                    }
-                    // Mark first question of selected section as visited
-                    const firstQuestion = questions[sec.name]?.[0];
-                    if (firstQuestion?._id) {
-                      setVisitedQuestions(prev => {
-                        const newSet = new Set([...prev, firstQuestion._id]);
-                        localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                        return newSet;
-                      });
-                    }
-                  }}
-                  className={`${
-                    isCompleted
-                      ? "bg-green-600 text-white border-green-700 cursor-not-allowed opacity-75"
-                      : isLocked
-                      ? "bg-gray-300 text-gray-500 border-gray-400 cursor-not-allowed opacity-50"
-                      : section === sec.name
-                      ? "bg-[#290c52] text-white border-gray-300"
-                      : "bg-white text-blue-700 border-r border-gray-300 px-4 hover:bg-gray-50"
-                  } px-2 py-3 whitespace-nowrap relative`}
-                  disabled={isLocked || isCompleted}
-                  title={isCompleted ? "Section completed and locked" : isLocked ? "Complete current section first" : ""}
-                >
-                  {sec.name}
-                  {isCompleted && (
-                    <span className="ml-2 text-xs">✓</span>
-                  )}
-                  {isLocked && !isCompleted && (
-                    <span className="ml-2 text-xs">🔒</span>
-                  )}
-                </button>
-              );
-            })}
-            <div className="ml-auto flex items-center gap-2 whitespace-nowrap">
-              <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
-                {isSoundOn ? "🔊" : "🔇"}
-              </button>
-              {/* For RSCIT Section A: Show typing timer, for others show main timer */}
-              {examData?.key === 'RSCIT' && section === 'Section A' && typingTimeLeft !== null ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
-                  <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
-                </div>
-              ) : isTypingSection && typingTimeLeft !== null ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
-                  <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-blue-600">⏱️ Time Left:</span>
-                  <b className="bg-blue-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(timeLeft)}</b>
-                </div>
-              )}
-            </div>
+        {/* Section Nav (Desktop) */}
+        <div className="hidden lg:flex border-b px-4 py-0 border-y-gray-200 bg-[#fff] text-xs overflow-x-auto">
+          {Object.keys(questions).map((sec) => (
+            <button
+              key={sec}
+              onClick={() => setSection(sec)}
+              className={`${
+                section === sec
+                  ? "bg-[#290c52] text-white border-gray-300"
+                  : "bg-white text-blue-700 border-r border-gray-300 px-4"
+              } px-2 py-3 whitespace-nowrap`}
+            >
+              {sec}
+            </button>
+          ))}
+          <div className="ml-auto flex items-center gap-2 whitespace-nowrap">
+            <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
+              {isSoundOn ? "🔊" : "🔇"}
+            </button>
+            <span className="text-lg">Time Left: <b className="bg-blue-400 text-black px-3 mr-5">{formatTime(timeLeft)}</b></span>
           </div>
           
-          {/* Parts Nav (Desktop) - Show below sections if current section has parts */}
-          {section && currentSectionParts.length > 0 && (
-            <div className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50">
-              <span className="px-4 py-2 font-semibold text-gray-700 whitespace-nowrap">Parts1:</span>
-              {currentSectionParts.map((part) => (
-                <button
-                  key={part._id}
-                  onClick={() => {
-                    setSelectedPart(part.name);
-                    setCurrentQuestionIndex(0);
-                  }}
-                  className={`${
-                    selectedPart === part.name
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-blue-700 hover:bg-gray-100 border-r border-gray-300"
-                  } px-3 py-2 whitespace-nowrap`}
-                >
-                  {part.name}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
         {section && currentQuestions && currentQuestions.length > 0 && (
           <div className="flex gap-2 h-20 overflow-x-auto md:hidden ml-5">
