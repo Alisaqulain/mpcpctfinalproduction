@@ -749,70 +749,25 @@ export default function TypingTutor() {
         </div>
       </div>
 
-      {/* Exam Selection & Start Test */}
+      {/* Start Test Button */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden">
-        <div className="bg-[#290c52] text-white p-3 border-b border-gray-300">
-          <h2 className="text-base md:text-xl font-bold text-white flex items-center gap-2">
-            <span className="bg-yellow-400 text-[#290c52] rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">5</span>
-            Select Exam & Start Test
-          </h2>
-        </div>
-        <div className="flex flex-col md:flex-row">
-          {/* Exam List - Left Sidebar */}
-          <div className="w-full md:w-80 border-r border-gray-300 bg-gray-50 p-4">
-            <h3 className="text-sm md:text-base font-semibold mb-3 text-gray-700">Available Exams</h3>
-            <div className="space-y-2">
-              {loading ? (
-                <div className="text-center py-4 text-gray-500 text-sm">Loading exams...</div>
-              ) : skillTestData.exams.length === 0 ? (
-                <div className="text-center py-4 text-gray-500 text-sm">No exams available</div>
-              ) : (
-                skillTestData.exams.map((exam) => (
-                  <div
-                    key={exam.id}
-                    onClick={() => setSelectedExam(exam.id)}
-                    className={`p-3 rounded-lg cursor-pointer transition-all ${
-                      selectedExam === exam.id
-                        ? "bg-[#290c52] text-white shadow-lg transform scale-[1.02] border-2 border-[#290c52]"
-                        : "bg-white hover:bg-[#290c52]/10 border border-gray-200 hover:border-[#290c52]/30"
-                    }`}
-                  >
-                    <div className="text-xs md:text-sm font-medium">{exam.name}</div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Exam Description & Start Button */}
-          <div className="flex-1 p-4 md:p-6 bg-white">
-            <div className="flex flex-col gap-4 mb-4">
-              <h3 className="text-base md:text-lg font-semibold text-gray-800">Exam Description</h3>
-              <div className="flex justify-center">
-                <a
-                  href={selected ? `/typing?exercise=${selected}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}&duration=${duration}&backspace=${backspace}` : '#'}
-                  className={`px-50 py-3 rounded-lg text-xl md:text-2xl font-semibold shadow-md transition-all text-center ${
-                    selected 
-                      ? 'bg-green-600 text-white hover:bg-[#3d1470] transform hover:scale-105' 
-                      : 'bg-gray-400 text-white cursor-not-allowed'
-                  }`}
-                  onClick={(e) => {
-                    if (!selected) {
-                      e.preventDefault();
-                      alert('Please select an exercise first');
-                    }
-                  }}
-                >
-                  {selected ? '▶ Start Test' : 'Select an Exercise First'}
-                </a>
-              </div>
-            </div>
-            <div className="bg-[#290c52]/10 border-l-4 border-[#290c52] p-4 rounded-r-lg">
-              <p className="text-sm md:text-base text-gray-700 leading-relaxed text-justify">
-                {description || "No description available for the selected exam."}
-              </p>
-            </div>
-          </div>
+        <div className="flex justify-center p-4 md:p-6">
+          <a
+            href={selected ? `/typing?exercise=${selected}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}&duration=${duration}&backspace=${backspace}` : '#'}
+            className={`px-50 py-3 rounded-lg text-xl md:text-2xl font-semibold shadow-md transition-all text-center whitespace-nowrap ${
+              selected 
+                ? 'bg-green-600 text-white hover:bg-[#3d1470] transform hover:scale-105' 
+                : 'bg-gray-400 text-white cursor-not-allowed'
+            }`}
+            onClick={(e) => {
+              if (!selected) {
+                e.preventDefault();
+                alert('Please select an exercise first');
+              }
+            }}
+          >
+            {selected ? '▶ Start Test' : 'Select an Exercise First'}
+          </a>
         </div>
       </div>
     </div>

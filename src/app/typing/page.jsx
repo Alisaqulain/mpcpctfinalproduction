@@ -26,6 +26,8 @@ function DesktopView({
   timeRemaining,
   words,
   wrongWords,
+  typedWords,
+  totalTypedWords,
   backspaceCount,
   backspaceLimit,
   userName,
@@ -152,7 +154,7 @@ function DesktopView({
              
             </div>
 
-            <div className="w-24 h-9 rounded-lg overflow-hidden mx-auto text-center mt-10 md:mt-5 lg:mt-2 pt-0 md:pt-0 lg:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+            <div className="w-24 h-9 rounded-lg overflow-hidden mx-auto text-center mt-2 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
               <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
               <div className="bg-white text-black text-sm font-bold">
                 {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
@@ -161,7 +163,7 @@ function DesktopView({
             <div className="flex grid-cols-1 gap-y-3 mt-2 gap-x-4 md:gap-x-15 lg:gap-x-15 mr-0 md:mr-10 w-[70%] md:w-full text-center lg:landscape:grid lg:grid-cols-2">
               {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
                 { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
-                { label: "Total", value: words.length, color: "text-[#290c52]" },
+                { label: "Total", value: totalTypedWords, color: "text-[#290c52]" },
                 { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
                   <div key={i} className="w-full sm:w-24 h-9 rounded-lg overflow-hidden mx-auto shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
                     <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
@@ -257,6 +259,8 @@ function PortraitView({
   timeRemaining,
   words,
   wrongWords,
+  typedWords,
+  totalTypedWords,
   backspaceCount,
   backspaceLimit,
   userName,
@@ -395,20 +399,12 @@ function PortraitView({
                 }}
               />
               <p className="font-semibold text-xs text-center">{userName}</p>
-            
-               
-  
             </div>
-            {/* <div className="w-24 h-9 rounded-lg overflow-hidden mx-auto text-center mt-10 md:mt-5 pt-0 md:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
-              <div className="bg-white text-black text-sm font-bold">
-                {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
-              </div>
-            </div> */}
+            
             <div className="grid grid-cols-2 gap-3 mt-10 w-[40%] md:w-full text-center">
               {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
                 { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
-                { label: "Total", value: words.length, color: "text-[#290c52]" },
+                { label: "Total", value: totalTypedWords, color: "text-[#290c52]" },
                 { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
                   <div key={i} className="w-full h-9 rounded-lg overflow-hidden shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
                     <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
@@ -508,6 +504,8 @@ function LandscapeView({
   formatClock,
   words,
   wrongWords,
+  typedWords,
+  totalTypedWords,
   backspaceCount,
   backspaceLimit,
   userName,
@@ -543,7 +541,7 @@ function LandscapeView({
           <div className="flex gap-x-4  justify-center items-center w-full" style={{ marginBottom: '5vh', flexWrap: 'wrap', gap: '1vw' }}>
             {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
               { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
-              { label: "Total", value: words.length, color: "text-[#290c52]" },
+              { label: "Total", value: totalTypedWords, color: "text-[#290c52]" },
               { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
                 <div key={i} className="w-24 h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]" style={{ flexShrink: 0 }}>
                   <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
@@ -1017,6 +1015,15 @@ function TypingTutorForm() {
   const typedWords = typedText.trim().split(/\s+/);
   const correctWords = typedWords.filter((word, i) => word === words[i]);
   const wrongWords = typedWords.filter((word, i) => word !== words[i] && word);
+  
+  // Calculate total typed words excluding the current word being typed
+  // A word is complete if typedText ends with a space or newline, otherwise exclude the last word
+  const trimmedText = typedText.trim();
+  const totalTypedWords = trimmedText === '' 
+    ? 0 
+    : typedText.endsWith(' ') || typedText.endsWith('\n') || typedText.endsWith('\t')
+      ? typedWords.filter(w => w.length > 0).length
+      : Math.max(0, typedWords.filter(w => w.length > 0).length - 1);
 
   const saveTypingResult = React.useCallback(async (endTime, startTime, grossWpm, accuracy) => {
     try {
@@ -1189,11 +1196,24 @@ function TypingTutorForm() {
     }
     setTypedText(newValue);
 
-    const currentIndex = newValue.trim().split(/\s+/).length - 1;
-    const nextWordEl = wordRefs.current[currentIndex];
-    if (nextWordEl && containerRef.current) {
-      nextWordEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
+    // Calculate which word should be highlighted/scrolled to
+    // If text ends with space, the next word (not yet typed) should be highlighted
+    // Otherwise, the current word being typed should be highlighted
+    // If text is empty, scroll to first word (index 0)
+    const wordsArray = newValue.trim().split(/\s+/).filter(w => w.length > 0);
+    const currentWordIndex = newValue.trim() === ''
+      ? 0  // First word when starting
+      : newValue.endsWith(' ') || newValue.endsWith('\n') || newValue.endsWith('\t')
+        ? wordsArray.length  // Next word to type (not yet in wordsArray)
+        : wordsArray.length > 0 ? wordsArray.length - 1 : 0; // Current word being typed
+    
+    // Use setTimeout to ensure DOM is updated after state change
+    setTimeout(() => {
+      const wordEl = wordRefs.current[currentWordIndex];
+      if (wordEl && containerRef.current) {
+        wordEl.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+      }
+    }, 0);
   };
 
 
@@ -1272,11 +1292,24 @@ function TypingTutorForm() {
           {lineWords.map((word, i) => {
             const index = pointer++;
             let className = "";
-            if (typedWords.length - 1 > index) {
+            // Determine which word should be highlighted (current word being typed)
+            // If typedText ends with space, highlight the next word (index = typedWords.length)
+            // Otherwise, highlight the current word (index = typedWords.length - 1)
+            // If text is empty, highlight the first word (index 0)
+            const highlightedIndex = typedText.trim() === ''
+              ? 0  // First word when starting
+              : typedText.endsWith(' ') || typedText.endsWith('\n') || typedText.endsWith('\t')
+                ? typedWords.length  // Next word to type
+                : typedWords.length > 0 ? typedWords.length - 1 : 0; // Current word being typed
+            
+            if (index < highlightedIndex) {
+              // Already typed words
               className = typedWords[index] === word ? "text-green-600" : "text-red-600";
-            } else if (typedWords.length - 1 === index) {
+            } else if (index === highlightedIndex) {
+              // Current word being typed (highlighted)
               className = "bg-blue-500 text-white";
             } else {
+              // Future words
               className = "text-gray-500";
             }
             return (
@@ -1332,6 +1365,8 @@ function TypingTutorForm() {
     timeRemaining,
     words,
     wrongWords,
+    typedWords,
+    totalTypedWords,
     backspaceCount,
     wordRefs,
     containerRef,

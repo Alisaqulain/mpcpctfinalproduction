@@ -88,29 +88,18 @@ export default function TypingArea({
     
     if (mode === "word") {
       const currentTypedWords = value.trim().split(/\s+/).filter(w => w.length > 0);
-      const currentWordIndex = currentTypedWords.length - 1;
       
       // Check if space was pressed (word completed)
-      if (value.endsWith(" ") && currentWordIndex >= 0) {
-        const typedWord = currentTypedWords[currentWordIndex];
-        const correctWord = words[currentWordIndex] || "";
+      if (value.endsWith(" ") && currentTypedWords.length > 0) {
+        const typedWord = currentTypedWords[currentTypedWords.length - 1];
+        const correctWord = words[currentTypedWords.length - 1] || "";
         
         if (typedWord !== correctWord) {
           setMistakes((prev) => prev + 1);
         }
         
-        // Scroll to current/next word to keep it visible
-        const nextWordIndex = currentWordIndex + 1;
-        const wordToScroll = wordRefs.current[nextWordIndex] || wordRefs.current[currentWordIndex];
-        if (wordToScroll && containerRef.current) {
-          wordToScroll.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-            inline: "nearest",
-          });
-        }
-        
         // Check if all words completed
+        const nextWordIndex = currentTypedWords.length;
         if (nextWordIndex >= words.length) {
           setIsActive(false);
           if (onComplete) {
@@ -134,6 +123,24 @@ export default function TypingArea({
           }
         }
       }
+      
+      // Calculate which word should be highlighted/scrolled to
+      // If text ends with space, the next word (not yet typed) should be highlighted
+      // Otherwise, the current word being typed should be highlighted
+      // If text is empty, scroll to first word (index 0)
+      const currentWordIndex = value.trim() === ''
+        ? 0  // First word when starting
+        : value.endsWith(' ') || value.endsWith('\n') || value.endsWith('\t')
+          ? currentTypedWords.length  // Next word to type (not yet in currentTypedWords)
+          : currentTypedWords.length > 0 ? currentTypedWords.length - 1 : 0; // Current word being typed
+      
+      // Use setTimeout to ensure DOM is updated after state change
+      setTimeout(() => {
+        const wordEl = wordRefs.current[currentWordIndex];
+        if (wordEl && containerRef.current) {
+          wordEl.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+        }
+      }, 0);
     }
   };
 
@@ -187,18 +194,28 @@ export default function TypingArea({
     
     let pointer = 0;
     
+    // Determine which word should be highlighted (current word being typed)
+    // If typedText ends with space, highlight the next word (index = typedWords.length)
+    // Otherwise, highlight the current word (index = typedWords.length - 1)
+    // If text is empty, highlight the first word (index 0)
+    const highlightedIndex = typedText.trim() === ''
+      ? 0  // First word when starting
+      : typedText.endsWith(' ') || typedText.endsWith('\n') || typedText.endsWith('\t')
+        ? typedWords.length  // Next word to type
+        : typedWords.length > 0 ? typedWords.length - 1 : 0; // Current word being typed
+    
     return (
       <div className="space-y-1">
         {words.map((word, index) => {
           let className = "";
-          if (typedWords.length - 1 > index) {
-            // Completed word - green if correct, red if wrong
+          if (index < highlightedIndex) {
+            // Already typed words - green if correct, red if wrong
             className = typedWords[index] === word ? "text-green-600" : "text-red-600";
-          } else if (typedWords.length - 1 === index) {
-            // Current word being typed - blue background
+          } else if (index === highlightedIndex) {
+            // Current word being typed (highlighted) - blue background
             className = "bg-blue-500 text-white px-1 rounded";
           } else {
-            // Not typed yet - gray
+            // Future words - gray
             className = "text-gray-500";
           }
           return (

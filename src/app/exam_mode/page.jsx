@@ -1564,7 +1564,7 @@ function ExamModeContent() {
           {/* Parts Nav (Desktop) - Show below sections if current section has parts */}
           {section && currentSectionParts.length > 0 && (
             <div className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50">
-              <span className="px-4 py-2 font-semibold text-gray-700 whitespace-nowrap">Parts:</span>
+              <span className="px-4 py-2 font-semibold text-gray-700 whitespace-nowrap">Parts1:</span>
               {currentSectionParts.map((part) => (
                 <button
                   key={part._id}
