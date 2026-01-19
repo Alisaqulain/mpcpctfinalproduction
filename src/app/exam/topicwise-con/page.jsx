@@ -1,15 +1,24 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
-export default function ExamInstructions() {
+export default function TopicWiseInstructions() {
+  const searchParams = useSearchParams();
   const [language, setLanguage] = useState("हिन्दी");
   const [userName, setUserName] = useState("User");
-  const [examData, setExamData] = useState(null);
+  const [topic, setTopic] = useState(null);
   const [questionLanguage, setQuestionLanguage] = useState("English");
-  const [isAgreed, setIsAgreed] = useState(true);
+  const [isAgreed, setIsAgreed] = useState(true); // Auto-ticked
   const [showError, setShowError] = useState(false);
+  const [topicId, setTopicId] = useState(null);
 
   useEffect(() => {
+    // Get topicId from URL
+    const topicIdParam = searchParams.get('topicId');
+    if (topicIdParam) {
+      setTopicId(topicIdParam);
+    }
+
     // Load user data from localStorage
     const userDataStr = localStorage.getItem('examUserData');
     if (userDataStr) {
@@ -23,29 +32,25 @@ export default function ExamInstructions() {
       }
     }
 
-    // Load exam data from localStorage
-    const examId = localStorage.getItem('currentExamId');
-    const examType = localStorage.getItem('examType');
-    if (examId) {
-      // Fetch exam details
-      fetch(`/api/exams?key=${examType || ''}`)
+    // Load topic data
+    if (topicIdParam) {
+      fetch(`/api/topicwise/topics?topicId=${topicIdParam}`)
         .then(res => res.json())
         .then(data => {
-          const exam = data.exams?.find(e => e._id === examId);
-          if (exam) {
-            setExamData(exam);
+          if (data.topic) {
+            setTopic(data.topic);
           }
         })
-        .catch(error => console.error('Error fetching exam:', error));
+        .catch(error => console.error('Error fetching topic:', error));
     }
-  }, []);
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-white-100 text-black flex flex-col">
       {/* Header */}
       <div className="bg-[#290c52] text-white flex justify-between items-center px-6 py-4 w-full">
         <h1 className="text-lg md:text-xl font-semibold">
-          T&C and Exam Instruction - MPCPCT
+          T&C and Exam Instruction - Topic Wise MCQ
         </h1>
         <div className="flex items-center gap-2">
           <span className="hidden sm:inline-block">View in :</span>
@@ -54,7 +59,6 @@ export default function ExamInstructions() {
             value={language}
             onChange={(e) => {
               setLanguage(e.target.value);
-              console.log('Language changed to:', e.target.value);
             }}
           >
             <option value="हिन्दी">हिन्दी</option>
@@ -92,19 +96,15 @@ export default function ExamInstructions() {
                   d. उत्तर सहेजने के लिए, "Save & Next" बटन पर क्लिक करना ज़रूरी है।<br/>
                   e. प्रश्न को समीक्षा के लिए चिह्नित करने के लिए, "Mark for Review & Next" बटन दबाएं।<br/></p>
                   <p className="text-[12px] mt-3">4. यदि आप पहले से दिए गए किसी उत्तर को बदलना चाहते हैं, तो पहले उस प्रश्न पर वापस जाएं और फिर सामान्य तरीके से उसका उत्तर दें।</p>
-                  <h2 className="font-bold mt-6 text-base md:text-lg">अनुभागों के माध्यम से नेविगेट करना:</h2>
-                  <p className="text-[12px] mt-4">5. स्क्रीन के शीर्ष बार पर इस प्रश्न पत्र के अनुभाग देखें। किसी अनुभाग के प्रश्न देखने के लिए उसके नाम पर क्लिक करें। आप जिस अनुभाग में हैं, वह हाइलाइट होगा।<br/>
-                  6. जब आप किसी अनुभाग के अंतिम प्रश्न पर "सहेजें और अगला" क्लिक करते हैं, तो आप अपने आप अगले अनुभाग के पहले प्रश्न पर चले जाएंगे।<br/>
-                  7. परीक्षा के समय में, आप अपनी इच्छानुसार अनुभागों और प्रश्नों के बीच घूम सकते हैं।</p>
                   <h2 className="font-bold mt-6 text-center md:text-lg">कृपया आगे बढ़ने से पहले नीचे दी गई नियम और शर्तें अवश्य पढ़ें।</h2>
                   <p className="text-[12px] mt-3"><span className="font-semibold">परीक्षा की प्रामाणिकता का अस्वीकरण</span><br/>
-                  cpctmaster.com द्वारा प्रदान किए गए मॉक टेस्ट केवल सामान्य शैक्षिक उद्देश्यों के लिए डिज़ाइन किए गए हैं। हम यह दावा नहीं करते कि ये मॉक टेस्ट वास्तविक परीक्षाओं या आधिकारिक मॉक टेस्ट के समान हैं। वास्तविक परीक्षा की सामग्री या संरचना से कोई भी समानता केवल संयोग है।<br/>
+                  mpcpctmaster.com द्वारा प्रदान किए गए मॉक टेस्ट केवल सामान्य शैक्षिक उद्देश्यों के लिए डिज़ाइन किए गए हैं। हम यह दावा नहीं करते कि ये मॉक टेस्ट वास्तविक परीक्षाओं या आधिकारिक मॉक टेस्ट के समान हैं। वास्तविक परीक्षा की सामग्री या संरचना से कोई भी समानता केवल संयोग है।<br/>
                   <span className="font-semibold mt-3 block">जिम्मेदारी की सीमा</span>
-                  cpctmaster.com प्रदान किए गए प्रश्नों या उत्तरों में किसी भी अशुद्धता या त्रुटि के लिए जिम्मेदार नहीं है। उपयोगकर्ताओं को सलाह दी जाती है कि वे अपनी विवेकाधिकार का उपयोग करें और सटीक जानकारी के लिए आधिकारिक संसाधनों से परामर्श करें। हम हमारे मॉक टेस्ट के उपयोग से उत्पन्न किसी भी हानि या क्षति के लिए जिम्मेदार नहीं हैं।<br/>
+                  mpcpctmaster.com प्रदान किए गए प्रश्नों या उत्तरों में किसी भी अशुद्धता या त्रुटि के लिए जिम्मेदार नहीं है। उपयोगकर्ताओं को सलाह दी जाती है कि वे अपनी विवेकाधिकार का उपयोग करें और सटीक जानकारी के लिए आधिकारिक संसाधनों से परामर्श करें। हम हमारे मॉक टेस्ट के उपयोग से उत्पन्न किसी भी हानि या क्षति के लिए जिम्मेदार नहीं हैं।<br/>
                   <span className="font-semibold mt-3 block">परिणामों की कोई गारंटी नहीं</span>
                   हमारे मॉक टेस्ट पर प्रदर्शन वास्तविक परीक्षाओं में समान परिणामों की गारंटी नहीं देता है। ये टेस्ट उपयोगकर्ताओं को सामान्य कंप्यूटर परीक्षा पैटर्न से परिचित कराने के लिए हैं और केवल परीक्षा की तैयारी के लिए उन पर निर्भर नहीं किया जाना चाहिए।<br/>
                   <span className="font-semibold mt-3 block">उपयोगकर्ता की जिम्मेदारी</span>
-                  उपयोगकर्ता हमारे मॉक टेस्ट से प्राप्त जानकारी की सटीकता और प्रासंगिकता सुनिश्चित करने के लिए जिम्मेदार हैं। cpctmaster.com प्रदान की गई सामग्री की गलतफहमी या गलत व्याख्या के लिए कोई जिम्मेदारी नहीं लेता है।<br/>
+                  उपयोगकर्ता हमारे मॉक टेस्ट से प्राप्त जानकारी की सटीकता और प्रासंगिकता सुनिश्चित करने के लिए जिम्मेदार हैं। mpcpctmaster.com प्रदान की गई सामग्री की गलतफहमी या गलत व्याख्या के लिए कोई जिम्मेदारी नहीं लेता है।<br/>
                   <span className="font-semibold mt-3 block">नियमों और शर्तों की स्वीकृति</span>
                   हमारे मॉक टेस्ट का उपयोग करके, आप इन नियमों और शर्तों से सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया हमारी सेवाओं का उपयोग न करें।<br/>
                   <span className="font-semibold mt-3 block">अधिक जानकारी के लिए</span>
@@ -139,13 +139,13 @@ export default function ExamInstructions() {
                   7. During the exam time, you can navigate between sections and questions as you wish.</p>
                   <h2 className="font-bold mt-6 text-center md:text-lg">Please read the rules and conditions given below before proceeding.</h2>
                   <p className="text-[12px] mt-3"><span className="font-semibold">Disclaimer of Exam Authenticity</span><br/>
-                  The mock tests provided by cpctmaster.com are designed only for general educational purposes. We do not claim that these mock tests are similar to actual exams or official mock tests. Any similarity to the content or structure of the actual exam is purely coincidental.<br/>
+                  The mock tests provided by mpcpctmaster.com are designed only for general educational purposes. We do not claim that these mock tests are similar to actual exams or official mock tests. Any similarity to the content or structure of the actual exam is purely coincidental.<br/>
                   <span className="font-semibold mt-3 block">Limitation of Liability</span>
-                  cpctmaster.com is not responsible for any inaccuracies or errors in the questions or answers provided. Users are advised to use their discretion and consult official resources for accurate information. We are not responsible for any loss or damage arising from the use of our mock tests.<br/>
+                  mpcpctmaster.com is not responsible for any inaccuracies or errors in the questions or answers provided. Users are advised to use their discretion and consult official resources for accurate information. We are not responsible for any loss or damage arising from the use of our mock tests.<br/>
                   <span className="font-semibold mt-3 block">No Guarantee of Results</span>
                   Performance on our mock tests does not guarantee similar results in actual exams. These tests are to familiarize users with general computer exam patterns and should not be relied upon solely for exam preparation.<br/>
                   <span className="font-semibold mt-3 block">User Responsibility</span>
-                  Users are responsible for ensuring the accuracy and relevance of information obtained from our mock tests. cpctmaster.com does not take any responsibility for misunderstanding or misinterpretation of the content provided.<br/>
+                  Users are responsible for ensuring the accuracy and relevance of information obtained from our mock tests. mpcpctmaster.com does not take any responsibility for misunderstanding or misinterpretation of the content provided.<br/>
                   <span className="font-semibold mt-3 block">Acceptance of Terms and Conditions</span>
                   By using our mock tests, you agree to these terms and conditions. If you do not agree, please do not use our services.<br/>
                   <span className="font-semibold mt-3 block">For More Information</span>
@@ -154,19 +154,6 @@ export default function ExamInstructions() {
               )}
             </div>
           </div>
-
-          {/* Language Selection */}
-          {/* <div className="mt-4 mb-2 border-t border-gray-300 pt-4 ">
-            <label className="block mb-1 font-semibold text-sm">Choose Questions Language :-</label>
-            <select 
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-              value={questionLanguage}
-              onChange={(e) => setQuestionLanguage(e.target.value)}
-            >
-              <option value="English">English</option>
-              <option value="हिन्दी">हिन्दी</option>
-            </select>
-          </div> */}
 
           {/* Checkbox Disclaimer */}
           <div className="text-xs md:text-sm mt-4">
@@ -214,7 +201,15 @@ export default function ExamInstructions() {
                 setShowError(false);
                 // Store question language preference
                 localStorage.setItem('questionLanguage', questionLanguage);
-                window.location.href = "/exam_mode";
+                // Navigate to topic-wise exam page
+                if (topicId) {
+                  window.location.href = `/topicwise?topicId=${topicId}`;
+                } else {
+                  const savedTopicId = localStorage.getItem('currentTopicId');
+                  if (savedTopicId) {
+                    window.location.href = `/topicwise?topicId=${savedTopicId}`;
+                  }
+                }
               }}
               className="font-semibold px-12 py-4 text-lg md:text-xl rounded shadow-lg bg-green-500 hover:bg-green-600 text-white cursor-pointer"
             >
@@ -224,7 +219,7 @@ export default function ExamInstructions() {
         </div>
 
         {/* Right Side Profile */}
-<div className="hidden lg:flex lg:w-[15%] border-l border-gray-300 flex-col items-center justify-start py-6 bg-white-100">
+        <div className="hidden lg:flex lg:w-[15%] border-l border-gray-300 flex-col items-center justify-start py-6 bg-white-100">
           <img
             src="/lo.jpg"
             alt="User"
@@ -237,3 +232,4 @@ export default function ExamInstructions() {
     </div>
   );
 }
+
