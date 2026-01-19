@@ -98,7 +98,7 @@ function DesktopView({
               </div>
             ) : (
               <>
-                <div className="text-sm leading-tight mb-2 lg:mb-2 overflow-y-auto min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px] mt-2 lg:mt-2 break-words font-sans w-full" style={{ fontSize: `${fontSize}px`, width: '100%', maxWidth: '100%' }}>
+                <div className="text-sm leading-tight  overflow-y-auto min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px] mt-2 lg:mt-2 break-words font-sans w-full" style={{ fontSize: `${fontSize}px`, width: '100%', maxWidth: '100%' }}>
                   {renderColoredWords()}
                 </div>
                 <textarea
@@ -106,7 +106,7 @@ function DesktopView({
                   value={typedText}
                   onChange={handleChange}
                   disabled={isPaused || isCompleted}
-                  className="w-full min-h-[100px] max-h-[100px] md:min-h-[80px] md:max-h-[100px] lg:min-h-[180px] lg:max-h-[220px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-4 disabled:opacity-50"
+                  className="w-full min-h-[100px] max-h-[100px] md:min-h-[80px] md:max-h-[100px] lg:min-h-[180px] lg:max-h-[220px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-1 disabled:opacity-50"
                   placeholder="Start typing here..."
                   style={{ fontSize: `${fontSize}px` }}
                   autoFocus
@@ -337,7 +337,7 @@ function PortraitView({
               </div>
             ) : (
               <>
-                <div className="text-sm leading-tight mb-4 overflow-y-auto min-h-[200px] max-h-[100px] mt-4 break-words font-sans w-full" style={{ fontSize: `${fontSize}px`, width: '100%', maxWidth: '100%' }}>
+                <div className="text-sm leading-tight overflow-y-auto min-h-[200px] max-h-[100px] mt-4 break-words font-sans w-full" style={{ fontSize: `${fontSize}px`, width: '100%', maxWidth: '100%' }}>
                   {renderColoredWords()}
                 </div>
                 <textarea
@@ -345,7 +345,7 @@ function PortraitView({
                   value={typedText}
                   onChange={handleChange}
                   disabled={isPaused || isCompleted}
-                  className="w-full min-h-[100px] max-h-[100px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-4 disabled:opacity-50"
+                  className="w-full min-h-[100px] max-h-[100px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-3 disabled:opacity-50"
                   placeholder="Start typing here..."
                   style={{ fontSize: `${fontSize}px` }}
                   autoFocus
@@ -502,6 +502,7 @@ function LandscapeView({
   correctWords,
   handleDownloadPDF,
   formatClock,
+  timeRemaining,
   words,
   wrongWords,
   typedWords,
@@ -603,7 +604,7 @@ function LandscapeView({
               </div>
             ) : (
               <>
-                <div className="text-sm leading-tight mb-4 overflow-y-auto min-h-[180px] max-h-[250px] mt-4 break-words font-sans w-full" style={{ minHeight: '30vh', maxHeight: '25vh', fontSize: 'clamp(10px, 2vw, 14px)', lineHeight: '1.2', width: '100%', maxWidth: '100%' }}>
+                <div className="text-sm leading-tight overflow-y-auto min-h-[180px] max-h-[250px] mt-4 break-words font-sans w-full" style={{ minHeight: '30vh', maxHeight: '25vh', fontSize: 'clamp(10px, 2vw, 14px)', lineHeight: '1.2', width: '100%', maxWidth: '100%' }}>
                   {renderColoredWords(true)}
                 </div>
                 <textarea
@@ -611,7 +612,7 @@ function LandscapeView({
                   value={typedText}
                   onChange={handleChange}
                   disabled={isPaused || isCompleted}
-                  className="w-full auto-focus min-h-[150px] max-h-[180px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-4 disabled:opacity-50"
+                  className="w-full auto-focus min-h-[150px] max-h-[180px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-2 disabled:opacity-50"
                   placeholder="Type Here..."
                   style={{ fontSize: `clamp(10px, 2vw, ${fontSize}px)`, minHeight: '18vh', maxHeight: '15vh', padding: '1vh 1vw', width: '100%' }}
                   autoFocus
@@ -661,6 +662,12 @@ function LandscapeView({
                 }}
               />
               <p className="font-semibold text-xs text-center text-white" style={{ fontSize: 'clamp(8px, 1.2vw, 10px)', marginTop: '0.5vh' }}>{userName}</p>
+            </div>
+            <div className="w-[10%] absolute top-35 left-3 h-9 rounded-lg overflow-hidden mx-auto text-center mt-3 md:mt-5 pt-0 md:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
+              <div className="bg-white text-black text-sm font-bold">
+                {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
+              </div>
             </div>
             {/* Speedometer */}
             <div className="mt-4 absolute top-8 right-1">

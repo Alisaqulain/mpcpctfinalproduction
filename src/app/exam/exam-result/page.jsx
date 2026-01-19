@@ -45,8 +45,8 @@ function ExamResultContent() {
       isPassedValue = sectionAPassed && sectionBPassed;
       passingMarksValue = 40; // Display value (but actual criteria is 12+28)
     } else if (examKey === 'CCC') {
-      // CCC: 50 marks out of 100
-      passingMarksValue = 50;
+      // CCC: 50% of total marks
+      passingMarksValue = Math.ceil(totalMaxMarks * 0.5);
       isPassedValue = totalScore >= passingMarksValue;
     } else if (examKey === 'CPCT') {
       // CPCT Passing Criteria:
@@ -461,8 +461,8 @@ function ExamResultContent() {
         isPassed = sectionAPassed && sectionBPassed;
         passingMarks = 40; // Display value (but actual criteria is 12+28)
       } else if (examKey === 'CCC') {
-        // CCC: 50 marks out of 100
-        passingMarks = 50;
+        // CCC: 50% of total marks
+        passingMarks = Math.ceil(totalMaxMarks * 0.5);
         isPassed = totalScore >= passingMarks;
       } else if (examKey === 'CPCT') {
         // CPCT Passing Criteria:

@@ -24,6 +24,9 @@ function TopicWiseMCQPageContent() {
   const [userName, setUserName] = useState("User");
   const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
   const [isSoundOn, setIsSoundOn] = useState(true);
+  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
+  const [showQuestionPaperModal, setShowQuestionPaperModal] = useState(false);
+  const [modalLanguage, setModalLanguage] = useState("हिन्दी");
   const audioRef = React.useRef(null);
 
   useEffect(() => {
@@ -246,15 +249,26 @@ function TopicWiseMCQPageContent() {
   const calculateScore = () => {
     let correct = 0;
     let total = questions.length;
+    let totalMarks = 0;
+    let obtainedMarks = 0;
     
     questions.forEach((q) => {
+      const marks = q.marks || 1;
+      totalMarks += marks;
       const userAnswer = selectedAnswers[q._id || q.id];
       if (userAnswer !== undefined && userAnswer === q.correctAnswer) {
         correct++;
+        obtainedMarks += marks;
       }
     });
 
-    return { correct, total, score: correct, percentage: (correct / total) * 100 };
+    return { 
+      correct, 
+      total, 
+      score: obtainedMarks, 
+      totalMarks,
+      percentage: totalMarks > 0 ? (obtainedMarks / totalMarks) * 100 : 0 
+    };
   };
 
   const formatTime = (seconds) => {
@@ -300,8 +314,8 @@ function TopicWiseMCQPageContent() {
   };
 
   const handleDownloadPDF = () => {
-    const { correct, total, score, percentage } = calculateScore();
-    const passingMarks = 50;
+    const { correct, total, score, totalMarks, percentage } = calculateScore();
+    const passingMarks = Math.ceil(totalMarks * 0.5); // 50% of total marks
     const isPassed = score >= passingMarks;
 
     const pdf = new jsPDF();
@@ -380,8 +394,8 @@ function TopicWiseMCQPageContent() {
   }
 
   if (showResults) {
-    const { correct, total, score, percentage } = calculateScore();
-    const passingMarks = 50;
+    const { correct, total, score, totalMarks, percentage } = calculateScore();
+    const passingMarks = Math.ceil(totalMarks * 0.5); // 50% of total marks
     const isPassed = score >= passingMarks;
 
     // Calculate section stats similar to exam-result
@@ -647,17 +661,17 @@ function TopicWiseMCQPageContent() {
           <div className="grid grid-cols-4 gap-2">
             {questions.map((q, idx) => {
               const qId = q._id || q.id;
-              const isAnswered = selectedAnswers[qId] !== undefined;
-              const isCurrent = idx === currentQuestionIndex;
-              const isMarkedQ = markedForReview.has(qId);
-              const isVisited = visitedQuestions.has(qId);
+                    const isAnswered = selectedAnswers[qId] !== undefined;
+                    const isCurrent = idx === currentQuestionIndex;
+                    const isMarkedQ = markedForReview.has(qId);
+                    const isVisited = visitedQuestions.has(qId);
 
-              return (
-                <div
-                  key={qId}
-                  className={`w-8 h-8 flex items-center justify-center text-black text-sm font-semibold border border-black cursor-pointer ${
-                    isCurrent ? "bg-red-600 text-white" : isAnswered ? "bg-green-400" : "bg-gray-300"
-                  } ${isMarkedQ ? "ring-2 ring-purple-400" : ""}`}
+                    return (
+                      <div
+                        key={qId}
+                        className={`w-8 h-8 flex items-center justify-center text-black text-sm font-semibold border border-black cursor-pointer ${
+                          isCurrent ? "bg-red-600 text-white" : isAnswered ? "bg-green-400" : isVisited ? "bg-red-500 text-white" : "bg-gray-300"
+                        } ${isMarkedQ ? "ring-2 ring-purple-400" : ""}`}
                   onClick={() => goToQuestion(idx)}
                   title={`Q${idx + 1}${isMarkedQ ? " (Marked)" : ""}${isVisited ? " (Visited)" : ""}`}
                 >
@@ -709,8 +723,18 @@ function TopicWiseMCQPageContent() {
                 }}
               />
             </div>
-            <span className="cursor-pointer underline hidden sm:inline text-[12px] p-2">View Instructions</span>
-            <span className="cursor-pointer underline hidden sm:inline text-[12px]">Question Paper</span>
+            <span 
+              className="cursor-pointer underline hidden sm:inline text-[12px] p-2"
+              onClick={() => setShowInstructionsModal(true)}
+            >
+              View Instructions
+            </span>
+            <span 
+              className="cursor-pointer underline hidden sm:inline text-[12px]"
+              onClick={() => setShowQuestionPaperModal(true)}
+            >
+              Question Paper
+            </span>
           </div>
         </div>
 
@@ -860,6 +884,211 @@ function TopicWiseMCQPageContent() {
           </div>
         </div>
       </div>
+
+      {/* Instructions Modal */}
+      {showInstructionsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="bg-[#290c52] text-white flex justify-between items-center px-6 py-4 rounded-t-lg">
+              <h2 className="text-lg md:text-xl font-semibold">Instructions</h2>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline-block text-sm">View in:</span>
+                  <select
+                    className="bg-white text-black px-2 py-1 rounded text-sm"
+                    value={modalLanguage}
+                    onChange={(e) => setModalLanguage(e.target.value)}
+                  >
+                    <option value="हिन्दी">हिन्दी</option>
+                    <option value="English">English</option>
+                  </select>
+                </div>
+                <button
+                  onClick={() => setShowInstructionsModal(false)}
+                  className="text-white hover:text-gray-300 text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Warning Message */}
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 px-4 py-3 mx-4 mt-4">
+              <p className="text-sm font-semibold">
+                {modalLanguage === "हिन्दी" 
+                  ? "कृपया ध्यान दें: जब आप ये निर्देश पढ़ रहे हैं, तब भी टाइमर चलता रहेगा। इस विंडो को बंद करें ताकि परीक्षा जारी रख सकें।"
+                  : "Important: The timer doesn't pause while you review the instructions. Close this page to get back to the questions."}
+              </p>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-2 text-sm md:text-[13px] leading-relaxed">
+                {modalLanguage === "हिन्दी" ? (
+                  <>
+                    <p className="text-center text-[20px]"> कृपया परीक्षा के निर्देशों को ध्यान से पढ़ें</p>
+                    <p className="mt-5 text-[15px] font-semibold"> सामान्य निर्देश:</p>
+                    <p className="mt-8"><span className="text-white bg-gray-500 border py-1 md:py-2 px-3 md:px-4">1</span>  आपने अभी तक यह प्रश्न नहीं देखा है।</p>
+                    <p className="mt-8"><span className="text-white bg-orange-600 border py-1 md:py-2 px-3 md:px-4">2</span>  आपने इस प्रश्न के लिए कोई उत्तर नहीं चुना है।</p>
+                    <p className="mt-8"><span className="text-white bg-green-500 border py-1 md:py-2 px-3 md:px-4">3</span>  आपने इस प्रश्न के लिए उत्तर चुन लिया है।</p>
+                    <p className="mt-8"><span className="text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">4</span>  आपने इस प्रश्न का उत्तर नहीं दिया है, पर इसे समीक्षा के लिए रखा है।</p>
+                    <p className="mt-8"><span className="text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">5</span>  "उत्तर दिया गया और समीक्षा के लिए चिह्नित" प्रश्नों पर मूल्यांकन हेतु विचार किया जाएगा।</p>
+                    <p className="mt-8 text-[12px] font-semibold">1. परीक्षा प्रश्नों की भाषा बदलने के लिए, अपने सेक्शन बार के ऊपरी दाएं कोने में "View in" ढूंढें और पूरी प्रश्न-पत्रिका की भाषा बदलने के लिए उस पर क्लिक करें।</p>
+                    <h2 className="font-bold mt-6 text-base md:text-lg">प्रश्न पर नेविगेट करना:</h2>
+                    <p className="mt-4 text-[12px]">2. किसी प्रश्न का उत्तर देने के लिए, निम्न कार्य करें:</p>
+                    <p className="mt-4 text-[12px]">a. किसी विशेष प्रश्न पर तुरंत पहुंचने के लिए, स्क्रीन के दाईं ओर प्रश्न पैलेट में उस प्रश्न की संख्या पर क्लिक करें। कृपया ध्यान दें कि ऐसा करने से आपके वर्तमान प्रश्न का उत्तर सुरक्षित नहीं होगा। <br/>
+                    b. यदि आप अपना वर्तमान उत्तर सहेजना और अगले प्रश्न पर जाना चाहते हैं, तो "Save & Next" पर क्लिक करें। <br/>
+                    c. यदि आप अपना वर्तमान उत्तर सहेजना चाहते हैं, इसे समीक्षा के लिए चिह्नित करना चाहते हैं, और अगले प्रश्न पर जाना चाहते हैं, तो "Mark for Review & Next" पर क्लिक करें।</p>
+                    <h2 className="font-bold mt-6 text-base md:text-lg">प्रश्न का उत्तर देना:</h2>
+                    <p className="text-[12px] mt-4">3. बहुविकल्पीय प्रश्न का उत्तर देने की प्रक्रिया:<br/></p>
+                    <p className="mt-4 text-[12px]">a. उत्तर चुनने के लिए, एक विकल्प का बटन दबाएं।<br/>
+                    b. यदि आप चुना हुआ उत्तर हटाना चाहते हैं, तो उसी बटन को फिर से दबाएं या "Clear Response" पर क्लिक करें।<br/>
+                    c. दूसरा उत्तर चुनने के लिए, किसी और विकल्प का बटन दबाएं।<br/>
+                    d. उत्तर सहेजने के लिए, "Save & Next" बटन पर क्लिक करना ज़रूरी है।<br/>
+                    e. प्रश्न को समीक्षा के लिए चिह्नित करने के लिए, "Mark for Review & Next" बटन दबाएं।<br/></p>
+                    <p className="text-[12px] mt-3">4. यदि आप पहले से दिए गए किसी उत्तर को बदलना चाहते हैं, तो पहले उस प्रश्न पर वापस जाएं और फिर सामान्य तरीके से उसका उत्तर दें।</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-center text-[20px]">Please read the exam instructions carefully</p>
+                    <p className="mt-5 text-[15px] font-semibold">General Instructions:</p>
+                    <p className="mt-8"><span className="text-white bg-gray-500 border py-1 md:py-2 px-3 md:px-4">1</span> You have not seen this question yet.</p>
+                    <p className="mt-8"><span className="text-white bg-orange-600 border py-1 md:py-2 px-3 md:px-4">2</span> You have not chosen any answer for this question.</p>
+                    <p className="mt-8"><span className="text-white bg-green-500 border py-1 md:py-2 px-3 md:px-4">3</span> You have chosen an answer for this question.</p>
+                    <p className="mt-8"><span className="text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">4</span> You have not answered this question, but have kept it for review.</p>
+                    <p className="mt-8"><span className="text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">5</span> Questions marked as "Answered & Marked for Review" will be considered for evaluation.</p>
+                    <p className="mt-8 text-[12px] font-semibold">1. To change the language of exam questions, find "View in" in the top right corner of your section bar and click on it to change the language of the entire question paper.</p>
+                    <h2 className="font-bold mt-6 text-base md:text-lg">Navigating Questions:</h2>
+                    <p className="mt-4 text-[12px]">2. To answer a question, do the following:</p>
+                    <p className="mt-4 text-[12px]">a. To reach a specific question immediately, click on its number in the question palette on the right side of the screen. Please note that doing so will not save your current question's answer. <br/>
+                    b. If you want to save your current answer and move to the next question, click "Save & Next". <br/>
+                    c. If you want to save your current answer, mark it for review, and move to the next question, click "Mark for Review & Next".</p>
+                    <h2 className="font-bold mt-6 text-base md:text-lg">Answering Questions:</h2>
+                    <p className="text-[12px] mt-4">3. Process for answering multiple choice questions:<br/></p>
+                    <p className="mt-4 text-[12px]">a. To select an answer, press a radio button for an option.<br/>
+                    b. If you want to remove the selected answer, press the same button again or click "Clear Response".<br/>
+                    c. To select another answer, press a radio button for another option.<br/>
+                    d. To save the answer, it is necessary to click the "Save & Next" button.<br/>
+                    e. To mark a question for review, press the "Mark for Review & Next" button.<br/></p>
+                    <p className="text-[12px] mt-3">4. If you want to change a previously given answer, first go back to that question and then answer it in the usual way.</p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="border-t px-6 py-4 flex justify-end">
+              <button
+                onClick={() => setShowInstructionsModal(false)}
+                className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Question Paper Modal */}
+      {showQuestionPaperModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="bg-[#290c52] text-white flex justify-between items-center px-6 py-4 rounded-t-lg">
+              <h2 className="text-lg md:text-xl font-semibold">Question Paper</h2>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline-block text-sm">View in:</span>
+                  <select
+                    className="bg-white text-black px-2 py-1 rounded text-sm"
+                    value={modalLanguage}
+                    onChange={(e) => setModalLanguage(e.target.value)}
+                  >
+                    <option value="हिन्दी">हिन्दी</option>
+                    <option value="English">English</option>
+                  </select>
+                </div>
+                <button
+                  onClick={() => setShowQuestionPaperModal(false)}
+                  className="text-white hover:text-gray-300 text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Warning Message */}
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 px-4 py-3 mx-4 mt-4">
+              <p className="text-sm font-semibold">
+                {modalLanguage === "हिन्दी" 
+                  ? "कृपया ध्यान दें: जब आप ये निर्देश पढ़ रहे हैं, तब भी टाइमर चलता रहेगा। इस विंडो को बंद करें ताकि परीक्षा जारी रख सकें।"
+                  : "Please be aware that the timer continues to count down as you read these instructions. Close this window to resume the exam."}
+              </p>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {questions.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">No questions available</p>
+              ) : (
+                <div className="mb-6">
+                  {topic && (
+                    <h3 className="text-lg font-semibold text-blue-600 mb-4 bg-blue-50 px-4 py-2 rounded">
+                      {topic.topicName}
+                    </h3>
+                  )}
+                  <div className="space-y-4">
+                    {questions.map((q, index) => {
+                      const questionText = modalLanguage === "हिन्दी" && q.question_hi 
+                        ? q.question_hi 
+                        : q.question_en || q.question_hi || '[Image Question]';
+                      const displayText = questionText.replace(/\s*\(Question\s+\d+\)/gi, '').trim();
+                      
+                      return (
+                        <div key={q._id || q.id || index} className="border-b border-gray-200 pb-4">
+                          <div className="flex items-start gap-2 mb-2">
+                            <span className="font-semibold text-gray-700">Q.{index + 1}</span>
+                            <div className="flex-1">
+                              {q.imageUrl && q.imageUrl.trim() !== '' ? (
+                                <div className="mb-2">
+                                  <img 
+                                    src={q.imageUrl} 
+                                    alt="Question" 
+                                    className="max-w-full h-auto rounded border"
+                                    style={{ maxHeight: '200px' }}
+                                  />
+                                </div>
+                              ) : (
+                                <p className="text-sm md:text-base">{displayText}</p>
+                              )}
+                              <p className="text-xs text-gray-500 mt-2">
+                                {modalLanguage === "हिन्दी" 
+                                  ? `प्रश्न प्रकार: MCQ ; सही उत्तर के अंक: ${q.marks || 1} ; निगेटिव अंक: ${q.negativeMarks || 0}`
+                                  : `Question Type: MCQ ; Marks for correct answer: ${q.marks || 1} ; Negative marks: ${q.negativeMarks || 0}`}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="border-t px-6 py-4 flex justify-end">
+              <button
+                onClick={() => setShowQuestionPaperModal(false)}
+                className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
