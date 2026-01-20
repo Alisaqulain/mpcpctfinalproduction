@@ -995,8 +995,8 @@ function ExamResultContent() {
         )}
       </div>
 
-      {/* Confirmation Dialog - Show BEFORE answers if section is specified and answers not shown yet */}
-      {currentSection && !showAnswers ? (
+      {/* Confirmation Dialog - Show if section is specified (no answers shown for section results) */}
+      {currentSection ? (
         <div className="px-4 mt-8 mb-4">
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-4">
@@ -1009,6 +1009,9 @@ function ExamResultContent() {
               <p className="text-xs text-red-600 font-semibold text-center">
                 प्रतिभागी, एक बार सेक्शन सबमिट करने के बाद, आप अपने उत्तरों में कोई संशोधन नहीं कर पाएंगे।
               </p>
+              <p className="text-xs text-blue-600 font-semibold text-center mt-2">
+                सही उत्तर केवल अंतिम परिणाम में दिखाए जाएंगे।
+              </p>
             </div>
             <div className="flex justify-center gap-4">
               <button
@@ -1019,8 +1022,51 @@ function ExamResultContent() {
               </button>
               <button
                 onClick={() => {
-                  // Show answers after confirmation
-                  setShowAnswers(true);
+                  // Don't show answers, just continue to next section
+                  // Find next section
+                  const currentSectionIndex = sections.findIndex(s => s.name === currentSection);
+                  if (currentSectionIndex < sections.length - 1) {
+                    const nextSection = sections[currentSectionIndex + 1];
+                    
+                    // For RSCIT Section A, check eligibility before proceeding
+                    const currentSectionStat = sectionStats.find(s => s.sectionName === currentSection);
+                    const isRSCIT = examData?.key === 'RSCIT';
+                    const isSectionA = currentSection === 'Section A';
+                    const sectionScore = currentSectionStat?.score || 0;
+                    const sectionAPassed = isRSCIT && isSectionA && sectionScore >= 12;
+                    
+                    if (isRSCIT && isSectionA && !sectionAPassed) {
+                      alert(`You need minimum 12 marks in Section A to proceed to Section B. Your Section A score: ${sectionScore} marks.`);
+                      return;
+                    }
+                    
+                    // For RSCIT, check if Section B is accessible
+                    if (isRSCIT && nextSection.name === 'Section B' && !sectionAPassed) {
+                      alert(`You need minimum 12 marks in Section A to proceed to Section B. Your Section A score: ${sectionScore} marks.`);
+                      return;
+                    }
+                    
+                    // Check if next section is a typing section
+                    const isTypingSection = nextSection.name === "English Typing" || 
+                                           nextSection.name === "हिंदी टाइपिंग" ||
+                                           nextSection.name.includes("Typing") || 
+                                           nextSection.name.includes("typing");
+                    
+                    // Check if we're moving from 5th section to typing (6th section) - 10 min break
+                    const isAfterFiveSections = currentSectionIndex === 4; // 0-indexed, so 4 = 5th section
+                    const breakDuration = (isTypingSection && isAfterFiveSections) ? 10 : 1;
+                    
+                    if (isTypingSection && !isAfterFiveSections) {
+                      // Typing section but not after 5 sections, go directly
+                      router.push(`/exam_mode?section=${encodeURIComponent(nextSection.name)}`);
+                    } else {
+                      // Go to break page (1 min for MCQ sections, 10 min for typing after 5 sections)
+                      router.push(`/exam/break?next=/exam_mode&section=${encodeURIComponent(nextSection.name)}&duration=${breakDuration}`);
+                    }
+                  } else {
+                    // Last section completed, show final results (with answers)
+                    router.push('/exam/exam-result');
+                  }
                 }}
                 className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
               >
@@ -1031,8 +1077,8 @@ function ExamResultContent() {
         </div>
       ) : null}
 
-      {/* Questions Review Section - Show only after confirmation OR if no section specified */}
-      {sectionStats.length > 0 && (!currentSection || showAnswers) && (
+      {/* Questions Review Section - Show only in final result (no section parameter) */}
+      {sectionStats.length > 0 && !currentSection && (
         <div className="px-4 mt-8 mb-4">
           <div className="bg-[#290c52] text-white p-3 rounded-t-lg flex justify-between items-center">
             <h2 className="text-lg md:text-xl font-bold">Questions Review</h2>
@@ -1208,8 +1254,8 @@ function ExamResultContent() {
         </div>
       )}
 
-      {/* Navigation Button - Show after answers are displayed for section-specific view */}
-      {currentSection && showAnswers ? (
+      {/* Navigation Button - Show for section-specific view */}
+      {currentSection ? (
         <div className="text-center text-sm p-4 mt-4">
           {(() => {
             // For RSCIT Section A, check if user passed (score >= 12)

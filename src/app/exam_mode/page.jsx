@@ -40,6 +40,8 @@ function ExamModeContent() {
   const loggedImageQuestions = useRef(new Set()); // Track which questions we've already logged
   const questionScrollContainerRef = useRef(null); // Ref for mobile question navigation scroll container
   const desktopQuestionPaletteRef = useRef(null); // Ref for desktop sidebar question palette scroll container
+  const sectionScrollContainerRef = useRef(null); // Ref for mobile section navigation scroll container
+  const partsScrollContainerRef = useRef(null); // Ref for mobile parts navigation scroll container
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -612,7 +614,8 @@ function ExamModeContent() {
         // If no section param, don't change section - keep current or use default from initial load
       }
     }
-  }, [sections, parts, searchParams]); // Removed section from dependencies to prevent infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sections.length, searchParams?.get('section')]); // Use stable dependencies to prevent infinite loop
 
   // Detect typing sections when section changes and set up typing timer
   useEffect(() => {
@@ -922,6 +925,100 @@ function ExamModeContent() {
     }
   }, [currentQuestionIndex, currentQuestions.length, section, selectedPart]);
 
+  // Auto-scroll section navigation in mobile view when section changes
+  useEffect(() => {
+    if (sectionScrollContainerRef.current && section && sections.length > 0) {
+      // Use setTimeout to ensure DOM is updated after section change
+      const timeoutId = setTimeout(() => {
+        const container = sectionScrollContainerRef.current;
+        if (!container) return;
+        
+        const currentSectionIndex = sections.findIndex(s => s.name === section);
+        if (currentSectionIndex === -1) return;
+        
+        const sectionElement = container.querySelector(`[data-section-index="${currentSectionIndex}"]`);
+        
+        if (sectionElement) {
+          // Force immediate scroll to ensure section is visible
+          const containerWidth = container.clientWidth;
+          const containerScrollLeft = container.scrollLeft;
+          const elementLeft = sectionElement.offsetLeft;
+          const elementWidth = sectionElement.offsetWidth;
+          const elementRight = elementLeft + elementWidth;
+          
+          // Calculate if element is fully visible
+          const isFullyVisible = elementLeft >= containerScrollLeft && 
+                                 elementRight <= (containerScrollLeft + containerWidth);
+          
+          if (!isFullyVisible) {
+            // Calculate scroll position to center the element
+            const scrollLeft = elementLeft - (containerWidth / 2) + (elementWidth / 2);
+            
+            // Scroll immediately
+            container.scrollLeft = Math.max(0, scrollLeft);
+            
+            // Then smooth scroll for better UX
+            setTimeout(() => {
+              container.scrollTo({
+                left: Math.max(0, scrollLeft),
+                behavior: 'smooth'
+              });
+            }, 50);
+          }
+        }
+      }, 300); // Delay to ensure DOM is fully updated
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [section, sections]);
+
+  // Auto-scroll parts navigation in mobile view when part changes
+  useEffect(() => {
+    if (partsScrollContainerRef.current && selectedPart && currentSectionParts.length > 0) {
+      // Use setTimeout to ensure DOM is updated after part change
+      const timeoutId = setTimeout(() => {
+        const container = partsScrollContainerRef.current;
+        if (!container) return;
+        
+        const currentPartIndex = currentSectionParts.findIndex(p => p.name === selectedPart);
+        if (currentPartIndex === -1) return;
+        
+        const partElement = container.querySelector(`[data-part-index="${currentPartIndex}"]`);
+        
+        if (partElement) {
+          // Force immediate scroll to ensure part is visible
+          const containerWidth = container.clientWidth;
+          const containerScrollLeft = container.scrollLeft;
+          const elementLeft = partElement.offsetLeft;
+          const elementWidth = partElement.offsetWidth;
+          const elementRight = elementLeft + elementWidth;
+          
+          // Calculate if element is fully visible
+          const isFullyVisible = elementLeft >= containerScrollLeft && 
+                                 elementRight <= (containerScrollLeft + containerWidth);
+          
+          if (!isFullyVisible) {
+            // Calculate scroll position to center the element
+            const scrollLeft = elementLeft - (containerWidth / 2) + (elementWidth / 2);
+            
+            // Scroll immediately
+            container.scrollLeft = Math.max(0, scrollLeft);
+            
+            // Then smooth scroll for better UX
+            setTimeout(() => {
+              container.scrollTo({
+                left: Math.max(0, scrollLeft),
+                behavior: 'smooth'
+              });
+            }, 50);
+          }
+        }
+      }, 300); // Delay to ensure DOM is fully updated
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [selectedPart, currentSectionParts]);
+
   // Smart auto-scroll: Only scrolls when needed, keeps items comfortably visible
   // Scrolls down if item is in last 3 rows, scrolls up if in top 3 rows
   useEffect(() => {
@@ -1076,9 +1173,19 @@ function ExamModeContent() {
     let totalAnsweredAndMarked = 0;
     let totalQuestions = 0;
 
-    // Only calculate statistics for the current section
-    if (section && questions[section]) {
-      const secQuestions = questions[section] || [];
+    // Only calculate statistics for the current section and current part (if part is selected)
+    let secQuestions = [];
+    if (section) {
+      // If part is selected and section has parts, use part questions
+      if (selectedPart && questionsByPart[section] && questionsByPart[section][selectedPart]) {
+        secQuestions = questionsByPart[section][selectedPart] || [];
+      } else {
+        // Otherwise, use all questions in the current section
+        secQuestions = questions[section] || [];
+      }
+    }
+    
+    if (secQuestions.length > 0) {
       secQuestions.forEach(q => {
         if (!q || !q._id) return; // Skip invalid questions
         
@@ -1097,7 +1204,7 @@ function ExamModeContent() {
           totalAnswered++;
           // Check if also marked for review
           if (isMarked) {
-            totalAnsweredAndMarked++;
+          totalAnsweredAndMarked++;
           }
         } else {
           // Not answered - check if visited (visited but not answered)
@@ -1106,7 +1213,7 @@ function ExamModeContent() {
           }
           // Check if marked but not answered
           if (isMarked) {
-            totalMarkedForReview++;
+          totalMarkedForReview++;
           }
         }
       });
@@ -1120,7 +1227,7 @@ function ExamModeContent() {
       totalMarkedForReview,
       totalAnsweredAndMarked
     };
-  }, [section, questions, selectedAnswers, visitedQuestions, markedForReview]);
+  }, [section, selectedPart, questions, questionsByPart, selectedAnswers, visitedQuestions, markedForReview]);
 
   // Auto-scroll to submit button when all questions are done
   useEffect(() => {
@@ -1273,8 +1380,7 @@ function ExamModeContent() {
       return newSet;
     });
 
-    // ALWAYS redirect to result page first (with section parameter)
-    // The result page will then redirect to break page → next section
+    // Mark section as completed and go directly to break page (skip result page)
     // NO VALIDATION - User can submit even if not all questions are answered
     // User can submit with empty answers and still move to next section
     setTimeout(() => {
@@ -1284,27 +1390,62 @@ function ExamModeContent() {
 
       console.log('📊 ========== SECTION SUBMISSION ==========');
       console.log('📊 Current section being submitted:', section);
-      console.log('📊 Redirecting to result page with section parameter');
+      console.log('📊 Redirecting directly to break page');
       
       // Clear any section-related state from localStorage to ensure fresh load
       localStorage.removeItem('currentSection');
       
-      // ALWAYS go to result page first with the current section parameter
-      // The result page will handle showing the section results and then redirecting to break → next section
-      const encodedSection = encodeURIComponent(section);
-      const resultPageUrl = `/exam/exam-result?section=${encodedSection}`;
+      // Find next section
+      const sortedSections = [...sections].sort((a, b) => {
+        const orderA = a.order || 0;
+        const orderB = b.order || 0;
+        if (orderA !== orderB) return orderA - orderB;
+        const lessonA = a.lessonNumber || 0;
+        const lessonB = b.lessonNumber || 0;
+        return lessonA - lessonB;
+      });
       
-      console.log('🚀 ========== REDIRECTING TO RESULT PAGE ==========');
-      console.log('🚀 Section being submitted:', section);
-      console.log('🚀 Encoded section param:', encodedSection);
-      console.log('🚀 Result page URL:', resultPageUrl);
+      const currentSectionIndex = sortedSections.findIndex(s => s.name === section);
+      if (currentSectionIndex === -1) {
+        console.error('❌ Current section not found in sorted sections');
+        return;
+      }
       
-      // Use window.location.href for reliable parameter passing
-      if (typeof window !== 'undefined') {
-        console.log('🚀 Setting window.location.href to result page:', resultPageUrl);
-        window.location.href = resultPageUrl;
+      if (currentSectionIndex < sortedSections.length - 1) {
+        // Not the last section - go to break page then next section
+        const nextSection = sortedSections[currentSectionIndex + 1];
+        const encodedSection = encodeURIComponent(nextSection.name);
+        
+        // Check if next section is a typing section
+        const isTypingSection = nextSection.name === "English Typing" || 
+                               nextSection.name === "हिंदी टाइपिंग" ||
+                               nextSection.name.includes("Typing") || 
+                               nextSection.name.includes("typing");
+        
+        // Check if we're moving from 5th section to typing (6th section) - 10 min break
+        const isAfterFiveSections = currentSectionIndex === 4; // 0-indexed, so 4 = 5th section
+        const breakDuration = (isTypingSection && isAfterFiveSections) ? 10 : 1;
+        
+        const breakPageUrl = `/exam/break?next=${encodeURIComponent('/exam_mode')}&section=${encodedSection}&duration=${breakDuration}`;
+        
+        console.log('🚀 ========== REDIRECTING TO BREAK PAGE ==========');
+        console.log('🚀 Next section name:', nextSection.name);
+        console.log('🚀 Encoded section:', encodedSection);
+        console.log('🚀 Break page URL:', breakPageUrl);
+        
+        if (typeof window !== 'undefined') {
+          console.log('🚀 Setting window.location.href to break page:', breakPageUrl);
+          window.location.href = breakPageUrl;
+        } else {
+          console.error('❌ window is undefined, cannot redirect!');
+        }
       } else {
-        console.error('❌ window is undefined, cannot redirect!');
+        // Last section - go directly to final result page (with answers)
+        console.log('✅ Last section completed, going to final result page');
+        localStorage.removeItem('examTimeLeft'); // Clear timer when exam is complete
+        if (typeof window !== 'undefined') {
+          window.location.replace('/exam/exam-result');
+        }
       }
     }, 100);
   };
@@ -1455,8 +1596,8 @@ function ExamModeContent() {
 
         {/* Exam Title (Mobile & Desktop) */}
         {examData && (
-          <div className="bg-white-50 border-b border-gray-300 px-4 py-4 mt-10">
-            <h2 className="text-lg md:text-xl font-semibold text-[#290c52] text-center">
+          <div className="bg-white-50 border-b border-gray-300 px-2 md:px-4 py-2 md:py-4 mt-10 flex-shrink-0">
+            <h2 className="text-sm md:text-lg lg:text-xl font-semibold text-[#290c52] text-center">
               {examData.title || 'Exam'}
             </h2>
           </div>
@@ -1464,92 +1605,97 @@ function ExamModeContent() {
 
         {/* Section Nav (Mobile) - Horizontal tabs like desktop */}
         <div className="lg:hidden flex flex-col border-b border-y-gray-200 bg-[#fff] sticky top-[40px] z-20 shadow-sm">
-          <div className="flex text-xs overflow-x-auto px-2 py-2 scroll-smooth">
-            {sections.map((sec, index) => {
-              const isCompleted = completedSections.has(sec.name);
-              const isCurrentSection = section === sec.name;
-              
-              // Check if this section can be accessed
-              const currentSectionIndex = sections.findIndex(s => s.name === section);
-              const thisSectionIndex = index;
-              const isPreviousSection = thisSectionIndex < currentSectionIndex;
-              const isNextSection = thisSectionIndex > currentSectionIndex;
-              const canAccess = isCurrentSection || 
-                (isNextSection && completedSections.has(section)) ||
-                (isPreviousSection && !isCompleted);
-              const isLocked = !canAccess;
-              
-              return (
-                <button
-                  key={sec._id}
-                  onClick={() => {
-                    // Prevent navigation to locked sections
-                    if (isLocked || isCompleted) {
-                      if (isCompleted) {
-                        alert('This section is already completed and locked.');
-                      } else {
-                        alert('Please complete the current section before moving to the next section.');
-                      }
-                      return;
-                    }
-
-                    // Check RSCIT eligibility: Section B requires Section A with minimum 12 marks
-                    if (examData?.key === 'RSCIT' && sec.name === 'Section B' && !completedSections.has('Section A')) {
-                      alert('Please complete Section A first before attempting Section B.');
-                      return;
-                    }
-
-                    // Check if Section A score >= 12 marks for RSCIT Section B
-                    if (examData?.key === 'RSCIT' && sec.name === 'Section B') {
-                      const sectionACompleted = completedSections.has('Section A');
-                      if (!sectionACompleted) {
-                        alert('Please complete Section A first before attempting Section B.');
-                        return;
-                      }
-                      
-                      // Check Section A score
-                      const sectionAAnswers = JSON.parse(localStorage.getItem('examAnswers') || '{}');
-                      const sectionAQuestions = questions['Section A'] || [];
-                      let sectionAScore = 0;
-                      sectionAQuestions.forEach(q => {
-                        const answer = sectionAAnswers[q._id];
-                        if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
-                          sectionAScore += (q.marks || 2);
+          <div 
+            ref={sectionScrollContainerRef}
+            className="flex text-xs overflow-x-auto px-2 py-2 scroll-smooth"
+            style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
+          >
+                {sections.map((sec, index) => {
+                  const isCompleted = completedSections.has(sec.name);
+                  const isCurrentSection = section === sec.name;
+                  
+                  // Check if this section can be accessed
+                  const currentSectionIndex = sections.findIndex(s => s.name === section);
+                  const thisSectionIndex = index;
+                  const isPreviousSection = thisSectionIndex < currentSectionIndex;
+                  const isNextSection = thisSectionIndex > currentSectionIndex;
+                  const canAccess = isCurrentSection || 
+                    (isNextSection && completedSections.has(section)) ||
+                    (isPreviousSection && !isCompleted);
+                  const isLocked = !canAccess;
+                  
+                  return (
+                    <button
+                      key={sec._id}
+                      data-section-index={index}
+                      onClick={() => {
+                        // Prevent navigation to locked sections
+                        if (isLocked || isCompleted) {
+                          if (isCompleted) {
+                            alert('This section is already completed and locked.');
+                          } else {
+                            alert('Please complete the current section before moving to the next section.');
+                          }
+                          return;
                         }
-                      });
-                      
-                      if (sectionAScore < 12) {
-                        alert(`You need minimum 12 marks in Section A to proceed to Section B. Your Section A score: ${sectionAScore} marks.`);
-                        return;
-                      }
-                    }
-                    // Save current timer state before switching sections
-                    const currentTime = timeLeft;
-                    localStorage.setItem('examTimeLeft', currentTime.toString());
-                    setSection(sec.name);
-                    setCurrentQuestionIndex(0);
-                    // Reset selected part and set first part if available
-                    const sectionParts = parts.filter(p => {
-                      const pSectionId = String(p.sectionId).trim();
-                      const secIdStr = String(sec.id).trim();
-                      const secIdObj = String(sec._id).trim();
-                      return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
-                    }).sort((a, b) => (a.order || 0) - (b.order || 0));
-                    if (sectionParts.length > 0) {
-                      setSelectedPart(sectionParts[0].name);
-                    } else {
-                      setSelectedPart(null);
-                    }
-                    // Mark first question of selected section as visited
-                    const firstQuestion = questions[sec.name]?.[0];
-                    if (firstQuestion?._id) {
-                      setVisitedQuestions(prev => {
-                        const newSet = new Set([...prev, firstQuestion._id]);
-                        localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                        return newSet;
-                      });
-                    }
-                  }}
+
+                        // Check RSCIT eligibility: Section B requires Section A with minimum 12 marks
+                        if (examData?.key === 'RSCIT' && sec.name === 'Section B' && !completedSections.has('Section A')) {
+                          alert('Please complete Section A first before attempting Section B.');
+                          return;
+                        }
+
+                        // Check if Section A score >= 12 marks for RSCIT Section B
+                        if (examData?.key === 'RSCIT' && sec.name === 'Section B') {
+                          const sectionACompleted = completedSections.has('Section A');
+                          if (!sectionACompleted) {
+                            alert('Please complete Section A first before attempting Section B.');
+                            return;
+                          }
+                          
+                          // Check Section A score
+                          const sectionAAnswers = JSON.parse(localStorage.getItem('examAnswers') || '{}');
+                          const sectionAQuestions = questions['Section A'] || [];
+                          let sectionAScore = 0;
+                          sectionAQuestions.forEach(q => {
+                            const answer = sectionAAnswers[q._id];
+                            if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
+                              sectionAScore += (q.marks || 2);
+                            }
+                          });
+                          
+                          if (sectionAScore < 12) {
+                            alert(`You need minimum 12 marks in Section A to proceed to Section B. Your Section A score: ${sectionAScore} marks.`);
+                            return;
+                          }
+                        }
+                        // Save current timer state before switching sections
+                        const currentTime = timeLeft;
+                        localStorage.setItem('examTimeLeft', currentTime.toString());
+                        setSection(sec.name);
+                        setCurrentQuestionIndex(0);
+                        // Reset selected part and set first part if available
+                        const sectionParts = parts.filter(p => {
+                          const pSectionId = String(p.sectionId).trim();
+                          const secIdStr = String(sec.id).trim();
+                          const secIdObj = String(sec._id).trim();
+                          return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
+                        }).sort((a, b) => (a.order || 0) - (b.order || 0));
+                        if (sectionParts.length > 0) {
+                          setSelectedPart(sectionParts[0].name);
+                        } else {
+                          setSelectedPart(null);
+                        }
+                        // Mark first question of selected section as visited
+                        const firstQuestion = questions[sec.name]?.[0];
+                        if (firstQuestion?._id) {
+                          setVisitedQuestions(prev => {
+                            const newSet = new Set([...prev, firstQuestion._id]);
+                            localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                            return newSet;
+                          });
+                        }
+                      }}
                   className={`${
                     isCompleted
                       ? "bg-green-600 text-white border-green-700 cursor-not-allowed opacity-75"
@@ -1558,49 +1704,54 @@ function ExamModeContent() {
                       : section === sec.name
                       ? "bg-[#290c52] text-white border-[#290c52]"
                       : "bg-white text-[#290c52] border border-gray-300 hover:bg-gray-50"
-                  } px-3 py-2 whitespace-nowrap relative border-r text-xs font-medium min-w-[100px] flex items-center justify-center gap-1`}
-                  disabled={isLocked || isCompleted}
+                  } px-3 py-2 whitespace-nowrap relative border-r text-sm md:text-base font-medium min-w-[100px] flex items-center justify-center gap-1`}
+                      disabled={isLocked || isCompleted}
                   title={isCompleted ? "Section completed and locked" : isLocked ? "Complete current section first" : ""}
-                >
-                  <span>{sec.name}</span>
-                  {isCompleted && (
+                    >
+                      <span>{sec.name}</span>
+                      {isCompleted && (
                     <span className="text-xs">✓</span>
-                  )}
-                  {isLocked && !isCompleted && (
+                      )}
+                      {isLocked && !isCompleted && (
                     <span className="text-xs">🔒</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
           <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200">
             <div className="flex items-center gap-2">
-              <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
-                {isSoundOn ? "🔊" : "🔇"}
-              </button>
+            <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
+              {isSoundOn ? "🔊" : "🔇"}
+            </button>
             </div>
             <div className="flex items-center gap-2">
-              {isTypingSection && typingTimeLeft !== null ? (
-                <div className="flex items-center gap-2">
+            {isTypingSection && typingTimeLeft !== null ? (
+              <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-orange-600">⏱️ Section Timer:</span>
                   <b className="bg-orange-400 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(typingTimeLeft)}</b>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-blue-600">⏱️ Time Left:</span>
                   <b className="bg-blue-400 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(timeLeft)}</b>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
+          </div>
           </div>
           
           {/* Parts Nav (Mobile) - Show below sections if current section has parts */}
           {section && currentSectionParts.length > 0 && (
-            <div className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2">
+            <div 
+              ref={partsScrollContainerRef}
+              className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2 scroll-smooth"
+              style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
+            >
               <span className="px-2 py-1 font-semibold text-gray-700 whitespace-nowrap text-xs">Section:</span>
-              {currentSectionParts.map((part) => (
+              {currentSectionParts.map((part, partIndex) => (
                 <button
                   key={part._id}
+                  data-part-index={partIndex}
                   onClick={() => {
                     setSelectedPart(part.name);
                     setCurrentQuestionIndex(0);
@@ -1716,7 +1867,7 @@ function ExamModeContent() {
                       : section === sec.name
                       ? "bg-[#290c52] text-white border-[#290c52]"
                       : "bg-white text-[#290c52] border border-gray-300 hover:bg-gray-50"
-                  } px-4 py-3 whitespace-nowrap relative border-r`}
+                  } px-4 py-3 whitespace-nowrap relative border-r text-sm md:text-base font-medium`}
                   disabled={isLocked || isCompleted}
                   title={isCompleted ? "Section completed and locked" : isLocked ? "Complete current section first" : ""}
                 >
@@ -1780,19 +1931,32 @@ function ExamModeContent() {
         {section && currentQuestions && currentQuestions.length > 0 && (
           <div 
             ref={questionScrollContainerRef}
-            className="flex gap-2 h-20 overflow-x-auto md:hidden px-4 py-2 scroll-smooth bg-white border-b border-gray-200"
+            className="flex gap-2 h-16 md:h-20 overflow-x-auto lg:hidden px-2 md:px-4 py-1 md:py-2 scroll-smooth bg-white border-b border-gray-200 flex-shrink-0"
             style={{ scrollBehavior: 'smooth' }}
           >
             {currentQuestions.map((q, i) => {
-              const isAnswered = selectedAnswers[q._id] !== undefined;
+              const isAnswered = selectedAnswers[q._id] !== undefined && selectedAnswers[q._id] !== null;
               const isCurrent = i === currentQuestionIndex;
+              const isVisited = visitedQuestions.has(q._id);
+              const isMarked = markedForReview.has(q._id);
+              
+              // Priority: Current > Marked for Review > Answered > Visited > Not Visited
+              let bgColor = "bg-gray-300"; // Not visited
+              if (isCurrent) {
+                bgColor = "bg-red-600 text-white";
+              } else if (isMarked) {
+                bgColor = "bg-purple-600 text-white";
+              } else if (isAnswered) {
+                bgColor = "bg-green-400";
+              } else if (isVisited) {
+                bgColor = "bg-red-500 text-white";
+              }
+              
               return (
                 <div
                   key={q._id}
                   data-question-index={i}
-                  className={`min-w-[2rem] h-8 flex items-center justify-center text-black text-sm font-semibold border border-black cursor-pointer ${
-                    isCurrent ? "bg-red-600 text-white" : isAnswered ? "bg-green-400" : "bg-gray-300"
-                  }`}
+                  className={`min-w-[2rem] h-8 flex items-center justify-center text-black text-sm font-semibold border border-black cursor-pointer ${bgColor}`}
                   onClick={() => setCurrentQuestionIndex(i)}
                 >
                   {i + 1}
@@ -1805,15 +1969,15 @@ function ExamModeContent() {
 
 
         {/* Question Panel */}
-      <div className="flex-grow p-4 overflow-auto bg-white-50 mt-0 md:mt-0 relativeaaaaaaaaaaaaaa">
+      <div className="flex-1 flex flex-col overflow-hidden bg-white-50 mt-0 md:mt-0 lg:overflow-auto lg:px-4 lg:pt-4 lg:pb-0">
   {/* Fixed Top Bar */}
-  <div className="bg-[#290c52] text-white text-sm px-4 py-3 rounded-t flex justify-between flex-wrap gap-2 sticky top-[-20px] md:top-0 z-10 mb-0 md:">
+  <div className="bg-[#290c52] text-white text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 rounded-t flex justify-between flex-wrap gap-2 flex-shrink-0">
     <span>Question Type: {currentQuestion?.questionType === "TYPING" ? "TYPING" : "MCQ"}</span>
     {currentQuestion?.questionType !== "TYPING" && (
-      <div className="flex items-center gap-2">
-        <p>View in:</p>
+      <div className="flex items-center gap-1 md:gap-2">
+        <p className="text-xs">View in:</p>
         <select 
-          className="text-black text-xs bg-white px-2 py-1 rounded"
+          className="text-black text-xs bg-white px-1 md:px-2 py-1 rounded"
           value={viewLanguage}
           onChange={(e) => {
             const newLang = e.target.value;
@@ -1829,12 +1993,12 @@ function ExamModeContent() {
   </div>
 
   {/* Scrollable Content */}
-  <div className="border border-gray-300 rounded-b">
+  <div className="border-t border-gray-300 flex-1 flex flex-col min-h-0 overflow-y-auto lg:flex-initial">
     {currentQuestion?.questionType !== "TYPING" && (
-      <div className="bg-white-50 px-4 py-3 border-b text-sm font-semibold flex flex-col sm:flex-row justify-between">
+      <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-b text-xs md:text-sm font-semibold flex flex-col sm:flex-row justify-between flex-shrink-0">
         <span>Question No. {currentQuestionIndex + 1} {currentQuestions && `of ${currentQuestions.length}`}</span>
-        <span className="mt-1 sm:mt-0">
-          Marks for correct answer: {currentQuestion?.marks || 1} | Negative Marks: <span className="text-red-500">{currentQuestion?.negativeMarks || 0}</span>
+        <span className="mt-1 sm:mt-0 text-xs">
+          Marks: <span className="text-green-600 font-semibold">{currentQuestion?.marks || 1}</span> | Negative: <span className="text-red-500">{currentQuestion?.negativeMarks || 0}</span>
         </span>
       </div>
     )}
@@ -1971,14 +2135,14 @@ function ExamModeContent() {
       <>
 
         {currentQuestion.passage_en || currentQuestion.passage_hi ? (
-          <div className="flex flex-col lg:flex-row p-4 gap-x-6 gap-y-10">
-            <div className="lg:w-2/3 text-sm border-r pr-4 max-h-72 overflow-y-auto">
+          <div className="flex flex-col lg:flex-row p-2 md:p-4 gap-x-6 gap-y-4 md:gap-y-10">
+            <div className="lg:w-2/3 text-xs md:text-sm border-r pr-2 md:pr-4 max-h-32 md:max-h-72 overflow-y-auto">
               <h3 className="font-bold mb-2">Passage:</h3>
               <p>{viewLanguage === "हिन्दी" && currentQuestion.passage_hi 
                 ? currentQuestion.passage_hi 
                 : currentQuestion.passage_en || currentQuestion.passage_hi}</p>
             </div>
-            <div className="lg:w-1/3 text-xl">
+            <div className="lg:w-1/3 text-sm md:text-xl">
             {/* Show image if question has imageUrl, otherwise show text */}
             {(() => {
               const isImageQuestion = currentQuestion?.question_en === '[Image Question]';
@@ -2013,7 +2177,7 @@ function ExamModeContent() {
                 // Remove patterns like "(Question 57)", "(Question X)" from question text
                 questionText = questionText.replace(/\s*\(Question\s+\d+\)/gi, '').trim();
                 return (
-                  <p className="mb-4">
+                  <p className="mb-4 md:mb-6 text-base md:text-lg">
                     {questionText}
                   </p>
                 );
@@ -2031,12 +2195,12 @@ function ExamModeContent() {
               });
               
               return (
-                <div className="mb-4">
+                <div className="mb-2 md:mb-4">
                   <img 
                     src={encodedUrl} 
                     alt="Question Image" 
                     className="max-w-full h-auto rounded border shadow-md"
-                    style={{ maxHeight: '500px', display: 'block' }}
+                    style={{ maxHeight: '300px', display: 'block' }}
                     onError={(e) => {
                       console.error('❌ Image failed to load:', {
                         originalUrl: imageUrl,
@@ -2066,11 +2230,11 @@ function ExamModeContent() {
               {(viewLanguage === "हिन्दी" && currentQuestion.options_hi && currentQuestion.options_hi.length > 0
                 ? currentQuestion.options_hi 
                 : currentQuestion.options_en || currentQuestion.options_hi || []).map((opt, i) => (
-                <label key={i} className="flex items-start gap-x-2 gap-y-6">
+                <label key={i} className="flex items-start gap-x-3 gap-y-3 mb-4 md:mb-5">
                   <input 
                     type="radio" 
                     name={`q-${currentQuestion._id}`}
-                    className="mt-1"
+                    className="mt-1.5 flex-shrink-0 w-4 h-4 md:w-5 md:h-5"
                     checked={selectedAnswers[currentQuestion._id] === i}
                     onChange={() => {
                       const newAnswers = {...selectedAnswers, [currentQuestion._id]: i};
@@ -2078,7 +2242,7 @@ function ExamModeContent() {
                       localStorage.setItem('examAnswers', JSON.stringify(newAnswers));
                     }}
                   />
-                  <span>{opt}</span>
+                  <span className="text-base md:text-lg leading-relaxed">{opt}</span>
                 </label>
               ))}
             </div>
@@ -2119,7 +2283,7 @@ function ExamModeContent() {
                 // Remove patterns like "(Question 57)", "(Question X)" from question text
                 questionText = questionText.replace(/\s*\(Question\s+\d+\)/gi, '').trim();
                 return (
-                  <p className="mb-4">
+                  <p className="mb-4 md:mb-6 text-base md:text-lg">
                     {questionText}
                   </p>
                 );
@@ -2137,12 +2301,12 @@ function ExamModeContent() {
               });
               
               return (
-                <div className="mb-4">
+                <div className="mb-2 md:mb-4">
                   <img 
                     src={encodedUrl} 
                     alt="Question Image" 
                     className="max-w-full h-auto rounded border shadow-md"
-                    style={{ maxHeight: '500px' }}
+                    style={{ maxHeight: '300px' }}
                     onError={(e) => {
                       console.error('❌ Image failed to load:', {
                         originalUrl: imageUrl,
@@ -2172,15 +2336,15 @@ function ExamModeContent() {
             {(viewLanguage === "हिन्दी" && currentQuestion.options_hi && currentQuestion.options_hi.length > 0
               ? currentQuestion.options_hi 
               : currentQuestion.options_en || currentQuestion.options_hi || []).map((opt, i) => (
-              <label key={i} className="flex items-start gap-2">
+              <label key={i} className="flex items-start gap-3 mb-4 md:mb-5">
                 <input 
                   type="radio" 
                   name={`q-${currentQuestion._id}`}
-                  className="mt-1"
+                  className="mt-1.5 flex-shrink-0 w-4 h-4 md:w-5 md:h-5"
                   checked={selectedAnswers[currentQuestion._id] === i}
                   onChange={() => setSelectedAnswers({...selectedAnswers, [currentQuestion._id]: i})}
                 />
-                <span>{opt}</span>
+                <span className="text-base md:text-lg leading-relaxed">{opt}</span>
               </label>
             ))}
           </div>
@@ -2192,10 +2356,12 @@ function ExamModeContent() {
 </div>
 
         {/* Footer */}
-        <div className="flex justify-between items-center bg-white-50 px-4 py-3 border-t flex-wrap gap-2">
-          <div className="space-x-2">
+        <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-t border-gray-300 flex-shrink-0">
+          {/* Mobile: 2x2 Grid Layout */}
+          <div className="lg:hidden grid grid-cols-2 gap-2">
+            {/* Top Left: Mark for Review & Next */}
             <button 
-              className="px-4 py-2 absolute md:relative mb-[-30] ml-38 md:ml-0 md:mb-0 bg-purple-600 text-white rounded text-sm whitespace-nowrap"
+              className="px-2 py-2 bg-purple-600 text-white rounded text-xs whitespace-nowrap"
               onClick={() => {
                 // Mark current question for review
                 if (currentQuestion && currentQuestion._id) {
@@ -2204,17 +2370,12 @@ function ExamModeContent() {
                 
                 // Check if we're on last question of last part of current section
                 if (isLastQuestionInPart() && isLastPartInSection()) {
-                  // On last question of last part in current section, submit section
-                  // handleSubmitSection() will check if it's the last section and redirect to result page,
-                  // otherwise it will go to break page and then next section
                   handleSubmitSection();
                 } else if (isLastQuestionInPart()) {
-                  // On last question of current part, move to next part
                   const nextPart = getNextPart();
                   if (nextPart) {
                     setSelectedPart(nextPart.name);
                     setCurrentQuestionIndex(0);
-                    // Mark first question of next part as visited
                     const nextPartQuestions = questionsByPart[section]?.[nextPart.name] || [];
                     if (nextPartQuestions.length > 0 && nextPartQuestions[0]?._id) {
                       setVisitedQuestions(prev => {
@@ -2225,11 +2386,9 @@ function ExamModeContent() {
                     }
                   }
                 } else {
-                  // Mark for review and move to next question in current part
                   if (currentQuestion && currentQuestions && currentQuestionIndex < currentQuestions.length - 1) {
                     const nextIndex = currentQuestionIndex + 1;
                     setCurrentQuestionIndex(nextIndex);
-                    // Mark next question as visited
                     const nextQuestion = currentQuestions[nextIndex];
                     if (nextQuestion?._id) {
                       setVisitedQuestions(prev => {
@@ -2244,10 +2403,10 @@ function ExamModeContent() {
             >
               {isLastQuestion() ? "Mark for Review & Submit" : (isLastQuestionInPart() && isLastPartInSection() ? "Mark for Review & Submit Section" : "Mark for Review & Next")}
             </button>
+            {/* Top Right: Clear Response */}
             <button 
-              className="px-4 py-2 bg-red-500 text-white rounded text-sm whitespace-nowrap"
+              className="px-2 py-2 bg-orange-500 text-white rounded text-xs whitespace-nowrap"
               onClick={() => {
-                // Clear response for current question
                 if (currentQuestion) {
                   const newAnswers = {...selectedAnswers};
                   delete newAnswers[currentQuestion._id];
@@ -2257,23 +2416,20 @@ function ExamModeContent() {
             >
               Clear Response
             </button>
-          </div>
-          <div className="space-x-20 md:space-x-2">
+            {/* Bottom Left: Previous */}
             <button 
-              className="bg-blue-900 hover:bg-blue-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap disabled:opacity-50"
+              className="bg-blue-900 hover:bg-blue-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50"
               disabled={currentQuestionIndex === 0 && section === sections[0]?.name}
               onClick={() => {
                 if (currentQuestionIndex > 0) {
                   setCurrentQuestionIndex(currentQuestionIndex - 1);
                 } else if (sections.length > 0) {
-                  // Move to previous section
                   const currentSectionIndex = sections.findIndex(s => s.name === section);
                   if (currentSectionIndex > 0) {
                     const prevSection = sections[currentSectionIndex - 1];
                     setSection(prevSection.name);
                     const prevIndex = (questions[prevSection.name]?.length || 1) - 1;
                     setCurrentQuestionIndex(prevIndex);
-                    // Mark previous section's last question as visited
                     const prevQuestion = questions[prevSection.name]?.[prevIndex];
                     if (prevQuestion?._id) {
                       setVisitedQuestions(prev => {
@@ -2288,35 +2444,36 @@ function ExamModeContent() {
             >
               Previous
             </button>
+            {/* Bottom Right: Save & Next */}
             <button 
-              className={`bg-green-600 hover:bg-cyan-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap ${isLastQuestion() ? 'bg-green-600' : ''}`}
+              className={`bg-green-600 hover:bg-cyan-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${isLastQuestion() ? 'bg-green-600' : ''}`}
+              disabled={currentQuestion && currentQuestion.questionType !== "TYPING" && (selectedAnswers[currentQuestion._id] === undefined || selectedAnswers[currentQuestion._id] === null)}
               onClick={() => {
-                // Save current answer first - ensure it's saved
+                // Check if answer is selected (skip check for TYPING questions)
+                if (currentQuestion && currentQuestion.questionType !== "TYPING") {
+                  const hasAnswer = selectedAnswers[currentQuestion._id] !== undefined && selectedAnswers[currentQuestion._id] !== null;
+                  if (!hasAnswer) {
+                    alert('Please select an option before proceeding.');
+                    return;
+                  }
+                }
+                
                 if (currentQuestion) {
-                  // Answer is already saved in selectedAnswers state via onChange handlers
                   console.log('Save & Submit clicked - Current question:', currentQuestion._id);
                 }
                 
-                // Check if we're on last question of last part in current section
                 const isLastInSection = isLastQuestionInPart() && isLastPartInSection();
                 const isLastOverall = isLastQuestion();
                 
-                console.log('Button click - isLastInSection:', isLastInSection, 'isLastOverall:', isLastOverall);
-                console.log('Button click - isLastQuestionInPart:', isLastQuestionInPart(), 'isLastPartInSection:', isLastPartInSection());
-                console.log('Button click - currentQuestionIndex:', currentQuestionIndex, 'currentQuestions.length:', currentQuestions?.length);
-                
                 if (isLastOverall || isLastInSection) {
-                  // On last question of last part in current section, submit section
                   console.log('Submitting section:', section);
                   handleSubmitSection();
                 } else if (isLastQuestionInPart()) {
-                  // On last question of current part, move to next part
                   const nextPart = getNextPart();
                   if (nextPart) {
                     console.log('Moving to next part:', nextPart.name);
                     setSelectedPart(nextPart.name);
                     setCurrentQuestionIndex(0);
-                    // Mark first question of next part as visited
                     const nextPartQuestions = questionsByPart[section]?.[nextPart.name] || [];
                     if (nextPartQuestions.length > 0 && nextPartQuestions[0]?._id) {
                       setVisitedQuestions(prev => {
@@ -2329,12 +2486,10 @@ function ExamModeContent() {
                     console.warn('No next part found, but isLastQuestionInPart is true');
                   }
                 } else {
-                  // Save answer and move to next question in current part
                   if (currentQuestion && currentQuestions && currentQuestionIndex < currentQuestions.length - 1) {
                     const nextIndex = currentQuestionIndex + 1;
                     console.log('Moving to next question:', nextIndex);
                     setCurrentQuestionIndex(nextIndex);
-                    // Mark next question as visited
                     const nextQuestion = currentQuestions[nextIndex];
                     if (nextQuestion?._id) {
                       setVisitedQuestions(prev => {
@@ -2352,13 +2507,155 @@ function ExamModeContent() {
               {isLastQuestion() || (isLastQuestionInPart() && isLastPartInSection()) ? "Save & Submit Section" : "Save & Next"}
             </button>
           </div>
+          
+          {/* Desktop: Horizontal Layout */}
+          <div className="hidden lg:flex justify-between items-center gap-2">
+            <div className="space-x-2">
           <button 
-            onClick={handleSubmitSection}
-            className="mobile-submit-btn bg-green-800 hover:bg-cyan-700 text-white px-12 py-2 ml-2 text-[13px] rounded w-full md:hidden whitespace-nowrap"
-          >
-            Submit Section
+                className="px-4 py-2 bg-purple-600 text-white rounded text-sm whitespace-nowrap"
+                onClick={() => {
+                  if (currentQuestion && currentQuestion._id) {
+                    setMarkedForReview(prev => new Set([...prev, currentQuestion._id]));
+                  }
+                  
+                  if (isLastQuestionInPart() && isLastPartInSection()) {
+                    handleSubmitSection();
+                  } else if (isLastQuestionInPart()) {
+                    const nextPart = getNextPart();
+                    if (nextPart) {
+                      setSelectedPart(nextPart.name);
+                      setCurrentQuestionIndex(0);
+                      const nextPartQuestions = questionsByPart[section]?.[nextPart.name] || [];
+                      if (nextPartQuestions.length > 0 && nextPartQuestions[0]?._id) {
+                        setVisitedQuestions(prev => {
+                          const newSet = new Set([...prev, nextPartQuestions[0]._id]);
+                          localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                          return newSet;
+                        });
+                      }
+                    }
+                  } else {
+                    if (currentQuestion && currentQuestions && currentQuestionIndex < currentQuestions.length - 1) {
+                      const nextIndex = currentQuestionIndex + 1;
+                      setCurrentQuestionIndex(nextIndex);
+                      const nextQuestion = currentQuestions[nextIndex];
+                      if (nextQuestion?._id) {
+                        setVisitedQuestions(prev => {
+                          const newSet = new Set([...prev, nextQuestion._id]);
+                          localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                          return newSet;
+                        });
+                      }
+                    }
+                  }
+                }}
+              >
+                {isLastQuestion() ? "Mark for Review & Submit" : (isLastQuestionInPart() && isLastPartInSection() ? "Mark for Review & Submit Section" : "Mark for Review & Next")}
           </button>
-
+              <button 
+                className="px-4 py-2 bg-red-500 text-white rounded text-sm whitespace-nowrap"
+                onClick={() => {
+                  if (currentQuestion) {
+                    const newAnswers = {...selectedAnswers};
+                    delete newAnswers[currentQuestion._id];
+                    setSelectedAnswers(newAnswers);
+                  }
+                }}
+              >
+                Clear Response
+              </button>
+            </div>
+            <div className="space-x-2">
+              <button 
+                className="bg-blue-900 hover:bg-blue-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap disabled:opacity-50"
+                disabled={currentQuestionIndex === 0 && section === sections[0]?.name}
+                onClick={() => {
+                  if (currentQuestionIndex > 0) {
+                    setCurrentQuestionIndex(currentQuestionIndex - 1);
+                  } else if (sections.length > 0) {
+                    const currentSectionIndex = sections.findIndex(s => s.name === section);
+                    if (currentSectionIndex > 0) {
+                      const prevSection = sections[currentSectionIndex - 1];
+                      setSection(prevSection.name);
+                      const prevIndex = (questions[prevSection.name]?.length || 1) - 1;
+                      setCurrentQuestionIndex(prevIndex);
+                      const prevQuestion = questions[prevSection.name]?.[prevIndex];
+                      if (prevQuestion?._id) {
+                        setVisitedQuestions(prev => {
+                          const newSet = new Set([...prev, prevQuestion._id]);
+                          localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                          return newSet;
+                        });
+                      }
+                    }
+                  }
+                }}
+              >
+                Previous
+              </button>
+              <button 
+                className={`bg-green-600 hover:bg-cyan-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${isLastQuestion() ? 'bg-green-600' : ''}`}
+                disabled={currentQuestion && currentQuestion.questionType !== "TYPING" && (selectedAnswers[currentQuestion._id] === undefined || selectedAnswers[currentQuestion._id] === null)}
+                onClick={() => {
+                  // Check if answer is selected (skip check for TYPING questions)
+                  if (currentQuestion && currentQuestion.questionType !== "TYPING") {
+                    const hasAnswer = selectedAnswers[currentQuestion._id] !== undefined && selectedAnswers[currentQuestion._id] !== null;
+                    if (!hasAnswer) {
+                      alert('Please select an option before proceeding.');
+                      return;
+                    }
+                  }
+                  
+                  if (currentQuestion) {
+                    console.log('Save & Submit clicked - Current question:', currentQuestion._id);
+                  }
+                  
+                  const isLastInSection = isLastQuestionInPart() && isLastPartInSection();
+                  const isLastOverall = isLastQuestion();
+                  
+                  if (isLastOverall || isLastInSection) {
+                    console.log('Submitting section:', section);
+                    handleSubmitSection();
+                  } else if (isLastQuestionInPart()) {
+                    const nextPart = getNextPart();
+                    if (nextPart) {
+                      console.log('Moving to next part:', nextPart.name);
+                      setSelectedPart(nextPart.name);
+                      setCurrentQuestionIndex(0);
+                      const nextPartQuestions = questionsByPart[section]?.[nextPart.name] || [];
+                      if (nextPartQuestions.length > 0 && nextPartQuestions[0]?._id) {
+                        setVisitedQuestions(prev => {
+                          const newSet = new Set([...prev, nextPartQuestions[0]._id]);
+                          localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                          return newSet;
+                        });
+                      }
+                    } else {
+                      console.warn('No next part found, but isLastQuestionInPart is true');
+                    }
+                  } else {
+                    if (currentQuestion && currentQuestions && currentQuestionIndex < currentQuestions.length - 1) {
+                      const nextIndex = currentQuestionIndex + 1;
+                      console.log('Moving to next question:', nextIndex);
+                      setCurrentQuestionIndex(nextIndex);
+                      const nextQuestion = currentQuestions[nextIndex];
+                      if (nextQuestion?._id) {
+                        setVisitedQuestions(prev => {
+                          const newSet = new Set([...prev, nextQuestion._id]);
+                          localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                          return newSet;
+                        });
+                      }
+                    } else {
+                      console.warn('Cannot move to next question - invalid state');
+                    }
+                  }
+                }}
+              >
+                {isLastQuestion() || (isLastQuestionInPart() && isLastPartInSection()) ? "Save & Submit Section" : "Save & Next"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2398,16 +2695,28 @@ function ExamModeContent() {
               <div ref={desktopQuestionPaletteRef} className="grid grid-cols-4 gap-2 mb-4 max-h-[400px] overflow-y-auto">
                 {currentQuestions && currentQuestions.length > 0 ? (
                   currentQuestions.map((q, i) => {
-                    const isAnswered = selectedAnswers[q._id] !== undefined;
+                    const isAnswered = selectedAnswers[q._id] !== undefined && selectedAnswers[q._id] !== null;
                     const isCurrent = i === currentQuestionIndex;
                     const isVisited = visitedQuestions.has(q._id);
+                    const isMarked = markedForReview.has(q._id);
+                    
+                    // Priority: Current > Marked for Review > Answered > Visited > Not Visited
+                    let bgColor = "bg-gray-300"; // Not visited
+                    if (isCurrent) {
+                      bgColor = "bg-red-600 text-white";
+                    } else if (isMarked) {
+                      bgColor = "bg-purple-600 text-white";
+                    } else if (isAnswered) {
+                      bgColor = "bg-green-400";
+                    } else if (isVisited) {
+                      bgColor = "bg-red-500 text-white";
+                    }
+                    
                       return (
                         <div
                           key={q._id}
-                          data-question-index={i}
-                          className={`w-8 h-8 flex items-center justify-center text-black text-sm font-semibold border border-black cursor-pointer ${
-                            isCurrent ? "bg-red-600 text-white" : isAnswered ? "bg-green-400" : isVisited ? "bg-red-500 text-white" : "bg-gray-300"
-                          }`}
+                        data-question-index={i}
+                        className={`w-8 h-8 flex items-center justify-center text-black text-sm font-semibold border border-black cursor-pointer ${bgColor}`}
                           onClick={() => {
                             setCurrentQuestionIndex(i);
                             // Mark question as visited when clicked
