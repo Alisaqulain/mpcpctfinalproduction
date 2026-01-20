@@ -47,7 +47,7 @@ export async function POST(request) {
       
       // Topic is paid, check for subscription below
     } else if (examId) {
-      // If examId is provided, check exam's isFree status
+    // If examId is provided, check exam's isFree status
       const exam = await Exam.findById(examId);
       if (!exam) {
         return NextResponse.json({ hasAccess: false, reason: "exam_not_found" }, { status: 404 });

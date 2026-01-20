@@ -922,7 +922,8 @@ function ExamModeContent() {
     }
   }, [currentQuestionIndex, currentQuestions.length, section, selectedPart]);
 
-  // Auto-scroll desktop sidebar question palette when question index changes (works for all questions, including Previous button)
+  // Smart auto-scroll: Only scrolls when needed, keeps items comfortably visible
+  // Scrolls down if item is in last 3 rows, scrolls up if in top 3 rows
   useEffect(() => {
     if (desktopQuestionPaletteRef.current && currentQuestionIndex !== null && currentQuestions.length > 0) {
       // Use setTimeout to ensure DOM is updated after question index change
@@ -932,30 +933,78 @@ function ExamModeContent() {
         
         const questionElement = container.querySelector(`[data-question-index="${currentQuestionIndex}"]`);
         
-        if (questionElement) {
-          // Get the element's position relative to the container
-          const containerRect = container.getBoundingClientRect();
-          const elementRect = questionElement.getBoundingClientRect();
-          
-          // Check if the element is already fully visible in the viewport
-          const isFullyVisible = elementRect.top >= containerRect.top && elementRect.bottom <= containerRect.bottom;
-          
-          // Always scroll to center the question, even if partially visible (for better UX)
-          const containerScrollTop = container.scrollTop;
-          const elementOffsetTop = questionElement.offsetTop;
-          const containerHeight = container.clientHeight;
-          const elementHeight = questionElement.offsetHeight;
-          
-          // Center the question in the viewport
-          const scrollTop = elementOffsetTop - (containerHeight / 2) + (elementHeight / 2);
-          
-          // Smooth scroll to the current question (works for both up and down scrolling, including Previous button)
-          container.scrollTo({
-            top: Math.max(0, scrollTop),
+        if (!questionElement) return;
+        
+        // Get container and element dimensions
+        const containerRect = container.getBoundingClientRect();
+        const elementRect = questionElement.getBoundingClientRect();
+        const containerScrollTop = container.scrollTop;
+        const containerHeight = container.clientHeight;
+        const elementHeight = questionElement.offsetHeight;
+        
+        // Calculate element's position relative to viewport
+        const elementTopRelativeToViewport = elementRect.top - containerRect.top;
+        const elementBottomRelativeToViewport = elementRect.bottom - containerRect.top;
+        
+        // Calculate row height dynamically
+        // Grid has 4 columns (grid-cols-4), so we need to estimate row height
+        const firstQuestion = container.querySelector(`[data-question-index="0"]`);
+        let rowHeight = elementHeight;
+        if (firstQuestion) {
+          // Find the 5th question (first question of row 2) to calculate row height
+          const fifthQuestion = container.querySelector(`[data-question-index="4"]`);
+          if (fifthQuestion) {
+            rowHeight = fifthQuestion.offsetTop - firstQuestion.offsetTop;
+          } else {
+            // Fallback: estimate row height (question height + gap)
+            const gapSize = 8; // gap-2 = 0.5rem = 8px
+            rowHeight = elementHeight + gapSize;
+          }
+        }
+        
+        // Define comfort zones (top 3 rows and bottom 3 rows)
+        const topComfortZone = rowHeight * 3; // Top 3 rows
+        const bottomComfortZone = containerHeight - (rowHeight * 3); // Bottom 3 rows
+        
+        // Check if element is in comfort zone (comfortably visible)
+        const isInComfortZone = elementTopRelativeToViewport >= topComfortZone && 
+                                elementBottomRelativeToViewport <= bottomComfortZone;
+        
+        // If element is already comfortably visible, don't scroll
+        if (isInComfortZone) {
+          return;
+        }
+        
+        // Determine if we need to scroll and in which direction
+        let shouldScroll = false;
+        let scrollOffset = 0;
+        
+        // Check if element is in bottom 3 rows (last 3 visible rows)
+        if (elementBottomRelativeToViewport > bottomComfortZone) {
+          // Element is too low - scroll down to show next 2 rows
+          const rowsToReveal = 2;
+          const targetScroll = containerScrollTop + (rowHeight * rowsToReveal);
+          const maxScroll = container.scrollHeight - containerHeight;
+          scrollOffset = Math.min(targetScroll - containerScrollTop, maxScroll - containerScrollTop);
+          shouldScroll = scrollOffset > 0;
+        }
+        // Check if element is in top 3 rows
+        else if (elementTopRelativeToViewport < topComfortZone) {
+          // Element is too high - scroll up to show previous 2 rows
+          const rowsToReveal = 2;
+          const targetScroll = containerScrollTop - (rowHeight * rowsToReveal);
+          scrollOffset = Math.max(targetScroll - containerScrollTop, -containerScrollTop);
+          shouldScroll = scrollOffset < 0;
+        }
+        
+        // Perform minimal smooth scroll if needed
+        if (shouldScroll && Math.abs(scrollOffset) > 5) {
+          container.scrollBy({
+            top: scrollOffset,
             behavior: 'smooth'
           });
         }
-      }, 50); // Small delay to ensure DOM is updated
+      }, 100); // Small delay to ensure DOM is updated
     }
   }, [currentQuestionIndex, currentQuestions.length, section, selectedPart]);
 
