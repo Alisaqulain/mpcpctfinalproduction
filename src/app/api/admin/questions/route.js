@@ -146,6 +146,7 @@ export async function POST(req) {
         marks: parseInt(body.marks) || 1,
         negativeMarks: parseFloat(body.negativeMarks) || 0,
         isFree: body.isFree === true || body.isFree === 'true',
+        solutionVideoLink: body.solutionVideoLink?.trim() || undefined,
       };
       
       // CRITICAL: Add imageUrl separately to ensure it's included
@@ -201,6 +202,7 @@ export async function POST(req) {
         const docToInsert = {
           ...questionData,
           imageUrl: String(cleanImageUrl), // Force to string
+          solutionVideoLink: body.solutionVideoLink?.trim() || undefined,
           createdAt: new Date(),
           updatedAt: new Date()
         };
@@ -336,6 +338,10 @@ export async function PUT(req) {
     }
     
     const { _id, ...updateData } = body;
+    // Ensure solutionVideoLink is properly handled
+    if (updateData.solutionVideoLink !== undefined) {
+      updateData.solutionVideoLink = updateData.solutionVideoLink?.trim() || undefined;
+    }
     console.log('📷 Update data (without _id):', JSON.stringify(updateData, null, 2));
     console.log('📷 Updating question _id:', _id);
     console.log('📷 imageUrl in updateData:', updateData.imageUrl);

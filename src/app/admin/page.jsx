@@ -474,6 +474,7 @@ export default function AdminPanel() {
         body.correctAnswer = parseInt(formData.correctAnswer) || 0;
         body.marks = parseInt(formData.marks) || 1;
         body.negativeMarks = parseFloat(formData.negativeMarks) || 0;
+        body.solutionVideoLink = formData.solutionVideoLink?.trim() || '';
       } else if (formData.questionType === 'TYPING') {
         body.typingLanguage = formData.typingLanguage || 'English';
         body.typingScriptType = formData.typingScriptType || '';
@@ -4075,7 +4076,8 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
     typingContent_hindi_inscript: question?.typingContent_hindi_inscript || '',
     typingDuration: question?.typingDuration || 5,
     typingBackspaceEnabled: question?.typingBackspaceEnabled || false,
-    isFree: question?.isFree || false
+    isFree: question?.isFree || false,
+    solutionVideoLink: question?.solutionVideoLink || ''
   });
 
   // Update formData when question prop changes (for editing)
@@ -4117,7 +4119,8 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
         typingContent_hindi_inscript: question.typingContent_hindi_inscript || '',
         typingDuration: question.typingDuration || 5,
         typingBackspaceEnabled: question.typingBackspaceEnabled || false,
-        isFree: question.isFree || false
+        isFree: question.isFree || false,
+        solutionVideoLink: question.solutionVideoLink || ''
       });
     } else {
       // Reset form when creating new question
@@ -4139,7 +4142,8 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
     typingContent_hindi_inscript: '',
     typingDuration: 5,
     typingBackspaceEnabled: false,
-    isFree: false
+    isFree: false,
+    solutionVideoLink: ''
   });
     }
   }, [question]);
@@ -4411,6 +4415,19 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
                   />
                   <p className="text-xs text-gray-500 mt-1">Marks deducted for wrong answer (e.g., 0.25)</p>
                 </div>
+              </div>
+              
+              {/* Solution Video Link */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Solution Video Link (Optional)</label>
+                <input
+                  type="url"
+                  value={formData.solutionVideoLink || ''}
+                  onChange={(e) => setFormData({...formData, solutionVideoLink: e.target.value})}
+                  className="w-full border rounded-lg px-4 py-2"
+                  placeholder="https://drive.google.com/file/d/..."
+                />
+                <p className="text-xs text-gray-500 mt-1">Enter Google Drive link or any video URL for solution. This will be shown in the result page.</p>
               </div>
             </>
           )}
@@ -6996,7 +7013,8 @@ function TopicWiseMCQAdmin(){
         explanation_hi: formData.explanation_hi?.trim() || '',
         difficulty: formData.difficulty || 'medium',
         order: parseInt(formData.order) || 0,
-        isFree: formData.isFree === true || formData.isFree === 'true'
+        isFree: formData.isFree === true || formData.isFree === 'true',
+        solutionVideoLink: formData.solutionVideoLink?.trim() || ''
       };
       
       if (editingQuestion) {
@@ -7862,7 +7880,8 @@ function TopicWiseQuestionForm({ question, onSave, onCancel, saving, error }) {
     explanation_hi: question?.explanation_hi || '',
     difficulty: question?.difficulty || 'medium',
     order: question?.order || 0,
-    isFree: question?.isFree || false
+    isFree: question?.isFree || false,
+    solutionVideoLink: question?.solutionVideoLink || ''
   });
 
   const handleSubmit = (e) => {
@@ -8002,6 +8021,17 @@ function TopicWiseQuestionForm({ question, onSave, onCancel, saving, error }) {
             </div>
           )}
           <p className="text-xs text-gray-500 mt-1">Upload an image for this question (optional)</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Solution Video Link (Optional)</label>
+          <input
+            type="url"
+            value={formData.solutionVideoLink || ''}
+            onChange={(e) => setFormData({...formData, solutionVideoLink: e.target.value})}
+            className="w-full border rounded px-3 py-2 text-sm"
+            placeholder="https://drive.google.com/file/d/..."
+          />
+          <p className="text-xs text-gray-500 mt-1">Enter Google Drive link or any video URL for solution. This will be shown in the result page.</p>
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Difficulty</label>

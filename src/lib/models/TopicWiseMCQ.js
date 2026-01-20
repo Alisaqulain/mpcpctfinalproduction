@@ -19,6 +19,7 @@ const TopicWiseMCQSchema = new mongoose.Schema(
     difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
     order: { type: Number, default: 0 },
     isFree: { type: Boolean, default: false, index: true },
+    solutionVideoLink: { type: String }, // Video link for solution (e.g., Google Drive link)
   },
   { timestamps: true }
 );

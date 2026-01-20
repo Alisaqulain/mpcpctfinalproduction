@@ -44,7 +44,7 @@ export async function POST(req) {
     await dbConnect();
     
     const body = await req.json();
-    const { id, topicId, topicName, topicName_hi, question_en, question_hi, options_en, options_hi, correctAnswer, marks, negativeMarks, imageUrl, explanation_en, explanation_hi, difficulty, order, isFree } = body;
+    const { id, topicId, topicName, topicName_hi, question_en, question_hi, options_en, options_hi, correctAnswer, marks, negativeMarks, imageUrl, explanation_en, explanation_hi, difficulty, order, isFree, solutionVideoLink } = body;
     
     if (!id || !topicId || !topicName || !question_en || !options_en || correctAnswer === undefined) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -73,7 +73,8 @@ export async function POST(req) {
       explanation_hi: explanation_hi || '',
       difficulty: difficulty || 'medium',
       order: order || 0,
-      isFree: isFree === true || isFree === 'true'
+      isFree: isFree === true || isFree === 'true',
+      solutionVideoLink: solutionVideoLink?.trim() || undefined
     });
     
     return NextResponse.json({ question });
@@ -97,7 +98,7 @@ export async function PUT(req) {
     await dbConnect();
     
     const body = await req.json();
-    const { _id, id, topicId, topicName, topicName_hi, question_en, question_hi, options_en, options_hi, correctAnswer, explanation_en, explanation_hi, difficulty, order, isFree } = body;
+    const { _id, id, topicId, topicName, topicName_hi, question_en, question_hi, options_en, options_hi, correctAnswer, explanation_en, explanation_hi, difficulty, order, isFree, solutionVideoLink } = body;
     
     if (!_id) {
       return NextResponse.json({ error: "Missing _id field" }, { status: 400 });
@@ -118,6 +119,7 @@ export async function PUT(req) {
     if (difficulty) updateData.difficulty = difficulty;
     if (order !== undefined) updateData.order = order;
     if (isFree !== undefined) updateData.isFree = isFree === true || isFree === 'true';
+    if (solutionVideoLink !== undefined) updateData.solutionVideoLink = solutionVideoLink?.trim() || undefined;
     
     const updated = await TopicWiseMCQ.findByIdAndUpdate(_id, updateData, { new: true });
     if (!updated) {

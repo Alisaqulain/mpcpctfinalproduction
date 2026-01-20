@@ -35,6 +35,7 @@ const QuestionSchema = new mongoose.Schema(
     negativeMarks: { type: Number, default: 0 }, // Negative marks for wrong answer (optional)
     questionNumber: { type: Number }, // Question number from source paper
     paperName: { type: String }, // Paper name/identifier (e.g., "21th Nov 2025 Shift2 QP1")
+    solutionVideoLink: { type: String }, // Video link for solution (e.g., Google Drive link)
   },
   { timestamps: true }
 );
