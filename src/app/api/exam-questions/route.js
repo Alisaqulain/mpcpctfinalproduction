@@ -4,6 +4,8 @@ import Question from "@/lib/models/Question";
 import Section from "@/lib/models/Section";
 import Exam from "@/lib/models/Exam";
 import Part from "@/lib/models/Part";
+import TopicWiseMCQ from "@/lib/models/TopicWiseMCQ";
+import Topic from "@/lib/models/Topic";
 
 export async function GET(req) {
   try {
@@ -11,10 +13,78 @@ export async function GET(req) {
     
     const { searchParams } = new URL(req.url);
     const examId = searchParams.get("examId");
+    const topicId = searchParams.get("topicId");
     
+    // Handle topic-based exam
+    if (topicId) {
+      // Fetch topic details
+      const topic = await Topic.findOne({ topicId });
+      if (!topic) {
+        return NextResponse.json(
+          { success: false, error: "Topic not found" },
+          { status: 404 }
+        );
+      }
+      
+      // Fetch all questions for this topic
+      const questions = await TopicWiseMCQ.find({ topicId })
+        .sort({ order: 1, createdAt: 1 })
+        .lean();
+      
+      // Limit to 100 questions
+      const limitedQuestions = questions.slice(0, 100);
+      
+      // Create a single section for the topic
+      const section = {
+        _id: `topic-section-${topicId}`,
+        id: `topic-section-${topicId}`,
+        name: topic.topicName || topic.topicName_hi || "Topic Questions",
+        order: 0,
+        typingTime: null,
+        skillLessonId: null
+      };
+      
+      // Convert TopicWiseMCQ questions to the same format as regular questions
+      const formattedQuestions = limitedQuestions.map((q, index) => ({
+        _id: q._id.toString(),
+        question_en: q.question_en || '',
+        question_hi: q.question_hi || '',
+        options_en: q.options_en || [],
+        options_hi: q.options_hi || [],
+        correctAnswer: q.correctAnswer,
+        marks: q.marks || 1,
+        negativeMarks: q.negativeMarks || 0,
+        imageUrl: q.imageUrl || null,
+        explanation_en: q.explanation_en || '',
+        explanation_hi: q.explanation_hi || '',
+        difficulty: q.difficulty || 'medium',
+        sectionId: section.id,
+        partId: null,
+        examId: null,
+        topicId: q.topicId
+      }));
+      
+      return NextResponse.json({
+        success: true,
+        data: {
+          exam: {
+            _id: `topic-${topicId}`,
+            title: topic.topicName || topic.topicName_hi || "Topic Wise MCQ",
+            key: "TOPICWISE",
+            totalTime: 90 * 60, // 90 minutes
+            totalQuestions: formattedQuestions.length
+          },
+          sections: [section],
+          parts: [],
+          allQuestions: formattedQuestions
+        }
+      });
+    }
+    
+    // Handle regular exam
     if (!examId) {
       return NextResponse.json(
-        { success: false, error: "Exam ID is required" },
+        { success: false, error: "Exam ID or Topic ID is required" },
         { status: 400 }
       );
     }

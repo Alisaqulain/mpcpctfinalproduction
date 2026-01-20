@@ -3,6 +3,7 @@ import dbConnect from "@/lib/db";
 import Subscription from "@/lib/models/Subscription";
 import User from "@/lib/models/User";
 import Exam from "@/lib/models/Exam";
+import Topic from "@/lib/models/Topic";
 import { jwtVerify } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret123";
@@ -22,7 +23,7 @@ export async function POST(request) {
       return NextResponse.json({ hasAccess: false, reason: "invalid_token", redirectTo: "/signup" }, { status: 401 });
     }
 
-    const { type, examType, isFree, itemId, examId } = await request.json();
+    const { type, examType, isFree, itemId, examId, topicId } = await request.json();
 
     await dbConnect();
     
@@ -32,8 +33,21 @@ export async function POST(request) {
       return NextResponse.json({ hasAccess: true, reason: "admin" });
     }
 
-    // If examId is provided, check exam's isFree status
-    if (examId) {
+    // If topicId is provided, check topic's isFree status
+    if (topicId) {
+      const topic = await Topic.findOne({ topicId });
+      if (!topic) {
+        return NextResponse.json({ hasAccess: false, reason: "topic_not_found" }, { status: 404 });
+      }
+      
+      // If topic is free, allow access
+      if (topic.isFree === true) {
+        return NextResponse.json({ hasAccess: true, reason: "free" });
+      }
+      
+      // Topic is paid, check for subscription below
+    } else if (examId) {
+      // If examId is provided, check exam's isFree status
       const exam = await Exam.findById(examId);
       if (!exam) {
         return NextResponse.json({ hasAccess: false, reason: "exam_not_found" }, { status: 404 });
@@ -85,7 +99,7 @@ export async function POST(request) {
     return NextResponse.json({ 
       hasAccess: false, 
       reason: "no_subscription",
-      redirectTo: `/payment-app?type=${type || 'exam'}&itemId=${itemId || examId || ''}`
+      redirectTo: `/payment-app?type=${type || 'exam'}&itemId=${itemId || examId || topicId || ''}`
     });
   } catch (error) {
     console.error("Access check error:", error);

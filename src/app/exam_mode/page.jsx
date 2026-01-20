@@ -20,8 +20,8 @@ function ExamModeContent() {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [visitedQuestions, setVisitedQuestions] = useState(new Set());
   const [markedForReview, setMarkedForReview] = useState(new Set());
-  const [questionLanguage, setQuestionLanguage] = useState("English");
-  const [viewLanguage, setViewLanguage] = useState("English");
+  const [questionLanguage, setQuestionLanguage] = useState("हिन्दी");
+  const [viewLanguage, setViewLanguage] = useState("हिन्दी");
   const [loading, setLoading] = useState(true);
   const [completedSections, setCompletedSections] = useState(new Set());
   const [isBreakActive, setIsBreakActive] = useState(false);
@@ -38,6 +38,8 @@ function ExamModeContent() {
   const [modalLanguage, setModalLanguage] = useState("हिन्दी");
   const audioRef = useRef(null);
   const loggedImageQuestions = useRef(new Set()); // Track which questions we've already logged
+  const questionScrollContainerRef = useRef(null); // Ref for mobile question navigation scroll container
+  const desktopQuestionPaletteRef = useRef(null); // Ref for desktop sidebar question palette scroll container
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -71,24 +73,37 @@ function ExamModeContent() {
         const savedLang = localStorage.getItem('questionLanguage');
         if (savedLang) {
           setQuestionLanguage(savedLang);
+        } else {
+          // Default to Hindi if no preference is saved
+          setQuestionLanguage("हिन्दी");
+          localStorage.setItem('questionLanguage', "हिन्दी");
         }
         
         // Load view language preference
         const savedViewLang = localStorage.getItem('viewLanguage');
         if (savedViewLang) {
           setViewLanguage(savedViewLang);
+        } else {
+          // Default to Hindi if no preference is saved
+          setViewLanguage("हिन्दी");
+          localStorage.setItem('viewLanguage', "हिन्दी");
         }
 
-        // Get exam ID from localStorage
+        // Get exam ID or topic ID from localStorage
         const examId = localStorage.getItem('currentExamId');
-        if (!examId) {
-          console.error('No exam ID found');
+        const topicId = localStorage.getItem('currentTopicId');
+        
+        if (!examId && !topicId) {
+          console.error('No exam ID or topic ID found');
           setLoading(false);
           return;
         }
 
-        // Fetch exam data
-        const res = await fetch(`/api/exam-questions?examId=${examId}`);
+        // Fetch exam or topic data
+        const apiUrl = topicId 
+          ? `/api/exam-questions?topicId=${topicId}`
+          : `/api/exam-questions?examId=${examId}`;
+        const res = await fetch(apiUrl);
         if (res.ok) {
           const data = await res.json();
           console.log('Fetched exam data:', data);
@@ -885,6 +900,65 @@ function ExamModeContent() {
     return null;
   }, [section, selectedPart, currentSectionParts]);
 
+  // Auto-scroll question navigation in mobile view when question index changes
+  useEffect(() => {
+    if (questionScrollContainerRef.current && currentQuestionIndex !== null && currentQuestions.length > 0) {
+      const container = questionScrollContainerRef.current;
+      const questionElement = container.querySelector(`[data-question-index="${currentQuestionIndex}"]`);
+      
+      if (questionElement) {
+        // Calculate scroll position to center the current question
+        const containerWidth = container.offsetWidth;
+        const questionLeft = questionElement.offsetLeft;
+        const questionWidth = questionElement.offsetWidth;
+        const scrollLeft = questionLeft - (containerWidth / 2) + (questionWidth / 2);
+        
+        // Smooth scroll to the current question
+        container.scrollTo({
+          left: Math.max(0, scrollLeft),
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, [currentQuestionIndex, currentQuestions.length, section, selectedPart]);
+
+  // Auto-scroll desktop sidebar question palette when question index changes (works for all questions, including Previous button)
+  useEffect(() => {
+    if (desktopQuestionPaletteRef.current && currentQuestionIndex !== null && currentQuestions.length > 0) {
+      // Use setTimeout to ensure DOM is updated after question index change
+      setTimeout(() => {
+        const container = desktopQuestionPaletteRef.current;
+        if (!container) return;
+        
+        const questionElement = container.querySelector(`[data-question-index="${currentQuestionIndex}"]`);
+        
+        if (questionElement) {
+          // Get the element's position relative to the container
+          const containerRect = container.getBoundingClientRect();
+          const elementRect = questionElement.getBoundingClientRect();
+          
+          // Check if the element is already fully visible in the viewport
+          const isFullyVisible = elementRect.top >= containerRect.top && elementRect.bottom <= containerRect.bottom;
+          
+          // Always scroll to center the question, even if partially visible (for better UX)
+          const containerScrollTop = container.scrollTop;
+          const elementOffsetTop = questionElement.offsetTop;
+          const containerHeight = container.clientHeight;
+          const elementHeight = questionElement.offsetHeight;
+          
+          // Center the question in the viewport
+          const scrollTop = elementOffsetTop - (containerHeight / 2) + (elementHeight / 2);
+          
+          // Smooth scroll to the current question (works for both up and down scrolling, including Previous button)
+          container.scrollTo({
+            top: Math.max(0, scrollTop),
+            behavior: 'smooth'
+          });
+        }
+      }, 50); // Small delay to ensure DOM is updated
+    }
+  }, [currentQuestionIndex, currentQuestions.length, section, selectedPart]);
+
   // Log image question warnings only once per question
   useEffect(() => {
     // Get current question inside useEffect to ensure fresh value
@@ -944,8 +1018,8 @@ function ExamModeContent() {
     return isLastSection && isLastQuestionInSection && isLastPart;
   };
 
-  // Calculate statistics from all questions
-  const calculateStatistics = () => {
+  // Calculate statistics for current section only - using useMemo to recalculate when data changes
+  const stats = useMemo(() => {
     let totalAnswered = 0;
     let totalNotAnswered = 0;
     let totalNotVisited = 0;
@@ -953,32 +1027,41 @@ function ExamModeContent() {
     let totalAnsweredAndMarked = 0;
     let totalQuestions = 0;
 
-    // Iterate through all sections and questions
-    Object.keys(questions).forEach(secName => {
-      const secQuestions = questions[secName] || [];
+    // Only calculate statistics for the current section
+    if (section && questions[section]) {
+      const secQuestions = questions[section] || [];
       secQuestions.forEach(q => {
+        if (!q || !q._id) return; // Skip invalid questions
+        
         totalQuestions++;
         const isAnswered = selectedAnswers[q._id] !== undefined && selectedAnswers[q._id] !== null;
         const isVisited = visitedQuestions.has(q._id);
         const isMarked = markedForReview.has(q._id);
 
-        if (isAnswered) {
-          totalAnswered++;
-        } else {
-          totalNotAnswered++;
-        }
-
+        // Count visited vs not visited
         if (!isVisited) {
           totalNotVisited++;
         }
 
-        if (isMarked && isAnswered) {
-          totalAnsweredAndMarked++;
-        } else if (isMarked) {
-          totalMarkedForReview++;
+        // Count answered questions
+        if (isAnswered) {
+          totalAnswered++;
+          // Check if also marked for review
+          if (isMarked) {
+            totalAnsweredAndMarked++;
+          }
+        } else {
+          // Not answered - check if visited (visited but not answered)
+          if (isVisited) {
+            totalNotAnswered++;
+          }
+          // Check if marked but not answered
+          if (isMarked) {
+            totalMarkedForReview++;
+          }
         }
       });
-    });
+    }
 
     return {
       totalQuestions,
@@ -988,9 +1071,34 @@ function ExamModeContent() {
       totalMarkedForReview,
       totalAnsweredAndMarked
     };
-  };
+  }, [section, questions, selectedAnswers, visitedQuestions, markedForReview]);
 
-  const stats = calculateStatistics();
+  // Auto-scroll to submit button when all questions are done
+  useEffect(() => {
+    if (currentQuestions && currentQuestions.length > 0 && section) {
+      // Check if all questions in current section are visited
+      const allQuestionsVisited = currentQuestions.every(q => visitedQuestions.has(q._id));
+      
+      // If all questions are visited, scroll to submit button
+      if (allQuestionsVisited) {
+        setTimeout(() => {
+          // Try to find submit button in mobile sidebar
+          const mobileSubmitBtn = document.querySelector('.mobile-submit-btn');
+          if (mobileSubmitBtn) {
+            const sidebar = mobileSubmitBtn.closest('.lg\\:hidden');
+            if (sidebar) {
+              mobileSubmitBtn.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+          }
+          // Try to find submit button in desktop sidebar
+          const desktopSubmitBtn = document.querySelector('.desktop-submit-btn');
+          if (desktopSubmitBtn) {
+            desktopSubmitBtn.scrollIntoView({ behavior: 'smooth', block: 'end' });
+          }
+        }, 500);
+      }
+    }
+  }, [currentQuestions, visitedQuestions, section]);
 
   // Mark current question as visited when it's displayed
   useEffect(() => {
@@ -1261,7 +1369,7 @@ function ExamModeContent() {
             <button 
               onClick={handleSubmitSection}
               disabled={completedSections.has(section)}
-              className={`px-12 py-3 ml-2 mt-1 text-[13px] rounded ${
+              className={`mobile-submit-btn px-12 py-3 ml-2 mt-1 text-[13px] rounded whitespace-nowrap ${
                 completedSections.has(section)
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-[#290c52] hover:bg-cyan-700 text-white'
@@ -1274,7 +1382,7 @@ function ExamModeContent() {
       )}
 
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Header */}
+        {/* Header with User Info */}
         <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30">
           <div className="font-semibold">MPCPCT 2025</div>
           <div className="flex gap-2 items-center">
@@ -1305,143 +1413,165 @@ function ExamModeContent() {
           </div>
         )}
 
-        {/* Section Dropdown (Mobile) */}
-        <div className="lg:hidden border-b px-4 py-3 border-y-gray-200 bg-[#fff]">
-          <div className="relative">
-            <button 
-              className="w-full bg-white text-blue-700 px-4 py-3 border border-gray-300 rounded text-left flex justify-between items-center"
-              onClick={() => setShowSectionDropdown(!showSectionDropdown)}
-            >
-              <span>{section}</span>
-              <span>{showSectionDropdown ? "▲" : "▼"}</span>
-            </button>
-            {showSectionDropdown && (
-              <div className="absolute z-20 w-full bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto">
-                {sections.map((sec, index) => {
-                  const isCompleted = completedSections.has(sec.name);
-                  const isCurrentSection = section === sec.name;
-                  
-                  // Check if this section can be accessed
-                  const currentSectionIndex = sections.findIndex(s => s.name === section);
-                  const thisSectionIndex = index;
-                  const isPreviousSection = thisSectionIndex < currentSectionIndex;
-                  const isNextSection = thisSectionIndex > currentSectionIndex;
-                  const canAccess = isCurrentSection || 
-                    (isNextSection && completedSections.has(section)) ||
-                    (isPreviousSection && !isCompleted);
-                  const isLocked = !canAccess;
-                  
-                  return (
-                    <button
-                      key={sec._id}
-                      className={`w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center justify-between ${
-                        section === sec.name ? "bg-gray-200" : ""
-                      } ${isCompleted ? "bg-green-50" : ""} ${isLocked ? "bg-gray-100 opacity-50" : ""}`}
-                      onClick={() => {
-                        // Prevent navigation to locked sections
-                        if (isLocked || isCompleted) {
-                          if (isCompleted) {
-                            alert('This section is already completed and locked.');
-                          } else {
-                            alert('Please complete the current section before moving to the next section.');
-                          }
-                          return;
-                        }
+        {/* Section Nav (Mobile) - Horizontal tabs like desktop */}
+        <div className="lg:hidden flex flex-col border-b border-y-gray-200 bg-[#fff] sticky top-[40px] z-20 shadow-sm">
+          <div className="flex text-xs overflow-x-auto px-2 py-2 scroll-smooth">
+            {sections.map((sec, index) => {
+              const isCompleted = completedSections.has(sec.name);
+              const isCurrentSection = section === sec.name;
+              
+              // Check if this section can be accessed
+              const currentSectionIndex = sections.findIndex(s => s.name === section);
+              const thisSectionIndex = index;
+              const isPreviousSection = thisSectionIndex < currentSectionIndex;
+              const isNextSection = thisSectionIndex > currentSectionIndex;
+              const canAccess = isCurrentSection || 
+                (isNextSection && completedSections.has(section)) ||
+                (isPreviousSection && !isCompleted);
+              const isLocked = !canAccess;
+              
+              return (
+                <button
+                  key={sec._id}
+                  onClick={() => {
+                    // Prevent navigation to locked sections
+                    if (isLocked || isCompleted) {
+                      if (isCompleted) {
+                        alert('This section is already completed and locked.');
+                      } else {
+                        alert('Please complete the current section before moving to the next section.');
+                      }
+                      return;
+                    }
 
-                        // Check RSCIT eligibility: Section B requires Section A with minimum 12 marks
-                        if (examData?.key === 'RSCIT' && sec.name === 'Section B' && !completedSections.has('Section A')) {
-                          alert('Please complete Section A first before attempting Section B.');
-                          return;
-                        }
+                    // Check RSCIT eligibility: Section B requires Section A with minimum 12 marks
+                    if (examData?.key === 'RSCIT' && sec.name === 'Section B' && !completedSections.has('Section A')) {
+                      alert('Please complete Section A first before attempting Section B.');
+                      return;
+                    }
 
-                        // Check if Section A score >= 12 marks for RSCIT Section B
-                        if (examData?.key === 'RSCIT' && sec.name === 'Section B') {
-                          const sectionACompleted = completedSections.has('Section A');
-                          if (!sectionACompleted) {
-                            alert('Please complete Section A first before attempting Section B.');
-                            return;
-                          }
-                          
-                          // Check Section A score
-                          const sectionAAnswers = JSON.parse(localStorage.getItem('examAnswers') || '{}');
-                          const sectionAQuestions = questions['Section A'] || [];
-                          let sectionAScore = 0;
-                          sectionAQuestions.forEach(q => {
-                            const answer = sectionAAnswers[q._id];
-                            if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
-                              sectionAScore += (q.marks || 2);
-                            }
-                          });
-                          
-                          if (sectionAScore < 12) {
-                            alert(`You need minimum 12 marks in Section A to proceed to Section B. Your Section A score: ${sectionAScore} marks.`);
-                            return;
-                          }
+                    // Check if Section A score >= 12 marks for RSCIT Section B
+                    if (examData?.key === 'RSCIT' && sec.name === 'Section B') {
+                      const sectionACompleted = completedSections.has('Section A');
+                      if (!sectionACompleted) {
+                        alert('Please complete Section A first before attempting Section B.');
+                        return;
+                      }
+                      
+                      // Check Section A score
+                      const sectionAAnswers = JSON.parse(localStorage.getItem('examAnswers') || '{}');
+                      const sectionAQuestions = questions['Section A'] || [];
+                      let sectionAScore = 0;
+                      sectionAQuestions.forEach(q => {
+                        const answer = sectionAAnswers[q._id];
+                        if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
+                          sectionAScore += (q.marks || 2);
                         }
-                        // Save current timer state before switching sections
-                        const currentTime = timeLeft;
-                        localStorage.setItem('examTimeLeft', currentTime.toString());
-                        setSection(sec.name);
-                        setCurrentQuestionIndex(0);
-                        setShowSectionDropdown(false);
-                        // Reset selected part and set first part if available
-                        const sectionParts = parts.filter(p => {
-                          const pSectionId = String(p.sectionId).trim();
-                          const secIdStr = String(sec.id).trim();
-                          const secIdObj = String(sec._id).trim();
-                          return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
-                        }).sort((a, b) => (a.order || 0) - (b.order || 0));
-                        if (sectionParts.length > 0) {
-                          setSelectedPart(sectionParts[0].name);
-                        } else {
-                          setSelectedPart(null);
-                        }
-                        // Mark first question of selected section as visited
-                        const firstQuestion = questions[sec.name]?.[0];
-                        if (firstQuestion?._id) {
-                          setVisitedQuestions(prev => {
-                            const newSet = new Set([...prev, firstQuestion._id]);
-                            localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                            return newSet;
-                          });
-                        }
-                      }}
-                      disabled={isLocked || isCompleted}
-                    >
-                      <span>{sec.name}</span>
-                      {isCompleted && (
-                        <span className="text-green-600 font-bold">✓ Completed</span>
-                      )}
-                      {isLocked && !isCompleted && (
-                        <span className="text-gray-500 font-bold">🔒 Locked</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+                      });
+                      
+                      if (sectionAScore < 12) {
+                        alert(`You need minimum 12 marks in Section A to proceed to Section B. Your Section A score: ${sectionAScore} marks.`);
+                        return;
+                      }
+                    }
+                    // Save current timer state before switching sections
+                    const currentTime = timeLeft;
+                    localStorage.setItem('examTimeLeft', currentTime.toString());
+                    setSection(sec.name);
+                    setCurrentQuestionIndex(0);
+                    // Reset selected part and set first part if available
+                    const sectionParts = parts.filter(p => {
+                      const pSectionId = String(p.sectionId).trim();
+                      const secIdStr = String(sec.id).trim();
+                      const secIdObj = String(sec._id).trim();
+                      return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
+                    }).sort((a, b) => (a.order || 0) - (b.order || 0));
+                    if (sectionParts.length > 0) {
+                      setSelectedPart(sectionParts[0].name);
+                    } else {
+                      setSelectedPart(null);
+                    }
+                    // Mark first question of selected section as visited
+                    const firstQuestion = questions[sec.name]?.[0];
+                    if (firstQuestion?._id) {
+                      setVisitedQuestions(prev => {
+                        const newSet = new Set([...prev, firstQuestion._id]);
+                        localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                        return newSet;
+                      });
+                    }
+                  }}
+                  className={`${
+                    isCompleted
+                      ? "bg-green-600 text-white border-green-700 cursor-not-allowed opacity-75"
+                      : isLocked
+                      ? "bg-gray-300 text-gray-500 border-gray-400 cursor-not-allowed opacity-50"
+                      : section === sec.name
+                      ? "bg-[#290c52] text-white border-[#290c52]"
+                      : "bg-white text-[#290c52] border border-gray-300 hover:bg-gray-50"
+                  } px-3 py-2 whitespace-nowrap relative border-r text-xs font-medium min-w-[100px] flex items-center justify-center gap-1`}
+                  disabled={isLocked || isCompleted}
+                  title={isCompleted ? "Section completed and locked" : isLocked ? "Complete current section first" : ""}
+                >
+                  <span>{sec.name}</span>
+                  {isCompleted && (
+                    <span className="text-xs">✓</span>
+                  )}
+                  {isLocked && !isCompleted && (
+                    <span className="text-xs">🔒</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
-          <div className="flex items-center justify-end mt-2 gap-2">
-            <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
-              {isSoundOn ? "🔊" : "🔇"}
-            </button>
-            {isTypingSection && typingTimeLeft !== null ? (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
-                <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-blue-600">⏱️ Time Left:</span>
-                <b className="bg-blue-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(timeLeft)}</b>
-              </div>
-            )}
+          <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200">
+            <div className="flex items-center gap-2">
+              <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
+                {isSoundOn ? "🔊" : "🔇"}
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              {isTypingSection && typingTimeLeft !== null ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-orange-600">⏱️ Section Timer:</span>
+                  <b className="bg-orange-400 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(typingTimeLeft)}</b>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-blue-600">⏱️ Time Left:</span>
+                  <b className="bg-blue-400 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(timeLeft)}</b>
+                </div>
+              )}
+            </div>
           </div>
+          
+          {/* Parts Nav (Mobile) - Show below sections if current section has parts */}
+          {section && currentSectionParts.length > 0 && (
+            <div className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2">
+              <span className="px-2 py-1 font-semibold text-gray-700 whitespace-nowrap text-xs">Section:</span>
+              {currentSectionParts.map((part) => (
+                <button
+                  key={part._id}
+                  onClick={() => {
+                    setSelectedPart(part.name);
+                    setCurrentQuestionIndex(0);
+                  }}
+                  className={`${
+                    selectedPart === part.name
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-blue-700 hover:bg-gray-100 border-r border-gray-300"
+                  } px-3 py-1 whitespace-nowrap text-xs font-medium`}
+                >
+                  {part.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Section Nav (Desktop) */}
         <div className="hidden lg:flex flex-col border-b border-y-gray-200 bg-[#fff]">
-          <div className="flex text-xs overflow-x-auto pl-8">
+          <div className="flex text-xs overflow-x-auto pl-8 pb-2">
             {sections.map((sec, index) => {
               const isCompleted = completedSections.has(sec.name);
               const isCurrentSection = section === sec.name;
@@ -1535,9 +1665,9 @@ function ExamModeContent() {
                       : isLocked
                       ? "bg-gray-300 text-gray-500 border-gray-400 cursor-not-allowed opacity-50"
                       : section === sec.name
-                      ? "bg-[#290c52] text-white border-gray-300"
-                      : "bg-white text-blue-700 border-r border-gray-300 px-4 hover:bg-gray-50"
-                  } px-2 py-3 whitespace-nowrap relative`}
+                      ? "bg-[#290c52] text-white border-[#290c52]"
+                      : "bg-white text-[#290c52] border border-gray-300 hover:bg-gray-50"
+                  } px-4 py-3 whitespace-nowrap relative border-r`}
                   disabled={isLocked || isCompleted}
                   title={isCompleted ? "Section completed and locked" : isLocked ? "Complete current section first" : ""}
                 >
@@ -1578,7 +1708,7 @@ function ExamModeContent() {
           {/* Parts Nav (Desktop) - Show below sections if current section has parts */}
           {section && currentSectionParts.length > 0 && (
             <div className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50">
-              <span className="px-4 py-2 font-semibold text-gray-700 whitespace-nowrap">Parts1:</span>
+              <span className="px-4 py-2 font-semibold text-gray-700 whitespace-nowrap">Section:</span>
               {currentSectionParts.map((part) => (
                 <button
                   key={part._id}
@@ -1599,13 +1729,18 @@ function ExamModeContent() {
           )}
         </div>
         {section && currentQuestions && currentQuestions.length > 0 && (
-          <div className="flex gap-2 h-20 overflow-x-auto md:hidden ml-5">
+          <div 
+            ref={questionScrollContainerRef}
+            className="flex gap-2 h-20 overflow-x-auto md:hidden px-4 py-2 scroll-smooth bg-white border-b border-gray-200"
+            style={{ scrollBehavior: 'smooth' }}
+          >
             {currentQuestions.map((q, i) => {
               const isAnswered = selectedAnswers[q._id] !== undefined;
               const isCurrent = i === currentQuestionIndex;
               return (
                 <div
                   key={q._id}
+                  data-question-index={i}
                   className={`min-w-[2rem] h-8 flex items-center justify-center text-black text-sm font-semibold border border-black cursor-pointer ${
                     isCurrent ? "bg-red-600 text-white" : isAnswered ? "bg-green-400" : "bg-gray-300"
                   }`}
@@ -2170,7 +2305,7 @@ function ExamModeContent() {
           </div>
           <button 
             onClick={handleSubmitSection}
-            className="bg-green-800 hover:bg-cyan-700 text-white px-12 py-2 ml-2 text-[13px] rounded w-full md:hidden"
+            className="mobile-submit-btn bg-green-800 hover:bg-cyan-700 text-white px-12 py-2 ml-2 text-[13px] rounded w-full md:hidden whitespace-nowrap"
           >
             Submit Section
           </button>
@@ -2211,7 +2346,7 @@ function ExamModeContent() {
 
           {section && (
             <>
-              <div className="grid grid-cols-4 gap-2 mb-4">
+              <div ref={desktopQuestionPaletteRef} className="grid grid-cols-4 gap-2 mb-4 max-h-[400px] overflow-y-auto">
                 {currentQuestions && currentQuestions.length > 0 ? (
                   currentQuestions.map((q, i) => {
                     const isAnswered = selectedAnswers[q._id] !== undefined;
@@ -2220,6 +2355,7 @@ function ExamModeContent() {
                       return (
                         <div
                           key={q._id}
+                          data-question-index={i}
                           className={`w-8 h-8 flex items-center justify-center text-black text-sm font-semibold border border-black cursor-pointer ${
                             isCurrent ? "bg-red-600 text-white" : isAnswered ? "bg-green-400" : isVisited ? "bg-red-500 text-white" : "bg-gray-300"
                           }`}
@@ -2248,7 +2384,7 @@ function ExamModeContent() {
         
           <button 
             onClick={handleSubmitSection}
-            className="bg-green-800 hover:bg-cyan-700 text-white px-12 py-2 ml-2 mt-[-4] text-[13px] rounded"
+            className="desktop-submit-btn bg-green-800 hover:bg-cyan-700 text-white px-12 py-2 ml-2 mt-[-4] text-[13px] rounded whitespace-nowrap"
           >
             Submit Section
           </button>

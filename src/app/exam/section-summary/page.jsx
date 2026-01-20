@@ -37,13 +37,18 @@ function SectionSummaryContent() {
     const loadExamData = async () => {
       try {
         const examId = localStorage.getItem('currentExamId');
-        if (!examId) {
-          console.error('No exam ID found');
+        const topicId = localStorage.getItem('currentTopicId');
+        
+        if (!examId && !topicId) {
+          console.error('No exam ID or topic ID found');
           setLoading(false);
           return;
         }
 
-        const res = await fetch(`/api/exam-questions?examId=${examId}`);
+        const apiUrl = topicId 
+          ? `/api/exam-questions?topicId=${topicId}`
+          : `/api/exam-questions?examId=${examId}`;
+        const res = await fetch(apiUrl);
         if (res.ok) {
           const data = await res.json();
           if (data.success && data.data) {

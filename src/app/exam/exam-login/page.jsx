@@ -10,36 +10,43 @@ function StartTestPageContent() {
   const [city, setCity] = useState("");
   const [errors, setErrors] = useState({});
   const [examId, setExamId] = useState(null);
+  const [topicId, setTopicId] = useState(null);
   const [examType, setExamType] = useState(null);
   const [accessChecked, setAccessChecked] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
   const [accessError, setAccessError] = useState(null);
 
   useEffect(() => {
-    // Get exam ID and type from URL parameters
+    // Get exam ID, topic ID and type from URL parameters
     const examIdParam = searchParams.get('examId');
+    const topicIdParam = searchParams.get('topicId');
     const typeParam = searchParams.get('type');
     if (examIdParam) setExamId(examIdParam);
+    if (topicIdParam) setTopicId(topicIdParam);
     if (typeParam) setExamType(typeParam);
   }, [searchParams]);
 
-  // Check exam access when examId is available
+  // Check exam/topic access when examId or topicId is available
   useEffect(() => {
-    const checkExamAccess = async () => {
-      if (!examId) {
+    const checkAccess = async () => {
+      // If neither examId nor topicId, allow access (backward compatibility)
+      if (!examId && !topicId) {
         setAccessChecked(true);
-        setHasAccess(true); // Allow if no examId (backward compatibility)
+        setHasAccess(true);
         return;
       }
 
       try {
         setAccessChecked(false);
+        
+        // Check access for topic or exam
         const res = await fetch('/api/check-access', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            type: 'exam', 
+            type: topicId ? 'topic' : 'exam', 
             examId: examId,
+            topicId: topicId,
             examType: examType 
           }),
           credentials: 'include'
@@ -61,7 +68,7 @@ function StartTestPageContent() {
           }
         }
       } catch (error) {
-        console.error('Error checking exam access:', error);
+        console.error('Error checking access:', error);
         setHasAccess(false);
         setAccessError('Error checking access. Please try again.');
       } finally {
@@ -69,8 +76,8 @@ function StartTestPageContent() {
       }
     };
 
-    checkExamAccess();
-  }, [examId, examType]);
+    checkAccess();
+  }, [examId, topicId, examType]);
 
   const handleStart = () => {
     // Check access first
@@ -93,9 +100,13 @@ function StartTestPageContent() {
       localStorage.removeItem('visitedQuestions');
       localStorage.removeItem('markedForReview');
       localStorage.removeItem('completedSections');
+      localStorage.removeItem('currentExamId');
+      localStorage.removeItem('currentTopicId');
       
-      // Store exam data in localStorage
-      if (examId) {
+      // Store exam or topic data in localStorage
+      if (topicId) {
+        localStorage.setItem('currentTopicId', topicId);
+      } else if (examId) {
         localStorage.setItem('currentExamId', examId);
       }
       if (examType) {

@@ -5,7 +5,7 @@ export default function ExamInstructions() {
   const [language, setLanguage] = useState("हिन्दी");
   const [userName, setUserName] = useState("User");
   const [examData, setExamData] = useState(null);
-  const [questionLanguage, setQuestionLanguage] = useState("English");
+  const [questionLanguage, setQuestionLanguage] = useState("हिन्दी");
   const [isAgreed, setIsAgreed] = useState(true);
   const [showError, setShowError] = useState(false);
 
@@ -21,6 +21,16 @@ export default function ExamInstructions() {
       } catch (error) {
         console.error('Error parsing user data:', error);
       }
+    }
+
+    // Load question language preference, default to Hindi
+    const savedLang = localStorage.getItem('questionLanguage');
+    if (savedLang) {
+      setQuestionLanguage(savedLang);
+    } else {
+      // Default to Hindi if no preference is saved
+      setQuestionLanguage("हिन्दी");
+      localStorage.setItem('questionLanguage', "हिन्दी");
     }
 
     // Load exam data from localStorage
@@ -173,12 +183,12 @@ export default function ExamInstructions() {
             <label className="flex items-start gap-2">
               <input 
                 type="checkbox" 
-                className="mt-1" 
+                className="mt-1 w-4 h-4 md:w-5 md:h-5 flex-shrink-0" 
                 checked={isAgreed}
                 onChange={(e) => setIsAgreed(e.target.checked)}
               />
 
-              <span className="text-[13px]">
+              <span className="text-[12px] md:text-[13px] leading-relaxed">
                 {language === "हिन्दी" || language === "Hindi" ? (
                   <>
                     <strong>घोषणा - mpcpctmaster.com :</strong> mpcpctmaster.com केवल सामान्य शैक्षिक उद्देश्यों के लिए मॉक टेस्ट प्रदान करता है और यह दावा नहीं करता कि ये वास्तविक परीक्षाओं की सामग्री या प्रारूप के समान हैं; कोई भी समानता केवल संयोग है। हम प्रश्नों या उत्तरों में अशुद्धताओं के लिए जिम्मेदार नहीं हैं, और इन परीक्षणों में प्रदर्शन वास्तविक परीक्षाओं में समान परिणामों की गारंटी नहीं देता है। इन्हें अपनी विवेकाधिकार पर उपयोग करें। हमारे मॉक टेस्ट का उपयोग करके, आप इन नियमों और शर्तों से सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया हमारी सेवाओं का उपयोग न करें। हमारे मॉक टेस्ट का उपयोग करके, आप हमारे नियमों और शर्तों से सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया हमारी सेवाओं का उपयोग न करें। अधिक जानकारी के लिए, कृपया हमारी विस्तृत <span className="text-blue-600">नियम और शर्तें </span>देखें।

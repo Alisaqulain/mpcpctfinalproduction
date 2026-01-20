@@ -1,8 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function TopicWiseInstructions() {
+function TopicWiseInstructionsContent() {
   const searchParams = useSearchParams();
   const [language, setLanguage] = useState("हिन्दी");
   const [userName, setUserName] = useState("User");
@@ -233,3 +233,14 @@ export default function TopicWiseInstructions() {
   );
 }
 
+export default function TopicWiseInstructions() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#290c52]"></div>
+      </div>
+    }>
+      <TopicWiseInstructionsContent />
+    </Suspense>
+  );
+}

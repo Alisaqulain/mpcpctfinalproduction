@@ -123,9 +123,10 @@ function ExamResultContent() {
         // Check if all sections are completed
         const savedCompletedSections = localStorage.getItem('completedSections');
         const examId = localStorage.getItem('currentExamId');
+        const topicId = localStorage.getItem('currentTopicId');
         
-        if (!examId) {
-          console.error('No exam ID found');
+        if (!examId && !topicId) {
+          console.error('No exam ID or topic ID found');
           setLoading(false);
           return;
         }
@@ -190,7 +191,10 @@ function ExamResultContent() {
         }
 
         // Fetch exam data
-        const res = await fetch(`/api/exam-questions?examId=${examId}`);
+        const apiUrl = topicId 
+          ? `/api/exam-questions?topicId=${topicId}`
+          : `/api/exam-questions?examId=${examId}`;
+        const res = await fetch(apiUrl);
         if (res.ok) {
           const data = await res.json();
           if (data.success && data.data) {
