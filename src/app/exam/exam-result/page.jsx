@@ -14,7 +14,7 @@ function ExamResultContent() {
   const [saving, setSaving] = useState(false);
   const [visitedQuestions, setVisitedQuestions] = useState(new Set());
   const [markedForReview, setMarkedForReview] = useState(new Set());
-  const [viewLanguage, setViewLanguage] = useState("English");
+  const [viewLanguage, setViewLanguage] = useState("हिन्दी");
   const [showAnswers, setShowAnswers] = useState(false); // Control whether to show answers or confirmation
   const [passingMarks, setPassingMarks] = useState(0);
   const [isPassed, setIsPassed] = useState(false);
@@ -22,6 +22,20 @@ function ExamResultContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const currentSection = searchParams?.get("section") || null;
+  
+  // Set default language to Hindi on mount
+  // For result page, always default to Hindi (user can change it if needed)
+  useEffect(() => {
+    // Check if viewLanguage was already set from exam mode
+    const savedViewLang = localStorage.getItem('viewLanguage');
+    if (savedViewLang === "हिन्दी") {
+      setViewLanguage("हिन्दी");
+    } else {
+      // Default to Hindi for result page
+      setViewLanguage("हिन्दी");
+      // Don't overwrite localStorage here - let user's choice persist if they change it
+    }
+  }, []);
   
   // Function to calculate passing marks and pass/fail status
   const calculatePassingStatus = (examKey, totalScore, totalMaxMarks, sectionStatsData) => {
@@ -188,6 +202,14 @@ function ExamResultContent() {
           } catch (error) {
             console.error('Error loading marked questions:', error);
           }
+        }
+
+        // View language is already set in the separate useEffect above
+        // Just ensure it's saved if not already set
+        const savedViewLang = localStorage.getItem('viewLanguage');
+        if (!savedViewLang) {
+          setViewLanguage("हिन्दी");
+          localStorage.setItem('viewLanguage', "हिन्दी");
         }
 
         // Fetch exam data
@@ -1087,10 +1109,14 @@ function ExamResultContent() {
               <select 
                 className="text-black text-xs bg-white px-2 py-1 rounded"
                 value={viewLanguage}
-                onChange={(e) => setViewLanguage(e.target.value)}
+                onChange={(e) => {
+                  const newLang = e.target.value;
+                  setViewLanguage(newLang);
+                  localStorage.setItem('viewLanguage', newLang);
+                }}
               >
-                <option value="English">English</option>
                 <option value="हिन्दी">हिन्दी</option>
+                <option value="English">English</option>
               </select>
             </div>
           </div>
