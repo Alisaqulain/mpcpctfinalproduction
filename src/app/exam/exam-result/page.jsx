@@ -1270,6 +1270,31 @@ function ExamResultContent() {
                             })}
                           </div>
                           
+                          {/* Explanation */}
+                          {(() => {
+                            const explanationText = (viewLanguage === "हिन्दी" && q.explanation_hi && q.explanation_hi.trim() !== '')
+                              ? q.explanation_hi
+                              : (q.explanation_en && q.explanation_en.trim() !== '')
+                              ? q.explanation_en
+                              : null;
+                            
+                            return explanationText ? (
+                              <div className="mt-4 p-4 bg-white border border-gray-200 rounded-lg">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <span className="text-sm font-semibold text-gray-800">
+                                    {viewLanguage === "हिन्दी" ? "व्याख्या:" : "Explanation:"}
+                                  </span>
+                                </div>
+                                <p className="text-sm md:text-base text-gray-800 leading-relaxed">
+                                  {explanationText}
+                                </p>
+                              </div>
+                            ) : null;
+                          })()}
+                          
                           {/* Solution Video Link */}
                           {q.solutionVideoLink && q.solutionVideoLink.trim() !== '' && (
                             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">

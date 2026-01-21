@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import TypingArea from "@/components/typing/TypingArea";
+import ExamTypingInterface from "@/components/typing/ExamTypingInterface";
 
 function ExamModeContent() {
   const [section, setSection] = useState("");
@@ -10,6 +11,7 @@ function ExamModeContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showSectionDropdown, setShowSectionDropdown] = useState(false);
   const [userName, setUserName] = useState("User");
+  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
   const [examData, setExamData] = useState(null);
   const [sections, setSections] = useState([]);
   const [parts, setParts] = useState([]);
@@ -33,6 +35,7 @@ function ExamModeContent() {
   const [pausedMainTime, setPausedMainTime] = useState(null);
   const [showNotEligibleModal, setShowNotEligibleModal] = useState(false);
   const [sectionAScore, setSectionAScore] = useState(0);
+  const [selectedKeyboardType, setSelectedKeyboardType] = useState(null);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [showQuestionPaperModal, setShowQuestionPaperModal] = useState(false);
   const [modalLanguage, setModalLanguage] = useState("हिन्दी");
@@ -65,6 +68,9 @@ function ExamModeContent() {
             const userData = JSON.parse(userDataStr);
             if (userData.name) {
               setUserName(userData.name);
+            }
+            if (userData.profileUrl || userData.profilePicture || userData.image) {
+              setUserProfileUrl(userData.profileUrl || userData.profilePicture || userData.image);
             }
           } catch (error) {
             console.error('Error parsing user data:', error);
@@ -617,6 +623,15 @@ function ExamModeContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sections.length, searchParams?.get('section')]); // Use stable dependencies to prevent infinite loop
 
+  // Reset selected keyboard type when question changes
+  useEffect(() => {
+    // Only run after currentQuestion is available
+    const question = getCurrentQuestion();
+    if (question && question.questionType === "TYPING") {
+      setSelectedKeyboardType(null); // Reset to use question's default
+    }
+  }, [currentQuestionIndex, section, selectedPart]);
+
   // Detect typing sections when section changes and set up typing timer
   useEffect(() => {
     if (!section || sections.length === 0 || !examData) {
@@ -633,30 +648,18 @@ function ExamModeContent() {
       console.log(`⏱️ Typing section detected: ${currentSectionData.name}, typing time: ${currentSectionData.typingTime} minutes`);
       setIsTypingSection(true);
       
-      // Check if there's a saved typing time in localStorage
-      const savedTypingTime = localStorage.getItem(`typingTimeLeft-${section}`);
-      let typingTimeToSet;
-      if (savedTypingTime) {
-        const savedTime = parseInt(savedTypingTime, 10);
-        if (savedTime > 0 && savedTime <= currentSectionData.typingTime * 60) {
-          typingTimeToSet = savedTime;
-          const m = Math.floor(typingTimeToSet / 60);
-          const s = typingTimeToSet % 60;
-          console.log(`⏱️ Restored typing time from localStorage: ${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
-        } else {
-          typingTimeToSet = currentSectionData.typingTime * 60;
-          const m = Math.floor(typingTimeToSet / 60);
-          const s = typingTimeToSet % 60;
-          console.log(`⏱️ Invalid saved time, setting fresh typing time: ${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
-        }
-      } else {
-        typingTimeToSet = currentSectionData.typingTime * 60;
-        const m = Math.floor(typingTimeToSet / 60);
-        const s = typingTimeToSet % 60;
-        console.log(`⏱️ No saved time, setting fresh typing time: ${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
-      }
+      // Always use 15 minutes for typing sections (English and Hindi) - ignore saved time
+      const typingTimeMinutes = 15;
+      const typingTimeToSet = typingTimeMinutes * 60; // Always 15 minutes (900 seconds)
+      
+      // Clear any old saved time and set fresh 15 minutes
+      localStorage.removeItem(`typingTimeLeft-${section}`);
       setTypingTimeLeft(typingTimeToSet);
       localStorage.setItem(`typingTimeLeft-${section}`, typingTimeToSet.toString());
+      
+      const m = Math.floor(typingTimeToSet / 60);
+      const s = typingTimeToSet % 60;
+      console.log(`⏱️ Setting typing time to 15 minutes: ${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
       
       setIsMainTimerPaused(true);
       // Save current main timer time so we can resume it later
@@ -1576,6 +1579,22 @@ function ExamModeContent() {
         <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30">
           <div className="font-semibold">MPCPCT 2025</div>
           <div className="flex gap-2 items-center">
+            {/* Timer - Show only in mobile and landscape for typing, not desktop */}
+            {currentQuestion?.questionType === "TYPING" && (
+              <div className="flex items-center gap-2 lg:hidden">
+                {isTypingSection && typingTimeLeft !== null ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-pink-300">⏱️ Section Timer:</span>
+                    <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(typingTimeLeft)}</b>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-blue-400">⏱️ Time Left:</span>
+                    <b className="bg-blue-400 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(timeLeft)}</b>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex items-center gap-2 pr-4">
               <img src="/lo.jpg" className="w-8 h-8 rounded-full border" />
             </div>
@@ -1594,17 +1613,17 @@ function ExamModeContent() {
           </div>
         </div>
 
-        {/* Exam Title (Mobile & Desktop) */}
+        {/* Exam Title (Mobile & Desktop) - Hidden in landscape for typing */}
         {examData && (
-          <div className="bg-white-50 border-b border-gray-300 px-2 md:px-4 py-2 md:py-4 mt-10 flex-shrink-0">
+          <div className={`bg-white-50 border-b border-gray-300 px-2 md:px-4 py-2 md:py-4 mt-10 flex-shrink-0 ${currentQuestion?.questionType === "TYPING" ? "landscape-hide" : ""}`}>
             <h2 className="text-sm md:text-lg lg:text-xl font-semibold text-[#290c52] text-center">
               {examData.title || 'Exam'}
             </h2>
           </div>
         )}
 
-        {/* Section Nav (Mobile) - Horizontal tabs like desktop */}
-        <div className="lg:hidden flex flex-col border-b border-y-gray-200 bg-[#fff] sticky top-[40px] z-20 shadow-sm">
+        {/* Section Nav (Mobile) - Horizontal tabs like desktop - Hidden in mobile for typing */}
+        <div className={`lg:hidden flex flex-col border-b border-y-gray-200 bg-[#fff] sticky top-[40px] z-20 shadow-sm ${currentQuestion?.questionType === "TYPING" ? "hidden" : ""}`}>
           <div 
             ref={sectionScrollContainerRef}
             className="flex text-xs overflow-x-auto px-2 py-2 scroll-smooth"
@@ -1728,8 +1747,8 @@ function ExamModeContent() {
             <div className="flex items-center gap-2">
             {isTypingSection && typingTimeLeft !== null ? (
               <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-orange-600">⏱️ Section Timer:</span>
-                  <b className="bg-orange-400 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(typingTimeLeft)}</b>
+                  <span className="text-xs font-semibold text-pink-300">⏱️ Section Timer:</span>
+                  <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(typingTimeLeft)}</b>
               </div>
             ) : (
               <div className="flex items-center gap-2">
@@ -1744,7 +1763,7 @@ function ExamModeContent() {
           {section && currentSectionParts.length > 0 && (
             <div 
               ref={partsScrollContainerRef}
-              className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2 scroll-smooth"
+              className="lg:hidden flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2 scroll-smooth"
               style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
             >
               <span className="px-2 py-1 font-semibold text-gray-700 whitespace-nowrap text-xs">Section:</span>
@@ -1765,11 +1784,34 @@ function ExamModeContent() {
                   {part.name}
                 </button>
               ))}
+              {/* Keyboard Dropdown - Show only for Hindi typing, in same row as Section, positioned center-right (Desktop only) */}
+              {(() => {
+                const question = getCurrentQuestion();
+                return question && question.questionType === "TYPING" && question.typingLanguage === "Hindi" && (
+                  <div className="hidden lg:flex items-center gap-2 ml-auto mr-2">
+                    <label className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-semibold whitespace-nowrap">
+                      Keyboard:
+                    </label>
+                    <select
+                      value={selectedKeyboardType || (question.typingScriptType && (question.typingScriptType.toLowerCase().includes("inscript") || question.typingScriptType === "Inscript") ? "Inscript" : "Remington Gail")}
+                      onChange={(e) => {
+                        const newKeyboardType = e.target.value;
+                        setSelectedKeyboardType(newKeyboardType);
+                      }}
+                      className="border border-gray-300 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[120px] cursor-pointer"
+                    >
+                      <option value="Remington Gail">Remington Gail</option>
+                      <option value="Inscript">Inscript</option>
+                    </select>
+                  </div>
+                );
+              })()}
             </div>
           )}
+          
         </div>
 
-        {/* Section Nav (Desktop) */}
+        {/* Section Nav (Desktop) - Always show on desktop, never hide */}
         <div className="hidden lg:flex flex-col border-b border-y-gray-200 bg-[#fff]">
           <div className="flex text-xs overflow-x-auto pl-8 pb-2">
             {sections.map((sec, index) => {
@@ -1888,13 +1930,13 @@ function ExamModeContent() {
               {/* For RSCIT Section A: Show typing timer, for others show main timer */}
               {examData?.key === 'RSCIT' && section === 'Section A' && typingTimeLeft !== null ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
-                  <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
+                  <span className="text-sm font-semibold text-pink-300">⏱️ Section Timer:</span>
+                  <b className="bg-pink-300 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
                 </div>
               ) : isTypingSection && typingTimeLeft !== null ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-orange-600">⏱️ Section Timer:</span>
-                  <b className="bg-orange-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
+                  <span className="text-sm font-semibold text-pink-300">⏱️ Section Timer:</span>
+                  <b className="bg-pink-300 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -1925,10 +1967,34 @@ function ExamModeContent() {
                   {part.name}
                 </button>
               ))}
+              {/* Keyboard Dropdown - Show only for Hindi typing, in same row as Section (Desktop), positioned center-right */}
+              {(() => {
+                const question = getCurrentQuestion();
+                return question && question.questionType === "TYPING" && question.typingLanguage === "Hindi" && (
+                  <div className="flex items-center gap-2 ml-auto mr-82
+">
+                    <label className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-semibold whitespace-nowrap">
+                      Keyboard:
+                    </label>
+                    <select
+                      value={selectedKeyboardType || (question.typingScriptType && (question.typingScriptType.toLowerCase().includes("inscript") || question.typingScriptType === "Inscript") ? "Inscript" : "Remington Gail")}
+                      onChange={(e) => {
+                        const newKeyboardType = e.target.value;
+                        setSelectedKeyboardType(newKeyboardType);
+                      }}
+                      className="border border-gray-300 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px] cursor-pointer"
+                    >
+                      <option value="Remington Gail">Remington Gail</option>
+                      <option value="Inscript">Inscript</option>
+                    </select>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>
-        {section && currentQuestions && currentQuestions.length > 0 && (
+        {/* Question Navigation - Hidden for typing questions */}
+        {section && currentQuestions && currentQuestions.length > 0 && currentQuestion?.questionType !== "TYPING" && (
           <div 
             ref={questionScrollContainerRef}
             className="flex gap-2 h-16 md:h-20 overflow-x-auto lg:hidden px-2 md:px-4 py-1 md:py-2 scroll-smooth bg-white border-b border-gray-200 flex-shrink-0"
@@ -1970,10 +2036,10 @@ function ExamModeContent() {
 
         {/* Question Panel */}
       <div className="flex-1 flex flex-col overflow-hidden bg-white-50 mt-0 md:mt-0 lg:overflow-auto lg:px-4 lg:pt-4 lg:pb-0">
-  {/* Fixed Top Bar */}
-  <div className="bg-[#290c52] text-white text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 rounded-t flex justify-between flex-wrap gap-2 flex-shrink-0">
-    <span>Question Type: {currentQuestion?.questionType === "TYPING" ? "TYPING" : "MCQ"}</span>
-    {currentQuestion?.questionType !== "TYPING" && (
+  {/* Fixed Top Bar - Hidden for typing questions */}
+  {currentQuestion?.questionType !== "TYPING" && (
+    <div className="bg-[#290c52] text-white text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 rounded-t flex justify-between flex-wrap gap-2 flex-shrink-0">
+      <span>Question Type: {currentQuestion?.questionType === "TYPING" ? "TYPING" : "MCQ"}</span>
       <div className="flex items-center gap-1 md:gap-2">
         <p className="text-xs">View in:</p>
         <select 
@@ -1989,8 +2055,8 @@ function ExamModeContent() {
           <option value="हिन्दी">हिन्दी</option>
         </select>
       </div>
-    )}
-  </div>
+    </div>
+  )}
 
   {/* Scrollable Content */}
   <div className="border-t border-gray-300 flex-1 flex flex-col min-h-0 overflow-y-auto lg:flex-initial">
@@ -2016,29 +2082,41 @@ function ExamModeContent() {
         )}
       </div>
     ) : currentQuestion?.questionType === "TYPING" ? (
-      // Typing Section UI
-      <div className="p-4 md:p-6 overflow-hidden">
-        <div className="bg-blue-50 p-4 rounded-lg mb-4">
-          <h2 className="text-lg font-semibold text-blue-800 mb-2">Typing Test - {section}</h2>
-          <ul className="text-blue-700 space-y-1 text-sm">
-            <li>• Language: {currentQuestion.typingLanguage}</li>
-            {currentQuestion.typingLanguage === "Hindi" && (
-              <li>• Script Type: {currentQuestion.typingScriptType || "Ramington Gail"}</li>
-            )}
-            <li>• Duration: {currentQuestion.typingDuration || 10} minutes</li>
-            <li>• Backspace: {currentQuestion.typingBackspaceEnabled !== false ? 'Enabled' : 'Disabled'}</li>
-            <li>• Type the text exactly as shown</li>
-          </ul>
-        </div>
-        <div className="w-full overflow-hidden">
-          <TypingArea
-            content={
-              currentQuestion.typingLanguage === "Hindi"
-                ? (currentQuestion.typingScriptType === "Inscript" 
-                    ? (currentQuestion.typingContent_hindi_inscript || currentQuestion.typingContent_hindi_ramington || "किताब ज्ञान का भंडार होती है। इनमें हर तरह का ज्ञान भरा होता है। ये मानव की सबसे बेहतरीन मित्र होती है।")
-                    : (currentQuestion.typingContent_hindi_ramington || "किताब ज्ञान का भंडार होती है। इनमें हर तरह का ज्ञान भरा होता है। ये मानव की सबसे बेहतरीन मित्र होती है।"))
-                : (currentQuestion.typingContent_english || "The quick brown fox jumps over the lazy dog. Practice typing to improve your speed and accuracy. This is a sample English typing test for RSCIT exam preparation. Type carefully and focus on accuracy. Speed will come with practice. Keep your fingers on the home row and maintain proper posture while typing.")
-            }
+      // Typing Section UI - New Design
+      <div className="h-full flex flex-col overflow-hidden min-h-0 landscape-typing-container">
+        {/* Keyboard Dropdown (Mobile and Landscape) - Show at top right for Hindi typing */}
+        {currentQuestion && currentQuestion.questionType === "TYPING" && currentQuestion.typingLanguage === "Hindi" && (
+          <div className="flex lg:hidden items-center justify-end gap-2 bg-gray-50 border-b border-gray-200 px-2 md:px-3 py-1 md:py-1.5 landscape-keyboard-dropdown">
+            <label className="bg-blue-600 text-white px-2 md:px-2.5 py-0.5 md:py-1 rounded text-[10px] md:text-xs font-semibold whitespace-nowrap">
+              Keyboard:
+            </label>
+            <select
+              value={selectedKeyboardType || (currentQuestion.typingScriptType && (currentQuestion.typingScriptType.toLowerCase().includes("inscript") || currentQuestion.typingScriptType === "Inscript") ? "Inscript" : "Remington Gail")}
+              onChange={(e) => {
+                const newKeyboardType = e.target.value;
+                setSelectedKeyboardType(newKeyboardType);
+              }}
+              className="border border-gray-300 rounded px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[100px] md:min-w-[120px] cursor-pointer"
+            >
+              <option value="Remington Gail">Remington Gail</option>
+              <option value="Inscript">Inscript</option>
+            </select>
+          </div>
+        )}
+        <ExamTypingInterface
+          content={
+            currentQuestion.typingLanguage === "Hindi"
+              ? (selectedKeyboardType === "Inscript" || (!selectedKeyboardType && (currentQuestion.typingScriptType === "Inscript" || (currentQuestion.typingScriptType && currentQuestion.typingScriptType.toLowerCase().includes("inscript"))))
+                  ? (currentQuestion.typingContent_hindi_inscript || currentQuestion.typingContent_hindi_ramington || "किताब ज्ञान का भंडार होती है। इनमें हर तरह का ज्ञान भरा होता है। ये मानव की सबसे बेहतरीन मित्र होती है।")
+                  : (currentQuestion.typingContent_hindi_ramington || "किताब ज्ञान का भंडार होती है। इनमें हर तरह का ज्ञान भरा होता है। ये मानव की सबसे बेहतरीन मित्र होती है।"))
+              : (currentQuestion.typingContent_english || "The quick brown fox jumps over the lazy dog. Practice typing to improve your speed and accuracy. This is a sample English typing test for RSCIT exam preparation. Type carefully and focus on accuracy. Speed will come with practice. Keep your fingers on the home row and maintain proper posture while typing.")
+          }
+          userName={userName}
+          userProfileUrl={userProfileUrl || "/lo.jpg"}
+          language={currentQuestion.typingLanguage || "English"}
+          scriptType={selectedKeyboardType || (currentQuestion.typingScriptType === "Inscript" || (currentQuestion.typingScriptType && currentQuestion.typingScriptType.toLowerCase().includes("inscript")) ? "Inscript" : (currentQuestion.typingScriptType === "Ramington Gail" || currentQuestion.typingScriptType === "Remington Gail" ? "Remington Gail" : (currentQuestion.typingLanguage === "Hindi" ? "Remington Gail" : null)))}
+          allowBackspace={currentQuestion.typingBackspaceEnabled !== false}
+          duration={15}
           onComplete={(result) => {
             console.log("Typing test completed:", result);
             
@@ -2080,14 +2158,15 @@ function ExamModeContent() {
             
             const typingResult = {
               typedText: result.typedText,
-              mistakes: result.mistakes,
+              mistakes: result.mistakes || result.errorCount || 0,
               backspaceCount: result.backspaceCount,
               wpm: result.wpm || 0,
               accuracy: result.accuracy || 100,
               netSpeed: netSpeed,
               errors: errorStrings,
               remarks: remarks,
-              timeTaken: result.timeTaken || (timeInMinutes * 60)
+              timeTaken: result.timeTaken || (timeInMinutes * 60),
+              keystrokesCount: result.keystrokesCount || 0
             };
             
             localStorage.setItem(typingResultKey, JSON.stringify(typingResult));
@@ -2099,13 +2178,14 @@ function ExamModeContent() {
               [currentQuestion._id]: {
                 type: "TYPING",
                 typedText: result.typedText,
-                mistakes: result.mistakes,
+                mistakes: result.mistakes || result.errorCount || 0,
                 backspaceCount: result.backspaceCount,
                 wpm: result.wpm || 0,
                 accuracy: result.accuracy || 0,
                 errors: errorStrings,
                 netSpeed: netSpeed,
-                remarks: remarks
+                remarks: remarks,
+                keystrokesCount: result.keystrokesCount || 0
               }
             }));
             
@@ -2122,14 +2202,7 @@ function ExamModeContent() {
             };
             localStorage.setItem(`typingProgress_${currentQuestion._id}`, JSON.stringify(progressData));
           }}
-          showTimer={false}
-          duration={currentQuestion.typingDuration || 10}
-          allowBackspace={currentQuestion.typingBackspaceEnabled !== false}
-          language={currentQuestion.typingLanguage || "English"}
-          scriptType={currentQuestion.typingLanguage === "Hindi" ? (currentQuestion.typingScriptType || "Ramington Gail") : null}
-          mode="word"
         />
-        </div>
       </div>
     ) : (
       <>
@@ -2355,10 +2428,11 @@ function ExamModeContent() {
   
 </div>
 
-        {/* Footer */}
-        <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-t border-gray-300 flex-shrink-0">
-          {/* Mobile: 2x2 Grid Layout */}
-          <div className="lg:hidden grid grid-cols-2 gap-2">
+        {/* Footer - Hidden for typing questions */}
+        {currentQuestion?.questionType !== "TYPING" && (
+          <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-t border-gray-300 flex-shrink-0">
+            {/* Mobile: 2x2 Grid Layout */}
+            <div className="lg:hidden grid grid-cols-2 gap-2">
             {/* Top Left: Mark for Review & Next */}
             <button 
               className="px-2 py-2 bg-purple-600 text-white rounded text-xs whitespace-nowrap"
@@ -2416,34 +2490,36 @@ function ExamModeContent() {
             >
               Clear Response
             </button>
-            {/* Bottom Left: Previous */}
-            <button 
-              className="bg-blue-900 hover:bg-blue-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50"
-              disabled={currentQuestionIndex === 0 && section === sections[0]?.name}
-              onClick={() => {
-                if (currentQuestionIndex > 0) {
-                  setCurrentQuestionIndex(currentQuestionIndex - 1);
-                } else if (sections.length > 0) {
-                  const currentSectionIndex = sections.findIndex(s => s.name === section);
-                  if (currentSectionIndex > 0) {
-                    const prevSection = sections[currentSectionIndex - 1];
-                    setSection(prevSection.name);
-                    const prevIndex = (questions[prevSection.name]?.length || 1) - 1;
-                    setCurrentQuestionIndex(prevIndex);
-                    const prevQuestion = questions[prevSection.name]?.[prevIndex];
-                    if (prevQuestion?._id) {
-                      setVisitedQuestions(prev => {
-                        const newSet = new Set([...prev, prevQuestion._id]);
-                        localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                        return newSet;
-                      });
+            {/* Bottom Left: Previous - Hidden for typing questions */}
+            {currentQuestion?.questionType !== "TYPING" && (
+              <button 
+                className="bg-blue-900 hover:bg-blue-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50"
+                disabled={currentQuestionIndex === 0 && section === sections[0]?.name}
+                onClick={() => {
+                  if (currentQuestionIndex > 0) {
+                    setCurrentQuestionIndex(currentQuestionIndex - 1);
+                  } else if (sections.length > 0) {
+                    const currentSectionIndex = sections.findIndex(s => s.name === section);
+                    if (currentSectionIndex > 0) {
+                      const prevSection = sections[currentSectionIndex - 1];
+                      setSection(prevSection.name);
+                      const prevIndex = (questions[prevSection.name]?.length || 1) - 1;
+                      setCurrentQuestionIndex(prevIndex);
+                      const prevQuestion = questions[prevSection.name]?.[prevIndex];
+                      if (prevQuestion?._id) {
+                        setVisitedQuestions(prev => {
+                          const newSet = new Set([...prev, prevQuestion._id]);
+                          localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                          return newSet;
+                        });
+                      }
                     }
                   }
-                }
-              }}
-            >
-              Previous
-            </button>
+                }}
+              >
+                Previous
+              </button>
+            )}
             {/* Bottom Right: Save & Next */}
             <button 
               className={`bg-green-600 hover:bg-cyan-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${isLastQuestion() ? 'bg-green-600' : ''}`}
@@ -2566,33 +2642,36 @@ function ExamModeContent() {
               </button>
             </div>
             <div className="space-x-2">
-              <button 
-                className="bg-blue-900 hover:bg-blue-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap disabled:opacity-50"
-                disabled={currentQuestionIndex === 0 && section === sections[0]?.name}
-                onClick={() => {
-                  if (currentQuestionIndex > 0) {
-                    setCurrentQuestionIndex(currentQuestionIndex - 1);
-                  } else if (sections.length > 0) {
-                    const currentSectionIndex = sections.findIndex(s => s.name === section);
-                    if (currentSectionIndex > 0) {
-                      const prevSection = sections[currentSectionIndex - 1];
-                      setSection(prevSection.name);
-                      const prevIndex = (questions[prevSection.name]?.length || 1) - 1;
-                      setCurrentQuestionIndex(prevIndex);
-                      const prevQuestion = questions[prevSection.name]?.[prevIndex];
-                      if (prevQuestion?._id) {
-                        setVisitedQuestions(prev => {
-                          const newSet = new Set([...prev, prevQuestion._id]);
-                          localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                          return newSet;
-                        });
+              {/* Previous button - Hidden for typing questions */}
+              {currentQuestion?.questionType !== "TYPING" && (
+                <button 
+                  className="bg-blue-900 hover:bg-blue-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap disabled:opacity-50"
+                  disabled={currentQuestionIndex === 0 && section === sections[0]?.name}
+                  onClick={() => {
+                    if (currentQuestionIndex > 0) {
+                      setCurrentQuestionIndex(currentQuestionIndex - 1);
+                    } else if (sections.length > 0) {
+                      const currentSectionIndex = sections.findIndex(s => s.name === section);
+                      if (currentSectionIndex > 0) {
+                        const prevSection = sections[currentSectionIndex - 1];
+                        setSection(prevSection.name);
+                        const prevIndex = (questions[prevSection.name]?.length || 1) - 1;
+                        setCurrentQuestionIndex(prevIndex);
+                        const prevQuestion = questions[prevSection.name]?.[prevIndex];
+                        if (prevQuestion?._id) {
+                          setVisitedQuestions(prev => {
+                            const newSet = new Set([...prev, prevQuestion._id]);
+                            localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
+                            return newSet;
+                          });
+                        }
                       }
                     }
-                  }
-                }}
-              >
-                Previous
-              </button>
+                  }}
+                >
+                  Previous
+                </button>
+              )}
               <button 
                 className={`bg-green-600 hover:bg-cyan-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${isLastQuestion() ? 'bg-green-600' : ''}`}
                 disabled={currentQuestion && currentQuestion.questionType !== "TYPING" && (selectedAnswers[currentQuestion._id] === undefined || selectedAnswers[currentQuestion._id] === null)}
@@ -2657,10 +2736,12 @@ function ExamModeContent() {
             </div>
           </div>
         </div>
+        )}
       </div>
 
-      {/* Sidebar - Desktop */}
-      <div className="hidden lg:block w-full lg:w-60 bg-blue-50 border-l shadow-lg max-h-[100vh] overflow-y-auto sticky top-0 mt-3">
+      {/* Sidebar - Desktop - Hidden for typing questions */}
+      {currentQuestion?.questionType !== "TYPING" && (
+        <div className="hidden lg:block w-full lg:w-60 bg-blue-50 border-l shadow-lg max-h-[100vh] overflow-y-auto sticky top-0 mt-3">
         <div className="p-4 text-sm h-full">
           <div className="flex flex-col items-center py-6">
             <img src="/lo.jpg" className="w-24 h-24 rounded-full border-2" />
@@ -2747,7 +2828,8 @@ function ExamModeContent() {
             Submit Section
           </button>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Not Eligible Modal */}
       {showNotEligibleModal && (

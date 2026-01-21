@@ -608,13 +608,6 @@ function TopicWiseMCQPageContent() {
                         </div>
                       ))}
                     </div>
-                    {q.explanation_en && (
-                      <div className="mt-2 p-2 bg-blue-50 rounded">
-                        <p className="text-sm">
-                          <strong>Explanation:</strong> {viewLanguage === "English" ? q.explanation_en : q.explanation_hi}
-                        </p>
-                      </div>
-                    )}
                   </div>
                 );
               })}

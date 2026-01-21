@@ -475,6 +475,8 @@ export default function AdminPanel() {
         body.marks = parseInt(formData.marks) || 1;
         body.negativeMarks = parseFloat(formData.negativeMarks) || 0;
         body.solutionVideoLink = formData.solutionVideoLink?.trim() || '';
+        body.explanation_en = formData.explanation_en?.trim() || '';
+        body.explanation_hi = formData.explanation_hi?.trim() || '';
       } else if (formData.questionType === 'TYPING') {
         body.typingLanguage = formData.typingLanguage || 'English';
         body.typingScriptType = formData.typingScriptType || '';
@@ -4077,7 +4079,9 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
     typingDuration: question?.typingDuration || 5,
     typingBackspaceEnabled: question?.typingBackspaceEnabled || false,
     isFree: question?.isFree || false,
-    solutionVideoLink: question?.solutionVideoLink || ''
+    solutionVideoLink: question?.solutionVideoLink || '',
+    explanation_en: question?.explanation_en || '',
+    explanation_hi: question?.explanation_hi || ''
   });
 
   // Update formData when question prop changes (for editing)
@@ -4120,7 +4124,9 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
         typingDuration: question.typingDuration || 5,
         typingBackspaceEnabled: question.typingBackspaceEnabled || false,
         isFree: question.isFree || false,
-        solutionVideoLink: question.solutionVideoLink || ''
+        solutionVideoLink: question.solutionVideoLink || '',
+        explanation_en: question.explanation_en || '',
+        explanation_hi: question.explanation_hi || ''
       });
     } else {
       // Reset form when creating new question
@@ -4143,7 +4149,9 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
     typingDuration: 5,
     typingBackspaceEnabled: false,
     isFree: false,
-    solutionVideoLink: ''
+    solutionVideoLink: '',
+    explanation_en: '',
+    explanation_hi: ''
   });
     }
   }, [question]);
@@ -4428,6 +4436,30 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
                   placeholder="https://drive.google.com/file/d/..."
                 />
                 <p className="text-xs text-gray-500 mt-1">Enter Google Drive link or any video URL for solution. This will be shown in the result page.</p>
+              </div>
+              
+              {/* Explanation Fields */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Explanation (English) - Optional</label>
+                <textarea
+                  value={formData.explanation_en || ''}
+                  onChange={(e) => setFormData({...formData, explanation_en: e.target.value})}
+                  className="w-full border rounded-lg px-4 py-2"
+                  rows="3"
+                  placeholder="Enter a brief explanation for the correct answer"
+                />
+                <p className="text-xs text-gray-500 mt-1">A one-liner explanation that will be shown in the result page below the options.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Explanation (Hindi) - Optional</label>
+                <textarea
+                  value={formData.explanation_hi || ''}
+                  onChange={(e) => setFormData({...formData, explanation_hi: e.target.value})}
+                  className="w-full border rounded-lg px-4 py-2"
+                  rows="3"
+                  placeholder="सही उत्तर के लिए एक संक्षिप्त व्याख्या दर्ज करें"
+                />
+                <p className="text-xs text-gray-500 mt-1">विकल्पों के नीचे परिणाम पृष्ठ पर दिखाई जाने वाली एक-पंक्ति व्याख्या।</p>
               </div>
             </>
           )}
@@ -8032,6 +8064,28 @@ function TopicWiseQuestionForm({ question, onSave, onCancel, saving, error }) {
             placeholder="https://drive.google.com/file/d/..."
           />
           <p className="text-xs text-gray-500 mt-1">Enter Google Drive link or any video URL for solution. This will be shown in the result page.</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Explanation (English) - Optional</label>
+          <textarea
+            value={formData.explanation_en || ''}
+            onChange={(e) => setFormData({...formData, explanation_en: e.target.value})}
+            className="w-full border rounded px-3 py-2 text-sm"
+            rows="3"
+            placeholder="Enter a brief explanation for the correct answer"
+          />
+          <p className="text-xs text-gray-500 mt-1">A one-liner explanation that will be shown in the result page below the options.</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Explanation (Hindi) - Optional</label>
+          <textarea
+            value={formData.explanation_hi || ''}
+            onChange={(e) => setFormData({...formData, explanation_hi: e.target.value})}
+            className="w-full border rounded px-3 py-2 text-sm"
+            rows="3"
+            placeholder="सही उत्तर के लिए एक संक्षिप्त व्याख्या दर्ज करें"
+          />
+          <p className="text-xs text-gray-500 mt-1">विकल्पों के नीचे परिणाम पृष्ठ पर दिखाई जाने वाली एक-पंक्ति व्याख्या।</p>
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Difficulty</label>

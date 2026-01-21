@@ -147,6 +147,8 @@ export async function POST(req) {
         negativeMarks: parseFloat(body.negativeMarks) || 0,
         isFree: body.isFree === true || body.isFree === 'true',
         solutionVideoLink: body.solutionVideoLink?.trim() || undefined,
+        explanation_en: body.explanation_en?.trim() || undefined,
+        explanation_hi: body.explanation_hi?.trim() || undefined,
       };
       
       // CRITICAL: Add imageUrl separately to ensure it's included
