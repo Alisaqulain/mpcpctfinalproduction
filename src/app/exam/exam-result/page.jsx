@@ -724,15 +724,39 @@ function ExamResultContent() {
         {currentSection ? `Section Summary: ${currentSection}` : 'Exam Summary'}
       </h1>
       
-      {/* Download PDF Button - Only show for full exam summary */}
+      {/* Download PDF Button and View Official Result - Only show for full exam summary */}
       {!currentSection && (
-        <div className="text-center mb-4">
-          <button
-            onClick={handleDownloadPDF}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
-          >
-            Download PDF
-          </button>
+        <div className="text-center mb-4 flex flex-col items-center gap-3">
+          <div className="flex gap-3">
+            <button
+              onClick={handleDownloadPDF}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
+            >
+              Download PDF
+            </button>
+            {examData?.key && (
+              <button
+                onClick={() => {
+                  let resultPath = '';
+                  if (examData.key === 'CCC') {
+                    resultPath = '/result/ccc';
+                  } else if (examData.key === 'RSCIT') {
+                    resultPath = '/result/rscit';
+                  } else if (examData.key === 'CPCT') {
+                    resultPath = '/result/score-card';
+                  } else if (examData.key === 'TOPICWISE') {
+                    resultPath = '/result/topic';
+                  }
+                  if (resultPath) {
+                    router.push(resultPath);
+                  }
+                }}
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
+              >
+                View Official Result Certificate
+              </button>
+            )}
+          </div>
         </div>
       )}
 

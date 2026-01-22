@@ -2,15 +2,15 @@
 import React, { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 
-export default function RscitResult() {
+export default function TopicWiseResult() {
   const [userName, setUserName] = useState("User");
-  const [examData, setExamData] = useState(null);
+  const [topicData, setTopicData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [theoryScore, setTheoryScore] = useState(0);
-  const [internalScore, setInternalScore] = useState(0);
-  const [theoryMax, setTheoryMax] = useState(70);
-  const [internalMax, setInternalMax] = useState(30);
+  const [topicScore, setTopicScore] = useState(0);
+  const [topicMax, setTopicMax] = useState(100);
+  const [topicName, setTopicName] = useState("Topic");
   const [isPassed, setIsPassed] = useState(false);
+  const [grade, setGrade] = useState("");
 
   useEffect(() => {
     const loadResultData = async () => {
@@ -23,33 +23,22 @@ export default function RscitResult() {
           try {
             const profileResult = JSON.parse(profileResultDataStr);
             setUserName(profileResult.userName || "User");
-            // For RSCIT, we need to calculate from sectionStats
+            
+            // Get topic score from sectionStats or totalScore
             if (profileResult.sectionStats && profileResult.sectionStats.length > 0) {
-              const sectionA = profileResult.sectionStats.find(s => s.sectionName === 'Section A' || s.sectionName.includes('Theory'));
-              const sectionB = profileResult.sectionStats.find(s => s.sectionName === 'Section B' || s.sectionName.includes('Internal'));
-              
-              if (sectionA && sectionB) {
-                setTheoryScore(sectionA.score || 0);
-                setTheoryMax(sectionA.totalQuestions * 2 || 70);
-                setInternalScore(sectionB.score || 0);
-                setInternalMax(sectionB.totalQuestions * 2 || 30);
-              } else {
-                // Fallback: split total score
-                setTheoryScore(Math.floor(profileResult.totalScore * 0.7) || 0);
-                setInternalScore(Math.floor(profileResult.totalScore * 0.3) || 0);
-              }
-              
-              // RSCIT passing: Section A >= 12 AND Section B >= 28
-              const sectionAScore = sectionA ? (sectionA.score || 0) : Math.floor(profileResult.totalScore * 0.7);
-              const sectionBScore = sectionB ? (sectionB.score || 0) : Math.floor(profileResult.totalScore * 0.3);
-              setIsPassed(sectionAScore >= 12 && sectionBScore >= 28);
+              const topicSection = profileResult.sectionStats[0];
+              setTopicScore(topicSection.score || profileResult.totalScore || 0);
+              setTopicMax(topicSection.totalQuestions * (topicSection.score / topicSection.correct || 1) || profileResult.totalQuestions || 100);
             } else {
-              // Fallback calculation
-              setTheoryScore(Math.floor(profileResult.totalScore * 0.7) || 0);
-              setInternalScore(Math.floor(profileResult.totalScore * 0.3) || 0);
-              setIsPassed(profileResult.totalScore >= 40);
+              setTopicScore(profileResult.totalScore || 0);
+              setTopicMax(profileResult.totalQuestions || 100);
             }
-            setExamData({ title: profileResult.examTitle || 'RSCIT' });
+            
+            setTopicName(profileResult.examTitle || 'Topic');
+            const percentage = profileResult.percentage || ((profileResult.totalScore || 0) / (profileResult.totalQuestions || 100)) * 100;
+            setIsPassed(percentage >= 50);
+            setGrade(calculateGrade(percentage));
+            
             setLoading(false);
             localStorage.removeItem('profileResultData'); // Clean up
             return;
@@ -71,74 +60,47 @@ export default function RscitResult() {
           }
         }
 
-        // Load exam data
-        const examId = localStorage.getItem('currentExamId');
-        if (!examId) {
+        // Load topic data
+        const topicId = localStorage.getItem('currentTopicId');
+        if (!topicId) {
           setLoading(false);
           return;
         }
 
-        const res = await fetch(`/api/exam-questions?examId=${examId}`);
+        const res = await fetch(`/api/exam-questions?topicId=${topicId}`);
         if (res.ok) {
           const data = await res.json();
           if (data.success && data.data) {
-            setExamData(data.data.exam);
+            const exam = data.data.exam;
+            setTopicData(exam);
+            setTopicName(exam.title || 'Topic');
             
             // Load answers
-            const answersStr = localStorage.getItem('examAnswers');
+            const answersStr = localStorage.getItem(`topicwise-answers-${topicId}`) || localStorage.getItem('examAnswers');
             const loadedAnswers = answersStr ? JSON.parse(answersStr) : {};
             
-            // Calculate scores for Section A (Theory) and Section B (Internal)
-            const sections = data.data.sections || [];
-            const questionsBySection = {};
-            sections.forEach(sec => {
-              const sectionQuestions = data.data.allQuestions.filter(q => {
-                const qSectionId = String(q.sectionId).trim();
-                const secIdStr = String(sec.id).trim();
-                const secIdObj = String(sec._id).trim();
-                return qSectionId === secIdObj || qSectionId === secIdStr;
-              });
-              questionsBySection[sec.name] = sectionQuestions;
-            });
+            // Calculate score
+            const allQuestions = data.data.allQuestions || [];
+            let totalObtained = 0;
+            let totalMaximum = 0;
 
-            let theoryTotal = 0;
-            let theoryObtained = 0;
-            let internalTotal = 0;
-            let internalObtained = 0;
-
-            sections.forEach((sec, index) => {
-              const secQuestions = questionsBySection[sec.name] || [];
-              let sectionScore = 0;
-              let sectionMax = 0;
-
-              secQuestions.forEach(q => {
-                const marks = q.marks || 2; // RSCIT questions are 2 marks each
-                sectionMax += marks;
-                const answer = loadedAnswers[q._id];
-                if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
-                  sectionScore += marks;
-                }
-              });
-
-              // Section A (Theory) is typically first section, Section B (Internal) is second
-              if (index === 0 || sec.name.includes('Section A') || sec.name.includes('Theory')) {
-                theoryTotal = sectionMax;
-                theoryObtained = sectionScore;
-              } else if (index === 1 || sec.name.includes('Section B') || sec.name.includes('Internal')) {
-                internalTotal = sectionMax;
-                internalObtained = sectionScore;
+            allQuestions.forEach(q => {
+              const marks = q.marks || 1;
+              totalMaximum += marks;
+              const answer = loadedAnswers[q._id];
+              if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
+                totalObtained += marks;
               }
             });
 
-            setTheoryMax(theoryTotal || 70);
-            setInternalMax(internalTotal || 30);
-            setTheoryScore(theoryObtained);
-            setInternalScore(internalObtained);
+            setTopicMax(totalMaximum || 100);
+            setTopicScore(totalObtained);
 
-            // RSCIT passing criteria: Section A >= 12 AND Section B >= 28
-            const sectionAPassed = theoryObtained >= 12;
-            const sectionBPassed = internalObtained >= 28;
-            setIsPassed(sectionAPassed && sectionBPassed);
+            // Topic-wise passing criteria: 50% of total marks
+            const passingMarks = Math.ceil(totalMaximum * 0.5);
+            const percentage = totalMaximum > 0 ? ((totalObtained / totalMaximum) * 100) : 0;
+            setIsPassed(totalObtained >= passingMarks);
+            setGrade(calculateGrade(percentage));
           }
         }
       } catch (error) {
@@ -151,6 +113,15 @@ export default function RscitResult() {
     loadResultData();
   }, []);
 
+  const calculateGrade = (percentage) => {
+    if (percentage >= 85) return 'S';
+    if (percentage >= 75) return 'A';
+    if (percentage >= 65) return 'B';
+    if (percentage >= 55) return 'C';
+    if (percentage >= 50) return 'D';
+    return 'F';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -162,8 +133,8 @@ export default function RscitResult() {
     );
   }
 
-  const totalScore = theoryScore + internalScore;
-  const totalMax = theoryMax + internalMax;
+  const passingMarks = Math.ceil(topicMax * 0.5);
+  const percentage = topicMax > 0 ? ((topicScore / topicMax) * 100).toFixed(2) : 0;
 
   const handleDownloadPDF = () => {
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -189,7 +160,7 @@ export default function RscitResult() {
     pdf.text('RESULT', pageWidth / 2, yPos, { align: 'center' });
     yPos += 8;
     pdf.setFontSize(14);
-    pdf.text('Rscit Examination 2025-26', pageWidth / 2, yPos, { align: 'center' });
+    pdf.text('Topic Wise Exam 2025-26', pageWidth / 2, yPos, { align: 'center' });
     yPos += 15;
     
     // Details Table
@@ -237,7 +208,7 @@ export default function RscitResult() {
     pdf.setFont('helvetica', 'bold');
     pdf.text('Subject Name', 10 + colWidths[0]/2, yPos + 5, { align: 'center' });
     pdf.setFont('helvetica', 'normal');
-    pdf.text(examData?.title || 'RSCIT', 10 + colWidths[0] + (colWidths[1] + colWidths[2] + colWidths[3])/2, yPos + 5, { align: 'center' });
+    pdf.text(topicName, 10 + colWidths[0] + (colWidths[1] + colWidths[2] + colWidths[3])/2, yPos + 5, { align: 'center' });
     yPos += rowHeight;
     
     // Exam Centre
@@ -276,27 +247,16 @@ export default function RscitResult() {
     pdf.text('Obtained Marks', resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2] + resultColWidths[3]/2, yPos + 5, { align: 'center' });
     yPos += rowHeight;
     
-    // Theory Marks row
+    // Data row
     pdf.setFont('helvetica', 'normal');
     pdf.rect(resultStartX, yPos, resultColWidths[0], rowHeight);
     pdf.rect(resultStartX + resultColWidths[0], yPos, resultColWidths[1], rowHeight);
     pdf.rect(resultStartX + resultColWidths[0] + resultColWidths[1], yPos, resultColWidths[2], rowHeight);
     pdf.rect(resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2], yPos, resultColWidths[3], rowHeight);
-    pdf.text('Theory Marks', resultStartX + resultColWidths[0]/2, yPos + 5, { align: 'center' });
-    pdf.text(theoryMax.toString(), resultStartX + resultColWidths[0] + resultColWidths[1]/2, yPos + 5, { align: 'center' });
-    pdf.text('28', resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2]/2, yPos + 5, { align: 'center' });
-    pdf.text(theoryScore.toString(), resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2] + resultColWidths[3]/2, yPos + 5, { align: 'center' });
-    yPos += rowHeight;
-    
-    // Internal Marks row
-    pdf.rect(resultStartX, yPos, resultColWidths[0], rowHeight);
-    pdf.rect(resultStartX + resultColWidths[0], yPos, resultColWidths[1], rowHeight);
-    pdf.rect(resultStartX + resultColWidths[0] + resultColWidths[1], yPos, resultColWidths[2], rowHeight);
-    pdf.rect(resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2], yPos, resultColWidths[3], rowHeight);
-    pdf.text('Internal Marks', resultStartX + resultColWidths[0]/2, yPos + 5, { align: 'center' });
-    pdf.text(internalMax.toString(), resultStartX + resultColWidths[0] + resultColWidths[1]/2, yPos + 5, { align: 'center' });
-    pdf.text('12', resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2]/2, yPos + 5, { align: 'center' });
-    pdf.text(internalScore.toString(), resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2] + resultColWidths[3]/2, yPos + 5, { align: 'center' });
+    pdf.text(topicName.substring(0, 30), resultStartX + resultColWidths[0]/2, yPos + 5, { align: 'center' });
+    pdf.text(topicMax.toString(), resultStartX + resultColWidths[0] + resultColWidths[1]/2, yPos + 5, { align: 'center' });
+    pdf.text(passingMarks.toString(), resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2]/2, yPos + 5, { align: 'center' });
+    pdf.text(topicScore.toString(), resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2] + resultColWidths[3]/2, yPos + 5, { align: 'center' });
     yPos += rowHeight;
     
     // Total row
@@ -304,7 +264,14 @@ export default function RscitResult() {
     pdf.rect(resultStartX, yPos, resultColWidths[0], rowHeight);
     pdf.rect(resultStartX + resultColWidths[0], yPos, resultColWidths[1] + resultColWidths[2] + resultColWidths[3], rowHeight);
     pdf.text('Total', resultStartX + resultColWidths[0]/2, yPos + 5, { align: 'center' });
-    pdf.text(`${totalScore}/${totalMax}`, resultStartX + resultColWidths[0] + (resultColWidths[1] + resultColWidths[2] + resultColWidths[3])/2, yPos + 5, { align: 'center' });
+    pdf.text(`${topicScore}/${topicMax}`, resultStartX + resultColWidths[0] + (resultColWidths[1] + resultColWidths[2] + resultColWidths[3])/2, yPos + 5, { align: 'center' });
+    yPos += rowHeight;
+    
+    // Grade row
+    pdf.rect(resultStartX, yPos, resultColWidths[0], rowHeight);
+    pdf.rect(resultStartX + resultColWidths[0], yPos, resultColWidths[1] + resultColWidths[2] + resultColWidths[3], rowHeight);
+    pdf.text('Grade', resultStartX + resultColWidths[0]/2, yPos + 5, { align: 'center' });
+    pdf.text(grade, resultStartX + resultColWidths[0] + (resultColWidths[1] + resultColWidths[2] + resultColWidths[3])/2, yPos + 5, { align: 'center' });
     yPos += rowHeight;
     
     // Final Result row
@@ -322,7 +289,7 @@ export default function RscitResult() {
     pdf.text(`Date of Publication of Result: ${new Date().toLocaleDateString()}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
     
     // Save PDF
-    pdf.save(`RSCIT-Result-${userName}-${Date.now()}.pdf`);
+    pdf.save(`TopicWise-Result-${userName}-${Date.now()}.pdf`);
   };
 
   return (
@@ -394,7 +361,7 @@ export default function RscitResult() {
             className="w-16 sm:w-24 h-12 sm:h-20 border ml-2 absolute left-0 top-[19] md:top-1/2 transform -translate-y-1/2"
           />
           <p className="uppercase font-semibold text-xl sm:text-2xl">Result</p>
-          <p className="text-xl sm:text-2xl">Rscit Examination 2025-26</p>
+          <p className="text-xl sm:text-2xl">Topic Wise Exam 2025-26</p>
         </div>
 
         {/* Details Table */}
@@ -415,7 +382,7 @@ export default function RscitResult() {
               </tr>
               <tr className="border border-black">
                 <td className="border border-black px-1 sm:px-2 py-1 font-semibold">Subject Name</td>
-                <td className="border border-black px-1 sm:px-2 py-1" colSpan={3}>{examData?.title || 'RSCIT'}</td>
+                <td className="border border-black px-1 sm:px-2 py-1" colSpan={3}>{topicName}</td>
               </tr>
               <tr>
                 <td className="border border-black px-1 sm:px-2 py-1 font-semibold">Exam Centre Name</td>
@@ -441,20 +408,18 @@ export default function RscitResult() {
             </thead>
             <tbody>
               <tr>
-                <td className="border p-1 text-left">Theory Marks</td>
-                <td className="border p-1">{theoryMax}</td>
-                <td className="border p-1">28</td>
-                <td className="border p-1">{theoryScore}</td>
-              </tr>
-              <tr>
-                <td className="border p-1 text-left">Internal Marks</td>
-                <td className="border p-1">{internalMax}</td>
-                <td className="border p-1">12</td>
-                <td className="border p-1">{internalScore}</td>
+                <td className="border p-1 text-left font-semibold">{topicName}</td>
+                <td className="border p-1">{topicMax}</td>
+                <td className="border p-1">{passingMarks}</td>
+                <td className="border p-1">{topicScore}</td>
               </tr>
               <tr className="font-bold">
                 <td className="border p-1 text-left">Total</td>
-                <td colSpan="3" className="border p-1 text-left">{totalScore}/{totalMax}</td>
+                <td colSpan="3" className="border p-1 text-left">{topicScore}/{topicMax}</td>
+              </tr>
+              <tr className="font-bold">
+                <td className="border p-1 text-left">Grade</td>
+                <td colSpan="3" className="border p-1 text-left">{grade}</td>
               </tr>
               <tr className="font-bold">
                 <td className="border p-1 text-left">Final Result </td>
@@ -469,25 +434,31 @@ export default function RscitResult() {
         {/* Contact Info */}
         <div className="text-xs">
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse font-semibold">
+            <table className="w-full border-collapse border border-black font-semibold">
               <tbody>
                 <tr className="text-sm sm:text-lg">
-                  <td className="border-b p-1 text-center px-2 sm:px-10" colSpan={2}>For Queries about RSCIT Result</td>
-                  <td className="border-b border-l p-1 text-center" colSpan={2}> RSCIT Qualifying Criteria</td>
-                </tr>
-                <tr className="">
-                  <td className="p-1 text-left text-xs sm:text-[15px] pl-1 sm:pl-2" colSpan={2}>INCHARGE RSCIT Examination</td>
-                  <td className="border-l text-[15px] p-1" colSpan={2}>The Minimum Passing Score for </td>
+                  <td className="border p-1 text-center px-2 sm:px-20" colSpan={2}>For Queries about Topic Wise Result</td>
+                  <td className="border border-l p-1 text-center" colSpan={5}>Topic Wise Qualifying Criteria</td>
                 </tr>
                 <tr>
-                  <td className="p-1 text-left text-xs sm:text-[15px] pl-1 sm:pl-2" colSpan={2}>Website MPCPCT.Com</td>
-                  <td className="border-l p-1 pt-3 text-[15px]" colSpan={2}>each skill is 40% External (Theory) and </td>
+                  <td className="border p-1 text-left text-xs sm:text-[15px] pl-1 sm:pl-2" colSpan={2}>INCHARGE Topic Wise Examination</td>
+                  <td className="border p-1 text-[15px] text-center" colSpan={5}>Grade Legend</td>
                 </tr>
                 <tr>
-                  <td className=" p-1 text-left text-xs sm:text-[15px] pl-1 sm:pl-2" colSpan={2}>
-                    Add:A.B Road SJR 465001(M.P.)<br/>Email:mpcpct111@gmail.com
-                  </td>
-                  <td className="border-l pl-1  text-[15px]" colSpan={2}>Internal (Assessment) Exams  </td>
+                  <td className="border p-1 text-left text-xs sm:text-[15px] pl-1 sm:pl-2" colSpan={2}>Website MPCPCT.Com</td>
+                  <td className="border p-1 px-3">S</td>
+                  <td className="border p-1 text-center">A</td>
+                  <td className="border p-1 text-center">B</td>
+                  <td className="border p-1 text-center">C</td>
+                  <td className="border p-1 text-center">D</td>
+                </tr>
+                <tr>
+                  <td className="border p-1 text-left text-xs sm:text-[15px] pl-1 sm:pl-2" colSpan={2}>Add:A.B Road SJR 465001(M.P.)<br/>Email:mpcpct111@gmail.com</td>
+                  <td className="border p-1">85%</td>
+                  <td className="border p-1">75% - 64%</td>
+                  <td className="border p-1">65% - 74%</td>
+                  <td className="border p-1">55% - 64%</td>
+                  <td className="border p-1">50% - 54%</td>
                 </tr>
               </tbody>
             </table>

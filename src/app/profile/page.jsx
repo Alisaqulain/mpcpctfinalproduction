@@ -81,78 +81,228 @@ export default function ProfilePage() {
   }, [fetchProfile]);
 
   const handleDownloadPDF = async (result) => {
-    const pdf = new jsPDF();
+    const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     
-    // Header
-    pdf.setFillColor(41, 12, 82);
-    pdf.rect(0, 0, pageWidth, 20, 'F');
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(18);
-    pdf.text('MPCPCT 2025', pageWidth / 2, 12, { align: 'center' });
-    
-    // User Info
-    pdf.setTextColor(0, 0, 0);
-    pdf.setFontSize(14);
-    let yPos = 30;
-    pdf.text(`Name: ${result.userName}`, 10, yPos);
-    yPos += 10;
-    pdf.text(`Exam: ${result.examTitle}`, 10, yPos);
-    yPos += 10;
-    pdf.text(`Date: ${new Date(result.submittedAt).toLocaleDateString()}`, 10, yPos);
-    yPos += 15;
-    
-    // Section Statistics Table
-    pdf.setFontSize(12);
-    pdf.text('Exam Summary', pageWidth / 2, yPos, { align: 'center' });
-    yPos += 10;
-    
-    // Table headers
-    const headers = ['Section', 'Total', 'Answered', 'Correct', 'Score'];
-    const colWidths = [80, 25, 30, 30, 30];
-    let xPos = 10;
-    
-    pdf.setFontSize(10);
-    headers.forEach((header, i) => {
-      pdf.rect(xPos, yPos, colWidths[i], 8);
-      pdf.text(header, xPos + colWidths[i] / 2, yPos + 5, { align: 'center' });
-      xPos += colWidths[i];
-    });
-    yPos += 8;
-    
-    // Table rows
-    (result.sectionStats || []).forEach(stat => {
-      if (yPos > pageHeight - 30) {
-        pdf.addPage();
-        yPos = 20;
-      }
-      xPos = 10;
-      const rowData = [
-        stat.sectionName.substring(0, 25),
-        stat.totalQuestions.toString(),
-        stat.answered.toString(),
-        stat.correct.toString(),
-        stat.score.toString()
-      ];
-      rowData.forEach((data, i) => {
+    // For CCC exams, generate official certificate format
+    if (result.examKey === 'CCC') {
+      // Header with background
+      pdf.setFillColor(41, 12, 82);
+      pdf.rect(0, 0, pageWidth, 25, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('MPCPCT', pageWidth / 2, 12, { align: 'center' });
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('(To Help in typing & computer proficiency)', pageWidth / 2, 20, { align: 'center' });
+      
+      // Title
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      let yPos = 35;
+      pdf.text('RESULT', pageWidth / 2, yPos, { align: 'center' });
+      yPos += 8;
+      pdf.setFontSize(14);
+      pdf.text('CCC Examination 2025-26', pageWidth / 2, yPos, { align: 'center' });
+      yPos += 15;
+      
+      // Details Table
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const rowHeight = 8;
+      const colWidths = [45, 45, 45, 45];
+      
+      pdf.setDrawColor(0, 0, 0);
+      pdf.setLineWidth(0.1);
+      
+      // Name and Date row
+      pdf.setFont('helvetica', 'bold');
+      pdf.rect(10, yPos, colWidths[0], rowHeight);
+      pdf.rect(10 + colWidths[0], yPos, colWidths[1], rowHeight);
+      pdf.rect(10 + colWidths[0] + colWidths[1], yPos, colWidths[2], rowHeight);
+      pdf.rect(10 + colWidths[0] + colWidths[1] + colWidths[2], yPos, colWidths[3], rowHeight);
+      pdf.text('Name of Student', 10 + colWidths[0]/2, yPos + 5, { align: 'center' });
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(result.userName, 10 + colWidths[0] + colWidths[1]/2, yPos + 5, { align: 'center' });
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Result Date', 10 + colWidths[0] + colWidths[1] + colWidths[2]/2, yPos + 5, { align: 'center' });
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(new Date(result.submittedAt).toLocaleDateString(), 10 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, yPos + 5, { align: 'center' });
+      yPos += rowHeight;
+      
+      // Roll No and Time Duration
+      pdf.rect(10, yPos, colWidths[0], rowHeight);
+      pdf.rect(10 + colWidths[0], yPos, colWidths[1], rowHeight);
+      pdf.rect(10 + colWidths[0] + colWidths[1], yPos, colWidths[2], rowHeight);
+      pdf.rect(10 + colWidths[0] + colWidths[1] + colWidths[2], yPos, colWidths[3], rowHeight);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Roll No', 10 + colWidths[0]/2, yPos + 5, { align: 'center' });
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('-------', 10 + colWidths[0] + colWidths[1]/2, yPos + 5, { align: 'center' });
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Time Duration', 10 + colWidths[0] + colWidths[1] + colWidths[2]/2, yPos + 5, { align: 'center' });
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('', 10 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, yPos + 5, { align: 'center' });
+      yPos += rowHeight;
+      
+      // Subject Name
+      pdf.rect(10, yPos, colWidths[0], rowHeight);
+      pdf.rect(10 + colWidths[0], yPos, colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Subject Name', 10 + colWidths[0]/2, yPos + 5, { align: 'center' });
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(result.examTitle || 'CCC', 10 + colWidths[0] + (colWidths[1] + colWidths[2] + colWidths[3])/2, yPos + 5, { align: 'center' });
+      yPos += rowHeight;
+      
+      // Exam Centre
+      pdf.rect(10, yPos, colWidths[0], rowHeight);
+      pdf.rect(10 + colWidths[0], yPos, colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Exam Centre Name', 10 + colWidths[0]/2, yPos + 5, { align: 'center' });
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('MPCPCT', 10 + colWidths[0] + (colWidths[1] + colWidths[2] + colWidths[3])/2, yPos + 5, { align: 'center' });
+      yPos += rowHeight;
+      
+      // Result header
+      pdf.setFont('helvetica', 'bold');
+      pdf.rect(10, yPos, pageWidth - 20, rowHeight);
+      pdf.text('Result', pageWidth / 2, yPos + 5, { align: 'center' });
+      yPos += rowHeight + 5;
+      
+      // Result Table
+      pdf.setFontSize(12);
+      const resultColWidths = [50, 40, 50, 50];
+      const resultStartX = 10;
+      const passingMarks = 50;
+      const isPassed = result.totalScore >= passingMarks;
+      
+      // Header
+      pdf.setFillColor(200, 200, 200);
+      pdf.rect(resultStartX, yPos, resultColWidths[0], rowHeight, 'F');
+      pdf.rect(resultStartX + resultColWidths[0], yPos, resultColWidths[1], rowHeight, 'F');
+      pdf.rect(resultStartX + resultColWidths[0] + resultColWidths[1], yPos, resultColWidths[2], rowHeight, 'F');
+      pdf.rect(resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2], yPos, resultColWidths[3], rowHeight, 'F');
+      pdf.setFillColor(255, 255, 255);
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(10);
+      pdf.text('Sections', resultStartX + resultColWidths[0]/2, yPos + 5, { align: 'center' });
+      pdf.text('Maximum Marks', resultStartX + resultColWidths[0] + resultColWidths[1]/2, yPos + 5, { align: 'center' });
+      pdf.text('Minimum Pass Marks', resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2]/2, yPos + 5, { align: 'center' });
+      pdf.text('Obtained Marks', resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2] + resultColWidths[3]/2, yPos + 5, { align: 'center' });
+      yPos += rowHeight;
+      
+      // Data row
+      pdf.setFont('helvetica', 'normal');
+      pdf.rect(resultStartX, yPos, resultColWidths[0], rowHeight);
+      pdf.rect(resultStartX + resultColWidths[0], yPos, resultColWidths[1], rowHeight);
+      pdf.rect(resultStartX + resultColWidths[0] + resultColWidths[1], yPos, resultColWidths[2], rowHeight);
+      pdf.rect(resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2], yPos, resultColWidths[3], rowHeight);
+      pdf.text('CCC Marks', resultStartX + resultColWidths[0]/2, yPos + 5, { align: 'center' });
+      pdf.text(result.totalQuestions.toString(), resultStartX + resultColWidths[0] + resultColWidths[1]/2, yPos + 5, { align: 'center' });
+      pdf.text(passingMarks.toString(), resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2]/2, yPos + 5, { align: 'center' });
+      pdf.text(result.totalScore.toString(), resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2] + resultColWidths[3]/2, yPos + 5, { align: 'center' });
+      yPos += rowHeight;
+      
+      // Total row
+      pdf.setFont('helvetica', 'bold');
+      pdf.rect(resultStartX, yPos, resultColWidths[0], rowHeight);
+      pdf.rect(resultStartX + resultColWidths[0], yPos, resultColWidths[1] + resultColWidths[2] + resultColWidths[3], rowHeight);
+      pdf.text('Total', resultStartX + resultColWidths[0]/2, yPos + 5, { align: 'center' });
+      pdf.text(`${result.totalScore}/${result.totalQuestions}`, resultStartX + resultColWidths[0] + (resultColWidths[1] + resultColWidths[2] + resultColWidths[3])/2, yPos + 5, { align: 'center' });
+      yPos += rowHeight;
+      
+      // Final Result row
+      pdf.rect(resultStartX, yPos, resultColWidths[0] + resultColWidths[1] + resultColWidths[2], rowHeight);
+      pdf.rect(resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2], yPos, resultColWidths[3], rowHeight);
+      pdf.text('Final Result', resultStartX + (resultColWidths[0] + resultColWidths[1] + resultColWidths[2])/2, yPos + 5, { align: 'center' });
+      pdf.setTextColor(isPassed ? 0 : 255, isPassed ? 128 : 0, 0);
+      pdf.text(isPassed ? 'PASS' : 'FAIL', resultStartX + resultColWidths[0] + resultColWidths[1] + resultColWidths[2] + resultColWidths[3]/2, yPos + 5, { align: 'center' });
+      yPos += 15;
+      
+      // Footer
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Date of Publication of Result: ${new Date(result.submittedAt).toLocaleDateString()}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+      
+      // Save PDF
+      const fileName = `CCC-Result-${result.userName}-${Date.now()}.pdf`;
+      pdf.save(fileName);
+    } else {
+      // For other exams, use the original summary format
+      // Header
+      pdf.setFillColor(41, 12, 82);
+      pdf.rect(0, 0, pageWidth, 20, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(18);
+      pdf.text('MPCPCT 2025', pageWidth / 2, 12, { align: 'center' });
+      
+      // User Info
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(14);
+      let yPos = 30;
+      pdf.text(`Name: ${result.userName}`, 10, yPos);
+      yPos += 10;
+      pdf.text(`Exam: ${result.examTitle}`, 10, yPos);
+      yPos += 10;
+      pdf.text(`Date: ${new Date(result.submittedAt).toLocaleDateString()}`, 10, yPos);
+      yPos += 15;
+      
+      // Section Statistics Table
+      pdf.setFontSize(12);
+      pdf.text('Exam Summary', pageWidth / 2, yPos, { align: 'center' });
+      yPos += 10;
+      
+      // Table headers
+      const headers = ['Section', 'Total', 'Answered', 'Correct', 'Score'];
+      const colWidths = [80, 25, 30, 30, 30];
+      let xPos = 10;
+      
+      pdf.setFontSize(10);
+      headers.forEach((header, i) => {
         pdf.rect(xPos, yPos, colWidths[i], 8);
-        pdf.text(data, xPos + colWidths[i] / 2, yPos + 5, { align: 'center' });
+        pdf.text(header, xPos + colWidths[i] / 2, yPos + 5, { align: 'center' });
         xPos += colWidths[i];
       });
       yPos += 8;
-    });
-    
-    // Total
-    yPos += 5;
-    pdf.setFontSize(12);
-    pdf.text(`Total Score: ${result.totalScore} / ${result.totalQuestions}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 10;
-    pdf.text(`Percentage: ${result.percentage}%`, pageWidth / 2, yPos, { align: 'center' });
-    
-    // Save PDF
-    const fileName = `exam-result-${result.userName}-${result.examTitle}-${Date.now()}.pdf`;
-    pdf.save(fileName);
+      
+      // Table rows
+      (result.sectionStats || []).forEach(stat => {
+        if (yPos > pageHeight - 30) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        xPos = 10;
+        const rowData = [
+          stat.sectionName.substring(0, 25),
+          stat.totalQuestions.toString(),
+          stat.answered.toString(),
+          stat.correct.toString(),
+          stat.score.toString()
+        ];
+        rowData.forEach((data, i) => {
+          pdf.rect(xPos, yPos, colWidths[i], 8);
+          pdf.text(data, xPos + colWidths[i] / 2, yPos + 5, { align: 'center' });
+          xPos += colWidths[i];
+        });
+        yPos += 8;
+      });
+      
+      // Total
+      yPos += 5;
+      pdf.setFontSize(12);
+      pdf.text(`Total Score: ${result.totalScore} / ${result.totalQuestions}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 10;
+      pdf.text(`Percentage: ${result.percentage}%`, pageWidth / 2, yPos, { align: 'center' });
+      
+      // Save PDF
+      const fileName = `exam-result-${result.userName}-${result.examTitle}-${Date.now()}.pdf`;
+      pdf.save(fileName);
+    }
     
     // Mark PDF as downloaded in database
     if (result._id) {
@@ -442,6 +592,18 @@ export default function ProfilePage() {
                       )}
                     </div>
                     <div className="flex flex-col gap-2 items-end">
+                      <a
+                        href={
+                          result.examKey === 'CCC' ? '/result/ccc' :
+                          result.examKey === 'RSCIT' ? '/result/rscit' :
+                          result.examKey === 'CPCT' ? '/result/score-card' :
+                          result.examKey === 'TOPICWISE' ? '/result/topic' :
+                          '#'
+                        }
+                        className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors bg-green-500 hover:bg-green-600 text-white text-center"
+                      >
+                        View Official Result
+                      </a>
                       <button
                         onClick={() => handleDownloadPDF(result)}
                         className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
