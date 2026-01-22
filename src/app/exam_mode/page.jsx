@@ -9,11 +9,62 @@ function ExamModeContent() {
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
-      /* Landscape orientation - iPad-like view with maximum space for questions */
-      @media screen and (orientation: landscape) and (max-height: 600px) {
+      /* Mobile Landscape ONLY - Fix UI breaking issues */
+      @media screen and (max-width: 768px) and (orientation: landscape) {
         /* Hide exam title completely in landscape */
         .landscape-reduce-title {
           display: none !important;
+        }
+        
+        /* Hide section navigation (Section A, B, C tabs) in landscape */
+        .landscape-hide-sections,
+        .landscape-reduce-section-nav {
+          display: none !important;
+        }
+        
+        /* Hide parts navigation in landscape */
+        .landscape-hide-parts {
+          display: none !important;
+        }
+        
+        /* Hide subject tabs row in landscape */
+        .landscape-hide-subject-tabs {
+          display: none !important;
+        }
+        
+        /* Hide mobile menu button in landscape */
+        button.lg\\:hidden.fixed.top-1.left-2.z-50 {
+          display: none !important;
+        }
+        
+        /* Hide mobile sidebar in landscape */
+        div.lg\\:hidden.fixed.inset-0.z-40.bg-white {
+          display: none !important;
+        }
+        
+        /* Ensure question slider is visible */
+        .landscape-reduce-question-grid.flex {
+          display: flex !important;
+          visibility: visible !important;
+        }
+        
+        /* Timer is hidden by default - only show in landscape */
+        .landscape-reduce-timer {
+          display: none !important;
+        }
+        
+        /* Show timer ONLY in landscape mode */
+        .landscape-reduce-header .hidden.landscape-reduce-timer,
+        .landscape-reduce-header .landscape-reduce-timer {
+          display: flex !important;
+          visibility: visible !important;
+        }
+        
+        /* Increase button size a little and ensure at bottom */
+        .landscape-reduce-buttons {
+          padding: 0.35rem 0.6rem !important;
+          font-size: 0.65rem !important;
+          line-height: 1.2 !important;
         }
         
         /* Reduce header height to minimum */
@@ -22,6 +73,55 @@ function ExamModeContent() {
           font-size: 0.6rem !important;
           min-height: 22px !important;
           max-height: 22px !important;
+        }
+        
+        /* Ensure timer is visible in header - force display in landscape */
+        .landscape-reduce-timer {
+          display: flex !important;
+          visibility: visible !important;
+          align-items: center !important;
+        }
+        
+        /* Force timer to show in header for all question types in landscape */
+        .landscape-reduce-header .landscape-reduce-timer,
+        .landscape-reduce-header .landscape-reduce-timer > div,
+        .landscape-reduce-header .landscape-reduce-timer span,
+        .landscape-reduce-header .landscape-reduce-timer b {
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+        
+        /* Ensure timer container and all children are visible in landscape */
+        .landscape-reduce-header > div.flex.gap-2.items-center > .landscape-reduce-timer {
+          display: flex !important;
+          visibility: visible !important;
+          order: -1 !important;
+          margin-right: 0.5rem !important;
+        }
+        
+        /* Add top margin to main content area to account for fixed header */
+        div.flex-1.flex.flex-col.h-full.overflow-hidden {
+          margin-top: 22px !important;
+          padding-top: 0 !important;
+        }
+        
+        /* Add top margin to question panel to account for fixed header */
+        div.flex-1.flex.flex-col.overflow-hidden.bg-white-50 {
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+        }
+        
+        /* Add padding to question content to account for fixed buttons at bottom and ensure questions are visible */
+        .landscape-question-content {
+          padding-top: 0.75rem !important;
+          padding-bottom: 70px !important;
+          margin-top: 0 !important;
+        }
+        
+        /* Ensure question content area has proper spacing from top */
+        .landscape-question-content > *:first-child {
+          margin-top: 0.5rem !important;
         }
         
         /* Reduce question panel padding */
@@ -45,12 +145,20 @@ function ExamModeContent() {
           max-height: 20px !important;
         }
         
-        /* Reduce section navigation - make it very compact */
+        /* Hide section navigation (Section A, B, C tabs) in landscape */
+        .landscape-hide-sections,
         .landscape-reduce-section-nav {
-          padding: 0.1rem !important;
-          font-size: 0.55rem !important;
-          min-height: 22px !important;
-          max-height: 22px !important;
+          display: none !important;
+        }
+        
+        /* Hide parts navigation in landscape */
+        .landscape-hide-parts {
+          display: none !important;
+        }
+        
+        /* Hide subject tabs row in landscape */
+        .landscape-hide-subject-tabs {
+          display: none !important;
         }
         
         /* Reduce subject tabs */
@@ -61,35 +169,42 @@ function ExamModeContent() {
           max-height: 20px !important;
         }
         
-        /* Hide or minimize question numbers grid in landscape */
+        /* Show question numbers grid in landscape - make it visible and properly sized */
         .landscape-reduce-question-grid {
-          gap: 0.1rem !important;
-          padding: 0.1rem !important;
-          margin-bottom: 0.15rem !important;
-          max-height: 30px !important;
+          display: grid !important;
+          visibility: visible !important;
+          gap: 0.2rem !important;
+          padding: 0.25rem !important;
+          margin-bottom: 0.25rem !important;
+          max-height: 40px !important;
           overflow-y: hidden !important;
+          overflow-x: auto !important;
         }
         
         .landscape-reduce-question-grid > div,
         .landscape-reduce-question-grid button {
-          padding: 0.1rem !important;
-          font-size: 0.5rem !important;
-          min-width: 1rem !important;
-          min-height: 1rem !important;
-          width: 1rem !important;
-          height: 1rem !important;
+          padding: 0.2rem !important;
+          font-size: 0.65rem !important;
+          min-width: 1.75rem !important;
+          min-height: 1.75rem !important;
+          width: 1.75rem !important;
+          height: 1.75rem !important;
         }
         
-        /* Hide question navigation strip in landscape */
-        div[ref*="questionScrollContainerRef"] {
-          max-height: 24px !important;
-          padding: 0.1rem !important;
+        /* Show question navigation strip in landscape - make it visible and properly sized */
+        .landscape-reduce-question-grid.flex {
+          display: flex !important;
+          visibility: visible !important;
+          max-height: 40px !important;
+          padding: 0.25rem !important;
+          height: 40px !important;
+          flex-shrink: 0 !important;
         }
         
-        div[ref*="questionScrollContainerRef"] > div {
-          min-width: 1rem !important;
-          height: 1rem !important;
-          font-size: 0.5rem !important;
+        .landscape-reduce-question-grid.flex > div {
+          min-width: 1.75rem !important;
+          height: 1.75rem !important;
+          font-size: 0.65rem !important;
         }
         
         /* Reduce passage height significantly */
@@ -124,20 +239,29 @@ function ExamModeContent() {
           max-height: 20vh !important;
         }
         
-        /* Reduce buttons - make them very compact and align in one row */
+        /* Increase button size a little and ensure at bottom */
         .landscape-reduce-buttons {
-          padding: 0.2rem 0.4rem !important;
-          font-size: 0.55rem !important;
-          line-height: 1.1 !important;
+          padding: 0.4rem 0.7rem !important;
+          font-size: 0.7rem !important;
+          line-height: 1.2 !important;
         }
         
-        /* Force buttons to be in one line in landscape */
+        /* Force buttons to be in one line in landscape and fixed at bottom */
         .landscape-buttons-container {
           display: flex !important;
           flex-direction: row !important;
           flex-wrap: nowrap !important;
-          gap: 0.25rem !important;
-          padding: 0.25rem !important;
+          gap: 0.3rem !important;
+          padding: 0.4rem !important;
+          position: fixed !important;
+          bottom: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+          background: white !important;
+          border-top: 1px solid #e5e7eb !important;
+          z-index: 25 !important;
           min-height: auto !important;
         }
         
@@ -147,8 +271,8 @@ function ExamModeContent() {
           white-space: nowrap !important;
           overflow: hidden !important;
           text-overflow: ellipsis !important;
-          padding: 0.2rem 0.4rem !important;
-          font-size: 0.55rem !important;
+          padding: 0.4rem 0.7rem !important;
+          font-size: 0.7rem !important;
         }
         
         /* Reduce timer */
@@ -162,9 +286,34 @@ function ExamModeContent() {
           padding: 0.1rem 0.25rem !important;
         }
         
-        /* Ensure question content area has maximum space */
+        /* Ensure question content area has maximum space and is visible */
         .flex-1.flex.flex-col.overflow-hidden {
           min-height: 0 !important;
+          height: auto !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        
+        /* Make sure scrollable content area is visible and optimized */
+        .landscape-question-content {
+          min-height: 0 !important;
+          height: auto !important;
+          max-height: calc(100vh - 200px) !important;
+          overflow-y: auto !important;
+          display: flex !important;
+          flex-direction: column !important;
+          flex: 1 1 auto !important;
+        }
+        
+        /* Ensure question content is visible */
+        .landscape-question-content > * {
+          flex-shrink: 0 !important;
+        }
+        
+        /* Ensure question display area is visible */
+        .landscape-question-content > div:not(.landscape-reduce-question-bar) {
+          display: block !important;
+          visibility: visible !important;
         }
         
         /* Reduce margins and padding throughout */
@@ -173,8 +322,187 @@ function ExamModeContent() {
         }
         
         /* Make sure scrollable content area is optimized */
-        div[class*="overflow-y-auto"] {
+        div[class*="overflow-y-auto"]:not(.landscape-reduce-passage) {
           padding: 0.25rem !important;
+        }
+        
+        /* Fix question panel container */
+        div.flex-1.flex.flex-col.overflow-hidden.bg-white-50 {
+          min-height: 0 !important;
+          height: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        
+        /* Ensure question text and options are visible */
+        .landscape-reduce-question-text,
+        .landscape-reduce-options {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+        
+        /* Fix image display */
+        .landscape-reduce-image {
+          display: block !important;
+          visibility: visible !important;
+        }
+        
+        
+        /* Fix main container - use proper height calculation */
+        div.h-screen.flex.flex-col {
+          height: 100dvh !important;
+          max-height: 100dvh !important;
+          overflow: hidden !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+        }
+        
+        /* Fix main wrapper container */
+        div.flex-1.flex.flex-col.h-full.overflow-hidden {
+          height: calc(100dvh - 22px) !important;
+          max-height: calc(100dvh - 22px) !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        
+        /* Fix fixed header - prevent overlap */
+        .landscape-reduce-header.fixed {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+          z-index: 30 !important;
+          flex-shrink: 0 !important;
+        }
+        
+        /* Fix sticky section nav - position below header */
+        .landscape-reduce-section-nav.sticky {
+          position: sticky !important;
+          top: 22px !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+          z-index: 20 !important;
+          flex-shrink: 0 !important;
+        }
+        
+        /* Prevent horizontal overflow on body */
+        body {
+          overflow-x: hidden !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+        }
+        
+        /* Prevent horizontal overflow on all elements */
+        * {
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+        }
+        
+        /* Fix question panel - proper height calculation */
+        div.flex-1.flex.flex-col.overflow-hidden.bg-white-50 {
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          height: auto !important;
+          max-height: calc(100dvh - 150px) !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+          overflow-x: hidden !important;
+          overflow-y: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        
+        /* Fix question content area - proper scrolling */
+        .landscape-question-content {
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          height: auto !important;
+          max-height: calc(100dvh - 200px) !important;
+          overflow-x: hidden !important;
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+        }
+        
+        /* Fix question navigation overflow - horizontal scroll only */
+        .landscape-reduce-question-grid.flex {
+          overflow-x: auto !important;
+          overflow-y: hidden !important;
+          -webkit-overflow-scrolling: touch !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+          flex-shrink: 0 !important;
+        }
+        
+        /* Fix subject tabs overflow - horizontal scroll only */
+        .landscape-reduce-subject-tabs {
+          overflow-x: auto !important;
+          overflow-y: hidden !important;
+          -webkit-overflow-scrolling: touch !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+          flex-shrink: 0 !important;
+        }
+        
+        /* Fix buttons container - no overflow, proper alignment */
+        .landscape-buttons-container {
+          width: 100% !important;
+          max-width: 100vw !important;
+          overflow-x: hidden !important;
+          flex-wrap: nowrap !important;
+          flex-shrink: 0 !important;
+          display: flex !important;
+          flex-direction: row !important;
+        }
+        
+        /* Ensure all question elements are visible */
+        .landscape-question-content p,
+        .landscape-question-content div:not(.landscape-reduce-question-bar),
+        .landscape-question-content label {
+          display: block !important;
+          visibility: visible !important;
+          max-width: 100% !important;
+        }
+        
+        /* Fix padding to prevent overflow */
+        .landscape-reduce-padding,
+        .landscape-reduce-question-text,
+        .landscape-reduce-options {
+          max-width: 100% !important;
+          word-wrap: break-word !important;
+          overflow-wrap: break-word !important;
+          overflow-x: hidden !important;
+        }
+        
+        /* Ensure images don't overflow */
+        .landscape-reduce-image,
+        .landscape-reduce-image img {
+          max-width: 100% !important;
+          width: auto !important;
+          height: auto !important;
+          display: block !important;
+        }
+        
+        /* Fix timer positioning - prevent overlap */
+        .landscape-reduce-timer {
+          white-space: nowrap !important;
+          flex-shrink: 0 !important;
+        }
+        
+        /* Fix exam title margin to prevent overlap */
+        .landscape-reduce-title {
+          margin-top: 22px !important;
+        }
+        
+        /* Ensure proper spacing between elements */
+        .landscape-reduce-top-bar,
+        .landscape-reduce-question-bar {
+          flex-shrink: 0 !important;
         }
       }
     `;
@@ -1759,22 +2087,20 @@ function ExamModeContent() {
         <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30 landscape-reduce-header">
           <div className="font-semibold">MPCPCT 2025</div>
           <div className="flex gap-2 items-center">
-            {/* Timer - Show only in mobile and landscape for typing, not desktop */}
-            {currentQuestion?.questionType === "TYPING" && (
-              <div className="flex items-center gap-2 lg:hidden">
-                {isTypingSection && typingTimeLeft !== null ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-pink-300">⏱️ Section Timer:</span>
-                    <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(typingTimeLeft)}</b>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-blue-400">⏱️ Time Left:</span>
-                    <b className="bg-blue-400 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(timeLeft)}</b>
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Timer - Show ONLY in landscape mode, positioned before View Instructions */}
+            <div className="hidden landscape-reduce-timer" style={{ order: -1 }}>
+              {isTypingSection && typingTimeLeft !== null ? (
+                <div className="flex items-center gap-2 landscape-reduce-timer">
+                  <span className="text-xs font-semibold text-pink-300 landscape-reduce-timer">⏱️ Section Timer:</span>
+                  <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold landscape-reduce-timer">{formatTime(typingTimeLeft)}</b>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 landscape-reduce-timer">
+                  <span className="text-xs font-semibold text-blue-400 landscape-reduce-timer">⏱️ Time Left:</span>
+                  <b className="bg-blue-400 text-black px-2 py-1 rounded text-sm font-bold landscape-reduce-timer">{formatTime(timeLeft)}</b>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-2 pr-4">
               <img src="/lo.jpg" className="w-8 h-8 rounded-full border" />
             </div>
@@ -1803,7 +2129,7 @@ function ExamModeContent() {
         )}
 
         {/* Section Nav (Mobile) - Horizontal tabs like desktop - Hidden in mobile for typing */}
-        <div className={`lg:hidden flex flex-col border-b border-y-gray-200 bg-[#fff] sticky top-[40px] z-20 shadow-sm landscape-reduce-section-nav ${currentQuestion?.questionType === "TYPING" ? "hidden" : ""}`}>
+        <div className={`lg:hidden flex flex-col border-b border-y-gray-200 bg-[#fff] sticky top-[40px] z-20 shadow-sm landscape-reduce-section-nav landscape-hide-sections ${currentQuestion?.questionType === "TYPING" ? "hidden" : ""}`}>
           <div 
             ref={sectionScrollContainerRef}
             className="flex text-xs overflow-x-auto px-2 py-2 scroll-smooth landscape-reduce-section-nav"
@@ -1926,14 +2252,14 @@ function ExamModeContent() {
             </div>
             <div className="flex items-center gap-2">
             {isTypingSection && typingTimeLeft !== null ? (
-              <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-pink-300">⏱️ Section Timer:</span>
-                  <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(typingTimeLeft)}</b>
+              <div className="flex items-center gap-2 landscape-reduce-timer">
+                  <span className="text-xs font-semibold text-pink-300 landscape-reduce-timer">⏱️ Section Timer:</span>
+                  <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold landscape-reduce-timer">{formatTime(typingTimeLeft)}</b>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-blue-600">⏱️ Time Left:</span>
-                  <b className="bg-blue-400 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(timeLeft)}</b>
+              <div className="flex items-center gap-2 landscape-reduce-timer">
+                  <span className="text-xs font-semibold text-blue-600 landscape-reduce-timer">⏱️ Time Left:</span>
+                  <b className="bg-blue-400 text-black px-2 py-1 rounded text-sm font-bold landscape-reduce-timer">{formatTime(timeLeft)}</b>
               </div>
             )}
           </div>
@@ -1943,7 +2269,7 @@ function ExamModeContent() {
           {section && currentSectionParts.length > 0 && (
             <div 
               ref={partsScrollContainerRef}
-              className="lg:hidden flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2 scroll-smooth landscape-reduce-subject-tabs"
+              className="lg:hidden flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2 scroll-smooth landscape-reduce-subject-tabs landscape-hide-parts"
               style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
             >
               <span className="px-2 py-1 font-semibold text-gray-700 whitespace-nowrap text-xs">Section:</span>
@@ -1993,7 +2319,7 @@ function ExamModeContent() {
 
         {/* Section Nav (Desktop) - Always show on desktop, never hide */}
         <div className="hidden lg:flex flex-col border-b border-y-gray-200 bg-[#fff]">
-          <div className="flex text-xs overflow-x-auto pl-8 pb-2 landscape-reduce-subject-tabs">
+          <div className="flex text-xs overflow-x-auto pl-8 pb-2 landscape-reduce-subject-tabs landscape-hide-subject-tabs">
             {sections.map((sec, index) => {
               const isCompleted = completedSections.has(sec.name);
               const isCurrentSection = section === sec.name;
@@ -2129,7 +2455,7 @@ function ExamModeContent() {
           
           {/* Parts Nav (Desktop) - Show below sections if current section has parts */}
           {section && currentSectionParts.length > 0 && (
-            <div className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 landscape-reduce-subject-tabs">
+            <div className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 landscape-reduce-subject-tabs landscape-hide-parts">
               <span className="px-4 py-2 font-semibold text-gray-700 whitespace-nowrap">Section:</span>
               {currentSectionParts.map((part) => (
                 <button
@@ -2239,7 +2565,7 @@ function ExamModeContent() {
   )}
 
   {/* Scrollable Content */}
-  <div className="border-t border-gray-300 flex-1 flex flex-col min-h-0 overflow-y-auto lg:flex-initial">
+  <div className="border-t border-gray-300 flex-1 flex flex-col min-h-0 overflow-y-auto lg:flex-initial landscape-question-content">
     {currentQuestion?.questionType !== "TYPING" && (
       <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-b text-xs md:text-sm font-semibold flex flex-col sm:flex-row justify-between flex-shrink-0 landscape-reduce-question-bar">
         <span>Question No. {currentQuestionIndex + 1} {currentQuestions && `of ${currentQuestions.length}`}</span>
