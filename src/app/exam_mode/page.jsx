@@ -9,8 +9,14 @@ function ExamModeContent() {
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
-      /* Mobile Landscape ONLY - Fix UI breaking issues */
-      @media screen and (max-width: 768px) and (orientation: landscape) {
+      /* Mobile Landscape ONLY - Fix UI breaking issues for MCQ QUESTIONS ONLY */
+      /* Works for all mobile devices: iPhone SE, iPhone 12, etc. */
+      /* COMPLETELY SEPARATED FROM TYPING - Only applies when data-exam-mode="mcq" */
+      @media screen and (orientation: landscape) and (max-height: 500px),
+             screen and (orientation: landscape) and (max-width: 1024px) and (max-height: 600px) {
+        
+        /* ALL RULES SCOPE TO MCQ ONLY - Prefix all selectors with [data-exam-mode="mcq"] */
+        [data-exam-mode="mcq"] {
         /* Hide exam title completely in landscape */
         .landscape-reduce-title {
           display: none !important;
@@ -19,6 +25,11 @@ function ExamModeContent() {
         /* Hide section navigation (Section A, B, C tabs) in landscape */
         .landscape-hide-sections,
         .landscape-reduce-section-nav {
+          display: none !important;
+        }
+        
+        /* Hide desktop sidebar question palette in landscape (MCQ only) */
+        div.hidden.lg\\:block.w-full.lg\\:w-60 {
           display: none !important;
         }
         
@@ -42,10 +53,27 @@ function ExamModeContent() {
           display: none !important;
         }
         
-        /* Ensure question slider is visible */
+        /* Show question slider in mobile landscape (MCQ only) - visible like portrait */
+        /* The question navigation should behave the same in mobile portrait and landscape */
+        /* Only desktop (lg and above) should hide it */
         .landscape-reduce-question-grid.flex {
           display: flex !important;
           visibility: visible !important;
+          opacity: 1 !important;
+          position: relative !important;
+          z-index: 20 !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+          background: white !important;
+          border-bottom: 1px solid #e5e7eb !important;
+        }
+        
+        .landscape-reduce-question-grid,
+        .landscape-reduce-question-grid.lg\\:hidden,
+        div.lg\\:hidden.landscape-reduce-question-grid {
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
         }
         
         /* Timer is hidden by default - only show in landscape */
@@ -67,12 +95,18 @@ function ExamModeContent() {
           line-height: 1.2 !important;
         }
         
-        /* Reduce header height to minimum */
-        .landscape-reduce-header {
-          padding: 0.1rem 0.25rem !important;
-          font-size: 0.6rem !important;
-          min-height: 22px !important;
-          max-height: 22px !important;
+        /* Reduce header height to minimum (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-reduce-header {
+          padding: 0.15rem 0.5rem !important;
+          font-size: 0.55rem !important;
+          min-height: 28px !important;
+          max-height: 28px !important;
+        }
+        
+        /* Ensure sound and timer are properly sized in header (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-reduce-header button,
+        [data-exam-mode="mcq"] .landscape-reduce-header > div > div {
+          flex-shrink: 0 !important;
         }
         
         /* Ensure timer is visible in header - force display in landscape */
@@ -100,23 +134,30 @@ function ExamModeContent() {
           margin-right: 0.5rem !important;
         }
         
-        /* Add top margin to main content area to account for fixed header */
-        div.flex-1.flex.flex-col.h-full.overflow-hidden {
-          margin-top: 22px !important;
+        /* Position main content area below fixed header (MCQ only) */
+        [data-exam-mode="mcq"] div.flex-1.flex.flex-col.h-full.overflow-hidden {
+          margin-top: 28px !important;
           padding-top: 0 !important;
         }
         
-        /* Add top margin to question panel to account for fixed header */
-        div.flex-1.flex.flex-col.overflow-hidden.bg-white-50 {
+        /* Position question panel to touch top (MCQ only) */
+        [data-exam-mode="mcq"] div.flex-1.flex.flex-col.overflow-hidden.bg-white-50 {
           margin-top: 0 !important;
           padding-top: 0 !important;
         }
         
-        /* Add padding to question content to account for fixed buttons at bottom and ensure questions are visible */
-        .landscape-question-content {
-          padding-top: 0.75rem !important;
+        /* Make Question Type bar touch the top (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-reduce-top-bar {
+          margin-top: 0 !important;
+          padding-top: 0.1rem !important;
+          border-radius: 0 !important;
+        }
+        
+        /* Add padding and margin to question content to account for fixed buttons at bottom (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content {
+          padding-top: 0.5rem !important;
           padding-bottom: 70px !important;
-          margin-top: 0 !important;
+          margin-top: 0.5rem !important;
         }
         
         /* Ensure question content area has proper spacing from top */
@@ -129,20 +170,25 @@ function ExamModeContent() {
           padding: 0.1rem 0.25rem !important;
         }
         
-        /* Reduce question number bar */
-        .landscape-reduce-question-bar {
+        /* Reduce question number bar (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-reduce-question-bar {
           padding: 0.1rem 0.25rem !important;
           font-size: 0.55rem !important;
           min-height: 20px !important;
           max-height: 20px !important;
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
         }
         
-        /* Reduce top bar */
-        .landscape-reduce-top-bar {
+        /* Reduce top bar and make it touch top (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-reduce-top-bar {
           padding: 0.1rem 0.25rem !important;
           font-size: 0.55rem !important;
           min-height: 20px !important;
           max-height: 20px !important;
+          margin-top: 0 !important;
+          border-radius: 0 !important;
         }
         
         /* Hide section navigation (Section A, B, C tabs) in landscape */
@@ -161,6 +207,11 @@ function ExamModeContent() {
           display: none !important;
         }
         
+        /* Hide status bar (sound + timer) in landscape for questions ONLY */
+        .landscape-hide-status-bar {
+          display: none !important;
+        }
+        
         /* Reduce subject tabs */
         .landscape-reduce-subject-tabs {
           padding: 0.1rem 0.25rem !important;
@@ -169,42 +220,43 @@ function ExamModeContent() {
           max-height: 20px !important;
         }
         
-        /* Show question numbers grid in landscape - make it visible and properly sized */
-        .landscape-reduce-question-grid {
-          display: grid !important;
-          visibility: visible !important;
-          gap: 0.2rem !important;
-          padding: 0.25rem !important;
-          margin-bottom: 0.25rem !important;
-          max-height: 40px !important;
-          overflow-y: hidden !important;
-          overflow-x: auto !important;
+        /* Question slider visibility is controlled by lg:hidden class in render logic */
+        /* lg:hidden means: show on mobile/tablet (including landscape), hide on desktop */
+        /* No need for orientation-based CSS - let Tailwind handle it via lg:hidden */
+        
+        /* Ensure question slider appears right after navbar in landscape (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-reduce-question-grid {
+          position: relative !important;
+          z-index: 20 !important;
+          background: white !important;
+          border-bottom: 1px solid #e5e7eb !important;
         }
         
-        .landscape-reduce-question-grid > div,
-        .landscape-reduce-question-grid button {
+        [data-exam-mode="mcq"] .landscape-reduce-question-grid > div,
+        [data-exam-mode="mcq"] .landscape-reduce-question-grid button {
           padding: 0.2rem !important;
-          font-size: 0.65rem !important;
+          font-size: 0.6rem !important;
           min-width: 1.75rem !important;
-          min-height: 1.75rem !important;
+          min-height: 1.5rem !important;
           width: 1.75rem !important;
-          height: 1.75rem !important;
-        }
-        
-        /* Show question navigation strip in landscape - make it visible and properly sized */
-        .landscape-reduce-question-grid.flex {
-          display: flex !important;
-          visibility: visible !important;
-          max-height: 40px !important;
-          padding: 0.25rem !important;
-          height: 40px !important;
+          height: 1.5rem !important;
           flex-shrink: 0 !important;
         }
         
-        .landscape-reduce-question-grid.flex > div {
+        /* Show question navigation strip in mobile landscape (MCQ only) - same as portrait */
+        /* The lg:hidden class in render logic already handles desktop hiding */
+        /* No need to hide in landscape - it should show in mobile landscape like portrait */
+        [data-exam-mode="mcq"] .landscape-reduce-question-grid.flex {
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+        
+        [data-exam-mode="mcq"] .landscape-reduce-question-grid.flex > div {
           min-width: 1.75rem !important;
-          height: 1.75rem !important;
-          font-size: 0.65rem !important;
+          height: 1.5rem !important;
+          font-size: 0.6rem !important;
+          flex-shrink: 0 !important;
         }
         
         /* Reduce passage height significantly */
@@ -214,20 +266,34 @@ function ExamModeContent() {
           padding: 0.1rem !important;
         }
         
-        /* Reduce question text */
-        .landscape-reduce-question-text {
-          font-size: 0.65rem !important;
+        /* Reduce question text (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-reduce-question-text {
+          font-size: 0.55rem !important;
           padding: 0.1rem !important;
-          margin-bottom: 0.25rem !important;
-          line-height: 1.25 !important;
+          margin-bottom: 0.2rem !important;
+          line-height: 1.2 !important;
         }
         
-        /* Reduce options */
-        .landscape-reduce-options {
-          font-size: 0.65rem !important;
-          padding: 0.25rem !important;
-          margin-bottom: 0.25rem !important;
-          line-height: 1.25 !important;
+        /* Reduce options (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-reduce-options {
+          font-size: 0.55rem !important;
+          padding: 0.2rem !important;
+          margin-bottom: 0.2rem !important;
+          line-height: 1.2 !important;
+        }
+        
+        /* Reduce question text in general content area (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content p,
+        [data-exam-mode="mcq"] .landscape-question-content div:not(.landscape-reduce-question-bar):not(.landscape-reduce-top-bar) {
+          font-size: 0.55rem !important;
+          line-height: 1.2 !important;
+        }
+        
+        /* Reduce option labels and radio buttons (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content label {
+          font-size: 0.55rem !important;
+          line-height: 1.2 !important;
+          padding: 0.2rem !important;
         }
         
         /* Reduce image max height */
@@ -286,16 +352,20 @@ function ExamModeContent() {
           padding: 0.1rem 0.25rem !important;
         }
         
-        /* Ensure question content area has maximum space and is visible */
-        .flex-1.flex.flex-col.overflow-hidden {
+        /* Ensure question content area has maximum space and is visible (MCQ only) - Main screen */
+        [data-exam-mode="mcq"] .flex-1.flex.flex-col.overflow-hidden {
           min-height: 0 !important;
           height: auto !important;
           display: flex !important;
           flex-direction: column !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+          visibility: visible !important;
+          opacity: 1 !important;
         }
         
-        /* Make sure scrollable content area is visible and optimized */
-        .landscape-question-content {
+        /* Make sure scrollable content area is visible and optimized (MCQ only) - Main screen display */
+        [data-exam-mode="mcq"] .landscape-question-content {
           min-height: 0 !important;
           height: auto !important;
           max-height: calc(100vh - 200px) !important;
@@ -303,17 +373,146 @@ function ExamModeContent() {
           display: flex !important;
           flex-direction: column !important;
           flex: 1 1 auto !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+          padding: 0.5rem !important;
+          margin-top: 0 !important;
         }
         
-        /* Ensure question content is visible */
-        .landscape-question-content > * {
+        /* Ensure question content is visible (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content > * {
           flex-shrink: 0 !important;
-        }
-        
-        /* Ensure question display area is visible */
-        .landscape-question-content > div:not(.landscape-reduce-question-bar) {
           display: block !important;
           visibility: visible !important;
+          opacity: 1 !important;
+        }
+        
+        /* Ensure question display area is visible (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content > div:not(.landscape-reduce-question-bar) {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+        
+        /* Ensure question text and options are visible (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content p,
+        [data-exam-mode="mcq"] .landscape-question-content label,
+        [data-exam-mode="mcq"] .landscape-question-content input[type="radio"],
+        [data-exam-mode="mcq"] .landscape-question-content span,
+        [data-exam-mode="mcq"] .landscape-question-content div:not(.landscape-reduce-question-bar):not(.landscape-reduce-top-bar) {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+        
+        /* Force question content wrapper div to be visible (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content > div.p-4.text-md,
+        [data-exam-mode="mcq"] .landscape-question-content > div.p-4.text-xl,
+        [data-exam-mode="mcq"] .landscape-question-content > div.mb-28 {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          padding: 0.5rem !important;
+        }
+        
+        /* Ensure question text paragraph is visible (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content p.landscape-reduce-question-text,
+        [data-exam-mode="mcq"] .landscape-question-content p.mb-4,
+        [data-exam-mode="mcq"] .landscape-question-content p.mb-6 {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          font-size: 0.55rem !important;
+          padding: 0.1rem !important;
+          margin-bottom: 0.2rem !important;
+          line-height: 1.2 !important;
+        }
+        
+        /* Ensure option labels are visible (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content label.landscape-reduce-options,
+        [data-exam-mode="mcq"] .landscape-question-content label.flex.items-start {
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          font-size: 0.55rem !important;
+          padding: 0.2rem !important;
+          margin-bottom: 0.2rem !important;
+          line-height: 1.2 !important;
+        }
+        
+        /* Ensure question content container is visible and takes full space (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content {
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          flex: 1 1 auto !important;
+          min-height: 200px !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+        }
+        
+        /* Ensure question content wrapper divs are visible (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content > div.p-4,
+        [data-exam-mode="mcq"] .landscape-question-content > div.text-md,
+        [data-exam-mode="mcq"] .landscape-question-content > div.text-xl,
+        [data-exam-mode="mcq"] .landscape-question-content > div.mb-28 {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+        
+        /* Ensure passage and question layout div is visible (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content > div.flex.flex-col.lg\\:flex-row {
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          width: 100% !important;
+        }
+        
+        /* Ensure question panel container is visible in main screen (MCQ only) */
+        [data-exam-mode="mcq"] div.flex-1.flex.flex-col.overflow-hidden.bg-white-50 {
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+          position: relative !important;
+          z-index: 1 !important;
+        }
+        
+        /* Ensure question content divs are visible (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content > div.p-4,
+        [data-exam-mode="mcq"] .landscape-question-content > div.flex.flex-col,
+        [data-exam-mode="mcq"] .landscape-question-content > div:has(p),
+        [data-exam-mode="mcq"] .landscape-question-content > div:has(label) {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+        
+        /* Ensure question content wrapper div is visible (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content > div.text-md,
+        [data-exam-mode="mcq"] .landscape-question-content > div.text-xl,
+        [data-exam-mode="mcq"] .landscape-question-content > div.mb-28 {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+        
+        /* Ensure passage and question layout is visible (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content > div.flex.flex-col.lg\\:flex-row {
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          width: 100% !important;
         }
         
         /* Reduce margins and padding throughout */
@@ -396,14 +595,14 @@ function ExamModeContent() {
           max-width: 100vw !important;
         }
         
-        /* Prevent horizontal overflow on all elements */
-        * {
+        /* Prevent horizontal overflow on question elements only (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content * {
           max-width: 100% !important;
           box-sizing: border-box !important;
         }
         
-        /* Fix question panel - proper height calculation */
-        div.flex-1.flex.flex-col.overflow-hidden.bg-white-50 {
+        /* Fix question panel - proper height calculation (MCQ only) */
+        [data-exam-mode="mcq"] div.flex-1.flex.flex-col.overflow-hidden.bg-white-50 {
           flex: 1 1 auto !important;
           min-height: 0 !important;
           height: auto !important;
@@ -411,13 +610,13 @@ function ExamModeContent() {
           width: 100% !important;
           max-width: 100vw !important;
           overflow-x: hidden !important;
-          overflow-y: hidden !important;
+          overflow-y: visible !important;
           display: flex !important;
           flex-direction: column !important;
         }
         
-        /* Fix question content area - proper scrolling */
-        .landscape-question-content {
+        /* Fix question content area - proper scrolling (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-question-content {
           flex: 1 1 auto !important;
           min-height: 0 !important;
           height: auto !important;
@@ -427,16 +626,22 @@ function ExamModeContent() {
           -webkit-overflow-scrolling: touch !important;
           width: 100% !important;
           max-width: 100vw !important;
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
         }
         
-        /* Fix question navigation overflow - horizontal scroll only */
-        .landscape-reduce-question-grid.flex {
+        /* Fix question navigation overflow - horizontal scroll only (MCQ only) */
+        [data-exam-mode="mcq"] .landscape-reduce-question-grid.flex {
           overflow-x: auto !important;
           overflow-y: hidden !important;
           -webkit-overflow-scrolling: touch !important;
           width: 100% !important;
           max-width: 100vw !important;
           flex-shrink: 0 !important;
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
         }
         
         /* Fix subject tabs overflow - horizontal scroll only */
@@ -504,6 +709,7 @@ function ExamModeContent() {
         .landscape-reduce-question-bar {
           flex-shrink: 0 !important;
         }
+        }
       }
     `;
     document.head.appendChild(style);
@@ -518,6 +724,7 @@ function ExamModeContent() {
   const [isSoundOn, setIsSoundOn] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showSectionDropdown, setShowSectionDropdown] = useState(false);
+  const [isMobile, setIsMobile] = useState(false); // Mobile = width <= 1024px (regardless of orientation)
   const [userName, setUserName] = useState("User");
   const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
   const [examData, setExamData] = useState(null);
@@ -555,6 +762,24 @@ function ExamModeContent() {
   const partsScrollContainerRef = useRef(null); // Ref for mobile parts navigation scroll container
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  // Determine if device is mobile (width <= 1024px) - single source of truth
+  // This is used for render logic, NOT CSS - mobile includes both portrait and landscape
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+    
+    // Check on mount
+    checkIsMobile();
+    
+    // Check on resize
+    window.addEventListener('resize', checkIsMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
 
   // Save answers to localStorage whenever they change
   useEffect(() => {
@@ -1278,16 +1503,17 @@ function ExamModeContent() {
     }
   }, [isSoundOn]);
 
-  // Play sound each second
+  // Play sound each second - for both main timer and typing timer
   useEffect(() => {
-    if (isSoundOn && audioRef.current && timeLeft > 0) {
+    const currentTime = isTypingSection && typingTimeLeft !== null ? typingTimeLeft : timeLeft;
+    if (isSoundOn && audioRef.current && currentTime > 0) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       audioRef.current.play().catch((err) => {
         console.log("Sound error:", err);
       });
     }
-  }, [timeLeft, isSoundOn]);
+  }, [timeLeft, isSoundOn, typingTimeLeft, isTypingSection]);
 
   const formatTime = (s) => {
     const m = Math.floor(s / 60);
@@ -2082,25 +2308,56 @@ function ExamModeContent() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden" data-exam-mode={currentQuestion?.questionType !== "TYPING" ? "mcq" : "typing"}>
         {/* Header with User Info */}
         <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30 landscape-reduce-header">
           <div className="font-semibold">MPCPCT 2025</div>
           <div className="flex gap-2 items-center">
-            {/* Timer - Show ONLY in landscape mode, positioned before View Instructions */}
-            <div className="hidden landscape-reduce-timer" style={{ order: -1 }}>
-              {isTypingSection && typingTimeLeft !== null ? (
-                <div className="flex items-center gap-2 landscape-reduce-timer">
-                  <span className="text-xs font-semibold text-pink-300 landscape-reduce-timer">⏱️ Section Timer:</span>
-                  <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold landscape-reduce-timer">{formatTime(typingTimeLeft)}</b>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 landscape-reduce-timer">
-                  <span className="text-xs font-semibold text-blue-400 landscape-reduce-timer">⏱️ Time Left:</span>
-                  <b className="bg-blue-400 text-black px-2 py-1 rounded text-sm font-bold landscape-reduce-timer">{formatTime(timeLeft)}</b>
-                </div>
-              )}
-            </div>
+            {/* Sound Icon - Show in mobile and landscape mode for questions only */}
+            {currentQuestion?.questionType !== "TYPING" && (
+              <button 
+                onClick={() => setIsSoundOn(!isSoundOn)} 
+                title={isSoundOn ? "Mute" : "Unmute"}
+                className="hidden md:flex lg:hidden items-center justify-center text-lg"
+                style={{ order: -2, flexShrink: 0 }}
+              >
+                {isSoundOn ? "🔊" : "🔇"}
+              </button>
+            )}
+            {/* Sound Icon - Show in mobile portrait, landscape mode for typing only (not desktop) */}
+            {currentQuestion?.questionType === "TYPING" && (
+              <button 
+                onClick={() => setIsSoundOn(!isSoundOn)} 
+                title={isSoundOn ? "Mute" : "Unmute"}
+                className="flex md:flex lg:hidden items-center justify-center text-lg"
+                style={{ order: -2, flexShrink: 0 }}
+              >
+                {isSoundOn ? "🔊" : "🔇"}
+              </button>
+            )}
+            {/* Timer - Show in landscape mode for questions only, positioned before View Instructions */}
+            {currentQuestion?.questionType !== "TYPING" && (
+              <div className="hidden md:flex lg:hidden items-center gap-1" style={{ order: -1, flexShrink: 0 }}>
+                <span className="text-[10px] font-semibold text-blue-400 whitespace-nowrap">⏱️ Time Left:</span>
+                <b className="bg-blue-400 text-black px-1.5 py-0.5 rounded text-[10px] font-bold whitespace-nowrap">{formatTime(timeLeft)}</b>
+              </div>
+            )}
+            {/* Timer for typing - show pink timer in landscape navbar */}
+            {currentQuestion?.questionType === "TYPING" && (
+              <div className="hidden md:flex lg:hidden items-center gap-2" style={{ order: -1 }}>
+                {isTypingSection && typingTimeLeft !== null ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-pink-300">⏱️ Section Timer:</span>
+                    <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(typingTimeLeft)}</b>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-pink-300">⏱️ Time Left:</span>
+                    <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(timeLeft)}</b>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex items-center gap-2 pr-4">
               <img src="/lo.jpg" className="w-8 h-8 rounded-full border" />
             </div>
@@ -2244,7 +2501,7 @@ function ExamModeContent() {
                   );
                 })}
               </div>
-          <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200">
+          <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200 landscape-hide-status-bar">
             <div className="flex items-center gap-2">
             <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
               {isSoundOn ? "🔊" : "🔇"}
@@ -2499,11 +2756,12 @@ function ExamModeContent() {
             </div>
           )}
         </div>
-        {/* Question Navigation - Hidden for typing questions */}
-        {section && currentQuestions && currentQuestions.length > 0 && currentQuestion?.questionType !== "TYPING" && (
+        {/* Question Navigation - Render inline on mobile (width <= 1024px), regardless of orientation */}
+        {/* Mobile includes both portrait and landscape - desktop (width > 1024px) uses sidebar */}
+        {isMobile && section && currentQuestions && currentQuestions.length > 0 && currentQuestion?.questionType !== "TYPING" && (
           <div 
             ref={questionScrollContainerRef}
-            className="flex gap-2 h-16 md:h-20 overflow-x-auto lg:hidden px-2 md:px-4 py-1 md:py-2 scroll-smooth bg-white border-b border-gray-200 flex-shrink-0 landscape-reduce-question-grid"
+            className="flex gap-2 h-16 md:h-20 overflow-x-auto px-2 md:px-4 py-1 md:py-2 scroll-smooth bg-white border-b border-gray-200 flex-shrink-0 landscape-reduce-question-grid flex"
             style={{ scrollBehavior: 'smooth' }}
           >
             {currentQuestions.map((q, i) => {
@@ -2623,6 +2881,7 @@ function ExamModeContent() {
           scriptType={selectedKeyboardType || (currentQuestion.typingScriptType === "Inscript" || (currentQuestion.typingScriptType && currentQuestion.typingScriptType.toLowerCase().includes("inscript")) ? "Inscript" : (currentQuestion.typingScriptType === "Ramington Gail" || currentQuestion.typingScriptType === "Remington Gail" ? "Remington Gail" : (currentQuestion.typingLanguage === "Hindi" ? "Remington Gail" : null)))}
           allowBackspace={currentQuestion.typingBackspaceEnabled !== false}
           duration={15}
+          timeRemaining={isTypingSection && typingTimeLeft !== null ? typingTimeLeft : timeLeft}
           onComplete={(result) => {
             console.log("Typing test completed:", result);
             

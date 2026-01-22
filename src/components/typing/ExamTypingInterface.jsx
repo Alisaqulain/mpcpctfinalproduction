@@ -9,7 +9,9 @@ export default function ExamTypingInterface({
   userProfileUrl = "/lo.jpg",
   language = "English",
   allowBackspace = true,
-  duration = null
+  duration = null,
+  timeRemaining = null,
+  onTimerUpdate = null
 }) {
   const [typedText, setTypedText] = useState("");
   const [keystrokesCount, setKeystrokesCount] = useState(0);
@@ -18,19 +20,33 @@ export default function ExamTypingInterface({
   const [typedWordCount, setTypedWordCount] = useState(0);
   const [startTime, setStartTime] = useState(null);
   const [isActive, setIsActive] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(duration ? duration * 60 : null);
+  const [internalTimeRemaining, setInternalTimeRemaining] = useState(duration ? duration * 60 : null);
   const [wpm, setWpm] = useState(0);
   const [fontSize, setFontSize] = useState(16);
   const inputRef = useRef(null);
   const containerRef = useRef(null);
   const wordRefs = useRef([]);
+  
+  // Use external timeRemaining if provided, otherwise use internal
+  const timeRemainingToUse = timeRemaining !== null && timeRemaining !== undefined ? timeRemaining : internalTimeRemaining;
 
-  // Initialize timer when duration changes
+  // Initialize timer when duration changes - start immediately
   useEffect(() => {
-    if (duration) {
-      setTimeRemaining(duration * 60);
+    if (duration && timeRemaining === null && internalTimeRemaining === null) {
+      const initialTime = duration * 60;
+      setInternalTimeRemaining(initialTime);
+      // Start timer immediately
+      setIsActive(true);
+      setStartTime(Date.now());
     }
-  }, [duration]);
+  }, [duration, timeRemaining, internalTimeRemaining]);
+  
+  // Update parent with timer if callback provided
+  useEffect(() => {
+    if (onTimerUpdate && timeRemainingToUse !== null) {
+      onTimerUpdate(timeRemainingToUse);
+    }
+  }, [timeRemainingToUse, onTimerUpdate]);
   
   // Split content into words
   const words = content ? content.trim().split(/\s+/).filter(w => w.length > 0) : [];
@@ -45,12 +61,18 @@ export default function ExamTypingInterface({
       ? typedWords.length
       : typedWords.length > 0 ? typedWords.length - 1 : 0;
 
-  // Timer effect - countdown when active
+  // Timer effect - countdown when active (start immediately if timeRemaining is provided externally)
   useEffect(() => {
-    if (timeRemaining !== null && isActive && timeRemaining > 0) {
+    // If external timeRemaining is provided, don't manage timer here (parent manages it)
+    if (timeRemaining !== null && timeRemaining !== undefined) {
+      return;
+    }
+    
+    // Only use internal timer if external timeRemaining is not provided
+    if (internalTimeRemaining !== null && internalTimeRemaining > 0) {
       const timer = setInterval(() => {
-        setTimeRemaining((prev) => {
-          if (prev === null) return null;
+        setInternalTimeRemaining((prev) => {
+          if (prev === null || prev <= 0) return 0;
           if (prev <= 1) {
             setIsActive(false);
             if (onComplete) {
@@ -82,7 +104,7 @@ export default function ExamTypingInterface({
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [timeRemaining, isActive, typedText, words, onComplete, startTime, backspaceCount, keystrokesCount, errorCount]);
+  }, [internalTimeRemaining, timeRemaining, typedText, words, onComplete, startTime, backspaceCount, keystrokesCount, errorCount]);
 
   useEffect(() => {
     setTypedWordCount(typedWords.length);
@@ -245,10 +267,145 @@ export default function ExamTypingInterface({
     }
   };
 
+  // Format time for display
+  const formatTime = (seconds) => {
+    if (seconds === null) return "00:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="flex flex-col h-full min-h-0">
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
+      {/* Portrait View - Mobile Only */}
+      <div className="flex flex-col md:hidden h-full">
+        {/* Top Section: User Profile, Stats, Speedometer */}
+        <div className="flex items-start justify-between p-3 bg-white border-b border-gray-200">
+          {/* Left: User Profile with A- below */}
+          <div className="flex flex-col items-center justify-start" style={{ minHeight: '140px' }}>
+            <img
+              src={userProfileUrl}
+              alt={userName}
+              className="w-16 h-16 rounded-full border-2 border-gray-300 flex-shrink-0"
+              onError={(e) => {
+                e.target.src = "/lo.jpg";
+              }}
+            />
+            <p className="text-xs mt-1 text-center font-semibold text-gray-700 whitespace-nowrap">{userName}</p>
+            {/* A- button below profile - aligned with A+ */}
+            <button
+              onClick={() => setFontSize(prev => Math.max(12, prev - 2))}
+              className="bg-white text-black border-2 border-black rounded-md px-3 py-1.5 mt-auto hover:bg-gray-100 transition-colors text-xs font-semibold w-full"
+            >
+              A -
+            </button>
+          </div>
+
+          {/* Center: Statistics Grid 2x2 */}
+          <div className="flex-1 grid grid-cols-2 gap-2 mx-4">
+            {/* Correct */}
+            <div className="h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Correct</div>
+              <div className="bg-white text-green-600 text-sm font-bold">{correctWords}</div>
+            </div>
+            {/* Wrong */}
+            <div className="h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Wrong</div>
+              <div className="bg-white text-red-500 text-sm font-bold">{wrongWords}</div>
+            </div>
+            {/* Total */}
+            <div className="h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Total</div>
+              <div className="bg-white text-[#290c52] text-sm font-bold">{totalTyped}</div>
+            </div>
+            {/* Backspace */}
+            <div className="h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Backspace</div>
+              <div className="bg-white text-blue-500 text-sm font-bold">{backspaceCount}</div>
+            </div>
+            {/* Timer - spans 2 columns, placed last */}
+            {timeRemainingToUse !== null && (
+              <div className="col-span-2 h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+                <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
+                <div className="bg-white text-black text-sm font-bold">{formatTime(timeRemainingToUse)}</div>
+              </div>
+            )}
+          </div>
+
+          {/* Right: Speedometer with A+ below */}
+          <div className="flex flex-col items-center justify-start speedometer-container" style={{ minHeight: '140px' }}>
+            <div className="relative w-16 h-16 bg-black rounded-full border-4 border-white flex items-center justify-center speedometer-gauge flex-shrink-0">
+              <div className="absolute left-1 text-red-500 text-[6px] font-bold tracking-widest speedometer-label">SPEED</div>
+              <svg width="64" height="64" viewBox="0 0 100 100" className="speedometer-svg" style={{ width: '64px', height: '64px' }}>
+                <line
+                  x1="50"
+                  y1="50"
+                  x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                  y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                  stroke="red"
+                  strokeWidth="2"
+                />
+                {Array.from({ length: 9 }).map((_, i) => {
+                  const startAngle = (-Math.PI * 5) / 6;
+                  const endAngle = (Math.PI * 5) / 6;
+                  const angle = startAngle + (i / 8) * (endAngle - startAngle);
+                  const x = 50 + 40 * Math.cos(angle);
+                  const y = 50 + 42 * Math.sin(angle);
+                  return (
+                    <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
+                      {(i + 1) * 10}
+                    </text>
+                  );
+                })}
+              </svg>
+              <span className="absolute bottom-3 text-red-500 font-bold text-[10px] speedometer-value">{wpm}</span>
+            </div>
+            {/* A+ button below speedometer - aligned with A- */}
+            <button
+              onClick={() => setFontSize(prev => Math.min(24, prev + 2))}
+              className="bg-white text-black border-2 border-black rounded-md px-3 py-1.5 mt-auto hover:bg-gray-100 transition-colors text-xs font-semibold w-full"
+            >
+              A +
+            </button>
+          </div>
+        </div>
+
+        {/* Text to Type Box */}
+        <div
+          ref={containerRef}
+          className="flex-1 bg-white border-2 border-gray-300 rounded-lg p-3 m-2 overflow-y-auto min-h-0 scrollbar-hide"
+        >
+          {renderTextContent()}
+        </div>
+
+        {/* Input Field */}
+        <div className="p-2 bg-white border-t border-gray-200">
+          <textarea
+            ref={inputRef}
+            value={typedText}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Type Here ..."
+            className="w-full h-28 p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono resize-none"
+            spellCheck={false}
+            autoFocus
+            rows={2}
+          />
+        </div>
+
+        {/* Submit Button */}
+        <div className="p-2 bg-white border-t border-gray-200">
+          <button
+            onClick={handleSubmit}
+            className="w-full bg-blue-600 text-white py-3 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+          >
+            Submit Section
+          </button>
+        </div>
+      </div>
+
+      {/* Desktop and Landscape View - Keep Original Layout */}
+      <div className="hidden md:flex flex-1 flex-col md:flex-row overflow-hidden min-h-0">
         {/* Left: Text Display and Input */}
         <div className="flex-1 flex flex-col p-2 md:p-3 lg:p-4 overflow-hidden min-h-0">
           {/* Text to Type Box */}
