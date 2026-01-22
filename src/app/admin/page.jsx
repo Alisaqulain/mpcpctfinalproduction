@@ -448,7 +448,15 @@ export default function AdminPanel() {
           }
           
           body.imageUrl = imageUrlToSave;
+          // Add imageWidth and imageHeight if provided
+          if (formData.imageWidth && formData.imageWidth.trim() !== '') {
+            body.imageWidth = parseInt(formData.imageWidth) || undefined;
+          }
+          if (formData.imageHeight && formData.imageHeight.trim() !== '') {
+            body.imageHeight = parseInt(formData.imageHeight) || undefined;
+          }
           console.log('💾 Saving image question with imageUrl:', body.imageUrl);
+          console.log('💾 Image dimensions:', { width: body.imageWidth, height: body.imageHeight });
           console.log('💾 Full body being saved:', JSON.stringify(body, null, 2));
           console.log('💾 body.imageUrl value:', body.imageUrl);
           console.log('💾 body.imageUrl type:', typeof body.imageUrl);
@@ -464,6 +472,24 @@ export default function AdminPanel() {
             // Preserve existing imageUrl when converting from image to text question
             // Or clear it if user explicitly wants to remove it
             body.imageUrl = formData.imageUrl || ''; // Use formData value (might be empty if user removed it)
+            // Also preserve imageWidth and imageHeight if imageUrl exists
+            if (formData.imageUrl && formData.imageUrl.trim() !== '') {
+              if (formData.imageWidth && formData.imageWidth.trim() !== '') {
+                body.imageWidth = parseInt(formData.imageWidth) || undefined;
+              }
+              if (formData.imageHeight && formData.imageHeight.trim() !== '') {
+                body.imageHeight = parseInt(formData.imageHeight) || undefined;
+              }
+            }
+          } else if (formData.imageUrl && formData.imageUrl.trim() !== '') {
+            // Optional image for text question
+            body.imageUrl = formData.imageUrl.trim();
+            if (formData.imageWidth && formData.imageWidth.trim() !== '') {
+              body.imageWidth = parseInt(formData.imageWidth) || undefined;
+            }
+            if (formData.imageHeight && formData.imageHeight.trim() !== '') {
+              body.imageHeight = parseInt(formData.imageHeight) || undefined;
+            }
           } else {
             body.imageUrl = '';
           }
@@ -4069,6 +4095,8 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
     marks: question?.marks || 1,
     negativeMarks: question?.negativeMarks || 0,
     imageUrl: (question?.imageUrl && question.imageUrl.trim() !== '') ? question.imageUrl : '',
+    imageWidth: question?.imageWidth || '',
+    imageHeight: question?.imageHeight || '',
     useImageForQuestion: question?.question_en === '[Image Question]' || !!(question?.imageUrl && question.imageUrl.trim() !== ''), // Check if question uses image
     // Typing fields
     typingLanguage: question?.typingLanguage || 'English',
@@ -4115,6 +4143,8 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
         marks: question.marks || 1,
         negativeMarks: question.negativeMarks || 0,
         imageUrl: imageUrlValue, // Keep the imageUrl value (even if empty string)
+        imageWidth: question.imageWidth || '',
+        imageHeight: question.imageHeight || '',
         useImageForQuestion: isImageQuestion, // Set to true if marked as image question OR has imageUrl
         typingLanguage: question.typingLanguage || 'English',
         typingScriptType: question.typingScriptType || 'Ramington Gail',
@@ -4140,6 +4170,8 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
         marks: 1,
         negativeMarks: 0,
         imageUrl: '',
+        imageWidth: '',
+        imageHeight: '',
         useImageForQuestion: false,
     typingLanguage: 'English',
     typingScriptType: 'Ramington Gail',
@@ -4341,15 +4373,51 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
                           e.target.style.border = '2px solid red';
                           e.target.alt = 'Image failed to load: ' + formData.imageUrl;
                         }}
-                        onLoad={() => {
+                        onLoad={(e) => {
                           console.log('✅ Image preview loaded successfully:', formData.imageUrl);
+                          // Auto-fill width/height if not set
+                          if (!formData.imageWidth && !formData.imageHeight) {
+                            const img = e.target;
+                            setFormData(prev => ({
+                              ...prev,
+                              imageWidth: img.naturalWidth || '',
+                              imageHeight: img.naturalHeight || ''
+                            }));
+                          }
                         }}
                       />
+                      {/* Width and Height Adjustment */}
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium mb-1 text-gray-700">Image Width (px)</label>
+                          <input
+                            type="number"
+                            value={formData.imageWidth}
+                            onChange={(e) => setFormData({...formData, imageWidth: e.target.value})}
+                            className="w-full border rounded px-3 py-2 text-sm"
+                            placeholder="Auto"
+                            min="1"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Leave empty for auto (responsive)</p>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1 text-gray-700">Image Height (px)</label>
+                          <input
+                            type="number"
+                            value={formData.imageHeight}
+                            onChange={(e) => setFormData({...formData, imageHeight: e.target.value})}
+                            className="w-full border rounded px-3 py-2 text-sm"
+                            placeholder="Auto"
+                            min="1"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Leave empty for auto (responsive)</p>
+                        </div>
+                      </div>
                       <button
                         type="button"
                         onClick={() => {
                           console.log('🗑️ Removing image. Current imageUrl:', formData.imageUrl);
-                          setFormData({...formData, imageUrl: ''});
+                          setFormData({...formData, imageUrl: '', imageWidth: '', imageHeight: ''});
                         }}
                         className="mt-2 text-red-600 text-sm hover:underline"
                       >
@@ -8042,10 +8110,50 @@ function TopicWiseQuestionForm({ question, onSave, onCancel, saving, error }) {
           />
           {formData.imageUrl && (
             <div className="mt-2">
-              <img src={formData.imageUrl} alt="Question preview" className="max-w-xs h-auto rounded border" />
+              <img 
+                src={formData.imageUrl} 
+                alt="Question preview" 
+                className="max-w-xs h-auto rounded border"
+                onLoad={(e) => {
+                  // Auto-fill width/height if not set
+                  if (!formData.imageWidth && !formData.imageHeight) {
+                    const img = e.target;
+                    setFormData(prev => ({
+                      ...prev,
+                      imageWidth: img.naturalWidth || '',
+                      imageHeight: img.naturalHeight || ''
+                    }));
+                  }
+                }}
+              />
+              {/* Width and Height Adjustment */}
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium mb-1 text-gray-700">Image Width (px)</label>
+                  <input
+                    type="number"
+                    value={formData.imageWidth}
+                    onChange={(e) => setFormData({...formData, imageWidth: e.target.value})}
+                    className="w-full border rounded px-3 py-2 text-sm"
+                    placeholder="Auto"
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1 text-gray-700">Image Height (px)</label>
+                  <input
+                    type="number"
+                    value={formData.imageHeight}
+                    onChange={(e) => setFormData({...formData, imageHeight: e.target.value})}
+                    className="w-full border rounded px-3 py-2 text-sm"
+                    placeholder="Auto"
+                    min="1"
+                  />
+                </div>
+              </div>
               <button
                 type="button"
-                onClick={() => setFormData({...formData, imageUrl: ''})}
+                onClick={() => setFormData({...formData, imageUrl: '', imageWidth: '', imageHeight: ''})}
                 className="mt-2 text-red-600 text-sm hover:underline"
               >
                 Remove Image

@@ -8,7 +8,6 @@ export default function ExamTypingInterface({
   userName = "User",
   userProfileUrl = "/lo.jpg",
   language = "English",
-  scriptType = null,
   allowBackspace = true,
   duration = null
 }) {
@@ -26,14 +25,12 @@ export default function ExamTypingInterface({
   const containerRef = useRef(null);
   const wordRefs = useRef([]);
 
-  // Initialize timer when duration changes - always use 15 minutes for typing
+  // Initialize timer when duration changes
   useEffect(() => {
-    const timerMinutes = 15; // Always 15 minutes for typing
-    setTimeRemaining(timerMinutes * 60);
-    setIsActive(false);
-    setStartTime(null);
-    setTypedText(""); // Reset typed text when content changes
-  }, [duration]); // Only depend on duration, not content (content length varies)
+    if (duration) {
+      setTimeRemaining(duration * 60);
+    }
+  }, [duration]);
   
   // Split content into words
   const words = content ? content.trim().split(/\s+/).filter(w => w.length > 0) : [];

@@ -1193,12 +1193,20 @@ function ExamResultContent() {
                               
                               {/* Question Image */}
                               {q.imageUrl && String(q.imageUrl).trim() !== '' && (
-                                <div className="mb-3">
+                                <div className="mb-3 w-full overflow-hidden" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                                   <img 
                                     src={encodeURI(String(q.imageUrl).trim())} 
                                     alt="Question" 
-                                    className="max-w-full h-auto rounded border shadow-md"
-                                    style={{ maxHeight: '400px' }}
+                                    className="w-full max-w-full rounded border shadow-md"
+                                    style={{
+                                      display: 'block',
+                                      maxWidth: '100%',
+                                      width: q.imageWidth ? `${Math.min(q.imageWidth, 800)}px` : '100%',
+                                      height: 'auto',
+                                      maxHeight: q.imageHeight ? `${Math.min(q.imageHeight, 600)}px` : '70vh',
+                                      objectFit: 'contain',
+                                      margin: '0'
+                                    }}
                                     onError={(e) => {
                                       e.target.style.display = 'none';
                                     }}

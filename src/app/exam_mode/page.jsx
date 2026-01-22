@@ -5,6 +5,186 @@ import TypingArea from "@/components/typing/TypingArea";
 import ExamTypingInterface from "@/components/typing/ExamTypingInterface";
 
 function ExamModeContent() {
+  // Add landscape-specific styles to reduce sizes
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      /* Landscape orientation - iPad-like view with maximum space for questions */
+      @media screen and (orientation: landscape) and (max-height: 600px) {
+        /* Hide exam title completely in landscape */
+        .landscape-reduce-title {
+          display: none !important;
+        }
+        
+        /* Reduce header height to minimum */
+        .landscape-reduce-header {
+          padding: 0.1rem 0.25rem !important;
+          font-size: 0.6rem !important;
+          min-height: 22px !important;
+          max-height: 22px !important;
+        }
+        
+        /* Reduce question panel padding */
+        .landscape-reduce-padding {
+          padding: 0.1rem 0.25rem !important;
+        }
+        
+        /* Reduce question number bar */
+        .landscape-reduce-question-bar {
+          padding: 0.1rem 0.25rem !important;
+          font-size: 0.55rem !important;
+          min-height: 20px !important;
+          max-height: 20px !important;
+        }
+        
+        /* Reduce top bar */
+        .landscape-reduce-top-bar {
+          padding: 0.1rem 0.25rem !important;
+          font-size: 0.55rem !important;
+          min-height: 20px !important;
+          max-height: 20px !important;
+        }
+        
+        /* Reduce section navigation - make it very compact */
+        .landscape-reduce-section-nav {
+          padding: 0.1rem !important;
+          font-size: 0.55rem !important;
+          min-height: 22px !important;
+          max-height: 22px !important;
+        }
+        
+        /* Reduce subject tabs */
+        .landscape-reduce-subject-tabs {
+          padding: 0.1rem 0.25rem !important;
+          font-size: 0.55rem !important;
+          min-height: 20px !important;
+          max-height: 20px !important;
+        }
+        
+        /* Hide or minimize question numbers grid in landscape */
+        .landscape-reduce-question-grid {
+          gap: 0.1rem !important;
+          padding: 0.1rem !important;
+          margin-bottom: 0.15rem !important;
+          max-height: 30px !important;
+          overflow-y: hidden !important;
+        }
+        
+        .landscape-reduce-question-grid > div,
+        .landscape-reduce-question-grid button {
+          padding: 0.1rem !important;
+          font-size: 0.5rem !important;
+          min-width: 1rem !important;
+          min-height: 1rem !important;
+          width: 1rem !important;
+          height: 1rem !important;
+        }
+        
+        /* Hide question navigation strip in landscape */
+        div[ref*="questionScrollContainerRef"] {
+          max-height: 24px !important;
+          padding: 0.1rem !important;
+        }
+        
+        div[ref*="questionScrollContainerRef"] > div {
+          min-width: 1rem !important;
+          height: 1rem !important;
+          font-size: 0.5rem !important;
+        }
+        
+        /* Reduce passage height significantly */
+        .landscape-reduce-passage {
+          max-height: 10vh !important;
+          font-size: 0.55rem !important;
+          padding: 0.1rem !important;
+        }
+        
+        /* Reduce question text */
+        .landscape-reduce-question-text {
+          font-size: 0.65rem !important;
+          padding: 0.1rem !important;
+          margin-bottom: 0.25rem !important;
+          line-height: 1.25 !important;
+        }
+        
+        /* Reduce options */
+        .landscape-reduce-options {
+          font-size: 0.65rem !important;
+          padding: 0.25rem !important;
+          margin-bottom: 0.25rem !important;
+          line-height: 1.25 !important;
+        }
+        
+        /* Reduce image max height */
+        .landscape-reduce-image {
+          max-height: 20vh !important;
+        }
+        
+        .landscape-reduce-image img {
+          max-height: 20vh !important;
+        }
+        
+        /* Reduce buttons - make them very compact and align in one row */
+        .landscape-reduce-buttons {
+          padding: 0.2rem 0.4rem !important;
+          font-size: 0.55rem !important;
+          line-height: 1.1 !important;
+        }
+        
+        /* Force buttons to be in one line in landscape */
+        .landscape-buttons-container {
+          display: flex !important;
+          flex-direction: row !important;
+          flex-wrap: nowrap !important;
+          gap: 0.25rem !important;
+          padding: 0.25rem !important;
+          min-height: auto !important;
+        }
+        
+        .landscape-buttons-container > button {
+          flex: 1 1 auto !important;
+          min-width: 0 !important;
+          white-space: nowrap !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+          padding: 0.2rem 0.4rem !important;
+          font-size: 0.55rem !important;
+        }
+        
+        /* Reduce timer */
+        .landscape-reduce-timer {
+          font-size: 0.55rem !important;
+          padding: 0.1rem 0.25rem !important;
+        }
+        
+        .landscape-reduce-timer b {
+          font-size: 0.6rem !important;
+          padding: 0.1rem 0.25rem !important;
+        }
+        
+        /* Ensure question content area has maximum space */
+        .flex-1.flex.flex-col.overflow-hidden {
+          min-height: 0 !important;
+        }
+        
+        /* Reduce margins and padding throughout */
+        .landscape-reduce-padding > * {
+          margin-bottom: 0.25rem !important;
+        }
+        
+        /* Make sure scrollable content area is optimized */
+        div[class*="overflow-y-auto"] {
+          padding: 0.25rem !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+  
   const [section, setSection] = useState("");
   const [timeLeft, setTimeLeft] = useState(75 * 60);
   const [isSoundOn, setIsSoundOn] = useState(true);
@@ -1524,7 +1704,7 @@ function ExamModeContent() {
                 </div>
               )}
               
-              <div className="grid grid-cols-4 gap-2 mb-4">
+              <div className="grid grid-cols-4 gap-2 mb-4 landscape-reduce-question-grid">
                 {currentQuestions && currentQuestions.length > 0 ? (
                   currentQuestions.map((q, i) => {
                       const isAnswered = selectedAnswers[q._id] !== undefined;
@@ -1576,7 +1756,7 @@ function ExamModeContent() {
 
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header with User Info */}
-        <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30">
+        <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30 landscape-reduce-header">
           <div className="font-semibold">MPCPCT 2025</div>
           <div className="flex gap-2 items-center">
             {/* Timer - Show only in mobile and landscape for typing, not desktop */}
@@ -1615,7 +1795,7 @@ function ExamModeContent() {
 
         {/* Exam Title (Mobile & Desktop) - Hidden in landscape for typing */}
         {examData && (
-          <div className={`bg-white-50 border-b border-gray-300 px-2 md:px-4 py-2 md:py-4 mt-10 flex-shrink-0 ${currentQuestion?.questionType === "TYPING" ? "landscape-hide" : ""}`}>
+          <div className={`bg-white-50 border-b border-gray-300 px-2 md:px-4 py-2 md:py-4 mt-10 flex-shrink-0 landscape-reduce-title ${currentQuestion?.questionType === "TYPING" ? "landscape-hide" : ""}`}>
             <h2 className="text-sm md:text-lg lg:text-xl font-semibold text-[#290c52] text-center">
               {examData.title || 'Exam'}
             </h2>
@@ -1623,10 +1803,10 @@ function ExamModeContent() {
         )}
 
         {/* Section Nav (Mobile) - Horizontal tabs like desktop - Hidden in mobile for typing */}
-        <div className={`lg:hidden flex flex-col border-b border-y-gray-200 bg-[#fff] sticky top-[40px] z-20 shadow-sm ${currentQuestion?.questionType === "TYPING" ? "hidden" : ""}`}>
+        <div className={`lg:hidden flex flex-col border-b border-y-gray-200 bg-[#fff] sticky top-[40px] z-20 shadow-sm landscape-reduce-section-nav ${currentQuestion?.questionType === "TYPING" ? "hidden" : ""}`}>
           <div 
             ref={sectionScrollContainerRef}
-            className="flex text-xs overflow-x-auto px-2 py-2 scroll-smooth"
+            className="flex text-xs overflow-x-auto px-2 py-2 scroll-smooth landscape-reduce-section-nav"
             style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
           >
                 {sections.map((sec, index) => {
@@ -1763,7 +1943,7 @@ function ExamModeContent() {
           {section && currentSectionParts.length > 0 && (
             <div 
               ref={partsScrollContainerRef}
-              className="lg:hidden flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2 scroll-smooth"
+              className="lg:hidden flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2 scroll-smooth landscape-reduce-subject-tabs"
               style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
             >
               <span className="px-2 py-1 font-semibold text-gray-700 whitespace-nowrap text-xs">Section:</span>
@@ -1813,7 +1993,7 @@ function ExamModeContent() {
 
         {/* Section Nav (Desktop) - Always show on desktop, never hide */}
         <div className="hidden lg:flex flex-col border-b border-y-gray-200 bg-[#fff]">
-          <div className="flex text-xs overflow-x-auto pl-8 pb-2">
+          <div className="flex text-xs overflow-x-auto pl-8 pb-2 landscape-reduce-subject-tabs">
             {sections.map((sec, index) => {
               const isCompleted = completedSections.has(sec.name);
               const isCurrentSection = section === sec.name;
@@ -1930,18 +2110,18 @@ function ExamModeContent() {
               {/* For RSCIT Section A: Show typing timer, for others show main timer */}
               {examData?.key === 'RSCIT' && section === 'Section A' && typingTimeLeft !== null ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-pink-300">⏱️ Section Timer:</span>
-                  <b className="bg-pink-300 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
+                  <span className="text-sm font-semibold text-pink-300 landscape-reduce-timer">⏱️ Section Timer:</span>
+                  <b className="bg-pink-300 text-black px-3 py-1 rounded text-lg font-bold landscape-reduce-timer">{formatTime(typingTimeLeft)}</b>
                 </div>
               ) : isTypingSection && typingTimeLeft !== null ? (
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-pink-300">⏱️ Section Timer:</span>
-                  <b className="bg-pink-300 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(typingTimeLeft)}</b>
+                  <b className="bg-pink-300 text-black px-3 py-1 rounded text-lg font-bold landscape-reduce-timer">{formatTime(typingTimeLeft)}</b>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-blue-600">⏱️ Time Left:</span>
-                  <b className="bg-blue-400 text-black px-3 py-1 rounded text-lg font-bold">{formatTime(timeLeft)}</b>
+                  <span className="text-sm font-semibold text-blue-600 landscape-reduce-timer">⏱️ Time Left:</span>
+                  <b className="bg-blue-400 text-black px-3 py-1 rounded text-lg font-bold landscape-reduce-timer">{formatTime(timeLeft)}</b>
                 </div>
               )}
             </div>
@@ -1949,7 +2129,7 @@ function ExamModeContent() {
           
           {/* Parts Nav (Desktop) - Show below sections if current section has parts */}
           {section && currentSectionParts.length > 0 && (
-            <div className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50">
+            <div className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 landscape-reduce-subject-tabs">
               <span className="px-4 py-2 font-semibold text-gray-700 whitespace-nowrap">Section:</span>
               {currentSectionParts.map((part) => (
                 <button
@@ -1997,7 +2177,7 @@ function ExamModeContent() {
         {section && currentQuestions && currentQuestions.length > 0 && currentQuestion?.questionType !== "TYPING" && (
           <div 
             ref={questionScrollContainerRef}
-            className="flex gap-2 h-16 md:h-20 overflow-x-auto lg:hidden px-2 md:px-4 py-1 md:py-2 scroll-smooth bg-white border-b border-gray-200 flex-shrink-0"
+            className="flex gap-2 h-16 md:h-20 overflow-x-auto lg:hidden px-2 md:px-4 py-1 md:py-2 scroll-smooth bg-white border-b border-gray-200 flex-shrink-0 landscape-reduce-question-grid"
             style={{ scrollBehavior: 'smooth' }}
           >
             {currentQuestions.map((q, i) => {
@@ -2038,7 +2218,7 @@ function ExamModeContent() {
       <div className="flex-1 flex flex-col overflow-hidden bg-white-50 mt-0 md:mt-0 lg:overflow-auto lg:px-4 lg:pt-4 lg:pb-0">
   {/* Fixed Top Bar - Hidden for typing questions */}
   {currentQuestion?.questionType !== "TYPING" && (
-    <div className="bg-[#290c52] text-white text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 rounded-t flex justify-between flex-wrap gap-2 flex-shrink-0">
+    <div className="bg-[#290c52] text-white text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 rounded-t flex justify-between flex-wrap gap-2 flex-shrink-0 landscape-reduce-top-bar">
       <span>Question Type: {currentQuestion?.questionType === "TYPING" ? "TYPING" : "MCQ"}</span>
       <div className="flex items-center gap-1 md:gap-2">
         <p className="text-xs">View in:</p>
@@ -2061,7 +2241,7 @@ function ExamModeContent() {
   {/* Scrollable Content */}
   <div className="border-t border-gray-300 flex-1 flex flex-col min-h-0 overflow-y-auto lg:flex-initial">
     {currentQuestion?.questionType !== "TYPING" && (
-      <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-b text-xs md:text-sm font-semibold flex flex-col sm:flex-row justify-between flex-shrink-0">
+      <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-b text-xs md:text-sm font-semibold flex flex-col sm:flex-row justify-between flex-shrink-0 landscape-reduce-question-bar">
         <span>Question No. {currentQuestionIndex + 1} {currentQuestions && `of ${currentQuestions.length}`}</span>
         <span className="mt-1 sm:mt-0 text-xs">
           Marks: <span className="text-green-600 font-semibold">{currentQuestion?.marks || 1}</span> | Negative: <span className="text-red-500">{currentQuestion?.negativeMarks || 0}</span>
@@ -2208,8 +2388,8 @@ function ExamModeContent() {
       <>
 
         {currentQuestion.passage_en || currentQuestion.passage_hi ? (
-          <div className="flex flex-col lg:flex-row p-2 md:p-4 gap-x-6 gap-y-4 md:gap-y-10">
-            <div className="lg:w-2/3 text-xs md:text-sm border-r pr-2 md:pr-4 max-h-32 md:max-h-72 overflow-y-auto">
+          <div className="flex flex-col lg:flex-row p-2 md:p-4 gap-x-6 gap-y-4 md:gap-y-10 landscape-reduce-padding">
+            <div className="lg:w-2/3 text-xs md:text-sm border-r pr-2 md:pr-4 max-h-32 md:max-h-72 overflow-y-auto landscape-reduce-passage">
               <h3 className="font-bold mb-2">Passage:</h3>
               <p>{viewLanguage === "हिन्दी" && currentQuestion.passage_hi 
                 ? currentQuestion.passage_hi 
@@ -2250,7 +2430,7 @@ function ExamModeContent() {
                 // Remove patterns like "(Question 57)", "(Question X)" from question text
                 questionText = questionText.replace(/\s*\(Question\s+\d+\)/gi, '').trim();
                 return (
-                  <p className="mb-4 md:mb-6 text-base md:text-lg">
+                  <p className="mb-4 md:mb-6 text-base md:text-lg landscape-reduce-question-text">
                     {questionText}
                   </p>
                 );
@@ -2267,13 +2447,31 @@ function ExamModeContent() {
                 questionId: currentQuestion._id
               });
               
+              // Get image dimensions if set
+              const imageWidth = currentQuestion?.imageWidth;
+              const imageHeight = currentQuestion?.imageHeight;
+              
+              // Build style object for responsive image
+              const imageStyle = {
+                display: 'block',
+                maxWidth: '100%',
+                width: imageWidth ? `${Math.min(imageWidth, 800)}px` : '100%',
+                height: imageHeight ? 'auto' : 'auto',
+                maxHeight: imageHeight ? `${Math.min(imageHeight, 600)}px` : '70vh',
+                objectFit: 'contain',
+                margin: '0',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              };
+              
               return (
-                <div className="mb-2 md:mb-4">
+                <div className="mb-2 md:mb-4 w-full overflow-hidden landscape-reduce-padding" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                   <img 
                     src={encodedUrl} 
                     alt="Question Image" 
-                    className="max-w-full h-auto rounded border shadow-md"
-                    style={{ maxHeight: '300px', display: 'block' }}
+                    className="rounded border shadow-md w-full max-w-full landscape-reduce-image"
+                    style={imageStyle}
                     onError={(e) => {
                       console.error('❌ Image failed to load:', {
                         originalUrl: imageUrl,
@@ -2293,7 +2491,9 @@ function ExamModeContent() {
                       console.log('✅ Image loaded successfully:', {
                         url: imageUrl,
                         encodedUrl: encodedUrl,
-                        questionId: currentQuestion._id
+                        questionId: currentQuestion._id,
+                        width: imageWidth,
+                        height: imageHeight
                       });
                     }}
                   />
@@ -2303,7 +2503,7 @@ function ExamModeContent() {
               {(viewLanguage === "हिन्दी" && currentQuestion.options_hi && currentQuestion.options_hi.length > 0
                 ? currentQuestion.options_hi 
                 : currentQuestion.options_en || currentQuestion.options_hi || []).map((opt, i) => (
-                <label key={i} className="flex items-start gap-x-3 gap-y-3 mb-4 md:mb-5">
+                <label key={i} className="flex items-start gap-x-3 gap-y-3 mb-4 md:mb-5 landscape-reduce-options">
                   <input 
                     type="radio" 
                     name={`q-${currentQuestion._id}`}
@@ -2356,7 +2556,7 @@ function ExamModeContent() {
                 // Remove patterns like "(Question 57)", "(Question X)" from question text
                 questionText = questionText.replace(/\s*\(Question\s+\d+\)/gi, '').trim();
                 return (
-                  <p className="mb-4 md:mb-6 text-base md:text-lg">
+                  <p className="mb-4 md:mb-6 text-base md:text-lg landscape-reduce-question-text">
                     {questionText}
                   </p>
                 );
@@ -2373,13 +2573,31 @@ function ExamModeContent() {
                 questionId: currentQuestion._id
               });
               
+              // Get image dimensions if set
+              const imageWidth = currentQuestion?.imageWidth;
+              const imageHeight = currentQuestion?.imageHeight;
+              
+              // Build style object for responsive image
+              const imageStyle = {
+                display: 'block',
+                maxWidth: '100%',
+                width: imageWidth ? `${Math.min(imageWidth, 800)}px` : '100%',
+                height: imageHeight ? 'auto' : 'auto',
+                maxHeight: imageHeight ? `${Math.min(imageHeight, 600)}px` : '70vh',
+                objectFit: 'contain',
+                margin: '0',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              };
+              
               return (
-                <div className="mb-2 md:mb-4">
+                <div className="mb-2 md:mb-4 w-full overflow-hidden landscape-reduce-padding" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                   <img 
                     src={encodedUrl} 
                     alt="Question Image" 
-                    className="max-w-full h-auto rounded border shadow-md"
-                    style={{ maxHeight: '300px' }}
+                    className="rounded border shadow-md w-full max-w-full landscape-reduce-image"
+                    style={imageStyle}
                     onError={(e) => {
                       console.error('❌ Image failed to load:', {
                         originalUrl: imageUrl,
@@ -2399,7 +2617,9 @@ function ExamModeContent() {
                       console.log('✅ Image loaded successfully:', {
                         url: imageUrl,
                         encodedUrl: encodedUrl,
-                        questionId: currentQuestion._id
+                        questionId: currentQuestion._id,
+                        width: imageWidth,
+                        height: imageHeight
                       });
                     }}
                   />
@@ -2431,11 +2651,11 @@ function ExamModeContent() {
         {/* Footer - Hidden for typing questions */}
         {currentQuestion?.questionType !== "TYPING" && (
           <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-t border-gray-300 flex-shrink-0">
-            {/* Mobile: 2x2 Grid Layout */}
-            <div className="lg:hidden grid grid-cols-2 gap-2">
+            {/* Mobile: 2x2 Grid Layout, but 1 row in landscape */}
+            <div className="lg:hidden grid grid-cols-2 gap-2 landscape-buttons-container">
             {/* Top Left: Mark for Review & Next */}
             <button 
-              className="px-2 py-2 bg-purple-600 text-white rounded text-xs whitespace-nowrap"
+              className="px-2 py-2 bg-purple-600 text-white rounded text-xs whitespace-nowrap landscape-reduce-buttons"
               onClick={() => {
                 // Mark current question for review
                 if (currentQuestion && currentQuestion._id) {
@@ -2479,7 +2699,7 @@ function ExamModeContent() {
             </button>
             {/* Top Right: Clear Response */}
             <button 
-              className="px-2 py-2 bg-orange-500 text-white rounded text-xs whitespace-nowrap"
+              className="px-2 py-2 bg-orange-500 text-white rounded text-xs whitespace-nowrap landscape-reduce-buttons"
               onClick={() => {
                 if (currentQuestion) {
                   const newAnswers = {...selectedAnswers};
@@ -2493,7 +2713,7 @@ function ExamModeContent() {
             {/* Bottom Left: Previous - Hidden for typing questions */}
             {currentQuestion?.questionType !== "TYPING" && (
               <button 
-                className="bg-blue-900 hover:bg-blue-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50"
+                className="bg-blue-900 hover:bg-blue-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 landscape-reduce-buttons"
                 disabled={currentQuestionIndex === 0 && section === sections[0]?.name}
                 onClick={() => {
                   if (currentQuestionIndex > 0) {
@@ -2522,7 +2742,7 @@ function ExamModeContent() {
             )}
             {/* Bottom Right: Save & Next */}
             <button 
-              className={`bg-green-600 hover:bg-cyan-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${isLastQuestion() ? 'bg-green-600' : ''}`}
+              className={`bg-green-600 hover:bg-cyan-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed landscape-reduce-buttons ${isLastQuestion() ? 'bg-green-600' : ''}`}
               disabled={currentQuestion && currentQuestion.questionType !== "TYPING" && (selectedAnswers[currentQuestion._id] === undefined || selectedAnswers[currentQuestion._id] === null)}
               onClick={() => {
                 // Check if answer is selected (skip check for TYPING questions)

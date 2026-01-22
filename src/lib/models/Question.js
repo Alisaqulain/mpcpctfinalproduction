@@ -32,6 +32,8 @@ const QuestionSchema = new mongoose.Schema(
       // Remove default and validation that might interfere
       // Just let it be a simple String field
     }, // Image URL for question
+    imageWidth: { type: Number }, // Image width in pixels (optional, for responsive display)
+    imageHeight: { type: Number }, // Image height in pixels (optional, for responsive display)
     negativeMarks: { type: Number, default: 0 }, // Negative marks for wrong answer (optional)
     questionNumber: { type: Number }, // Question number from source paper
     paperName: { type: String }, // Paper name/identifier (e.g., "21th Nov 2025 Shift2 QP1")

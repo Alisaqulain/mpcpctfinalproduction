@@ -815,11 +815,20 @@ function TopicWiseMCQPageContent() {
                 </p>
 
                 {currentQuestion.imageUrl && (
-                  <div className="mb-4">
+                  <div className="mb-4 w-full overflow-hidden" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                     <img
                       src={currentQuestion.imageUrl}
                       alt="Question"
-                      className="max-w-full h-auto rounded"
+                      className="w-full max-w-full rounded border shadow-md"
+                      style={{
+                        display: 'block',
+                        maxWidth: '100%',
+                        width: currentQuestion.imageWidth ? `${Math.min(currentQuestion.imageWidth, 800)}px` : '100%',
+                        height: 'auto',
+                        maxHeight: currentQuestion.imageHeight ? `${Math.min(currentQuestion.imageHeight, 600)}px` : '70vh',
+                        objectFit: 'contain',
+                        margin: '0'
+                      }}
                     />
                   </div>
                 )}
@@ -1044,12 +1053,20 @@ function TopicWiseMCQPageContent() {
                             <span className="font-semibold text-gray-700">Q.{index + 1}</span>
                             <div className="flex-1">
                               {q.imageUrl && q.imageUrl.trim() !== '' ? (
-                                <div className="mb-2">
+                                <div className="mb-2 w-full overflow-hidden" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                                   <img 
                                     src={q.imageUrl} 
                                     alt="Question" 
-                                    className="max-w-full h-auto rounded border"
-                                    style={{ maxHeight: '200px' }}
+                                    className="w-full max-w-full rounded border shadow-md"
+                                    style={{
+                                      display: 'block',
+                                      maxWidth: '100%',
+                                      width: q.imageWidth ? `${Math.min(q.imageWidth, 800)}px` : '100%',
+                                      height: 'auto',
+                                      maxHeight: q.imageHeight ? `${Math.min(q.imageHeight, 400)}px` : '50vh',
+                                      objectFit: 'contain',
+                                      margin: '0 auto'
+                                    }}
                                   />
                                 </div>
                               ) : (

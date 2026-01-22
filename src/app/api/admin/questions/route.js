@@ -154,11 +154,21 @@ export async function POST(req) {
       // CRITICAL: Add imageUrl separately to ensure it's included
       questionData.imageUrl = String(cleanImageUrl); // Force to string
       
+      // Add imageWidth and imageHeight if provided
+      if (body.imageWidth && !isNaN(parseInt(body.imageWidth))) {
+        questionData.imageWidth = parseInt(body.imageWidth);
+      }
+      if (body.imageHeight && !isNaN(parseInt(body.imageHeight))) {
+        questionData.imageHeight = parseInt(body.imageHeight);
+      }
+      
       console.log('📷 Final questionData being saved:', {
         keys: Object.keys(questionData),
         imageUrl: questionData.imageUrl,
         imageUrl_type: typeof questionData.imageUrl,
         imageUrl_length: questionData.imageUrl?.length,
+        imageWidth: questionData.imageWidth,
+        imageHeight: questionData.imageHeight,
         question_en: questionData.question_en,
         hasImageUrl: 'imageUrl' in questionData
       });
@@ -204,6 +214,8 @@ export async function POST(req) {
         const docToInsert = {
           ...questionData,
           imageUrl: String(cleanImageUrl), // Force to string
+          imageWidth: questionData.imageWidth || undefined,
+          imageHeight: questionData.imageHeight || undefined,
           solutionVideoLink: body.solutionVideoLink?.trim() || undefined,
           createdAt: new Date(),
           updatedAt: new Date()
@@ -371,6 +383,18 @@ export async function PUT(req) {
       if (!updateData.imageUrl || updateData.imageUrl.trim() === '') {
         updateData.imageUrl = null; // Set to null to clear it in DB
       }
+    }
+    
+    // Handle imageWidth and imageHeight
+    if (body.imageWidth && !isNaN(parseInt(body.imageWidth))) {
+      updateData.imageWidth = parseInt(body.imageWidth);
+    } else if (body.imageWidth === '' || body.imageWidth === null) {
+      updateData.imageWidth = null; // Clear if empty string
+    }
+    if (body.imageHeight && !isNaN(parseInt(body.imageHeight))) {
+      updateData.imageHeight = parseInt(body.imageHeight);
+    } else if (body.imageHeight === '' || body.imageHeight === null) {
+      updateData.imageHeight = null; // Clear if empty string
     }
     
     console.log('📷 Final updateData:', {
