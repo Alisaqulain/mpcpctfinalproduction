@@ -1,0 +1,32 @@
+Digital Payments and E-Wallets (डिजिटल भुगतान और ई-वॉलेट)
+
+English: Digital payments have revolutionized the economy by enabling cashless transactions. E-wallets and UPI (Unified Payments Interface) allow users to transfer money instantly using smartphones. While this increases convenience and transparency, it also requires users to be vigilant against phishing and online fraud. Government initiatives like 'Digital India' have played a major role in the mass adoption of these technologies.
+
+Hindi: डिजिटल भुगतान ने कैशलेस लेनदेन को सक्षम करके अर्थव्यवस्था में क्रांति ला दी है। ई-वॉलेट और UPI (यूनिफाइड पेमेंट्स इंटरफेस) उपयोगकर्ताओं को स्मार्टफोन का उपयोग करके तुरंत पैसा ट्रांसफर करने की अनुमति देते हैं। हालांकि इससे सुविधा और पारदर्शिता बढ़ती है, लेकिन इसके लिए उपयोगकर्ताओं को फिशिंग और ऑनलाइन धोखाधड़ी के प्रति सतर्क रहने की भी आवश्यकता होती है। 'डिजिटल इंडिया' जैसी सरकारी पहलों ने इन तकनीकों को बड़े पैमाने पर अपनाने में प्रमुख भूमिका निभाई है।
+
+What has enabled cashless transactions? (कैशलेस लेनदेन को किसने सक्षम बनाया है?) A. Barter system B. Digital payments C. Physical Banks D. Gold Ans: B
+
+What does UPI stand for? (UPI का पूर्ण रूप क्या है?) A. United Payment Interface B. Unified Payments Interface C. Union Pay Index D. Universal Payment Ans: B
+
+Which device is mainly used for UPI transfers? (UPI ट्रांसफर के लिए मुख्य रूप से किस डिवाइस का उपयोग किया जाता है?) A. Laptop B. Smartphone C. Calculator D. Radio Ans: B
+
+What should users be vigilant against? (उपयोगकर्ताओं को किसके प्रति सतर्क रहना चाहिए?) A. High speed B. Online fraud C. Low battery D. New updates Ans: B
+
+Which initiative promoted mass adoption? (किस पहल ने बड़े पैमाने पर अपनाने को बढ़ावा दिया?) A. Clean India B. Digital India C. Make in India D. Start-up India Ans: B
+
+The Role of Social Media (सोशल मीडिया की भूमिका)
+
+English: Social media platforms like Facebook, Twitter, and LinkedIn have changed how we communicate. They allow real-time information sharing and global networking. However, the spread of "fake news" and the impact on mental health are significant drawbacks. Users are advised to verify information before sharing and limit their screen time to maintain a healthy balance.
+
+Hindi: फेसबुक, ट्विटर और लिंक्डइन जैसे सोशल मीडिया प्लेटफॉर्म ने हमारे संवाद करने के तरीके को बदल दिया है। वे रीयल-टाइम सूचना साझा करने और वैश्विक नेटवर्किंग की अनुमति देते हैं। हालांकि, "फेक न्यूज" का प्रसार और मानसिक स्वास्थ्य पर प्रभाव इसके महत्वपूर्ण नुकसान हैं। उपयोगकर्ताओं को सलाह दी जाती है कि वे साझा करने से पहले जानकारी को सत्यापित करें और स्वस्थ संतुलन बनाए रखने के लिए अपने स्क्रीन समय को सीमित करें।
+
+Which platform is mentioned for networking? (नेटवर्किंग के लिए किस प्लेटफॉर्म का उल्लेख किया गया है?) A. WhatsApp B. LinkedIn C. Netflix D. Amazon Ans: B
+
+What is a major drawback mentioned? (उल्लिखित एक प्रमुख कमी क्या है?) A. Global reach B. Fake news C. Free access D. Photo sharing Ans: B
+
+What should users do before sharing info? (जानकारी साझा करने से पहले उपयोगकर्ताओं को क्या करना चाहिए?) A. Delete it B. Verify it C. Ignore it D. Like it Ans: B
+
+Social media allows for: (सोशल मीडिया अनुमति देता है:) A. Offline talking B. Real-time info sharing C. Letter writing D. Physical meetings Ans: B
+
+Why limit screen time? (स्क्रीन समय क्यों सीमित करें?) A. To save battery B. To maintain healthy balance C. To save money D. To sleep more Ans: B
+

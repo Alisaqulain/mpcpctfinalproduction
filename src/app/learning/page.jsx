@@ -163,8 +163,15 @@ export default function TypingTutor() {
 
   const handleLanguageChange = (language) => {
     setSelectedLanguage(language);
-    // Reset sub-language when main language changes
-    setSelectedSubLanguage("");
+    // Auto-select default Hindi script when Hindi is selected
+    if (language === "Hindi") {
+      // Default to first available sub-language (usually Ramington Gail)
+      const defaultSubLang = learningData?.settings?.subLanguages?.[0] || "Ramington Gail";
+      setSelectedSubLanguage(defaultSubLang);
+    } else {
+      // Reset sub-language when switching to non-Hindi language
+      setSelectedSubLanguage("");
+    }
   };
 
   const handleSubLanguageChange = (subLanguage) => {

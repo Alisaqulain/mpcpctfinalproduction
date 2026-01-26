@@ -366,7 +366,14 @@ export default function TypingTutor() {
               checked={selectedLanguage === lang}
               onChange={(e) => {
                 setSelectedLanguage(e.target.value);
-                setSelectedSubLanguage("");
+                // Auto-select default Hindi script when Hindi is selected
+                if (e.target.value === "Hindi") {
+                  // Default to first available sub-language (usually Ramington Gail)
+                  const defaultSubLang = skillTestData.settings.subLanguages?.[0] || "Ramington Gail";
+                  setSelectedSubLanguage(defaultSubLang);
+                } else {
+                  setSelectedSubLanguage("");
+                }
               }}
             />
             <span className="text-xs md:text-sm font-medium text-[#290c52]">{lang}</span>

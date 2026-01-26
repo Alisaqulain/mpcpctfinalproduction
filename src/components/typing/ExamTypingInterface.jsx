@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useHindiTyping } from "@/hooks/useHindiTyping";
 
 export default function ExamTypingInterface({
   content,
@@ -8,6 +9,7 @@ export default function ExamTypingInterface({
   userName = "User",
   userProfileUrl = "/lo.jpg",
   language = "English",
+  scriptType = null,
   allowBackspace = true,
   duration = null,
   timeRemaining = null,
@@ -27,8 +29,40 @@ export default function ExamTypingInterface({
   const containerRef = useRef(null);
   const wordRefs = useRef([]);
   
+  // Detect if Hindi typing is required
+  const isHindiTyping = language === "Hindi";
+  
+  // Determine Hindi layout from scriptType
+  const hindiLayout = scriptType && (
+    scriptType.toLowerCase().includes('inscript') ? 'inscript' : 'remington'
+  );
+  
+  // Initialize Hindi typing hook
+  const hindiTyping = useHindiTyping(hindiLayout || 'remington', isHindiTyping);
+  
+  // Function to detect if text contains English characters
+  const containsEnglishChars = (text) => {
+    if (!text) return false;
+    return /[a-zA-Z]/.test(text);
+  };
+  
+  // Function to detect if text contains Hindi characters
+  const containsHindiChars = (text) => {
+    if (!text) return false;
+    return /[\u0900-\u097F]/.test(text);
+  };
+  
   // Use external timeRemaining if provided, otherwise use internal
   const timeRemainingToUse = timeRemaining !== null && timeRemaining !== undefined ? timeRemaining : internalTimeRemaining;
+
+  // Use ref to track previous timeRemainingToUse to prevent infinite loops
+  const prevTimeRemainingRef = useRef(timeRemainingToUse);
+  const onTimerUpdateRef = useRef(onTimerUpdate);
+
+  // Update ref when callback changes
+  useEffect(() => {
+    onTimerUpdateRef.current = onTimerUpdate;
+  }, [onTimerUpdate]);
 
   // Initialize timer when duration changes - start immediately
   useEffect(() => {
@@ -41,17 +75,26 @@ export default function ExamTypingInterface({
     }
   }, [duration, timeRemaining, internalTimeRemaining]);
   
-  // Update parent with timer if callback provided
+  // Update parent with timer if callback provided - only when value actually changes
   useEffect(() => {
-    if (onTimerUpdate && timeRemainingToUse !== null) {
-      onTimerUpdate(timeRemainingToUse);
+    if (onTimerUpdateRef.current && timeRemainingToUse !== null && prevTimeRemainingRef.current !== timeRemainingToUse) {
+      prevTimeRemainingRef.current = timeRemainingToUse;
+      onTimerUpdateRef.current(timeRemainingToUse);
     }
-  }, [timeRemainingToUse, onTimerUpdate]);
+  }, [timeRemainingToUse]);
   
-  // Split content into words
-  const words = content ? content.trim().split(/\s+/).filter(w => w.length > 0) : [];
+  // Split content into words - use useMemo to prevent unnecessary recalculations
+  const words = useMemo(() => {
+    return content ? content.trim().split(/\s+/).filter(w => w.length > 0) : [];
+  }, [content]);
+  
   const totalWordCount = words.length;
-  const typedWords = typedText.trim().split(/\s+/).filter(w => w.length > 0);
+  
+  // Use useMemo for typedWords to prevent infinite loops
+  const typedWords = useMemo(() => {
+    return typedText.trim().split(/\s+/).filter(w => w.length > 0);
+  }, [typedText]);
+  
   const pendingWordCount = Math.max(0, totalWordCount - typedWords.length);
   
   // Determine which word should be highlighted
@@ -106,17 +149,48 @@ export default function ExamTypingInterface({
     }
   }, [internalTimeRemaining, timeRemaining, typedText, words, onComplete, startTime, backspaceCount, keystrokesCount, errorCount]);
 
+  // Use ref for onProgress callback to prevent infinite loops
+  const onProgressRef = useRef(onProgress);
+  
+  // Update ref when callback changes
+  useEffect(() => {
+    onProgressRef.current = onProgress;
+  }, [onProgress]);
+
+  // Use ref to track previous values to prevent unnecessary updates
+  const prevProgressRef = useRef({
+    typedWordCount: 0,
+    errorCount: 0,
+    backspaceCount: 0,
+    keystrokesCount: 0
+  });
+
   useEffect(() => {
     setTypedWordCount(typedWords.length);
     
-    if (onProgress && startTime) {
+    // Only call onProgress if values have actually changed
+    const hasChanged = 
+      prevProgressRef.current.typedWordCount !== typedWords.length ||
+      prevProgressRef.current.errorCount !== errorCount ||
+      prevProgressRef.current.backspaceCount !== backspaceCount ||
+      prevProgressRef.current.keystrokesCount !== keystrokesCount;
+    
+    if (onProgressRef.current && startTime && hasChanged) {
       const elapsed = (Date.now() - startTime) / 1000 / 60; // minutes
       const calculatedWpm = elapsed > 0 ? Math.round(typedWords.length / elapsed) : 0;
       setWpm(calculatedWpm);
       const correctWords = typedWords.filter((word, i) => word === words[i]).length;
       const accuracy = typedWords.length > 0 ? Math.round((correctWords / typedWords.length) * 100) : 100;
       
-      onProgress({
+      // Update ref with current values
+      prevProgressRef.current = {
+        typedWordCount: typedWords.length,
+        errorCount,
+        backspaceCount,
+        keystrokesCount
+      };
+      
+      onProgressRef.current({
         wpm: calculatedWpm,
         accuracy,
         mistakes: errorCount,
@@ -125,10 +199,16 @@ export default function ExamTypingInterface({
         typedWordCount: typedWords.length
       });
     }
-  }, [typedText, typedWords, errorCount, backspaceCount, keystrokesCount, startTime, onProgress, words]);
+  }, [typedWords.length, errorCount, backspaceCount, keystrokesCount, startTime, words.length]);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
+    
+    // Prevent unnecessary updates if value hasn't changed
+    if (value === typedText) {
+      return;
+    }
+    
     const previousLength = typedText.length;
     const newLength = value.length;
     
@@ -137,6 +217,10 @@ export default function ExamTypingInterface({
       const addedChars = newLength - previousLength;
       setKeystrokesCount(prev => prev + addedChars);
     }
+    
+    // For Hindi typing with our converter, we don't need to show warning
+    // The converter automatically handles English to Hindi conversion
+    // No warning needed - automatic conversion handles everything
     
     setTypedText(value);
     
@@ -196,11 +280,30 @@ export default function ExamTypingInterface({
   };
 
   const handleKeyDown = (e) => {
+    // Handle Hindi typing conversion first
+    if (isHindiTyping && hindiTyping.isEnabled) {
+      const handled = hindiTyping.handleKeyDown(e, typedText, setTypedText);
+      if (handled) {
+        // Hindi conversion handled the event
+        return;
+      }
+    }
+    
+    // Handle backspace
     if (e.key === "Backspace") {
       if (allowBackspace) {
         setBackspaceCount(prev => prev + 1);
+        // Clear Hindi buffer on backspace
+        if (isHindiTyping) {
+          hindiTyping.clearBuffer();
+        }
       } else {
         e.preventDefault();
+      }
+    } else if (e.key === " " || e.key === "Enter") {
+      // Clear Hindi buffer on space or enter
+      if (isHindiTyping) {
+        hindiTyping.clearBuffer();
       }
     }
   };
@@ -380,12 +483,13 @@ export default function ExamTypingInterface({
 
         {/* Input Field */}
         <div className="p-2 bg-white border-t border-gray-200">
+          {/* No keyboard warning - automatic conversion handles everything */}
           <textarea
             ref={inputRef}
             value={typedText}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder="Type Here ..."
+            placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
             className="w-full h-28 p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono resize-none"
             spellCheck={false}
             autoFocus
@@ -416,13 +520,13 @@ export default function ExamTypingInterface({
             {renderTextContent()}
           </div>
 
-          {/* Input Field */}
+          {/* No keyboard warning - automatic conversion handles everything */}
           <textarea
             ref={inputRef}
             value={typedText}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder="Type Here ..."
+            placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
             className="w-full h-28 md:h-24 lg:h-36 p-3 md:p-2 lg:p-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-sm lg:text-base font-mono resize-none flex-shrink-0 landscape-input"
             spellCheck={false}
             autoFocus

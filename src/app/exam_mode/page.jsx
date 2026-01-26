@@ -2975,8 +2975,16 @@ function ExamModeContent() {
         {currentQuestion.passage_en || currentQuestion.passage_hi ? (
           <div className="flex flex-col lg:flex-row p-2 md:p-4 gap-x-6 gap-y-4 md:gap-y-10 landscape-reduce-padding">
             <div className="lg:w-2/3 text-xs md:text-sm border-r pr-2 md:pr-4 max-h-32 md:max-h-72 overflow-y-auto landscape-reduce-passage">
+              {/* Show title if available */}
+              {(currentQuestion.title_en || currentQuestion.title_hi) && (
+                <h3 className="font-bold mb-2 text-purple-700">
+                  {viewLanguage === "हिन्दी" && currentQuestion.title_hi 
+                    ? currentQuestion.title_hi 
+                    : currentQuestion.title_en || currentQuestion.title_hi}
+                </h3>
+              )}
               <h3 className="font-bold mb-2">Passage:</h3>
-              <p>{viewLanguage === "हिन्दी" && currentQuestion.passage_hi 
+              <p className="whitespace-pre-wrap">{viewLanguage === "हिन्दी" && currentQuestion.passage_hi 
                 ? currentQuestion.passage_hi 
                 : currentQuestion.passage_en || currentQuestion.passage_hi}</p>
             </div>

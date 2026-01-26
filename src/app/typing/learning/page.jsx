@@ -10,7 +10,7 @@ export default function CharacterTypingPage() {
   const [selectedRow, setSelectedRow] = useState("home");
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [language, setLanguage] = useState("English");
-  const [scriptType, setScriptType] = useState("Inscript");
+  const [scriptType, setScriptType] = useState("Remington Gail"); // Default to Remington Gail
   const [userIsPremium, setUserIsPremium] = useState(false);
   const [showUpgradePopup, setShowUpgradePopup] = useState(false);
   const [blockedLesson, setBlockedLesson] = useState(null);
@@ -106,6 +106,10 @@ export default function CharacterTypingPage() {
               onChange={(e) => {
                 setLanguage(e.target.value);
                 setSelectedLesson(null);
+                // Auto-select default Hindi script when Hindi is selected
+                if (e.target.value === "Hindi" && !scriptType) {
+                  setScriptType("Remington Gail"); // Default to Remington Gail
+                }
               }}
               className="border rounded px-4 py-2"
             >

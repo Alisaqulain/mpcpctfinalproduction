@@ -8,7 +8,7 @@ export default function SkillTestPage() {
   const [lessons, setLessons] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [language, setLanguage] = useState("English");
-  const [scriptType, setScriptType] = useState("Inscript");
+  const [scriptType, setScriptType] = useState("Remington Gail"); // Default to Remington Gail
   const [contentType, setContentType] = useState("word"); // "word" or "paragraph"
   const [userIsPremium, setUserIsPremium] = useState(false);
   const [showUpgradePopup, setShowUpgradePopup] = useState(false);
@@ -108,6 +108,10 @@ export default function SkillTestPage() {
               onChange={(e) => {
                 setLanguage(e.target.value);
                 setSelectedLesson(null);
+                // Auto-select default Hindi script when Hindi is selected
+                if (e.target.value === "Hindi" && !scriptType) {
+                  setScriptType("Remington Gail"); // Default to Remington Gail
+                }
               }}
               className="border rounded px-4 py-2"
             >

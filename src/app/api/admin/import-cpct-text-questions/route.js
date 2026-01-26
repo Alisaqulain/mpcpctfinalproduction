@@ -24,7 +24,269 @@ async function requireAdmin(req) {
   }
 }
 
+// Parse reading comprehension in the new format:
+// Title (Hindi Title)
+// English: [paragraph]
+// Hindi: [paragraph]
+// Question (Hindi Question) A. Option1 B. Option2 C. Option3 D. Option4 Ans: X
+function parseReadingComprehensionNewFormat(text) {
+  const questions = [];
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  
+  let title_en = '';
+  let title_hi = '';
+  let passage_en = '';
+  let passage_hi = '';
+  let currentQuestion = null;
+  let questionNumber = 1;
+  
+  let i = 0;
+  
+  // Find English: and Hindi: sections first
+  let englishIndex = -1;
+  let hindiIndex = -1;
+  
+  for (let j = 0; j < lines.length; j++) {
+    if (lines[j].toLowerCase().startsWith('english:')) {
+      englishIndex = j;
+    } else if (lines[j].toLowerCase().startsWith('hindi:')) {
+      hindiIndex = j;
+      break;
+    }
+  }
+  
+  // Parse title (optional - only if there's text before "English:")
+  if (englishIndex > 0) {
+    // Check if first line looks like a title (has parentheses with Hindi)
+    const firstLine = lines[0];
+    const titleMatch = firstLine.match(/^(.+?)\s*\(([^)]+)\)$/);
+    if (titleMatch) {
+      title_en = titleMatch[1].trim();
+      title_hi = titleMatch[2].trim();
+    } else if (englishIndex === 1) {
+      // If English: is on line 1, first line might be title without Hindi
+      title_en = firstLine;
+    }
+  }
+  
+  // Extract passages
+  if (englishIndex >= 0 && hindiIndex >= 0) {
+    // English passage is from line after "English:" until "Hindi:"
+    const englishLines = lines.slice(englishIndex + 1, hindiIndex);
+    passage_en = englishLines.join(' ').trim();
+    
+    // Hindi passage is from line after "Hindi:" until first question (line with "?" and "A." or "Ans:")
+    let hindiEnd = hindiIndex + 1;
+    for (let j = hindiIndex + 1; j < lines.length; j++) {
+      // Check if this line looks like a question (has "?" and option markers)
+      if (lines[j].includes('?') && (lines[j].includes('A.') || lines[j].includes('Ans:'))) {
+        hindiEnd = j;
+        break;
+      }
+      hindiEnd = j + 1;
+    }
+    const hindiLines = lines.slice(hindiIndex + 1, hindiEnd);
+    passage_hi = hindiLines.join(' ').trim();
+    
+    // Start parsing questions from after the Hindi passage
+    i = hindiEnd;
+  } else {
+    // If no English: or Hindi: markers found, start from beginning
+    i = 0;
+  }
+  
+  // Parse questions (from i onwards)
+  for (let j = i; j < lines.length; j++) {
+    const line = lines[j];
+    
+    // Check if this line contains a question (has "?" and "A." or "Ans:")
+    if (line.includes('?') && (line.includes('A.') || line.includes('Ans:'))) {
+      // Save previous question if exists
+      if (currentQuestion) {
+        questions.push(currentQuestion);
+      }
+      
+      // Parse question line: "Question (Hindi Question) A. Option1 B. Option2 C. Option3 D. Option4 Ans: X"
+      const questionMatch = line.match(/^(.+?)\s*\(([^)]+)\)\s*(.+)$/);
+      
+      if (questionMatch) {
+        const question_en = questionMatch[1].trim();
+        const question_hi = questionMatch[2].trim();
+        const optionsAndAns = questionMatch[3];
+        
+        // Parse options: A. Option1 B. Option2 C. Option3 D. Option4 Ans: X
+        const options_en = [];
+        const options_hi = [];
+        let correctAnswer = 0;
+        
+        // Extract answer first
+        const ansMatch = optionsAndAns.match(/Ans:\s*([A-D])/i);
+        if (ansMatch) {
+          correctAnswer = ansMatch[1].toUpperCase().charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
+        }
+        
+        // Extract options - handle format: "A. Option1 B. Option2 C. Option3 D. Option4 Ans: X"
+        // Remove "Ans: X" part first
+        const optionsText = optionsAndAns.replace(/Ans:\s*[A-D]/i, '').trim();
+        
+        // Try to match all options in one go
+        const optionPattern = /([A-D])\.\s*([^A-D]+?)(?=\s+[A-D]\.|$)/gi;
+        let match;
+        const optionMatches = [];
+        while ((match = optionPattern.exec(optionsText)) !== null) {
+          optionMatches.push({
+            letter: match[1].toUpperCase(),
+            text: match[2].trim()
+          });
+        }
+        
+        // If we got 4 options, process them
+        if (optionMatches.length === 4) {
+          optionMatches.forEach(opt => {
+            const optionText = opt.text;
+            const index = opt.letter.charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
+            
+            // Check if option contains Hindi (has Devanagari characters)
+            if (/[\u0900-\u097F]/.test(optionText)) {
+              options_hi[index] = optionText;
+              // Try to find English equivalent (might be in parentheses)
+              const engMatch = optionText.match(/^([^(]+?)\s*\(([^)]+)\)$/);
+              if (engMatch) {
+                options_en[index] = engMatch[2].trim(); // English is in parentheses
+              } else {
+                options_en[index] = optionText; // Fallback: use same text
+              }
+            } else {
+              options_en[index] = optionText;
+              options_hi[index] = optionText; // Fallback: use same text
+            }
+          });
+        } else {
+          // Fallback: try simpler pattern
+          const simplePattern = /([A-D])\.\s*([^\n]+?)(?=\s+[A-D]\.|$)/g;
+          const simpleMatches = [...optionsText.matchAll(simplePattern)];
+          if (simpleMatches.length >= 4) {
+            simpleMatches.slice(0, 4).forEach(m => {
+              const index = m[1].toUpperCase().charCodeAt(0) - 65;
+              const opt = m[2].trim();
+              if (/[\u0900-\u097F]/.test(opt)) {
+                options_hi[index] = opt;
+                options_en[index] = opt; // Fallback
+              } else {
+                options_en[index] = opt;
+                options_hi[index] = opt; // Fallback
+              }
+            });
+          }
+        }
+        
+        // Ensure we have 4 options
+        while (options_en.length < 4) {
+          options_en.push('');
+        }
+        while (options_hi.length < 4) {
+          options_hi.push('');
+        }
+        
+        currentQuestion = {
+          questionNumber: questionNumber++,
+          questionId: `rc-${Date.now()}-${questionNumber}`,
+          questionType: 'COMPREHENSION',
+          correctMarks: 1,
+          wrongMarks: 0,
+          question_en: question_en,
+          question_hi: question_hi,
+          options_en: options_en.length === 4 ? options_en : ['', '', '', ''],
+          options_hi: options_hi.length === 4 ? options_hi : ['', '', '', ''],
+          correctAnswer: correctAnswer,
+          passage_en: passage_en,
+          passage_hi: passage_hi,
+          title_en: title_en,
+          title_hi: title_hi,
+          isFree: true
+        };
+      }
+    } else if (currentQuestion && line.match(/^[A-D]\.\s*.+$/i)) {
+      // This might be a continuation or separate line for options
+      // Try to parse as option
+      const optionMatch = line.match(/^([A-D])\.\s*(.+)$/i);
+      if (optionMatch) {
+        const optionIndex = optionMatch[1].toUpperCase().charCodeAt(0) - 65;
+        const optionText = optionMatch[2].trim();
+        if (optionIndex < 4) {
+          if (/[\u0900-\u097F]/.test(optionText)) {
+            currentQuestion.options_hi[optionIndex] = optionText;
+          } else {
+            currentQuestion.options_en[optionIndex] = optionText;
+          }
+        }
+      }
+    }
+  }
+  
+  // Save last question
+  if (currentQuestion) {
+    questions.push(currentQuestion);
+  }
+  
+  // Validate: Must have at least 1 question
+  if (questions.length === 0) {
+    console.warn(`⚠️ No questions found in reading comprehension format`);
+    return {
+      questions: [],
+      error: `No questions found. Please ensure you have questions in the format: "Question (Hindi Question) A. Option1 B. Option2 C. Option3 D. Option4 Ans: X"`,
+      failed: 0,
+      requiresExactly5: false
+    };
+  }
+  
+  // Validate: All questions must have passage
+  const questionsWithoutPassage = questions.filter(q => !q.passage_en || !q.passage_hi);
+  if (questionsWithoutPassage.length > 0) {
+    console.warn(`⚠️ Some questions are missing passages`);
+    return {
+      questions: [],
+      error: `All reading comprehension questions must have both English and Hindi passages. ${questionsWithoutPassage.length} question(s) are missing passages.`,
+      failed: questionsWithoutPassage.length,
+      requiresExactly5: true
+    };
+  }
+  
+  // Validate: All questions must have title
+  const questionsWithoutTitle = questions.filter(q => !q.title_en || !q.title_hi);
+  if (questionsWithoutTitle.length > 0 && (title_en || title_hi)) {
+    // Add title to all questions if missing
+    questions.forEach(q => {
+      if (!q.title_en) q.title_en = title_en;
+      if (!q.title_hi) q.title_hi = title_hi;
+    });
+  }
+  
+  console.log(`✅ Successfully parsed ${questions.length} reading comprehension questions with passages`);
+  
+  return questions;
+}
+
 function parseQuestionsText(text) {
+  // Check if this is the new reading comprehension format
+  // Check if this is the new reading comprehension format
+  // Format: Optional title, then "English:" and "Hindi:" passages, then questions
+  const hasEnglishMarker = text.includes('English:');
+  const hasHindiMarker = text.includes('Hindi:');
+  const hasQuestions = text.split('\n').some(l => l.includes('?') && (l.includes('A.') || l.includes('Ans:')));
+  
+  const isNewFormat = hasEnglishMarker && hasHindiMarker && hasQuestions;
+  
+  if (isNewFormat) {
+    const result = parseReadingComprehensionNewFormat(text);
+    // If result has error property, return it as is (it's an error object)
+    if (result && result.error) {
+      return result;
+    }
+    // Otherwise return as array
+    return result;
+  }
+  
   const questions = [];
   const lines = text.split('\n').map(l => l.trim());
   
@@ -687,20 +949,71 @@ export async function POST(req) {
     if (!section) {
       return NextResponse.json({ error: "Section not found" }, { status: 404 });
     }
+    
+    // Check if this is the Reading Comprehension part
+    const isReadingComprehensionPart = part.name && 
+                                       (part.name.toUpperCase().includes('READING') || 
+                                        part.name.toUpperCase().includes('COMPREHENSION'));
 
     // Parse questions from text
-    const parsedQuestions = parseQuestionsText(questionsText);
+    const parsedResult = parseQuestionsText(questionsText);
+    
+    // Handle error case (when exactly 5 questions are required but not found)
+    if (parsedResult && parsedResult.error && parsedResult.requiresExactly5) {
+      return NextResponse.json({ 
+        error: parsedResult.error,
+        requiresExactly5: true,
+        found: parsedResult.failed || 0
+      }, { status: 400 });
+    }
+    
+    const parsedQuestions = Array.isArray(parsedResult) ? parsedResult : (parsedResult?.questions || []);
 
     if (!parsedQuestions || parsedQuestions.length === 0) {
       return NextResponse.json({ error: "No questions found in the text" }, { status: 400 });
+    }
+    
+    // Additional validation: For Reading Comprehension part, use only first 5 questions
+    // Check if this is new format (has English: and Hindi: markers)
+    const isNewFormat = questionsText.includes('English:') && 
+                        questionsText.includes('Hindi:');
+    
+    let questionsToImport = parsedQuestions;
+    let extraQuestionsCount = 0;
+    
+    // For Reading Comprehension part, only use first 5 questions (ignore extras as backup)
+    if (isNewFormat && isReadingComprehensionPart) {
+      if (parsedQuestions.length < 5) {
+        return NextResponse.json({ 
+          error: `Reading Comprehension part requires at least 5 questions. Found ${parsedQuestions.length} questions. Please ensure you have at least 5 questions.`,
+          requiresExactly5: true,
+          found: parsedQuestions.length
+        }, { status: 400 });
+      }
+      
+      // Take only first 5 questions, ignore the rest
+      if (parsedQuestions.length > 5) {
+        extraQuestionsCount = parsedQuestions.length - 5;
+        questionsToImport = parsedQuestions.slice(0, 5);
+        console.log(`📝 Reading Comprehension: Found ${parsedQuestions.length} questions, importing only first 5 (${extraQuestionsCount} extra questions ignored as backup)`);
+      }
+    }
+    
+    // For other parts, just ensure we have at least 1 question
+    if (isNewFormat && !isReadingComprehensionPart && parsedQuestions.length === 0) {
+      return NextResponse.json({ 
+        error: `No questions found. Please check your format.`,
+        requiresExactly5: false,
+        found: 0
+      }, { status: 400 });
     }
 
     let imported = 0;
     let errors = 0;
     const errorDetails = [];
 
-    // Import questions
-    for (const qData of parsedQuestions) {
+    // Import questions (use questionsToImport which may be limited to 5 for Reading Comprehension)
+    for (const qData of questionsToImport) {
       try {
         // Check if question already exists by question number
         const existingQuestion = await Question.findOne({
@@ -727,7 +1040,10 @@ export async function POST(req) {
           correctAnswer: qData.correctAnswer !== undefined && qData.correctAnswer >= 0 ? qData.correctAnswer : 0,
           // Add passage fields for comprehension questions
           passage_en: qData.passage_en || '',
-          passage_hi: qData.passage_hi || ''
+          passage_hi: qData.passage_hi || '',
+          // Add title fields for reading comprehension
+          title_en: qData.title_en || '',
+          title_hi: qData.title_hi || ''
         };
 
         // Store paper name if provided
@@ -752,11 +1068,17 @@ export async function POST(req) {
       }
     }
 
+    let message = `Imported ${imported} questions to part "${part.name}"`;
+    if (isNewFormat && isReadingComprehensionPart && extraQuestionsCount > 0) {
+      message += ` (${extraQuestionsCount} extra question${extraQuestionsCount > 1 ? 's' : ''} ignored as backup)`;
+    }
+    
     return NextResponse.json({
       success: true,
-      message: `Imported ${imported} questions to part "${part.name}"`,
+      message,
       imported,
       errors,
+      extraQuestionsIgnored: extraQuestionsCount > 0 ? extraQuestionsCount : undefined,
       errorDetails: errorDetails.length > 0 ? errorDetails.slice(0, 10) : undefined
     });
 

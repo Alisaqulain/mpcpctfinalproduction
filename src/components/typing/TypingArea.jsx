@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { useHindiTyping } from "@/hooks/useHindiTyping";
 
 export default function TypingArea({
   content,
@@ -23,6 +24,29 @@ export default function TypingArea({
   const audioRef = useRef(null);
   const wordRefs = useRef([]);
   const containerRef = useRef(null);
+  
+  // Detect if Hindi typing is required
+  const isHindiTyping = language === "Hindi";
+  
+  // Determine Hindi layout from scriptType
+  const hindiLayout = scriptType && (
+    scriptType.toLowerCase().includes('inscript') ? 'inscript' : 'remington'
+  );
+  
+  // Initialize Hindi typing hook
+  const hindiTyping = useHindiTyping(hindiLayout || 'remington', isHindiTyping);
+  
+  // Function to detect if text contains English characters
+  const containsEnglishChars = (text) => {
+    if (!text) return false;
+    return /[a-zA-Z]/.test(text);
+  };
+  
+  // Function to detect if text contains Hindi characters
+  const containsHindiChars = (text) => {
+    if (!text) return false;
+    return /[\u0900-\u097F]/.test(text);
+  };
   
   // Split content into words for word mode
   const words = mode === "word" && content 
@@ -79,6 +103,7 @@ export default function TypingArea({
 
   const handleChange = (e) => {
     const value = e.target.value;
+    
     setTypedText(value);
     
     if (!isActive && value.length > 0) {
@@ -151,6 +176,18 @@ export default function TypingArea({
       audioRef.current.play().catch(() => {});
     }
 
+    // Handle Hindi typing conversion first (for word mode)
+    if (mode === "word" && isHindiTyping && hindiTyping.isEnabled) {
+      const handled = hindiTyping.handleKeyDown(e, typedText, setTypedText);
+      if (handled) {
+        // Hindi conversion handled the event
+        if (e.key === "Backspace") {
+          setBackspaceCount((prev) => prev + 1);
+        }
+        return;
+      }
+    }
+
     if (mode === "character") {
       if (!isActive && typedText.length === 0) {
         setIsActive(true);
@@ -182,8 +219,17 @@ export default function TypingArea({
       if (e.key === "Backspace") {
         if (allowBackspace) {
           setBackspaceCount((prev) => prev + 1);
+          // Clear Hindi buffer on backspace
+          if (isHindiTyping) {
+            hindiTyping.clearBuffer();
+          }
         } else {
           e.preventDefault();
+        }
+      } else if (e.key === " " || e.key === "Enter") {
+        // Clear Hindi buffer on space or enter
+        if (isHindiTyping) {
+          hindiTyping.clearBuffer();
         }
       }
     }
@@ -267,6 +313,8 @@ export default function TypingArea({
         )}
       </div>
 
+      {/* No keyboard warning - automatic conversion handles everything */}
+
       {/* Input for capturing keystrokes */}
       {mode === "word" ? (
         <textarea
@@ -274,6 +322,7 @@ export default function TypingArea({
           value={typedText}
           onChange={handleChange}
           onKeyDown={handleKeyPress}
+          placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : undefined}
           className="absolute opacity-0 pointer-events-none w-0 h-0"
           autoFocus
           tabIndex={-1}

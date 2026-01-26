@@ -56,7 +56,7 @@ export default function TopicWiseResult() {
               setUserName(userData.name);
             }
           } catch (error) {
-            console.error('Error parsing user data:', error);
+            console.error('Error parsing user data:', error); 
           }
         }
 

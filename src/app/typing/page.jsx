@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { getLearningData, getLessonContent } from "@/lib/learningData";
+import { useHindiTyping } from "@/hooks/useHindiTyping";
 
 // Desktop View Component
 function DesktopView({
@@ -9,6 +10,7 @@ function DesktopView({
   loading,
   typedText,
   handleChange,
+  handleKeyDown,
   isPaused,
   isCompleted,
   renderColoredWords,
@@ -36,7 +38,12 @@ function DesktopView({
   decreaseFont,
   wordRefs,
   containerRef,
-  textareaRef
+  textareaRef,
+  isHindiTyping,
+  showKeyboardWarning,
+  setShowKeyboardWarning,
+  subLanguage,
+  hindiLayout
 }) {
   return (
     <>
@@ -98,16 +105,64 @@ function DesktopView({
               </div>
             ) : (
               <>
-                <div className="text-sm leading-tight  overflow-y-auto min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px] mt-2 lg:mt-2 break-words font-sans w-full" style={{ fontSize: `${fontSize}px`, width: '100%', maxWidth: '100%' }}>
+                  <div className="text-sm leading-tight  overflow-y-auto min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px] mt-2 lg:mt-2 break-words font-sans w-full" style={{ fontSize: `${fontSize}px`, width: '100%', maxWidth: '100%' }}>
                   {renderColoredWords()}
                 </div>
+                {/* Keyboard Warning for Hindi */}
+                {isHindiTyping && showKeyboardWarning && (
+                  <div className="mt-2 mb-2 bg-red-100 border-2 border-red-500 rounded-lg p-3 animate-pulse">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2 flex-1">
+                        <span className="text-2xl">⚠️</span>
+                        <div className="flex-1">
+                          <p className="text-red-800 font-bold text-sm mb-1">English Keyboard Detected!</p>
+                          <p className="text-red-700 text-xs mb-2">
+                            Please switch to <strong>Hindi ({subLanguage || "Remington Gail"})</strong> keyboard:
+                          </p>
+                          <div className="space-y-1 text-[10px] text-red-700">
+                            <div className="flex items-center gap-1">
+                              <span className="font-semibold">💻 Laptop/PC:</span>
+                              <span>Press <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Windows+Space</kbd> or <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Ctrl+Shift</kbd></span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="font-semibold">📱 Mobile:</span>
+                              <span>Long press <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Space</kbd> key → Select Hindi keyboard</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setShowKeyboardWarning(false)}
+                        className="text-red-600 hover:text-red-800 font-bold text-xl flex-shrink-0"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <textarea
                   ref={textareaRef}
                   value={typedText}
                   onChange={handleChange}
+                  onKeyDown={handleKeyDown}
+                  onFocus={(e) => {
+                    // Auto-activate Hindi IME on focus (for mobile devices)
+                    if (isHindiTyping) {
+                      e.target.setAttribute('lang', 'hi');
+                      e.target.setAttribute('inputmode', 'text');
+                      e.target.setAttribute('x-ms-ime-mode', 'active');
+                    }
+                  }}
+                  onCompositionStart={() => {
+                    if (isHindiTyping) {
+                      setShowKeyboardWarning(false);
+                    }
+                  }}
                   disabled={isPaused || isCompleted}
                   className="w-full min-h-[100px] max-h-[100px] md:min-h-[80px] md:max-h-[100px] lg:min-h-[180px] lg:max-h-[220px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-1 disabled:opacity-50"
-                  placeholder="Start typing here..."
+                  placeholder={isHindiTyping ? `Start typing in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout)...` : "Start typing here..."}
+                  lang={isHindiTyping ? "hi" : undefined}
+                  inputMode={isHindiTyping ? "text" : undefined}
                   style={{ fontSize: `${fontSize}px` }}
                   autoFocus
                 />
@@ -242,6 +297,7 @@ function PortraitView({
   loading,
   typedText,
   handleChange,
+  handleKeyDown,
   isPaused,
   isCompleted,
   renderColoredWords,
@@ -269,7 +325,12 @@ function PortraitView({
   containerRef,
   increaseFont,
   decreaseFont,
-  textareaRef
+  textareaRef,
+  isHindiTyping,
+  showKeyboardWarning,
+  setShowKeyboardWarning,
+  subLanguage,
+  hindiLayout
 }) {
   return (
     <>
@@ -340,13 +401,60 @@ function PortraitView({
                 <div className="text-sm leading-tight overflow-y-auto min-h-[200px] max-h-[100px] mt-4 break-words font-sans w-full" style={{ fontSize: `${fontSize}px`, width: '100%', maxWidth: '100%' }}>
                   {renderColoredWords()}
                 </div>
+                {/* Keyboard Warning for Hindi */}
+                {isHindiTyping && showKeyboardWarning && (
+                  <div className="mt-2 mb-2 bg-red-100 border-2 border-red-500 rounded-lg p-3 animate-pulse">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2 flex-1">
+                        <span className="text-2xl">⚠️</span>
+                        <div className="flex-1">
+                          <p className="text-red-800 font-bold text-sm mb-1">English Keyboard Detected!</p>
+                          <p className="text-red-700 text-xs mb-2">
+                            Please switch to <strong>Hindi ({subLanguage || "Remington Gail"})</strong> keyboard:
+                          </p>
+                          <div className="space-y-1 text-[10px] text-red-700">
+                            <div className="flex items-center gap-1">
+                              <span className="font-semibold">💻 Laptop/PC:</span>
+                              <span>Press <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Windows+Space</kbd> or <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Ctrl+Shift</kbd></span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="font-semibold">📱 Mobile:</span>
+                              <span>Long press <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Space</kbd> key → Select Hindi keyboard</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setShowKeyboardWarning(false)}
+                        className="text-red-600 hover:text-red-800 font-bold text-xl flex-shrink-0"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <textarea
                   ref={textareaRef}
                   value={typedText}
                   onChange={handleChange}
+                  onFocus={(e) => {
+                    // Auto-activate Hindi IME on focus
+                    if (isHindiTyping) {
+                      e.target.setAttribute('lang', 'hi');
+                      e.target.setAttribute('inputmode', 'text');
+                      e.target.setAttribute('x-ms-ime-mode', 'active');
+                    }
+                  }}
+                  onCompositionStart={() => {
+                    if (isHindiTyping) {
+                      setShowKeyboardWarning(false);
+                    }
+                  }}
                   disabled={isPaused || isCompleted}
                   className="w-full min-h-[100px] max-h-[100px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-3 disabled:opacity-50"
-                  placeholder="Start typing here..."
+                  placeholder={isHindiTyping ? "Start typing in Hindi (हिंदी में टाइप करें)..." : "Start typing here..."}
+                  lang={isHindiTyping ? "hi" : undefined}
+                  inputMode={isHindiTyping ? "text" : undefined}
                   style={{ fontSize: `${fontSize}px` }}
                   autoFocus
                 />
@@ -488,6 +596,7 @@ function LandscapeView({
   loading,
   typedText,
   handleChange,
+  handleKeyDown,
   isPaused,
   isCompleted,
   renderColoredWords,
@@ -515,7 +624,12 @@ function LandscapeView({
   containerRef,
   increaseFont,
   decreaseFont,
-  textareaRef
+  textareaRef,
+  isHindiTyping,
+  showKeyboardWarning,
+  setShowKeyboardWarning,
+  subLanguage,
+  hindiLayout
 }) {
   return (
     <>
@@ -607,13 +721,60 @@ function LandscapeView({
                 <div className="text-sm leading-tight overflow-y-auto min-h-[180px] max-h-[250px] mt-4 break-words font-sans w-full" style={{ minHeight: '30vh', maxHeight: '25vh', fontSize: 'clamp(10px, 2vw, 14px)', lineHeight: '1.2', width: '100%', maxWidth: '100%' }}>
                   {renderColoredWords(true)}
                 </div>
+                {/* Keyboard Warning for Hindi */}
+                {isHindiTyping && showKeyboardWarning && (
+                  <div className="mt-2 mb-2 bg-red-100 border-2 border-red-500 rounded-lg p-3 animate-pulse">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2 flex-1">
+                        <span className="text-2xl">⚠️</span>
+                        <div className="flex-1">
+                          <p className="text-red-800 font-bold text-sm mb-1">English Keyboard Detected!</p>
+                          <p className="text-red-700 text-xs mb-2">
+                            Please switch to <strong>Hindi ({subLanguage || "Remington Gail"})</strong> keyboard:
+                          </p>
+                          <div className="space-y-1 text-[10px] text-red-700">
+                            <div className="flex items-center gap-1">
+                              <span className="font-semibold">💻 Laptop/PC:</span>
+                              <span>Press <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Windows+Space</kbd> or <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Ctrl+Shift</kbd></span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="font-semibold">📱 Mobile:</span>
+                              <span>Long press <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Space</kbd> key → Select Hindi keyboard</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setShowKeyboardWarning(false)}
+                        className="text-red-600 hover:text-red-800 font-bold text-xl flex-shrink-0"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <textarea
                   ref={textareaRef}
                   value={typedText}
                   onChange={handleChange}
+                  onFocus={(e) => {
+                    // Auto-activate Hindi IME on focus
+                    if (isHindiTyping) {
+                      e.target.setAttribute('lang', 'hi');
+                      e.target.setAttribute('inputmode', 'text');
+                      e.target.setAttribute('x-ms-ime-mode', 'active');
+                    }
+                  }}
+                  onCompositionStart={() => {
+                    if (isHindiTyping) {
+                      setShowKeyboardWarning(false);
+                    }
+                  }}
                   disabled={isPaused || isCompleted}
                   className="w-full auto-focus min-h-[150px] max-h-[180px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-2 disabled:opacity-50"
-                  placeholder="Type Here..."
+                  placeholder={isHindiTyping ? "Type Here in Hindi (हिंदी में टाइप करें)..." : "Type Here..."}
+                  lang={isHindiTyping ? "hi" : undefined}
+                  inputMode={isHindiTyping ? "text" : undefined}
                   style={{ fontSize: `clamp(10px, 2vw, ${fontSize}px)`, minHeight: '18vh', maxHeight: '15vh', padding: '1vh 1vw', width: '100%' }}
                   autoFocus
                 />
@@ -926,6 +1087,30 @@ function TypingTutorForm() {
   const [timeRemaining, setTimeRemaining] = useState(duration * 60); // Convert to seconds
   const [resultId, setResultId] = useState(null);
   const [accuracy, setAccuracy] = useState(100);
+  const [showKeyboardWarning, setShowKeyboardWarning] = useState(false);
+  
+  // Detect if Hindi typing is required
+  const isHindiTyping = language === "hindi";
+  
+  // Determine Hindi layout from subLanguage
+  const hindiLayout = subLanguage && (
+    subLanguage.toLowerCase().includes('inscript') ? 'inscript' : 'remington'
+  );
+  
+  // Initialize Hindi typing hook for automatic conversion
+  const hindiTyping = useHindiTyping(hindiLayout || 'remington', isHindiTyping);
+  
+  // Function to detect if text contains English characters
+  const containsEnglishChars = (text) => {
+    if (!text) return false;
+    return /[a-zA-Z]/.test(text);
+  };
+  
+  // Function to detect if text contains Hindi characters
+  const containsHindiChars = (text) => {
+    if (!text) return false;
+    return /[\u0900-\u097F]/.test(text);
+  };
   const [userName, setUserName] = useState("User");
   const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
   const [backspaceLimit, setBackspaceLimit] = useState(null); // null = unlimited
@@ -1174,6 +1359,18 @@ function TypingTutorForm() {
 
   // Removed automatic completion - user must click Submit button
 
+  const handleKeyDown = (e) => {
+    // Handle Hindi typing conversion first
+    if (isHindiTyping && hindiTyping.isEnabled) {
+      const handled = hindiTyping.handleKeyDown(e, typedText, setTypedText);
+      if (handled) {
+        // Hindi conversion handled the event and updated state
+        // The onChange will fire but will have the correct value
+        return;
+      }
+    }
+  };
+
   const handleChange = (e) => {
     if (isPaused || isCompleted) return;
     
@@ -1196,7 +1393,14 @@ function TypingTutorForm() {
       }
       
       setBackspaceCount((prev) => prev + 1);
+      // Clear Hindi buffer on backspace
+      if (isHindiTyping) {
+        hindiTyping.clearBuffer();
+      }
     }
+    
+    // No keyboard warning needed - automatic conversion handles everything
+    // When Hindi is selected, English input is automatically converted to Hindi
     
     if (!startTime) {
       setStartTime(Date.now());
@@ -1355,6 +1559,7 @@ function TypingTutorForm() {
     loading,
     typedText,
     handleChange,
+    handleKeyDown,
     isPaused,
     isCompleted,
     renderColoredWords,
@@ -1381,6 +1586,11 @@ function TypingTutorForm() {
     userProfileUrl,
     backspaceLimit,
     increaseFont,
+    isHindiTyping,
+    showKeyboardWarning,
+    setShowKeyboardWarning,
+    subLanguage,
+    hindiLayout,
     decreaseFont,
     textareaRef
   };

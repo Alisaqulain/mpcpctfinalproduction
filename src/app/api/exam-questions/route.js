@@ -6,6 +6,7 @@ import Exam from "@/lib/models/Exam";
 import Part from "@/lib/models/Part";
 import TopicWiseMCQ from "@/lib/models/TopicWiseMCQ";
 import Topic from "@/lib/models/Topic";
+import mongoose from "mongoose";
 
 export async function GET(req) {
   try {
@@ -116,16 +117,39 @@ export async function GET(req) {
     
     // Fetch all questions for this exam
     // Try multiple formats to ensure we get all questions
-    const questions = await Question.find({ 
-      $or: [
-        { examId: String(examId) },
-        { examId: examId },
-        { examId: new RegExp(`^${String(examId)}$`, 'i') }
-      ]
-    }).sort({ createdAt: 1 });
+    // Convert examId to both ObjectId and String formats
+    let examIdQuery;
+    
+    try {
+      // Try to convert to ObjectId if it's a valid ObjectId string
+      const objectIdExamId = mongoose.Types.ObjectId.isValid(examId) 
+        ? new mongoose.Types.ObjectId(examId) 
+        : null;
+      
+      examIdQuery = {
+        $or: [
+          { examId: String(examId) },
+          { examId: examId }
+        ]
+      };
+      
+      if (objectIdExamId) {
+        examIdQuery.$or.push({ examId: objectIdExamId });
+      }
+    } catch (e) {
+      examIdQuery = {
+        $or: [
+          { examId: String(examId) },
+          { examId: examId }
+        ]
+      };
+    }
+    
+    const questions = await Question.find(examIdQuery).sort({ createdAt: 1 });
     
     console.log(`Found ${sections.length} sections, ${parts.length} parts, and ${questions.length} questions for exam ${examId}`);
-    console.log(`Exam details: _id=${exam._id}, title=${exam.title}, key=${exam.key}`);
+    console.log(`Exam details: _id=${exam._id} (type: ${typeof exam._id}), title=${exam.title}, key=${exam.key}`);
+    console.log(`Query used:`, JSON.stringify(examIdQuery, null, 2));
     
     // Log a sample of question examIds to debug
     if (questions.length > 0) {

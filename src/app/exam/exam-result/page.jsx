@@ -15,7 +15,7 @@ function ExamResultContent() {
   const [visitedQuestions, setVisitedQuestions] = useState(new Set());
   const [markedForReview, setMarkedForReview] = useState(new Set());
   const [viewLanguage, setViewLanguage] = useState("हिन्दी");
-  const [showAnswers, setShowAnswers] = useState(false); // Control whether to show answers or confirmation
+  const [showAnswers, setShowAnswers] = useState(true); // Show answers by default on result page
   const [passingMarks, setPassingMarks] = useState(0);
   const [isPassed, setIsPassed] = useState(false);
   const [typingResults, setTypingResults] = useState([]);
@@ -1129,6 +1129,12 @@ function ExamResultContent() {
           <div className="bg-[#290c52] text-white p-3 rounded-t-lg flex justify-between items-center">
             <h2 className="text-lg md:text-xl font-bold">Questions Review</h2>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowAnswers(!showAnswers)}
+                className="bg-white text-[#290c52] px-3 py-1 rounded text-xs font-semibold hover:bg-gray-100"
+              >
+                {showAnswers ? '🔒 Hide Answers' : '🔓 Show Answers'}
+              </button>
               <span className="text-sm">View in:</span>
               <select 
                 className="text-black text-xs bg-white px-2 py-1 rounded"
@@ -1185,10 +1191,10 @@ function ExamResultContent() {
                         <div 
                           key={q._id || qIndex}
                           className={`border-2 rounded-lg p-4 ${
-                            isCorrect 
+                            showAnswers && isCorrect 
                               ? 'border-green-500 bg-green-50' 
                               : isAnswered 
-                              ? 'border-red-500 bg-red-50' 
+                              ? 'border-blue-500 bg-blue-50' 
                               : 'border-gray-300 bg-gray-50'
                           }`}
                         >
@@ -1198,14 +1204,19 @@ function ExamResultContent() {
                                 <span className="bg-[#290c52] text-white px-3 py-1 rounded-full text-sm font-bold">
                                   Q{qIndex + 1}
                                 </span>
-                                {isCorrect && (
+                                {showAnswers && isCorrect && (
                                   <span className="bg-green-600 text-white px-2 py-1 rounded text-xs font-semibold">
                                     ✓ Correct
                                   </span>
                                 )}
-                                {isAnswered && !isCorrect && (
+                                {showAnswers && isAnswered && !isCorrect && (
                                   <span className="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold">
                                     ✗ Incorrect
+                                  </span>
+                                )}
+                                {!showAnswers && isAnswered && (
+                                  <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-semibold">
+                                    Answered
                                   </span>
                                 )}
                                 {!isAnswered && (
@@ -1255,7 +1266,9 @@ function ExamResultContent() {
                                 <div
                                   key={optIndex}
                                   className={`p-3 rounded border-2 flex items-start gap-3 ${
-                                    isCorrectOption
+                                    isUserAnswer && isCorrectOption
+                                      ? 'bg-blue-100 border-blue-500'
+                                      : showAnswers && isCorrectOption
                                       ? 'bg-green-100 border-green-500'
                                       : isUserAnswer
                                       ? 'bg-red-100 border-red-400'
@@ -1263,7 +1276,9 @@ function ExamResultContent() {
                                   }`}
                                 >
                                   <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 mt-0.5 ${
-                                    isCorrectOption
+                                    isUserAnswer && isCorrectOption
+                                      ? 'bg-blue-600 text-white'
+                                      : showAnswers && isCorrectOption
                                       ? 'bg-green-600 text-white'
                                       : isUserAnswer
                                       ? 'bg-red-600 text-white'
@@ -1273,14 +1288,14 @@ function ExamResultContent() {
                                   </div>
                                   <div className="flex-1">
                                     <span className={`text-sm md:text-base ${
-                                      isCorrectOption || isUserAnswer
+                                      (showAnswers && isCorrectOption) || isUserAnswer
                                         ? 'font-semibold'
                                         : 'font-normal'
                                     }`}>
                                       {opt}
                                     </span>
                                     <div className="flex gap-2 mt-1">
-                                      {isCorrectOption && (
+                                      {showAnswers && isCorrectOption && (
                                         <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded font-semibold">
                                           Correct Answer
                                         </span>
@@ -1292,7 +1307,7 @@ function ExamResultContent() {
                                       )}
                                       {isUserAnswer && isCorrectOption && (
                                         <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-semibold">
-                                          Your Answer (Correct)
+                                          Your Answer {showAnswers ? '(Correct)' : ''}
                                         </span>
                                       )}
                                     </div>

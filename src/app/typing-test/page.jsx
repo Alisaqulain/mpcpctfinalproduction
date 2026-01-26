@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { getLessonById, getLessonContent } from "@/lib/learningData";
 import { calculateCPCTMetricsFromText } from "@/lib/cpctFormulas";
+import { useHindiTyping } from "@/hooks/useHindiTyping";
 
 function TypingTestForm() {
   const searchParams = useSearchParams();
@@ -36,6 +37,17 @@ function TypingTestForm() {
   
   const inputRef = useRef(null);
   const timerRef = useRef(null);
+  
+  // Detect if Hindi typing is required
+  const isHindiTyping = language === "hindi";
+  
+  // Determine Hindi layout from subLanguage
+  const hindiLayout = subLanguage && (
+    subLanguage.toLowerCase().includes('inscript') ? 'inscript' : 'remington'
+  );
+  
+  // Initialize Hindi typing hook
+  const hindiTyping = useHindiTyping(hindiLayout || 'remington', isHindiTyping);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -249,6 +261,18 @@ function TypingTestForm() {
     inputRef.current?.focus();
   };
 
+  const handleKeyDown = (e) => {
+    // Handle Hindi typing conversion first
+    if (isHindiTyping && hindiTyping.isEnabled) {
+      const handled = hindiTyping.handleKeyDown(e, userInput, setUserInput);
+      if (handled) {
+        // Hindi conversion handled the event and updated state
+        // The onChange will fire but will have the correct value
+        return;
+      }
+    }
+  };
+
   const handleInputChange = (e) => {
     if (!isStarted) return;
 
@@ -275,6 +299,7 @@ function TypingTestForm() {
       setBackspaceCount(newBackspaceCount);
     }
     
+    // No keyboard warning needed - automatic conversion handles everything
     setUserInput(value);
 
     // Check for errors
@@ -495,6 +520,8 @@ function TypingTestForm() {
           {/* Test Area */}
           {isStarted && (
             <div className="mb-6">
+              {/* No keyboard warning - automatic conversion handles everything */}
+              
               {/* Timer and Backspace Counter */}
               <div className="flex justify-between items-center mb-4 bg-gray-100 p-3 rounded-lg">
                 <div className="text-lg font-semibold text-gray-700">
@@ -517,7 +544,8 @@ function TypingTestForm() {
                 ref={inputRef}
                 value={userInput}
                 onChange={handleInputChange}
-                placeholder="Start typing here..."
+                onKeyDown={handleKeyDown}
+                placeholder={isHindiTyping ? `Start typing in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout)...` : "Start typing here..."}
                 className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-lg"
                 rows="4"
                 disabled={isCompleted}

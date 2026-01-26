@@ -34,6 +34,7 @@ export default function AdminPanel() {
   const [rscitSectionBImporting, setRscitSectionBImporting] = useState(false);
   const [rscitDistributing, setRscitDistributing] = useState(false);
   const [rscitClearing, setRscitClearing] = useState(false);
+  const [cpctMcqClearing, setCpctMcqClearing] = useState(false);
   const [cpctTypingExamId, setCpctTypingExamId] = useState('');
   const [cpctEnglishTypingContent, setCpctEnglishTypingContent] = useState('');
   const [cpctHindiTypingContent, setCpctHindiTypingContent] = useState('');
@@ -48,6 +49,16 @@ export default function AdminPanel() {
   const [cpctTextQuestions, setCpctTextQuestions] = useState('');
   const [cpctTextImporting, setCpctTextImporting] = useState(false);
   const [cpctTextParts, setCpctTextParts] = useState([]);
+  const [cpctSelectedPart, setCpctSelectedPart] = useState('IT SKILLS'); // Default to first part
+  const [cpctQuestionBankText, setCpctQuestionBankText] = useState('');
+  const [cpctQuestionBankImporting, setCpctQuestionBankImporting] = useState(false);
+  const [cpctDistributing, setCpctDistributing] = useState(false);
+  const [cpctClearing, setCpctClearing] = useState(false);
+  const [cpctAvailablePartNames, setCpctAvailablePartNames] = useState([]);
+  const [cpctTotalQuestionsInBank, setCpctTotalQuestionsInBank] = useState(0);
+  const [bulkReadingComprehensionText, setBulkReadingComprehensionText] = useState('');
+  const [bulkReadingComprehensionImporting, setBulkReadingComprehensionImporting] = useState(false);
+  const [autoImporting, setAutoImporting] = useState(false);
 
   // Check if user is admin
   useEffect(() => {
@@ -76,9 +87,27 @@ export default function AdminPanel() {
 
   useEffect(() => { 
     if (!isCheckingAuth) {
-      fetchExams(); 
+      fetchExams();
+      fetchCpctPartNames();
     }
   }, [isCheckingAuth]);
+
+  const fetchCpctPartNames = async () => {
+    try {
+      const res = await fetch('/api/admin/get-cpct-part-names', {
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCpctAvailablePartNames(data.partNames || []);
+        setCpctTotalQuestionsInBank(data.totalQuestions || 0);
+        return data; // Return data so we can use it immediately
+      }
+    } catch (error) {
+      console.error('Error fetching CPCT part names:', error);
+    }
+    return null;
+  };
 
   const handleLogout = async () => {
     try {
@@ -862,6 +891,53 @@ export default function AdminPanel() {
                 className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
               >
                 {saving ? 'Deleting...' : '🗑️ Delete All CPCT Exams'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('⚠️ WARNING: This will remove ALL MCQ questions from ALL CPCT exams.\n\nTyping questions (Section B & C) will be PRESERVED.\n\nThis action cannot be undone!\n\nAre you sure you want to continue?')) return;
+                  if (!confirm('⚠️ FINAL CONFIRMATION: This will delete all CPCT MCQ questions (but keep typing questions).\n\nThis is your last chance to cancel.\n\nContinue?')) return;
+                  
+                  try {
+                    setCpctMcqClearing(true);
+                    const res = await fetch('/api/admin/clear-all-cpct-mcq-questions', {
+                      method: 'POST',
+                      credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                      let message = `✅ Success! Cleared all CPCT MCQ questions.\n\nDeleted:\n- ${data.deleted.mcqQuestions} MCQ questions\n- Total: ${data.deleted.total} questions\n- Exams affected: ${data.examsAffected}`;
+                      if (data.deleted.typingQuestionsPreserved > 0) {
+                        message += `\n- ${data.deleted.typingQuestionsPreserved} typing questions preserved`;
+                      }
+                      if (data.note) {
+                        message += `\n\n📝 ${data.note}`;
+                      }
+                      alert(message);
+                      await fetchExams();
+                      // Refresh questions if a CPCT exam is selected
+                      if (selectedExam) {
+                        const selectedExamData = exams.find(e => e._id === selectedExam);
+                        if (selectedExamData && selectedExamData.key === 'CPCT') {
+                          setSelectedSection(null);
+                          setSelectedPart(null);
+                          setQuestions([]);
+                          fetchSections(selectedExam);
+                        }
+                      }
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to clear MCQ questions'));
+                    }
+                  } catch (error) {
+                    console.error('Error clearing CPCT MCQ questions:', error);
+                    alert('Failed to clear MCQ questions: ' + error.message);
+                  } finally {
+                    setCpctMcqClearing(false);
+                  }
+                }}
+                disabled={saving || cpctMcqClearing}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+              >
+                {cpctMcqClearing ? 'Clearing...' : '🗑️ Clear All CPCT MCQ Questions'}
               </button>
               <button
                 onClick={async () => {
@@ -2080,6 +2156,244 @@ export default function AdminPanel() {
             </button>
           </div>
 
+          {/* CPCT Question Bank Management - Unified Interface like CCC */}
+          <div className="bg-indigo-50 border-2 border-indigo-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-indigo-900 mb-3 font-bold">
+              <strong>📚 CPCT Question Bank Management (5 Parts):</strong>
+            </p>
+            <p className="text-xs text-indigo-700 mb-3">
+              This system allows you to import questions into a question bank for each part, then automatically distribute them across all CPCT exams.
+              <br />• <strong>Step 1:</strong> Select a part below and paste questions (you can paste in parts - each import will ADD to the bank, not replace)
+              <br />• <strong>Step 2:</strong> Click "Import to Question Bank" - you can do this multiple times with different batches
+              <br />• <strong>Step 3:</strong> Click "Remove Current Questions" to clear existing questions from all CPCT exams (optional)
+              <br />• <strong>Step 4:</strong> Click "Distribute Questions to All Exams" to assign questions to the selected part in all CPCT exams
+            </p>
+            
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Part:
+              </label>
+              <select
+                value={cpctSelectedPart}
+                onChange={(e) => {
+                  setCpctSelectedPart(e.target.value);
+                  setCpctQuestionBankText(''); // Clear text when switching parts
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                disabled={cpctQuestionBankImporting || cpctDistributing || cpctClearing}
+              >
+                {['IT SKILLS', 'READING COMPREHENSION', 'QUANTITATIVE APTITUDE', 'GENERAL MENTAL ABILITY AND REASONING', 'GENERAL AWARENESS'].map((partName) => {
+                  const partCount = cpctAvailablePartNames.find(p => p.name === partName)?.count || 0;
+                  return (
+                    <option key={partName} value={partName}>
+                      {partName} {partCount > 0 && `(${partCount} questions in bank)`}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Paste Questions for {cpctSelectedPart}:
+              </label>
+              <textarea
+                value={cpctQuestionBankText}
+                onChange={(e) => setCpctQuestionBankText(e.target.value)}
+                placeholder={`Paste ${cpctSelectedPart} questions here in the format:\nQuestion text (Hindi text) A. Option1 (Hindi1) B. Option2 (Hindi2) C. Option3 (Hindi3) D. Option4 (Hindi4) Ans: A. Answer\n\nNext question...`}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm"
+                rows={15}
+                disabled={cpctQuestionBankImporting || cpctDistributing || cpctClearing}
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={async () => {
+                  if (!cpctQuestionBankText.trim()) {
+                    alert('Please paste questions first');
+                    return;
+                  }
+                  if (!confirm(`This will ADD questions to the CPCT question bank for "${cpctSelectedPart}" (existing questions will remain). Continue?`)) return;
+                  
+                  try {
+                    setCpctQuestionBankImporting(true);
+                    const res = await fetch('/api/admin/import-cpct-question-bank', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({
+                        questionText: cpctQuestionBankText.trim(),
+                        partName: cpctSelectedPart
+                      })
+                    });
+                    
+                    const data = await res.json();
+                    if (res.ok) {
+                      const partCount = data.partCount !== undefined ? data.partCount : 0;
+                      let message = `✅ Success! Imported ${data.imported} new questions for ${cpctSelectedPart}`;
+                      if (data.updated > 0) {
+                        message += `, updated ${data.updated} existing questions`;
+                      }
+                      message += `\n\nProcessed: ${data.total} questions`;
+                      message += `\n\n📊 Total questions in bank for ${cpctSelectedPart}: ${partCount}`;
+                      if (data.errors > 0) {
+                        message += `\n\n⚠️ ${data.errors} errors occurred`;
+                      }
+                      alert(message);
+                      setCpctQuestionBankText('');
+                      await fetchCpctPartNames();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to import question bank'));
+                    }
+                  } catch (error) {
+                    console.error('Error importing CPCT question bank:', error);
+                    alert('Failed to import question bank: ' + error.message);
+                  } finally {
+                    setCpctQuestionBankImporting(false);
+                  }
+                }}
+                disabled={cpctQuestionBankImporting || cpctDistributing || cpctClearing || !cpctQuestionBankText.trim()}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400 flex items-center gap-2"
+              >
+                <span>💾</span>
+                {cpctQuestionBankImporting ? 'Importing...' : 'Import to Question Bank'}
+              </button>
+
+              <button
+                onClick={async () => {
+                  const partCount = cpctAvailablePartNames.find(p => p.name === cpctSelectedPart)?.count || 0;
+                  if (partCount === 0) {
+                    alert(`No questions found in the question bank for "${cpctSelectedPart}".`);
+                    return;
+                  }
+                  
+                  if (!confirm(`⚠️ WARNING: This will DELETE ALL ${partCount} questions from the question bank for "${cpctSelectedPart}".\n\nThis will NOT delete questions from the exams.\n\nThis action cannot be undone!\n\nAre you sure you want to continue?`)) return;
+                  
+                  try {
+                    setCpctClearing(true);
+                    const res = await fetch('/api/admin/clear-cpct-question-bank', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({
+                        partName: cpctSelectedPart
+                      })
+                    });
+                    
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`✅ Success! Cleared ${data.deleted} questions from "${cpctSelectedPart}" question bank.`);
+                      await fetchCpctPartNames();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to clear question bank'));
+                    }
+                  } catch (error) {
+                    alert('Error: ' + error.message);
+                  } finally {
+                    setCpctClearing(false);
+                  }
+                }}
+                disabled={cpctQuestionBankImporting || cpctDistributing || cpctClearing}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400 flex items-center gap-2"
+              >
+                <span>🗑️</span>
+                {cpctClearing ? 'Clearing...' : 'Clear Question Bank'}
+              </button>
+
+              <button
+                onClick={async () => {
+                  if (!confirm('⚠️ WARNING: This will DELETE ALL questions from ALL CPCT exams!\n\nThis will NOT delete questions from the question bank.\n\nThis action cannot be undone!\n\nAre you sure you want to continue?')) return;
+                  if (!confirm('⚠️ FINAL CONFIRMATION: This will permanently delete all questions from all CPCT exams.\n\nThis is your last chance to cancel.\n\nContinue?')) return;
+                  
+                  try {
+                    setCpctClearing(true);
+                    const res = await fetch('/api/admin/clear-all-cpct-mcq-questions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({})
+                    });
+                    
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`✅ Success! Removed ${data.deleted.mcqQuestions || data.deleted} MCQ questions from all CPCT exams.`);
+                      await fetchExams();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to remove questions'));
+                    }
+                  } catch (error) {
+                    alert('Error: ' + error.message);
+                  } finally {
+                    setCpctClearing(false);
+                  }
+                }}
+                disabled={cpctQuestionBankImporting || cpctDistributing || cpctClearing}
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400 flex items-center gap-2"
+              >
+                <span>🗑️</span>
+                {cpctClearing ? 'Removing...' : 'Remove Current Questions'}
+              </button>
+
+              <button
+                onClick={async () => {
+                  if (!confirm(`⚠️ This will distribute "${cpctSelectedPart}" questions from the question bank to ALL CPCT exams.\n\nQuestions will be distributed to the "${cpctSelectedPart}" part only.\n\nContinue?`)) return;
+                  
+                  try {
+                    setCpctDistributing(true);
+                    const res = await fetch('/api/admin/distribute-cpct-questions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({
+                        partName: cpctSelectedPart
+                      })
+                    });
+                    
+                    const data = await res.json();
+                    if (res.ok) {
+                      const partCount = cpctAvailablePartNames.find(p => p.name === cpctSelectedPart)?.count || 0;
+                      let message = `✅ Success! Distributed ${cpctSelectedPart} questions to ${data.results.length} CPCT exams.\n\n`;
+                      data.results.forEach(r => {
+                        message += `• ${r.examTitle}: ${r.questionsAdded} questions\n`;
+                      });
+                      message += `\nTotal questions in bank for ${cpctSelectedPart}: ${partCount}`;
+                      if (data.errors && data.errors.length > 0) {
+                        message += `\n\n⚠️ ${data.errors.length} errors occurred`;
+                      }
+                      alert(message);
+                      await fetchExams();
+                      await fetchCpctPartNames();
+                    } else {
+                      alert('Error: ' + (data.error || 'Failed to distribute questions'));
+                    }
+                  } catch (error) {
+                    alert('Error: ' + error.message);
+                  } finally {
+                    setCpctDistributing(false);
+                  }
+                }}
+                disabled={cpctQuestionBankImporting || cpctDistributing || cpctClearing}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400 flex items-center gap-2"
+              >
+                <span>🚀</span>
+                {cpctDistributing ? 'Distributing...' : 'Distribute Questions to All Exams'}
+              </button>
+            </div>
+            
+            <div className="mt-4 bg-gray-100 border border-gray-300 rounded-lg p-3">
+              <p className="text-xs text-gray-600">
+                <strong>Total questions in bank:</strong> {cpctTotalQuestionsInBank} | 
+                <button 
+                  onClick={fetchCpctPartNames}
+                  className="text-blue-600 hover:underline ml-1"
+                >
+                  Refresh Counts
+                </button>
+              </p>
+            </div>
+          </div>
+
           {/* CPCT Text Questions Import - Part Specific */}
           <div className="bg-teal-50 border-2 border-teal-400 rounded-lg p-4 mb-6">
             <p className="text-sm text-teal-900 mb-3 font-bold">
@@ -2167,7 +2481,15 @@ Options :
 1.  भारी प्रक्रिया (Heavy weight process)
 ...
 
-READING COMPREHENSION:
+READING COMPREHENSION (NEW FORMAT):
+Big Data and Analytics (बिग डेटा और एनालिटिक्स)
+
+English: Big Data refers to massive volumes...
+Hindi: बिग डेटा का तात्पर्य...
+
+What cannot process Big Data? (बिग डेटा को कौन प्रोसेस नहीं कर सकता?) A. Humans B. Traditional software C. Supercomputers D. Modern AI Ans: B
+
+READING COMPREHENSION (OLD FORMAT):
 [Passage in English]
 The Turner kids were not used to snow...
 [Passage in Hindi]
@@ -2227,7 +2549,12 @@ Options :
                   
                   const data = await res.json();
                   if (res.ok) {
-                    alert(`✅ Success! Imported ${data.imported} questions.\n\nErrors: ${data.errors || 0}`);
+                    let successMsg = `✅ Success! Imported ${data.imported} questions.`;
+                    if (data.extraQuestionsIgnored && data.extraQuestionsIgnored > 0) {
+                      successMsg += `\n\n📝 Note: ${data.extraQuestionsIgnored} extra question${data.extraQuestionsIgnored > 1 ? 's were' : ' was'} ignored as backup (only first 5 questions imported for Reading Comprehension).`;
+                    }
+                    successMsg += `\n\nErrors: ${data.errors || 0}`;
+                    alert(successMsg);
                     setCpctTextQuestions('');
                     setCpctTextPaperName('');
                     // Refresh questions if this part is selected
@@ -2247,6 +2574,444 @@ Options :
               className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {cpctTextImporting ? 'Importing...' : '📥 Import Questions'}
+            </button>
+          </div>
+
+          {/* Reading Comprehension - New Format */}
+          <div className="bg-purple-50 border-2 border-purple-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-purple-900 mb-3 font-bold">
+              <strong>📖 Import Reading Comprehension (New Format):</strong>
+            </p>
+            <p className="text-xs text-purple-700 mb-3">
+              Paste reading comprehension content in the new format with title, English/Hindi passages, and questions.
+              <br />Format: Title (Hindi Title) → English: [passage] → Hindi: [passage] → Questions with options
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select CPCT Exam:</label>
+                <select
+                  value={cpctTextExamId}
+                  onChange={async (e) => {
+                    setCpctTextExamId(e.target.value);
+                    setCpctTextPartId(''); // Reset part when exam changes
+                    setCpctTextParts([]); // Reset parts
+                    if (e.target.value) {
+                      // Fetch parts for this exam and auto-select READING COMPREHENSION part
+                      try {
+                        // Get all parts for this exam directly
+                        const partsRes = await fetch(`/api/admin/parts?examId=${e.target.value}`, {
+                          credentials: 'include'
+                        });
+                        
+                        if (partsRes.ok) {
+                          const partsData = await partsRes.json();
+                          const allParts = partsData.parts || [];
+                          
+                          // Filter for READING COMPREHENSION part - try multiple variations
+                          const readingParts = allParts.filter(p => {
+                            if (!p.name) return false;
+                            const nameUpper = p.name.toUpperCase().trim();
+                            return nameUpper.includes('READING') || 
+                                   nameUpper.includes('COMPREHENSION') ||
+                                   nameUpper === 'READING COMPREHENSION' ||
+                                   nameUpper.startsWith('READING');
+                          });
+                          
+                          console.log('🔍 All parts found:', allParts.map(p => ({ id: p._id, name: p.name })));
+                          console.log('📖 Reading parts found:', readingParts.map(p => ({ id: p._id, name: p.name })));
+                          
+                          setCpctTextParts(readingParts);
+                          // Auto-select the first READING COMPREHENSION part
+                          if (readingParts.length > 0) {
+                            const selectedPartId = readingParts[0]._id;
+                            setCpctTextPartId(selectedPartId);
+                            console.log('✅ Auto-selected part:', selectedPartId, readingParts[0].name);
+                          } else {
+                            console.warn('⚠️ No reading comprehension part found. Available parts:', allParts.map(p => p.name));
+                            setCpctTextPartId(''); // Clear part ID if not found
+                          }
+                        } else {
+                          console.error('Failed to fetch parts:', partsRes.status, partsRes.statusText);
+                          setCpctTextPartId('');
+                        }
+                      } catch (error) {
+                        console.error('Failed to fetch parts:', error);
+                        setCpctTextPartId(''); // Clear on error
+                      }
+                    }
+                  }}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="">-- Select Exam --</option>
+                  {exams.filter(e => e.key === 'CPCT').map(exam => (
+                    <option key={exam._id} value={exam._id}>{exam.title}</option>
+                  ))}
+                </select>
+                {cpctTextPartId && cpctTextParts.length > 0 && (
+                  <p className="text-xs text-green-600 mt-1">
+                    ✓ Auto-selected: {cpctTextParts.find(p => p._id === cpctTextPartId)?.name || 'Reading Comprehension'}
+                  </p>
+                )}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Paper Name (Optional):</label>
+                <input
+                  type="text"
+                  value={cpctTextPaperName}
+                  onChange={(e) => setCpctTextPaperName(e.target.value)}
+                  placeholder="e.g., 21st Nov 2025 Shift2 QP1"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+            
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Paste Reading Comprehension Content:</label>
+              <textarea
+                value={cpctTextQuestions}
+                onChange={(e) => setCpctTextQuestions(e.target.value)}
+                placeholder={`Paste reading comprehension in this format:
+
+Big Data and Analytics (बिग डेटा और एनालिटिक्स)
+
+English: Big Data refers to massive volumes of structured and unstructured data that cannot be processed by traditional software. Companies use data analytics to identify patterns and trends, helping them make better business decisions.
+
+Hindi: बिग डेटा का तात्पर्य डेटा की उन विशाल मात्राओं से है जिन्हें पारंपरिक सॉफ़्टवेयर द्वारा संसाधित नहीं किया जा सकता है। कंपनियां पैटर्न और रुझानों की पहचान करने के लिए डेटा एनालिटिक्स का उपयोग करती हैं।
+
+What cannot process Big Data? (बिग डेटा को कौन प्रोसेस नहीं कर सकता?) A. Humans B. Traditional software C. Supercomputers D. Modern AI Ans: B
+
+What do companies identify using analytics? (एनालिटिक्स का उपयोग करके कंपनियां क्या पहचानती हैं?) A. Employee names B. Patterns and trends C. Office address D. Computer brand Ans: B`}
+                className="w-full h-60 border border-gray-300 rounded-lg p-3 text-sm font-mono text-xs"
+                disabled={cpctTextImporting}
+              />
+            </div>
+            
+            <button
+              onClick={async () => {
+                if (!cpctTextExamId) {
+                  alert('Please select an exam first!');
+                  return;
+                }
+                
+                if (!cpctTextPartId) {
+                  alert('⚠️ No Reading Comprehension part found in the selected exam.\n\nPlease ensure the exam has a "READING COMPREHENSION" part.');
+                  return;
+                }
+                
+                if (!cpctTextQuestions.trim()) {
+                  alert('Please paste reading comprehension content first!');
+                  return;
+                }
+                
+                const partName = cpctTextParts.find(p => p._id === cpctTextPartId)?.name || 'Reading Comprehension';
+                if (!confirm(`This will import reading comprehension questions to:\n\nExam: ${exams.find(e => e._id === cpctTextExamId)?.title}\nPart: ${partName}\n\nAll questions will be set as FREE.\n\nContinue?`)) return;
+                
+                setCpctTextImporting(true);
+                try {
+                  const res = await fetch('/api/admin/import-cpct-text-questions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                      examId: cpctTextExamId,
+                      partId: cpctTextPartId,
+                      paperName: cpctTextPaperName.trim(),
+                      questionsText: cpctTextQuestions.trim()
+                    })
+                  });
+                  
+                  const data = await res.json();
+                  if (res.ok) {
+                    let successMsg = `✅ Success! Imported ${data.imported} reading comprehension questions.`;
+                    if (data.extraQuestionsIgnored && data.extraQuestionsIgnored > 0) {
+                      successMsg += `\n\n📝 Note: ${data.extraQuestionsIgnored} extra question${data.extraQuestionsIgnored > 1 ? 's were' : ' was'} ignored as backup (only first 5 questions imported).`;
+                    }
+                    successMsg += `\n\nErrors: ${data.errors || 0}`;
+                    alert(successMsg);
+                    setCpctTextQuestions('');
+                    setCpctTextPaperName('');
+                    // Refresh questions if this part is selected
+                    if (selectedPart === cpctTextPartId) {
+                      fetchQuestions(cpctTextExamId, sections.find(s => parts.find(p => p._id === cpctTextPartId)?.sectionId === s._id)?._id, cpctTextPartId);
+                    }
+                  } else {
+                    let errorMsg = data.error || 'Unknown error';
+                    if (data.requiresExactly5) {
+                      errorMsg = `❌ ${errorMsg}\n\nFound: ${data.found || 0} questions\nRequired: Exactly 5 questions\n\nNo questions were imported.`;
+                    }
+                    alert('Failed: ' + errorMsg);
+                  }
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                } finally {
+                  setCpctTextImporting(false);
+                }
+              }}
+              disabled={cpctTextImporting || !cpctTextExamId || !cpctTextPartId || !cpctTextQuestions.trim()}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              title={
+                !cpctTextExamId ? 'Please select an exam first' : 
+                !cpctTextPartId ? `Reading Comprehension part not found. Check console for available parts.` : 
+                !cpctTextQuestions.trim() ? 'Please paste reading comprehension content' : 
+                'Click to import reading comprehension questions'
+              }
+            >
+              {cpctTextImporting ? 'Importing...' : '📖 Import Reading Comprehension'}
+            </button>
+            {cpctTextExamId && !cpctTextPartId && (
+              <div className="mt-2 p-2 bg-yellow-50 border border-yellow-300 rounded text-xs">
+                <p className="text-yellow-800 font-semibold">⚠️ Reading Comprehension part not found</p>
+                <p className="text-yellow-700 mt-1">
+                  The selected exam doesn't have a part with "READING" or "COMPREHENSION" in its name.
+                  <br />Please check the exam structure or open browser console (F12) to see available parts.
+                </p>
+              </div>
+            )}
+            
+            {/* Delete Reading Comprehension Questions from Exam 1 */}
+            {cpctTextExamId && exams.find(e => e._id === cpctTextExamId)?.title?.includes('Exam 1') && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-300 rounded">
+                <p className="text-sm text-red-800 font-semibold mb-2">🗑️ Delete Reading Comprehension Questions from Exam 1</p>
+                <p className="text-xs text-red-700 mb-2">
+                  This will delete all reading comprehension questions from CPCT Exam 1's Reading Comprehension part.
+                </p>
+                <button
+                  onClick={async () => {
+                    if (!confirm('⚠️ WARNING: This will delete ALL reading comprehension questions from CPCT Exam 1.\n\nThis action cannot be undone!\n\nContinue?')) {
+                      return;
+                    }
+                    
+                    try {
+                      // Find Exam 1
+                      const exam1 = exams.find(e => e.title?.includes('Exam 1') && e.key === 'CPCT');
+                      if (!exam1) {
+                        alert('CPCT Exam 1 not found');
+                        return;
+                      }
+                      
+                      // Find Reading Comprehension part
+                      const partsRes = await fetch(`/api/admin/parts?examId=${exam1._id}`, {
+                        credentials: 'include'
+                      });
+                      
+                      if (partsRes.ok) {
+                        const partsData = await partsRes.json();
+                        const readingParts = partsData.parts?.filter(p => 
+                          p.name && (p.name.toUpperCase().includes('READING') || p.name.toUpperCase().includes('COMPREHENSION'))
+                        ) || [];
+                        
+                        if (readingParts.length === 0) {
+                          alert('No Reading Comprehension part found in Exam 1');
+                          return;
+                        }
+                        
+                        // Delete questions from all reading comprehension parts
+                        let deletedCount = 0;
+                        for (const part of readingParts) {
+                          const deleteRes = await fetch('/api/admin/clear-part-questions', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({
+                              examId: exam1._id,
+                              partId: part._id
+                            })
+                          });
+                          
+                          if (deleteRes.ok) {
+                            const deleteData = await deleteRes.json();
+                            deletedCount += deleteData.deletedCount || 0;
+                          }
+                        }
+                        
+                        alert(`✅ Deleted ${deletedCount} reading comprehension questions from CPCT Exam 1`);
+                        
+                        // Refresh if this part is selected
+                        if (selectedPart && readingParts.some(p => p._id === selectedPart)) {
+                          const section = sections.find(s => parts.find(p => p._id === selectedPart)?.sectionId === s._id);
+                          if (section) {
+                            fetchQuestions(exam1._id, section._id, selectedPart);
+                          }
+                        }
+                      }
+                    } catch (error) {
+                      alert('Error: ' + error.message);
+                    }
+                  }}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium"
+                >
+                  🗑️ Delete All Reading Comprehension Questions from Exam 1
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Auto Import 10 Pre-defined Passages to 20 Exams */}
+          <div className="bg-orange-50 border-2 border-orange-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-orange-900 mb-3 font-bold">
+              <strong>🚀 Auto Import 10 Pre-defined Passages to All 20 CPCT Exams:</strong>
+            </p>
+            <p className="text-xs text-orange-700 mb-3">
+              This will automatically:
+              <br />• Import 10 pre-defined reading comprehension passages
+              <br />• Shuffle and duplicate them to create 20 passages (each appears twice)
+              <br />• Distribute one passage (5 questions) to each of the 20 CPCT exams
+              <br />• Each exam will get exactly 5 questions from one passage
+            </p>
+            
+            <button
+              onClick={async () => {
+                if (!confirm(`⚠️ This will:\n\n1. Import 10 pre-defined reading comprehension passages\n2. Shuffle and duplicate them to create 20 passages\n3. Distribute one passage (5 questions) to each of the 20 CPCT exams\n\nThis will replace existing reading comprehension questions in all exams.\n\nContinue?`)) return;
+                
+                setAutoImporting(true);
+                try {
+                  const res = await fetch('/api/admin/auto-import-10-passages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                  });
+                  
+                  const data = await res.json();
+                  if (res.ok) {
+                    let successMsg = `✅ Success! Auto import completed.\n\n`;
+                    successMsg += `📊 Summary:\n`;
+                    successMsg += `• Passages imported: ${data.passagesImported || 0}\n`;
+                    successMsg += `• Questions imported: ${data.questionsImported || 0}\n`;
+                    successMsg += `• Exams updated: ${data.examsUpdated || 0}\n`;
+                    
+                    if (data.distributionResults && data.distributionResults.length > 0) {
+                      successMsg += `\n📋 Distribution:\n`;
+                      data.distributionResults.forEach((result, idx) => {
+                        successMsg += `${idx + 1}. ${result.examTitle}: ${result.passageTitle} (${result.questionsAdded} questions)\n`;
+                      });
+                    }
+                    
+                    if (data.errors && data.errors.length > 0) {
+                      successMsg += `\n⚠️ Errors (${data.errors.length}):\n`;
+                      data.errors.slice(0, 5).forEach(err => {
+                        successMsg += `• ${err}\n`;
+                      });
+                      if (data.errors.length > 5) {
+                        successMsg += `... and ${data.errors.length - 5} more errors\n`;
+                      }
+                    }
+                    
+                    alert(successMsg);
+                    await fetchExams();
+                  } else {
+                    alert('Error: ' + (data.error || 'Failed to auto import passages'));
+                  }
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                } finally {
+                  setAutoImporting(false);
+                }
+              }}
+              disabled={autoImporting}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {autoImporting ? '⏳ Importing and Distributing...' : '🚀 Auto Import 10 Passages to All 20 Exams'}
+            </button>
+          </div>
+
+          {/* Bulk Import All 20 Reading Comprehension Passages */}
+          <div className="bg-green-50 border-2 border-green-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-green-900 mb-3 font-bold">
+              <strong>📚 Bulk Import All 20 Reading Comprehension Passages:</strong>
+            </p>
+            <p className="text-xs text-green-700 mb-3">
+              Paste all 20 reading comprehension passages at once. The system will automatically:
+              <br />• Parse all 20 passages (each with 5 questions)
+              <br />• Import them to the question bank
+              <br />• Distribute one passage (5 questions) to each of the 20 CPCT exams
+              <br />• Each exam will get exactly 5 questions from one passage
+            </p>
+            
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Paste All 20 Passages Here:</label>
+              <textarea
+                value={bulkReadingComprehensionText}
+                onChange={(e) => setBulkReadingComprehensionText(e.target.value)}
+                placeholder={`Paste all 20 reading comprehension passages here. Each passage should have:
+- Title (Hindi Title)
+- English: [passage text]
+- Hindi: [passage text]
+- 5 questions with options and answers
+
+Example:
+Digital Payments and E-Wallets (डिजिटल भुगतान और ई-वॉलेट)
+English: Digital payments have revolutionized...
+Hindi: डिजिटल भुगतान ने...
+What has enabled cashless transactions? A. Barter B. Digital payments C. Physical Banks D. Gold Ans: B
+...`}
+                className="w-full h-96 border border-gray-300 rounded-lg p-3 text-sm font-mono text-xs"
+                disabled={bulkReadingComprehensionImporting}
+              />
+            </div>
+            
+            <button
+              onClick={async () => {
+                if (!bulkReadingComprehensionText.trim()) {
+                  alert('Please paste all 20 reading comprehension passages first!');
+                  return;
+                }
+                
+                if (!confirm(`⚠️ This will:\n\n1. Parse all 20 reading comprehension passages\n2. Import them to the question bank\n3. Distribute one passage (5 questions) to each of the 20 CPCT exams\n\nMake sure you have pasted all 20 passages correctly.\n\nContinue?`)) return;
+                
+                setBulkReadingComprehensionImporting(true);
+                try {
+                  const res = await fetch('/api/admin/bulk-import-reading-comprehension', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                      passagesText: bulkReadingComprehensionText.trim()
+                    })
+                  });
+                  
+                  const data = await res.json();
+                  if (res.ok) {
+                    let successMsg = `✅ Success! Bulk import completed.\n\n`;
+                    successMsg += `📊 Summary:\n`;
+                    successMsg += `• Passages parsed: ${data.passagesParsed || 0}\n`;
+                    successMsg += `• Questions imported: ${data.questionsImported || 0}\n`;
+                    successMsg += `• Exams updated: ${data.examsUpdated || 0}\n`;
+                    
+                    if (data.distributionResults && data.distributionResults.length > 0) {
+                      successMsg += `\n📋 Distribution:\n`;
+                      data.distributionResults.forEach((result, idx) => {
+                        successMsg += `${idx + 1}. ${result.examTitle}: ${result.questionsAdded} questions\n`;
+                      });
+                    }
+                    
+                    if (data.errors && data.errors.length > 0) {
+                      successMsg += `\n⚠️ Errors (${data.errors.length}):\n`;
+                      data.errors.slice(0, 5).forEach(err => {
+                        successMsg += `• ${err}\n`;
+                      });
+                      if (data.errors.length > 5) {
+                        successMsg += `... and ${data.errors.length - 5} more errors\n`;
+                      }
+                    }
+                    
+                    alert(successMsg);
+                    setBulkReadingComprehensionText('');
+                    await fetchExams();
+                  } else {
+                    alert('Error: ' + (data.error || 'Failed to import passages'));
+                  }
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                } finally {
+                  setBulkReadingComprehensionImporting(false);
+                }
+              }}
+              disabled={bulkReadingComprehensionImporting || !bulkReadingComprehensionText.trim()}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {bulkReadingComprehensionImporting ? '⏳ Importing and Distributing...' : '🚀 Import All 20 Passages & Distribute to Exams'}
             </button>
           </div>
 
