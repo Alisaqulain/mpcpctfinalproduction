@@ -658,14 +658,136 @@ class InScriptConverter {
 }
 
 /**
+ * Alt Code Mappings for Hindi Characters
+ * Alt + numeric keypad code → Hindi character
+ * Based on Remington/InScript Alt code standards
+ * Supports both Remington and InScript layouts
+ */
+const ALT_CODE_MAP = {
+  // Common symbols (from image)
+  '33': '!',      // Alt + 33 → !
+  '36': '$',      // Alt + 36 → $
+  '37': '%',      // Alt + 37 → %
+  '43': '+',      // Alt + 43 → +
+  '47': '/',      // Alt + 47 → /
+  '61': '=',      // Alt + 61 → =
+  '63': '?',      // Alt + 63 → ?
+  
+  // Devanagari digits
+  '2305': '०',    // Alt + 2305 → ० (Devanagari Digit Zero)
+  '2416': '०',    // Alt + 2416 → ० (alternate)
+  '2406': '°',    // Alt + 2406 → ° (Degree Sign)
+  
+  // Devanagari characters and signs (from image)
+  '2315': 'ं',    // Alt + 2315 → अं (Anusvara)
+  '2329': 'ड़',   // Alt + 2329 → ड़ (DDA with dot below)
+  '2334': 'ज',    // Alt + 2334 → ज (JA)
+  '2365': 'ळ',    // Alt + 2365 → ळ (LLA)
+  '2384': 'ॐ',    // Alt + 2384 → ॐ (Om Sign)
+  '2395': 'ज्ञ',  // Alt + 2395 → ज्ञ (JNYA)
+  '2398': 'फ़',   // Alt + 2398 → फ़ (FA with dot below)
+  '2404': '।',    // Alt + 2404 → । (Danda)
+  '2405': '॥',    // Alt + 2405 → ॥ (Double Danda)
+  
+  // Additional Devanagari characters
+  '2306': 'ः',    // Visarga
+  '2307': 'ँ',    // Chandrabindu
+  '2308': 'ं',    // Anusvara (alternate)
+  '2309': 'ः',    // Visarga (alternate)
+  
+  // Devanagari vowels (swar)
+  '2309': 'अ',    // A
+  '2310': 'आ',    // Aa
+  '2311': 'इ',    // I
+  '2312': 'ई',    // Ii
+  '2313': 'उ',    // U
+  '2314': 'ऊ',    // Uu
+  '2315': 'ऋ',    // Ri
+  '2316': 'ॠ',    // Rii
+  '2317': 'ऌ',    // Li
+  '2318': 'ॡ',    // Lii
+  '2319': 'ए',    // E
+  '2320': 'ऐ',    // Ai
+  '2321': 'ओ',    // O
+  '2322': 'औ',    // Au
+  
+  // Devanagari matras (vowel signs)
+  '2366': 'ा',    // Aa matra
+  '2367': 'ि',    // I matra
+  '2368': 'ी',    // Ii matra
+  '2369': 'ु',    // U matra
+  '2370': 'ू',    // Uu matra
+  '2371': 'ृ',    // Ri matra
+  '2372': 'ॄ',    // Rii matra
+  '2373': 'ॅ',    // E matra (short)
+  '2374': 'े',    // E matra
+  '2375': 'ै',    // Ai matra
+  '2376': 'ॉ',    // O matra (short)
+  '2377': 'ो',    // O matra
+  '2378': 'ौ',    // Au matra
+  '2379': '्',    // Halant/Virama
+  
+  // Devanagari consonants (vyanjan) - common ones
+  '2325': 'क',    // Ka
+  '2326': 'ख',    // Kha
+  '2327': 'ग',    // Ga
+  '2328': 'घ',    // Gha
+  '2329': 'ङ',    // Nga
+  '2330': 'च',    // Cha
+  '2331': 'छ',    // Chha
+  '2332': 'ज',    // Ja
+  '2333': 'झ',    // Jha
+  '2334': 'ञ',    // Nya
+  '2335': 'ट',    // Ta (retroflex)
+  '2336': 'ठ',    // Tha (retroflex)
+  '2337': 'ड',    // Da (retroflex)
+  '2338': 'ढ',    // Dha (retroflex)
+  '2339': 'ण',    // Na (retroflex)
+  '2340': 'त',    // Ta
+  '2341': 'थ',    // Tha
+  '2342': 'द',    // Da
+  '2343': 'ध',    // Dha
+  '2344': 'न',    // Na
+  '2345': 'प',    // Pa
+  '2346': 'फ',    // Pha
+  '2347': 'ब',    // Ba
+  '2348': 'भ',    // Bha
+  '2349': 'म',    // Ma
+  '2350': 'य',    // Ya
+  '2351': 'र',    // Ra
+  '2352': 'ल',    // La
+  '2354': 'ळ',    // Lla
+  '2355': 'व',    // Va
+  '2357': 'श',    // Sha
+  '2358': 'ष',    // Sha (retroflex)
+  '2359': 'स',    // Sa
+  '2360': 'ह',    // Ha
+  
+  // Common conjuncts
+  '2395': 'ज्ञ',  // JNYA (gya)
+  '2381': 'क्ष',  // KSHA
+  '2380': 'त्र',  // TRA
+  '2382': 'श्र',  // SHRA
+  
+  // Nukta characters
+  '2329': 'ड़',   // DDA with nukta
+  '2330': 'ढ़',   // DDHA with nukta
+  '2332': 'ज़',   // ZA (ja with nukta)
+  '2346': 'फ़',   // FA (pha with nukta)
+};
+
+/**
  * Main Hindi Typing Converter - Professional IME Engine
  * Handles both Remington and InScript layouts with advanced features
+ * Includes Alt code support for both layouts
  */
 export class HindiTypingConverter {
   constructor(layout = 'remington') {
     this.layout = layout.toLowerCase();
     this.remington = new RemingtonConverter();
     this.inscript = new InScriptConverter();
+    this.altCodeBuffer = '';  // Buffer for Alt code numeric input
+    this.altKeyPressed = false; // Track Alt key state
   }
 
   /**
@@ -674,6 +796,121 @@ export class HindiTypingConverter {
   setLayout(layout) {
     this.layout = layout.toLowerCase();
     this.remington.clearBuffer();
+  }
+
+  /**
+   * Handle Alt code input (Alt + numeric keypad)
+   * @param {string} code - Numeric code string
+   * @returns {string|null} - Hindi character or null
+   */
+  handleAltCode(code) {
+    if (!code || code.length === 0) return null;
+    
+    // Check direct mapping first
+    if (ALT_CODE_MAP[code]) {
+      return ALT_CODE_MAP[code];
+    }
+    
+    // Try to convert numeric code to Unicode character directly
+    const codeNum = parseInt(code, 10);
+    if (!isNaN(codeNum) && codeNum >= 0) {
+      // Check Devanagari Unicode range: U+0900 to U+097F (2304-2431)
+      if (codeNum >= 2304 && codeNum <= 2431) {
+        try {
+          return String.fromCharCode(codeNum);
+        } catch (e) {
+          return null;
+        }
+      }
+      // Also support common ASCII codes
+      if (codeNum >= 32 && codeNum <= 126) {
+        try {
+          return String.fromCharCode(codeNum);
+        } catch (e) {
+          return null;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Handle keydown event for Alt code detection
+   * Should be called on keydown, not keypress
+   * @param {KeyboardEvent} event - Keyboard event
+   * @returns {boolean} - True if Alt code is being processed
+   */
+  handleKeyDown(event) {
+    const key = event.key;
+    const alt = event.altKey;
+    const ctrl = event.ctrlKey;
+    
+    // Track Alt key press
+    if (key === 'Alt' || key === 'AltLeft' || key === 'AltRight') {
+      this.altKeyPressed = true;
+      this.altCodeBuffer = '';
+      return false; // Don't prevent default for Alt key itself
+    }
+    
+    // Handle Alt code input (Alt + numeric keypad)
+    if (this.altKeyPressed && alt && !ctrl) {
+      // Check if it's a numeric keypad key
+      const numericKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+      const numpadKeys = ['Numpad0', 'Numpad1', 'Numpad2', 'Numpad3', 'Numpad4', 
+                          'Numpad5', 'Numpad6', 'Numpad7', 'Numpad8', 'Numpad9'];
+      
+      let digit = null;
+      if (numericKeys.includes(key)) {
+        digit = key;
+      } else if (numpadKeys.includes(key)) {
+        digit = key.replace('Numpad', '');
+      }
+      
+      if (digit !== null) {
+        event.preventDefault();
+        this.altCodeBuffer += digit;
+        return true; // Alt code is being processed
+      } else if (key !== 'Alt' && key !== 'AltLeft' && key !== 'AltRight') {
+        // Non-numeric key pressed while Alt is held - clear buffer
+        this.altCodeBuffer = '';
+        this.altKeyPressed = false;
+      }
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Handle keyup event to process Alt code when Alt is released
+   * @param {KeyboardEvent} event - Keyboard event
+   * @returns {object|null} - Conversion result or null
+   */
+  handleKeyUp(event) {
+    const key = event.key;
+    const alt = event.altKey;
+    
+    // Check if Alt key was released
+    if ((key === 'Alt' || key === 'AltLeft' || key === 'AltRight') && !alt) {
+      // Alt was released, process any buffered code
+      if (this.altCodeBuffer.length > 0) {
+        const altChar = this.handleAltCode(this.altCodeBuffer);
+        const buffer = this.altCodeBuffer;
+        this.altCodeBuffer = '';
+        this.altKeyPressed = false;
+        
+        if (altChar) {
+          return {
+            char: altChar,
+            altCode: buffer,
+            isAltCode: true
+          };
+        }
+      }
+      this.altKeyPressed = false;
+      this.altCodeBuffer = '';
+    }
+    
+    return null;
   }
 
   /**
@@ -689,6 +926,13 @@ export class HindiTypingConverter {
   handleKeyPress(event, currentText = '', selectionStart = 0, selectionEnd = 0) {
     const key = event.key;
     const shift = event.shiftKey;
+    const alt = event.altKey;
+    
+    // Skip Alt code processing in keypress (handled in keydown/keyup)
+    if (alt && this.altCodeBuffer.length > 0) {
+      // Alt code is being buffered, skip normal processing
+      return null;
+    }
     
     // Handle special keys (don't convert)
     if (key === 'Backspace' || key === 'Delete' || key === 'Enter' || 
@@ -784,6 +1028,22 @@ export class HindiTypingConverter {
    */
   clearBuffer() {
     this.remington.clearBuffer();
+    this.altCodeBuffer = '';
+    this.altKeyPressed = false;
+  }
+  
+  /**
+   * Process buffered Alt code (called after timeout)
+   * @returns {string|null} - Hindi character or null
+   */
+  processAltCodeBuffer() {
+    if (this.altCodeBuffer.length > 0) {
+      const altChar = this.handleAltCode(this.altCodeBuffer);
+      this.altCodeBuffer = '';
+      this.altKeyPressed = false;
+      return altChar;
+    }
+    return null;
   }
 }
 

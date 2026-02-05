@@ -26,6 +26,7 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
   /**
    * Handle keydown event for Hindi conversion
    * Properly manages cursor position and text replacement
+   * Includes Alt code support
    * 
    * @param {KeyboardEvent} event - Keyboard event
    * @param {string} currentValue - Current textarea/input value
@@ -43,6 +44,13 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
     // Get current cursor positions
     const selectionStart = textarea.selectionStart || 0;
     const selectionEnd = textarea.selectionEnd || selectionStart;
+    
+    // Handle Alt code detection (on keydown)
+    const isAltCode = converter.handleKeyDown(event);
+    if (isAltCode) {
+      // Alt code is being buffered, wait for keyup
+      return true;
+    }
     
     // Handle backspace with Unicode cluster awareness
     if (event.key === 'Backspace' && !event.ctrlKey && !event.metaKey) {
@@ -110,6 +118,49 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
 
     return false; // Let browser handle normally
   }, [enabled]);
+  
+  /**
+   * Handle keyup event for Alt code processing
+   * @param {KeyboardEvent} event - Keyboard event
+   * @param {string} currentValue - Current textarea/input value
+   * @param {function} setValue - State setter for value
+   * @returns {boolean} - True if Alt code was processed
+   */
+  const handleKeyUp = useCallback((event, currentValue, setValue) => {
+    if (!enabled) {
+      return false;
+    }
+    
+    const converter = converterRef.current;
+    const textarea = event.target;
+    const selectionStart = textarea.selectionStart || 0;
+    const selectionEnd = textarea.selectionEnd || selectionStart;
+    
+    // Check for Alt code completion
+    const altCodeResult = converter.handleKeyUp(event);
+    if (altCodeResult && altCodeResult.char) {
+      // Process Alt code result
+      const replaceStart = selectionStart;
+      const replaceEnd = selectionEnd;
+      
+      const newValue = 
+        currentValue.substring(0, replaceStart) + 
+        altCodeResult.char + 
+        currentValue.substring(replaceEnd);
+      
+      setValue(newValue);
+      textarea.value = newValue;
+      
+      const newCursorPos = replaceStart + altCodeResult.char.length;
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = newCursorPos;
+      }, 0);
+      
+      return true;
+    }
+    
+    return false;
+  }, [enabled]);
 
   /**
    * Convert text to Hindi (for batch conversion)
@@ -138,6 +189,7 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
 
   return {
     handleKeyDown,
+    handleKeyUp,
     convertText,
     clearBuffer,
     switchLayout,
