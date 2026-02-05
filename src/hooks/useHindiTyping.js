@@ -4,7 +4,7 @@ import { HindiTypingConverter } from '@/lib/hindiTyping';
 
 /**
  * React Hook for Hindi Typing
- * Provides Hindi typing conversion functionality
+ * Provides Hindi typing conversion functionality with proper cursor management
  * 
  * @param {string} layout - 'remington' or 'inscript'
  * @param {boolean} enabled - Whether Hindi typing is enabled
@@ -25,6 +25,8 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
 
   /**
    * Handle keydown event for Hindi conversion
+   * Properly manages cursor position and text replacement
+   * 
    * @param {KeyboardEvent} event - Keyboard event
    * @param {string} currentValue - Current textarea/input value
    * @param {function} setValue - State setter for value
@@ -36,34 +38,70 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
     }
 
     const converter = converterRef.current;
-    const result = converter.handleKeyPress(event, currentValue);
+    const textarea = event.target;
+    
+    // Get current cursor positions
+    const selectionStart = textarea.selectionStart || 0;
+    const selectionEnd = textarea.selectionEnd || selectionStart;
+    
+    // Handle backspace with Unicode cluster awareness
+    if (event.key === 'Backspace' && !event.ctrlKey && !event.metaKey) {
+      const backspaceResult = converter.handleBackspace(currentValue, selectionStart, selectionEnd);
+      if (backspaceResult) {
+        event.preventDefault();
+        
+        const newValue = 
+          currentValue.substring(0, backspaceResult.deleteStart) + 
+          currentValue.substring(backspaceResult.deleteStart + backspaceResult.deleteLength);
+        
+        setValue(newValue);
+        textarea.value = newValue;
+        
+        // Set cursor position
+        setTimeout(() => {
+          textarea.selectionStart = textarea.selectionEnd = backspaceResult.newCursorPos;
+        }, 0);
+        
+        return true;
+      }
+      return false;
+    }
+    
+    // Handle regular keypress conversion
+    const result = converter.handleKeyPress(
+      event, 
+      currentValue, 
+      selectionStart, 
+      selectionEnd
+    );
 
     if (result !== null && result.char) {
-      // We need to insert/replace with the Hindi character
-      const textarea = event.target;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
+      // Calculate replacement positions
+      const replaceStart = result.replaceStart !== undefined 
+        ? result.replaceStart 
+        : Math.max(0, selectionStart - (result.replaceLength || 0));
+      const replaceEnd = replaceStart + (result.replaceLength || 0);
       
-      // Calculate how many characters to replace from the end
-      const replaceLength = result.replaceLength || 1;
-      const replaceStart = Math.max(0, start - (replaceLength - 1));
-      
-      // Replace characters and insert Hindi
+      // Replace text and insert Hindi character
       const newValue = 
         currentValue.substring(0, replaceStart) + 
         result.char + 
-        currentValue.substring(end);
+        currentValue.substring(replaceEnd);
       
       // Update state
       setValue(newValue);
       
-      // Also update textarea value directly for immediate synchronization
-      // This ensures the controlled component stays in sync
+      // Update textarea value directly for immediate synchronization
       textarea.value = newValue;
+      
+      // Calculate new cursor position
+      const cursorOffset = result.cursorOffset !== undefined 
+        ? result.cursorOffset 
+        : result.char.length;
+      const newCursorPos = replaceStart + cursorOffset;
       
       // Set cursor position after inserted character
       setTimeout(() => {
-        const newCursorPos = replaceStart + result.char.length;
         textarea.selectionStart = textarea.selectionEnd = newCursorPos;
       }, 0);
       
@@ -90,12 +128,20 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
     converterRef.current.clearBuffer();
   }, []);
 
+  /**
+   * Switch layout instantly
+   * @param {string} newLayout - 'remington' or 'inscript'
+   */
+  const switchLayout = useCallback((newLayout) => {
+    converterRef.current.setLayout(newLayout);
+  }, []);
+
   return {
     handleKeyDown,
     convertText,
     clearBuffer,
+    switchLayout,
     isEnabled: enabled,
     layout: layout.toLowerCase()
   };
 }
-
