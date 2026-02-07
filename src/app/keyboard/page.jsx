@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Sun, Moon, RotateCw, X } from "lucide-react";
+import { Sun, Moon, RotateCw, X, Settings } from "lucide-react";
 import { getLearningData, getLessonContent } from "@/lib/learningData";
 
 // ==================== DESKTOP VIEW COMPONENT ====================
@@ -375,6 +375,11 @@ function PortraitMobileView({
   pressedKey,
   keyboard,
   hand,
+  sound,
+  setHand,
+  setSound,
+  setKeyboard,
+  resetStats,
   keys,
   getKeyWidth,
   getCurrentRowKeys,
@@ -382,9 +387,11 @@ function PortraitMobileView({
   correctCount,
   wrongCount,
   timer,
+  elapsedTime,
   totalAttempts,
   formatClock
 }) {
+  const [showSettings, setShowSettings] = useState(false);
   const currentRowKeys = getCurrentRowKeys();
   const rows = organizeKeysIntoRows(highlightedKeys);
   
@@ -445,8 +452,16 @@ function PortraitMobileView({
   };
   return (
     <div className="p-4 flex flex-col gap-6 w-full min-h-full" style={{ minHeight: '100dvh' }}>
-      {/* Theme Toggle Button - Portrait Mobile View (Left Side) */}
-      <div className="fixed top-17 left-4 z-50 cursor-pointer">
+      {/* Theme Toggle and Settings Buttons - Portrait Mobile View */}
+      <div className="fixed top-2 left-4 z-50 flex items-center gap-3">
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          className={`p-2 rounded-full shadow text-sm cursor-pointer ${
+            isDarkMode ? "bg-white text-black" : "bg-black text-white"
+          }`}
+        >
+          <Settings size={20} />
+        </button>
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
           className={`p-2 rounded-full shadow text-sm cursor-pointer ${
@@ -460,7 +475,7 @@ function PortraitMobileView({
       {/* Close Button - Portrait Mobile View (Right Side) */}
       <button
         onClick={() => window.location.href = '/learning'}
-        className={`fixed top-17 right-4 z-50 p-1 rounded-md shadow-lg transition-all duration-200 hover:scale-110 ${
+        className={`fixed top-2 right-2 z-50 p-1 px-2 rounded-md shadow-lg transition-all duration-200 hover:scale-110 text-xs ${
           isDarkMode ? "bg-red-600 text-white hover:bg-gray-700" : "bg-white text-black hover:bg-gray-100"
         }`}
         aria-label="Close and return to learning page"
@@ -469,7 +484,7 @@ function PortraitMobileView({
       </button>
 
       {/* Mobile Statistics Section - Top */}
-      <div className="md:hidden w-full flex items-center justify-center gap-4 mb-4 px-4">
+      <div className="md:hidden w-full flex items-center justify-center gap-9 mb-4 px-18 mt-16 pr-18">
         <div className="flex-1 text-center">
           <div className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}>{correctCount}</div>
           <div className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Correct</div>
@@ -483,52 +498,32 @@ function PortraitMobileView({
           <div className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Accuracy</div>
         </div>
         <div className="flex-1 text-center">
-          <div className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}>{formatClock(timer)}</div>
+          <div className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-black"}`}>{formatClock(elapsedTime)}</div>
           <div className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Timer</div>
         </div>
       </div>
 
       {/* Left Section */}
       <div className="flex-1 flex flex-col items-center gap-6 mobile-stack">
-        {/* Typing Prompt Buttons - Show only 8 keys at a time with scrolling */}
+        {/* Typing Prompt Buttons - Show current row only with auto-slide like desktop */}
         <div 
-          className="flex flex-nowrap justify-start items-center gap-1 relative overflow-x-auto mt-2 px-2 typing-prompt-container w-full"
-          style={{ scrollbarWidth: 'thin', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
-          ref={(el) => {
-            if (el && currentIndex < highlightedKeys.length) {
-              // Calculate which 8 keys to show - ensure current key is visible
-              const startIndex = Math.max(0, Math.min(currentIndex - 3, highlightedKeys.length - 8));
-              const keyWidth = 32; // w-7 = 28px + gap = ~32px per key
-              const spaceWidth = 52; // w-12 = 48px + gap = ~52px for space
-              
-              // Calculate scroll position
-              let scrollPos = 0;
-              for (let i = 0; i < startIndex; i++) {
-                scrollPos += highlightedKeys[i] === "Space" ? spaceWidth : keyWidth;
-              }
-              
-              el.scrollTo({ left: scrollPos, behavior: 'smooth' });
-            }
-          }}
+          className="flex flex-nowrap justify-between items-center gap-1 relative mt-6 px-2 typing-prompt-container w-full portrait-typing-prompt"
+          style={{ overflow: 'hidden', maxWidth: '100%' }}
         >
-          {highlightedKeys.filter(k => k !== undefined && k !== null).map((key, index) => {
-            const isCurrentKey = index === currentIndex;
-            const keyStatusForThisKey = keyStatus[index];
+          {currentRowKeys.map((key, displayIdx) => {
+            const originalIndex = getOriginalIndex(displayIdx);
+            const isCurrentKey = originalIndex === currentIndex;
+            const keyStatusForThisKey = originalIndex >= 0 ? keyStatus[originalIndex] : null;
             const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
-            
-            // Calculate visible range - show 8 keys centered around current
-            const startIndex = Math.max(0, Math.min(currentIndex - 3, highlightedKeys.length - 8));
-            const endIndex = Math.min(startIndex + 8, highlightedKeys.length);
-            const isVisible = index >= startIndex && index < endIndex;
             
             return (
               <div
-                key={index}
+                key={`${currentRowIndex}-${displayIdx}`}
                 className={`
-                  ${key === "Space" ? "w-12 h-7 min-w-[48px]" : "w-7 h-7 min-w-[28px]"}
+                  ${key === "Space" ? "w-12 h-10 min-w-[48px]" : "w-8 h-10 min-w-[32px]"}
                   rounded flex items-center justify-center text-xs font-semibold
-                  transition-all duration-150 flex-shrink-0
-                  ${!isVisible ? 'opacity-0 pointer-events-none absolute' : ''}
+                  transition-all duration-150 flex-shrink-0 portrait-char-box
+                  ${isRowAnimating ? 'animate-slide-in-right-key' : ''}
                   ${
                     keyStatusForThisKey === "wrong"
                       ? "bg-red-600 border-red-600 text-white"
@@ -554,9 +549,9 @@ function PortraitMobileView({
         </div>
 
         {/* Rotation Prompt */}
-        <div className="rotate-prompt-mobile fixed bottom-20 left-1/2 -translate-x-1/2 z-[100] bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 flex items-center gap-3 shadow-lg border border-gray-700" style={{ pointerEvents: 'none' }}>
-          <div className="relative flex items-center justify-center w-20 h-20">
-            <svg width="80" height="80" viewBox="0 0 80 80" className="absolute inset-0 animate-rotate-arrows">
+        <div className="rotate-prompt-mobile fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 flex items-center gap-3 shadow-lg border border-gray-700" style={{ pointerEvents: 'none' }}>
+          <div className="relative flex items-center justify-center w-20 h-20 animate-rotate-phone" style={{ transformOrigin: 'center center' }}>
+            <svg width="80" height="80" viewBox="0 0 80 80" className="absolute inset-0">
               <path
                 d="M 20 20 Q 10 40, 20 60"
                 stroke="#3b82f6"
@@ -609,7 +604,7 @@ function PortraitMobileView({
 
         {/* Keyboard */}
         {keyboard && (
-          <div className={`relative mt-4 p-2 w-full max-w-full border border-gray-600 rounded-3xl shadow-md keyboard-container portrait-keyboard ${
+          <div className={`relative mt-4 p-1 w-full border border-gray-600 rounded-3xl shadow-md keyboard-container portrait-keyboard ${
             isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
           }`}>
             <style jsx>{`
@@ -666,7 +661,7 @@ function PortraitMobileView({
                   return (
                     <div
                       key={keyIndex}
-                      className={`h-8 text-[8px] ${getKeyWidth(key)} mx-0.5 rounded flex items-center justify-center 
+                      className={`h-7 text-[7px] ${getKeyWidth(key)} mx-0.5 rounded flex items-center justify-center 
                         border transition-all duration-150 ${
                           isDarkMode ? "border-gray-600 text-white" : "border-gray-400 text-gray-800"
                         }
@@ -685,6 +680,88 @@ function PortraitMobileView({
           </div>
         )}
       </div>
+
+      {/* Settings Popup Modal */}
+      {showSettings && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setShowSettings(false)}
+        >
+          <div 
+            className={`rounded-lg p-6 max-w-sm w-full mx-4 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}
+            onClick={(e) => e.stopPropagation()}
+            style={{ zIndex: 1000 }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>Settings</h2>
+              <button
+                onClick={() => setShowSettings(false)}
+                className={`p-1 hover:bg-gray-200 rounded ${isDarkMode ? 'text-white hover:bg-gray-700' : 'text-black'}`}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="flex flex-col gap-4">
+              {/* Hand Toggle */}
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Hand</span>
+                <div className="relative inline-block w-12 h-6">
+                  <input
+                    type="checkbox"
+                    checked={hand}
+                    onChange={() => setHand(!hand)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-full h-full bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-colors duration-300"></div>
+                  <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300 peer-checked:translate-x-6"></div>
+                </div>
+              </label>
+
+              {/* Sound Toggle */}
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Sound</span>
+                <div className="relative inline-block w-12 h-6">
+                  <input
+                    type="checkbox"
+                    checked={sound}
+                    onChange={() => setSound(!sound)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-full h-full bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-colors duration-300"></div>
+                  <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300 peer-checked:translate-x-6"></div>
+                </div>
+              </label>
+
+              {/* Keyboard Toggle */}
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Keyboard</span>
+                <div className="relative inline-block w-12 h-6">
+                  <input
+                    type="checkbox"
+                    checked={keyboard}
+                    onChange={() => setKeyboard(!keyboard)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-full h-full bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-colors duration-300"></div>
+                  <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300 peer-checked:translate-x-6"></div>
+                </div>
+              </label>
+
+              {/* Reset Button */}
+              <button
+                onClick={() => {
+                  resetStats();
+                  setShowSettings(false);
+                }}
+                className="w-full px-4 py-2 bg-blue-600 rounded hover:bg-blue-700 text-white text-sm font-medium mt-2"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -700,6 +777,11 @@ function LandscapeMobileView({
   pressedKey,
   keyboard,
   hand,
+  sound,
+  setHand,
+  setSound,
+  setKeyboard,
+  resetStats,
   leftHandImage,
   rightHandImage,
   keys,
@@ -713,6 +795,7 @@ function LandscapeMobileView({
   elapsedTime,
   formatClock
 }) {
+  const [showSettings, setShowSettings] = useState(false);
   const currentRowKeys = getCurrentRowKeys();
   const rows = organizeKeysIntoRows(highlightedKeys);
   
@@ -783,8 +866,16 @@ function LandscapeMobileView({
     <div className="pl-4 pr-4 pt-4 pb-4 flex flex-col md:flex-row gap-6 w-full min-h-full landscape-mobile-view-container" style={{ minHeight: '100dvh' }}>
       {/* Close Button - Landscape Mobile View */}
       
-      {/* Theme Toggle Button - Landscape Mobile View */}
-      <div className="fixed top-4 right-4 z-50 cursor-pointer">
+      {/* Theme Toggle and Settings Buttons - Landscape Mobile View */}
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          className={`p-2 rounded-full shadow text-sm cursor-pointer ${
+            isDarkMode ? "bg-white text-black" : "bg-black text-white"
+          }`}
+        >
+          <Settings size={20} />
+        </button>
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
           className={`p-2 rounded-full shadow text-sm cursor-pointer ${
@@ -795,37 +886,111 @@ function LandscapeMobileView({
         </button>
       </div>
 
+      {/* Settings Popup Modal */}
+      {showSettings && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setShowSettings(false)}
+        >
+          <div 
+            className={`rounded-lg p-6 max-w-sm w-full mx-4 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}
+            onClick={(e) => e.stopPropagation()}
+            style={{ zIndex: 1000 }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>Settings</h2>
+              <button
+                onClick={() => setShowSettings(false)}
+                className={`p-1 hover:bg-gray-200 rounded ${isDarkMode ? 'text-white hover:bg-gray-700' : 'text-black'}`}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="flex flex-col gap-4">
+              {/* Hand Toggle */}
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Hand</span>
+                <div className="relative inline-block w-12 h-6">
+                  <input
+                    type="checkbox"
+                    checked={hand}
+                    onChange={() => setHand(!hand)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-full h-full bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-colors duration-300"></div>
+                  <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300 peer-checked:translate-x-6"></div>
+                </div>
+              </label>
+
+              {/* Sound Toggle */}
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Sound</span>
+                <div className="relative inline-block w-12 h-6">
+                  <input
+                    type="checkbox"
+                    checked={sound}
+                    onChange={() => setSound(!sound)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-full h-full bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-colors duration-300"></div>
+                  <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300 peer-checked:translate-x-6"></div>
+                </div>
+              </label>
+
+              {/* Keyboard Toggle */}
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>Keyboard</span>
+                <div className="relative inline-block w-12 h-6">
+                  <input
+                    type="checkbox"
+                    checked={keyboard}
+                    onChange={() => setKeyboard(!keyboard)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-full h-full bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-colors duration-300"></div>
+                  <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300 peer-checked:translate-x-6"></div>
+                </div>
+              </label>
+
+              {/* Reset Button */}
+              <button
+                onClick={() => {
+                  resetStats();
+                  setShowSettings(false);
+                }}
+                className="w-full px-4 py-2 bg-blue-600 rounded hover:bg-blue-700 text-white text-sm font-medium mt-2"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Left Section */}
-      <div className="flex-1 flex flex-col items-center gap-6 mobile-stack">
+      <div className="flex-1 flex flex-col items-center gap-6 mobile-stack relative">
         {/* Typing Prompt Buttons - Landscape mobile row-based layout */}
         <div 
-          className="flex flex-nowrap typing-prompt-mobile justify-center items-center gap-1 md:gap-2 relative overflow-x-auto mt-2 px-2 typing-prompt-container"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+          className="flex flex-nowrap typing-prompt-mobile justify-between items-center gap-1 md:gap-2 absolute top-0 left-2 typing-prompt-container landscape-typing-prompt"
+          style={{ width: 'calc(100% - 280px)', overflow: 'visible', paddingRight: '0', marginRight: '0' }}
         >
           {currentRowKeys.map((key, displayIdx) => {
             const originalIndex = getOriginalIndex(displayIdx);
             const isCurrentKey = originalIndex === currentIndex;
             const keyStatusForThisKey = originalIndex >= 0 ? keyStatus[originalIndex] : null;
             const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
-            // Check if previous key was a space (for dynamic spacing)
-            const previousKeyWasSpace = displayIdx > 0 && currentRowKeys[displayIdx - 1] === "Space";
             
+            // No margin classes for landscape - use gap instead
             let marginClass = "";
-            if (displayIdx === 0) {
-              marginClass = "";
-            } else if (previousKeyWasSpace) {
-              marginClass = "md:ml-8 ml-6";
-            } else {
-              marginClass = "md:ml-2 ml-1.5";
-            }
             
             return (
               <div
                 key={`${currentRowIndex}-${displayIdx}`}
                 className={`
-                  ${key === "Space" ? "w-22 h-11 text-xl" : "w-12 h-14"}
+                  ${key === "Space" ? "w-32 h-11 text-xl" : "w-16 h-14"}
                   rounded flex items-center justify-center text-2xl font-semibold
-                  transition-all duration-150 flex-shrink-0
+                  transition-all duration-150 flex-shrink-0 landscape-char-box
                
                   ${
                     keyStatusForThisKey === "wrong"
@@ -851,9 +1016,12 @@ function LandscapeMobileView({
           })}
         </div>
 
+        {/* Spacer to push keyboard down when typing prompt is absolute */}
+        <div className="h-20 landscape-prompt-spacer"></div>
+
         {/* Keyboard */}
         {keyboard && (
-          <div className={`absolute top-22 left-4 p-1 border border-gray-600 rounded-xl shadow-md keyboard-container landscape-keyboard-small ${
+          <div className={`absolute top-22 left-2 p-1 border border-gray-600 rounded-xl shadow-md keyboard-container landscape-keyboard-small ${
             isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
           }`}>
             
@@ -894,12 +1062,66 @@ function LandscapeMobileView({
               
               /* LANDSCAPE: Base keyboard styles - keys remain unchanged */
               /* Only affects landscape-keyboard-small, not desktop keyboard-container */
+              /* Account for stats panel (120px) + gap (4rem) on right side */
               .landscape-keyboard-small {
-                width: calc(100% - 120px) !important;
-                max-width: calc(100% - 120px) !important;
-                margin-left: 1rem !important;
-                margin-right: 1rem !important;
+                width: calc(100% - 280px) !important;
+                max-width: calc(100% - 280px) !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
                 transform-origin: left top !important;
+                left: 0.5rem !important;
+                right: auto !important;
+              }
+              
+              /* LANDSCAPE: Align typing prompt container with keyboard edges */
+              .landscape-typing-prompt {
+                position: absolute !important;
+                left: 0.5rem !important;
+                top: 0 !important;
+                width: calc(100% - 280px) !important;
+                max-width: calc(100% - 280px) !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                justify-content: space-between !important;
+                overflow: visible !important;
+                flex-wrap: nowrap !important;
+                box-sizing: border-box !important;
+                right: auto !important;
+                gap: 2rem !important;
+              }
+              
+              /* LANDSCAPE: Ensure first and last boxes align with keyboard edges */
+              .landscape-typing-prompt > div:first-child {
+                margin-left: 0 !important;
+              }
+              
+              .landscape-typing-prompt > div:last-child {
+                margin-right: 0 !important;
+              }
+              
+              /* LANDSCAPE: Character boxes size - increased to w-20 (80px) to span full width */
+              .landscape-typing-prompt > div.landscape-char-box:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]),
+              .landscape-typing-prompt > div[class*="w-20"]:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]),
+              .landscape-typing-prompt > div[class*="w-15"]:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]) {
+                width: 80px !important;
+                min-width: 80px !important;
+                max-width: 80px !important;
+                flex-shrink: 0 !important;
+              }
+              
+              /* LANDSCAPE: Space box size - increased to w-32 (128px) */
+              .landscape-typing-prompt > div[class*="w-32"] {
+                width: 140px !important;
+                min-width: 140px !important;
+                max-width: 140px !important;
+                flex-shrink: 0 !important;
+              }
+              
+              /* LANDSCAPE: Add spacer for absolute positioned typing prompt */
+              .landscape-prompt-spacer {
+                height: 80px !important;
               }
               
               /* Base pixel sizes - keys stay the same size */
@@ -2050,6 +2272,11 @@ function KeyboardApp() {
           pressedKey={pressedKey}
           keyboard={keyboard}
           hand={hand}
+          sound={sound}
+          setHand={setHand}
+          setSound={setSound}
+          setKeyboard={setKeyboard}
+          resetStats={resetStats}
           leftHandImage={leftHandImage}
           rightHandImage={rightHandImage}
           keys={keys}
@@ -2077,6 +2304,11 @@ function KeyboardApp() {
           pressedKey={pressedKey}
           keyboard={keyboard}
           hand={hand}
+          sound={sound}
+          setHand={setHand}
+          setSound={setSound}
+          setKeyboard={setKeyboard}
+          resetStats={resetStats}
           keys={keys}
           getKeyWidth={getKeyWidth}
           getCurrentRowKeys={getCurrentRowKeys}
@@ -2084,6 +2316,7 @@ function KeyboardApp() {
           correctCount={correctCount}
           wrongCount={wrongCount}
           timer={timer}
+          elapsedTime={elapsedTime}
           totalAttempts={totalAttempts}
           formatClock={formatClock}
         />
@@ -2203,9 +2436,24 @@ function KeyboardApp() {
           animation: slideInRightKey 0.4s ease-out forwards;
         }
         
-        /* Animation class - Used in PORTRAIT view for rotation prompt */
+        /* Animation class - Removed animation for fixed rotate button */
         .animate-rotate-arrows {
           animation: rotateArrows 3s linear infinite;
+        }
+        
+        /* Rotate phone icon animation */
+        @keyframes rotatePhone {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+        
+        .animate-rotate-phone {
+          animation: rotatePhone 2s linear infinite !important;
+          transform-origin: center center !important;
         }
         
         /* ============================================
@@ -2249,15 +2497,76 @@ function KeyboardApp() {
             height: 30px !important;
           }
           
-          /* PORTRAIT: Ensure typing prompt stays in one row on mobile portrait */
-          .typing-prompt-mobile {
+          /* PORTRAIT: Typing prompt container - ensure it fits within keyboard width */
+          .portrait-typing-prompt {
+            justify-content: space-between !important;
+            overflow: hidden !important;
             flex-wrap: nowrap !important;
-            overflow-x: auto !important;
-            -webkit-overflow-scrolling: touch;
+            gap: 0.2rem !important;
+            padding-left: 0.25rem !important;
+            padding-right: 0.25rem !important;
+            margin-top: 1.5rem !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+          }
+          
+          /* PORTRAIT: Increase gap between statistics items (Correct, Wrong, Accuracy, Timer) */
+          @media (max-width: 767px) {
+            .md\\:hidden.w-full.flex.items-center.justify-center.gap-8 {
+              gap: 2rem !important;
+            }
+          }
+          
+          /* PORTRAIT: Character boxes size - increased height */
+          .portrait-typing-prompt .portrait-char-box:not([class*="w-14"]):not([class*="w-16"]):not([class*="w-12"]) {
+            width: 32px !important;
+            height: 40px !important;
+            min-width: 32px !important;
+            max-width: 32px !important;
+            min-height: 40px !important;
+            font-size: 0.875rem !important;
+            flex-shrink: 0 !important;
+          }
+          
+          /* PORTRAIT: Space key size for typing prompt in portrait */
+          .portrait-typing-prompt > div[class*="w-14"],
+          .portrait-typing-prompt > div[class*="w-16"],
+          .portrait-typing-prompt > div[class*="w-12"] {
+            width: 48px !important;
+            min-width: 48px !important;
+            max-width: 48px !important;
+            height: 40px !important;
+            min-height: 40px !important;
+            flex-shrink: 0 !important;
+          }
+          
+          /* PORTRAIT: Keyboard container - full width, smaller keys */
+          .portrait-keyboard {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 4px !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            box-sizing: border-box !important;
+          }
+          
+          /* PORTRAIT: Reduce keyboard key sizes to fit all keys */
+          .portrait-keyboard .flex > div {
+            font-size: 0.45rem !important;
+            padding: 2px 1px !important;
+            margin-left: 0.25px !important;
+            margin-right: 0.25px !important;
+          }
+          
+          /* PORTRAIT: Reduce row spacing */
+          .portrait-keyboard .flex {
+            margin-bottom: 1px !important;
+            gap: 0.5px !important;
           }
           
           /* PORTRAIT: Hide scrollbar for typing prompt in portrait */
-          .typing-prompt-mobile::-webkit-scrollbar {
+          .portrait-typing-prompt::-webkit-scrollbar {
             display: none;
           }
           
@@ -2266,6 +2575,8 @@ function KeyboardApp() {
             display: flex !important;
             visibility: visible !important;
             opacity: 1 !important;
+            bottom: 1rem !important;
+            margin-bottom: 0.5rem !important;
           }
           
           /* LANDSCAPE: Rotation prompt in landscape mobile view */
@@ -2486,7 +2797,7 @@ function KeyboardApp() {
             display: none !important;
           }
           
-          /* LANDSCAPE MOBILE: Hide desktop toggles (Hand, Sound, Keyboard) at bottom of keyboard */
+          /* LANDSCAPE MOBILE: Hide desktop toggles */
           .mobile-stack > div:has(label),
           .mobile-stack > div.hidden.md\\:hidden.lg\\:flex {
             display: none !important;
@@ -2498,20 +2809,59 @@ function KeyboardApp() {
            Increase typing prompt keys size in mobile landscape
            ============================================ */
         @media (max-width: 932px) and (orientation: landscape) {
-          /* LANDSCAPE: Typing prompt container keys size */
-          .typing-prompt-container > div {
-            width: 64px !important;
-            height: 64px !important;
-            min-width: 64px !important;
-            min-height: 64px !important;
-            font-size: 1.3rem !important;
+          /* LANDSCAPE: Typing prompt container - ensure full width and all boxes visible */
+          .landscape-typing-prompt {
+            width: calc(100% - 280px) !important;
+            max-width: calc(100% - 280px) !important;
+            justify-content: space-between !important;
+            overflow: visible !important;
+            flex-wrap: nowrap !important;
+            gap: 2rem !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            box-sizing: border-box !important;
+            left: 0.5rem !important;
+            right: auto !important;
           }
           
-          /* LANDSCAPE: Space key in typing prompt */
-          .typing-prompt-container > div[class*="w-24"] {
-            width: 120px !important;
-            min-width: 120px !important;
+          /* LANDSCAPE: Ensure first and last boxes align with keyboard edges */
+          .landscape-typing-prompt > div:first-child {
+            margin-left: 0 !important;
+          }
+          
+          .landscape-typing-prompt > div:last-child {
+            margin-right: 0 !important;
+          }
+          
+          /* LANDSCAPE: Character boxes size - increased to w-20 (80px) to span full width */
+          .landscape-typing-prompt > div.landscape-char-box:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]),
+          .landscape-typing-prompt > div[class*="w-20"]:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]),
+          .landscape-typing-prompt > div[class*="w-15"]:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]) {
+            width: 80px !important;
+            min-width: 80px !important;
+            max-width: 80px !important;
+            height: 64px !important;
+            min-height: 64px !important;
+            font-size: 1.4rem !important;
+            flex-shrink: 0 !important;
+          }
+          
+          /* LANDSCAPE: Space key in typing prompt - increased size */
+          .landscape-typing-prompt > div[class*="w-32"],
+          .landscape-typing-prompt > div[class*="w-22"],
+          .landscape-typing-prompt > div[class*="w-24"] {
+            width: 140px !important;
+            min-width: 140px !important;
+            max-width: 140px !important;
             height: 48px !important;
+            flex-shrink: 0 !important;
+          }
+          
+          /* LANDSCAPE: Increase gap to distribute boxes evenly across full width */
+          .landscape-typing-prompt {
+            gap: 1.5rem !important;
           }
         }
 
@@ -2535,17 +2885,46 @@ function KeyboardApp() {
            ============================================ */
         @media (max-width: 932px) and (orientation: landscape) {
           /* MOBILE LANDSCAPE: Only affect landscape-keyboard-small, not desktop keyboard-container */
+          /* Account for stats panel (120px) + gap (4rem = 64px) on right side */
           .keyboard-container.landscape-keyboard-small {
-            max-width: calc(100% - 120px) !important;
-            width: calc(100% - 120px) !important;
-            margin-left: 1rem !important;
-            margin-right: 1rem !important;
+            max-width: calc(100% - 280px) !important;
+            width: calc(100% - 280px) !important;
+            margin-left: 0 !important;
+            margin-right: 4rem !important;
+            left: 0.5rem !important;
+          }
+          
+          /* MOBILE LANDSCAPE: Align typing prompt with keyboard edges */
+          .landscape-typing-prompt {
+            position: absolute !important;
+            left: 0.5rem !important;
+            top: 0 !important;
+            width: calc(100% - 280px) !important;
+            max-width: calc(100% - 280px) !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            justify-content: space-between !important;
+            gap: 1.5rem !important;
+          }
+          
+          
+          /* MOBILE LANDSCAPE: Add spacer for absolute positioned typing prompt */
+          .landscape-prompt-spacer {
+            height: 80px !important;
           }
           
           /* MOBILE LANDSCAPE: Align stats section to right edge on mobile landscape devices */
           .right-section-stats {
             right: 1rem !important;
             padding-right: 0.5rem !important;
+          }
+          
+          /* MOBILE LANDSCAPE: Ensure proper gap between keyboard and stats */
+          .keyboard-container.landscape-keyboard-small + *,
+          .landscape-keyboard-small {
+            margin-right: 1.5rem !important;
           }
         }
       `}</style>
