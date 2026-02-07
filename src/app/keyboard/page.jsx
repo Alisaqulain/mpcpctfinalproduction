@@ -780,11 +780,11 @@ function LandscapeMobileView({
   };
 
   return (
-    <div className="p-4 flex flex-col md:flex-row gap-6 w-full min-h-full" style={{ minHeight: '100dvh' }}>
+    <div className="pl-4 pr-4 pt-4 pb-4 flex flex-col md:flex-row gap-6 w-full min-h-full landscape-mobile-view-container" style={{ minHeight: '100dvh' }}>
       {/* Close Button - Landscape Mobile View */}
       
       {/* Theme Toggle Button - Landscape Mobile View */}
-      <div className="fixed top-32 left-4 z-50 cursor-pointer">
+      <div className="fixed top-4 right-4 z-50 cursor-pointer">
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
           className={`p-2 rounded-full shadow text-sm cursor-pointer ${
@@ -853,7 +853,7 @@ function LandscapeMobileView({
 
         {/* Keyboard */}
         {keyboard && (
-          <div className={`absolute top-22 left-0 p-1 w-full max-w-full border border-gray-600 rounded-xl shadow-md keyboard-container landscape-keyboard-small ${
+          <div className={`absolute top-22 left-4 p-1 border border-gray-600 rounded-xl shadow-md keyboard-container landscape-keyboard-small ${
             isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
           }`}>
             
@@ -893,12 +893,13 @@ function LandscapeMobileView({
               }
               
               /* LANDSCAPE: Base keyboard styles - keys remain unchanged */
+              /* Only affects landscape-keyboard-small, not desktop keyboard-container */
               .landscape-keyboard-small {
-                width: 98vw !important;
-                max-width: 98vw !important;
-                margin-left: auto !important;
-                margin-right: auto !important;
-                transform-origin: top center !important;
+                width: calc(100% - 120px) !important;
+                max-width: calc(100% - 120px) !important;
+                margin-left: 1rem !important;
+                margin-right: 1rem !important;
+                transform-origin: left top !important;
               }
               
               /* Base pixel sizes - keys stay the same size */
@@ -1057,7 +1058,7 @@ function LandscapeMobileView({
       </div>
 
       {/* Right Section - Landscape Mobile Stats */}
-      <div className="flex flex-col items-center gap-2 mt-2 mobile-stack mobile-small-text right-section-stats absolute right-0 top-20">
+      <div className="flex flex-col items-center gap-2 mt-2 mobile-stack mobile-small-text right-section-stats absolute right-4 top-20">
         <div className="flex flex-col gap-2 w-full max-w-[100px] items-center landscape-mobile-stats">
           <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
             <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
@@ -2473,7 +2474,7 @@ function KeyboardApp() {
           /* LANDSCAPE: Right section absolute positioning in mobile landscape */
           .right-section-stats {
             position: absolute !important;
-            right: 0px !important;
+            right: 1rem !important;
             top: 50% !important;
             transform: translateY(-50%) !important;
             z-index: 100 !important;
@@ -2519,28 +2520,31 @@ function KeyboardApp() {
            (min-width: 768px) and (orientation: landscape)
            ============================================ */
         @media (min-width: 768px) and (orientation: landscape) {
-          /* DESKTOP LANDSCAPE: Fix keyboard container width */
-          .keyboard-container {
+          /* DESKTOP LANDSCAPE: Fix keyboard container width - only affects desktop, not landscape-keyboard-small */
+          .keyboard-container:not(.landscape-keyboard-small) {
             max-width: 70% !important;
+            width: auto !important;
             margin: 0 auto !important;
             padding: 8px !important;
           }
         }
         
         /* ============================================
-           ALL LANDSCAPE VIEWS (Desktop + Mobile)
-           (orientation: landscape)
+           MOBILE LANDSCAPE VIEWS ONLY
+           (max-width: 932px) and (orientation: landscape)
            ============================================ */
         @media (max-width: 932px) and (orientation: landscape) {
-          /* MOBILE LANDSCAPE: Decrease keyboard width for mobile landscape views */
-          .keyboard-container {
-            max-width: 95% !important;
-            width: 90% !important;
+          /* MOBILE LANDSCAPE: Only affect landscape-keyboard-small, not desktop keyboard-container */
+          .keyboard-container.landscape-keyboard-small {
+            max-width: calc(100% - 120px) !important;
+            width: calc(100% - 120px) !important;
+            margin-left: 1rem !important;
+            margin-right: 1rem !important;
           }
           
           /* MOBILE LANDSCAPE: Align stats section to right edge on mobile landscape devices */
           .right-section-stats {
-            right: 0px !important;
+            right: 1rem !important;
             padding-right: 0.5rem !important;
           }
         }
