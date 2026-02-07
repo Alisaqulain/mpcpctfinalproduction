@@ -80,7 +80,7 @@ export default function DemoPage() {
           {/* Server Status */}
           <div
             className={`p-6 rounded-lg border-2 ${getStatusColor(
-              apiStatus
+              apiStatusdoneapppdemo
             )}`}
           >
             <div className="flex items-center justify-between">
