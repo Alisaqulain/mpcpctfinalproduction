@@ -40,32 +40,62 @@ function DesktopView({
 }) {
   const currentRowKeys = getCurrentRowKeys();
   const rows = organizeKeysIntoRows(highlightedKeys);
-  const nonSpaceKeys = highlightedKeys.filter(k => k !== "Space");
-  const nonSpaceStartIndex = currentRowIndex * 8;
   
   const getOriginalIndex = (displayKeyIdx) => {
-    if (currentRowKeys[displayKeyIdx] === "Space") {
+    if (displayKeyIdx >= currentRowKeys.length) return -1;
+    
+    const displayKey = currentRowKeys[displayKeyIdx];
+    if (displayKey === "Space") {
+      // Find the space in the original highlightedKeys array for this row
+      // Count keys up to this row, then find the space at this position
+      let keysBeforeRow = 0;
+      for (let r = 0; r < currentRowIndex; r++) {
+        const row = rows[r];
+        if (row) keysBeforeRow += row.length;
+      }
+      
+      // Count spaces before this display index in current row
+      let spaceCountInRow = 0;
+      for (let i = 0; i < displayKeyIdx; i++) {
+        if (currentRowKeys[i] === "Space") spaceCountInRow++;
+      }
+      
+      // Find the corresponding space in highlightedKeys
+      let spaceCount = 0;
+      for (let i = 0; i < highlightedKeys.length; i++) {
+        if (highlightedKeys[i] === "Space") {
+          if (spaceCount === spaceCountInRow && i >= keysBeforeRow) {
+            return i;
+          }
+          spaceCount++;
+        }
+      }
       return -1;
     }
     
-    let keyPosition;
-    if (displayKeyIdx < 4) {
-      // First 4 keys: positions 0-3
-      keyPosition = displayKeyIdx;
-    } else if (displayKeyIdx > 4 && displayKeyIdx < 9) {
-      // Next 4 keys after first space: positions 4-7 (skip first space at index 4)
-      keyPosition = displayKeyIdx - 1;
-    } else {
-      return -1;
+    // For non-space keys, map display position to original position
+    // Count how many non-space keys before this display index in current row
+    let nonSpaceCountInRow = 0;
+    for (let i = 0; i < displayKeyIdx; i++) {
+      if (currentRowKeys[i] !== "Space") nonSpaceCountInRow++;
     }
     
-    const nonSpaceKeyIndex = nonSpaceStartIndex + keyPosition;
-    if (nonSpaceKeyIndex >= nonSpaceKeys.length) return -1;
+    // Count non-space keys before current row
+    let nonSpaceCountBeforeRow = 0;
+    for (let r = 0; r < currentRowIndex; r++) {
+      const row = rows[r];
+      if (row) {
+        for (const key of row) {
+          if (key !== "Space") nonSpaceCountBeforeRow++;
+        }
+      }
+    }
     
+    // Find the original index
     let nonSpaceCount = 0;
     for (let i = 0; i < highlightedKeys.length; i++) {
       if (highlightedKeys[i] !== "Space") {
-        if (nonSpaceCount === nonSpaceKeyIndex) {
+        if (nonSpaceCount === nonSpaceCountBeforeRow + nonSpaceCountInRow) {
           return i;
         }
         nonSpaceCount++;
@@ -75,7 +105,16 @@ function DesktopView({
   };
 
   return (
-    <div className="p-4 flex flex-col md:flex-row gap-6 w-full min-h-full" style={{ minHeight: '100dvh' }}>
+    <div className="p-4 flex flex-col md:flex-row gap-6 w-full min-h-full relative" style={{ minHeight: '100dvh' }}>
+      {/* Close Button - Desktop View */}
+      <button
+        onClick={() => window.location.href = '/learning'}
+        className="fixed top-4 right-4 z-50 bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md shadow-lg transition-all duration-200 hover:scale-110"
+        aria-label="Close and return to learning page"
+      >
+        Close
+      </button>
+
       {/* Left Section */}
       <div className="flex-1 flex flex-col items-center gap-6 mobile-stack">
         {/* Typing Prompt Buttons - Desktop row-based layout */}
@@ -85,12 +124,13 @@ function DesktopView({
             const isCurrentKey = originalIndex === currentIndex;
             const keyStatusForThisKey = originalIndex >= 0 ? keyStatus[originalIndex] : null;
             const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
-            const hasGapAfterFirstSpace = displayIdx === 5 && currentRowKeys[4] === "Space";
+            // Check if previous key was a space (for dynamic spacing)
+            const previousKeyWasSpace = displayIdx > 0 && currentRowKeys[displayIdx - 1] === "Space";
             
             let marginClass = "";
             if (displayIdx === 0) {
               marginClass = "";
-            } else if (hasGapAfterFirstSpace) {
+            } else if (previousKeyWasSpace) {
               marginClass = "md:ml-8 ml-6";
             } else {
               marginClass = "md:ml-2 ml-1.5";
@@ -106,18 +146,18 @@ function DesktopView({
                   transition-all duration-150
                   ${isRowAnimating ? 'animate-slide-in-right-key' : ''}
                   ${
-                    isCurrentKey && key === "Space"
+                    keyStatusForThisKey === "wrong"
+                      ? "bg-red-600 border-red-600 text-white"
+                      : keyStatusForThisKey === "correct"
+                      ? "bg-green-300 border-green-600 text-green-800"
+                      : isCurrentKey && key === "Space"
                       ? "bg-blue-600 border-blue-400 border-2 text-white"
                       : isCurrentKey
                       ? "bg-blue-600 border-blue-400 border-2 text-white"
                       : isPressed && key === "Space"
-                      ? "bg-red-600 text-white border-red-400 border-2 scale-95"
+                      ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
                       : isPressed
-                      ? "bg-red-600 text-white border-red-400 border-2 scale-95"
-                      : keyStatusForThisKey === "correct"
-                      ? "bg-green-300 border-green-600 text-green-800"
-                      : keyStatusForThisKey === "wrong"
-                      ? "bg-red-600 border-red-600 text-white"
+                      ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
                       : isDarkMode
                       ? "bg-white text-black border-white"
                       : "bg-white text-black border-black"
@@ -255,8 +295,8 @@ function DesktopView({
       </div>
 
       {/* Right Section - Desktop Stats */}
-      <div className="hidden md:flex flex-col items-center space-y-1 md:mt-25 mt-15 mobile-stack mobile-small-text right-section-stats">
-        <div className="flex flex-col items-center user-profile-section user-profile-landscape mb-4">
+      <div className="hidden md:flex flex-col items-center md:mt-25 mt-15 mobile-stack mobile-small-text right-section-stats">
+        <div className="flex flex-col items-center user-profile-section user-profile-landscape mb-16">
           <img
             src={userProfileUrl}
             alt="User"
@@ -268,12 +308,12 @@ function DesktopView({
           <p className="font-semibold text-xs md:text-sm mt-1 user-profile-name">{userName}</p>
         </div>
         
-        <div className="w-24 h-9 rounded-lg overflow-hidden text-center mt-2 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] mobile-scale">
+        <div className="w-24 h-9 rounded-lg overflow-hidden text-center mb-10 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] mobile-scale">
           <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
           <div className="bg-white text-black text-sm font-bold">{formatClock(elapsedTime)}</div>
         </div>
         
-        <div className="grid grid-cols-2 gap-y-6 mt-4 gap-x-4 md:gap-x-4 w-full text-center mobile-tight-gap mobile-scale stats-grid-landscape">
+        <div className="grid grid-cols-2 gap-y-6 mb-10 gap-x-4 md:gap-x-4 w-full text-center mobile-tight-gap mobile-scale stats-grid-landscape">
           {[
             { label: "Correct", value: correctCount, color: "text-green-600" },
             { label: "Wrong", value: wrongCount, color: "text-red-500" },
@@ -288,7 +328,7 @@ function DesktopView({
         </div>
 
         {/* Speedometer */}
-        <div className="hidden lg:block mt-5 mobile-scale">
+        <div className="hidden lg:block mt-10 mobile-scale">
           <div className="border-6 border-black rounded-full">
             <div className="relative w-24 h-24 bg-black rounded-full border-4 border-white flex items-center justify-center">
               <div className="absolute left-1 text-red-500 text-[8px] font-bold tracking-widest">SPEED</div>
@@ -329,18 +369,80 @@ function PortraitMobileView({
   setIsDarkMode,
   highlightedKeys,
   currentIndex,
+  currentRowIndex,
+  isRowAnimating,
   keyStatus,
   pressedKey,
   keyboard,
   hand,
   keys,
   getKeyWidth,
+  getCurrentRowKeys,
+  organizeKeysIntoRows,
   correctCount,
   wrongCount,
   timer,
   totalAttempts,
   formatClock
 }) {
+  const currentRowKeys = getCurrentRowKeys();
+  const rows = organizeKeysIntoRows(highlightedKeys);
+  
+  const getOriginalIndex = (displayKeyIdx) => {
+    if (displayKeyIdx >= currentRowKeys.length) return -1;
+    
+    const displayKey = currentRowKeys[displayKeyIdx];
+    if (displayKey === "Space") {
+      // Find the space in the original highlightedKeys array for this row
+      let keysBeforeRow = 0;
+      for (let r = 0; r < currentRowIndex; r++) {
+        const row = rows[r];
+        if (row) keysBeforeRow += row.length;
+      }
+      
+      let spaceCountInRow = 0;
+      for (let i = 0; i < displayKeyIdx; i++) {
+        if (currentRowKeys[i] === "Space") spaceCountInRow++;
+      }
+      
+      let spaceCount = 0;
+      for (let i = 0; i < highlightedKeys.length; i++) {
+        if (highlightedKeys[i] === "Space") {
+          if (spaceCount === spaceCountInRow && i >= keysBeforeRow) {
+            return i;
+          }
+          spaceCount++;
+        }
+      }
+      return -1;
+    }
+    
+    let nonSpaceCountInRow = 0;
+    for (let i = 0; i < displayKeyIdx; i++) {
+      if (currentRowKeys[i] !== "Space") nonSpaceCountInRow++;
+    }
+    
+    let nonSpaceCountBeforeRow = 0;
+    for (let r = 0; r < currentRowIndex; r++) {
+      const row = rows[r];
+      if (row) {
+        for (const key of row) {
+          if (key !== "Space") nonSpaceCountBeforeRow++;
+        }
+      }
+    }
+    
+    let nonSpaceCount = 0;
+    for (let i = 0; i < highlightedKeys.length; i++) {
+      if (highlightedKeys[i] !== "Space") {
+        if (nonSpaceCount === nonSpaceCountBeforeRow + nonSpaceCountInRow) {
+          return i;
+        }
+        nonSpaceCount++;
+      }
+    }
+    return -1;
+  };
   return (
     <div className="p-4 flex flex-col gap-6 w-full min-h-full" style={{ minHeight: '100dvh' }}>
       {/* Theme Toggle Button - Portrait Mobile View (Left Side) */}
@@ -388,36 +490,58 @@ function PortraitMobileView({
 
       {/* Left Section */}
       <div className="flex-1 flex flex-col items-center gap-6 mobile-stack">
-        {/* Typing Prompt Buttons - All in one row (mobile) */}
+        {/* Typing Prompt Buttons - Show only 8 keys at a time with scrolling */}
         <div 
-          className="flex flex-nowrap typing-prompt-mobile justify-center items-center gap-1 md:gap-2 relative overflow-x-auto mt-2 px-2 typing-prompt-container"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+          className="flex flex-nowrap justify-start items-center gap-1 relative overflow-x-auto mt-2 px-2 typing-prompt-container w-full"
+          style={{ scrollbarWidth: 'thin', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+          ref={(el) => {
+            if (el && currentIndex < highlightedKeys.length) {
+              // Calculate which 8 keys to show - ensure current key is visible
+              const startIndex = Math.max(0, Math.min(currentIndex - 3, highlightedKeys.length - 8));
+              const keyWidth = 32; // w-7 = 28px + gap = ~32px per key
+              const spaceWidth = 52; // w-12 = 48px + gap = ~52px for space
+              
+              // Calculate scroll position
+              let scrollPos = 0;
+              for (let i = 0; i < startIndex; i++) {
+                scrollPos += highlightedKeys[i] === "Space" ? spaceWidth : keyWidth;
+              }
+              
+              el.scrollTo({ left: scrollPos, behavior: 'smooth' });
+            }
+          }}
         >
           {highlightedKeys.filter(k => k !== undefined && k !== null).map((key, index) => {
             const isCurrentKey = index === currentIndex;
             const keyStatusForThisKey = keyStatus[index];
             const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
             
+            // Calculate visible range - show 8 keys centered around current
+            const startIndex = Math.max(0, Math.min(currentIndex - 3, highlightedKeys.length - 8));
+            const endIndex = Math.min(startIndex + 8, highlightedKeys.length);
+            const isVisible = index >= startIndex && index < endIndex;
+            
             return (
               <div
                 key={index}
                 className={`
-                  ${key === "Space" ? "w-16 h-8" : "w-8 h-8"}
-                  rounded flex items-center justify-center text-sm font-semibold
+                  ${key === "Space" ? "w-12 h-7 min-w-[48px]" : "w-7 h-7 min-w-[28px]"}
+                  rounded flex items-center justify-center text-xs font-semibold
                   transition-all duration-150 flex-shrink-0
+                  ${!isVisible ? 'opacity-0 pointer-events-none absolute' : ''}
                   ${
-                    isCurrentKey && key === "Space"
+                    keyStatusForThisKey === "wrong"
+                      ? "bg-red-600 border-red-600 text-white"
+                      : keyStatusForThisKey === "correct"
+                      ? "bg-green-300 border-green-600 text-green-800"
+                      : isCurrentKey && key === "Space"
                       ? "bg-blue-600 border-blue-400 border-2 text-white"
                       : isCurrentKey
                       ? "bg-blue-600 border-blue-400 border-2 text-white"
                       : isPressed && key === "Space"
-                      ? "bg-red-600 text-white border-red-400 border-2 scale-95"
+                      ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
                       : isPressed
-                      ? "bg-red-600 text-white border-red-400 border-2 scale-95"
-                      : keyStatusForThisKey === "correct"
-                      ? "bg-green-300 border-green-600 text-green-800"
-                      : keyStatusForThisKey === "wrong"
-                      ? "bg-red-600 border-red-600 text-white"
+                      ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
                       : "bg-white text-black border-gray-300"
                   }
                   border
@@ -590,32 +714,63 @@ function LandscapeMobileView({
   formatClock
 }) {
   const currentRowKeys = getCurrentRowKeys();
-  const nonSpaceKeys = highlightedKeys.filter(k => k !== "Space");
-  const nonSpaceStartIndex = currentRowIndex * 8;
+  const rows = organizeKeysIntoRows(highlightedKeys);
   
   const getOriginalIndex = (displayKeyIdx) => {
-    if (currentRowKeys[displayKeyIdx] === "Space") {
+    if (displayKeyIdx >= currentRowKeys.length) return -1;
+    
+    const displayKey = currentRowKeys[displayKeyIdx];
+    if (displayKey === "Space") {
+      // Find the space in the original highlightedKeys array for this row
+      // Count keys up to this row, then find the space at this position
+      let keysBeforeRow = 0;
+      for (let r = 0; r < currentRowIndex; r++) {
+        const row = rows[r];
+        if (row) keysBeforeRow += row.length;
+      }
+      
+      // Count spaces before this display index in current row
+      let spaceCountInRow = 0;
+      for (let i = 0; i < displayKeyIdx; i++) {
+        if (currentRowKeys[i] === "Space") spaceCountInRow++;
+      }
+      
+      // Find the corresponding space in highlightedKeys
+      let spaceCount = 0;
+      for (let i = 0; i < highlightedKeys.length; i++) {
+        if (highlightedKeys[i] === "Space") {
+          if (spaceCount === spaceCountInRow && i >= keysBeforeRow) {
+            return i;
+          }
+          spaceCount++;
+        }
+      }
       return -1;
     }
     
-    let keyPosition;
-    if (displayKeyIdx < 4) {
-      // First 4 keys: positions 0-3
-      keyPosition = displayKeyIdx;
-    } else if (displayKeyIdx > 4 && displayKeyIdx < 9) {
-      // Next 4 keys after first space: positions 4-7 (skip first space at index 4)
-      keyPosition = displayKeyIdx - 1;
-    } else {
-      return -1;
+    // For non-space keys, map display position to original position
+    // Count how many non-space keys before this display index in current row
+    let nonSpaceCountInRow = 0;
+    for (let i = 0; i < displayKeyIdx; i++) {
+      if (currentRowKeys[i] !== "Space") nonSpaceCountInRow++;
     }
     
-    const nonSpaceKeyIndex = nonSpaceStartIndex + keyPosition;
-    if (nonSpaceKeyIndex >= nonSpaceKeys.length) return -1;
+    // Count non-space keys before current row
+    let nonSpaceCountBeforeRow = 0;
+    for (let r = 0; r < currentRowIndex; r++) {
+      const row = rows[r];
+      if (row) {
+        for (const key of row) {
+          if (key !== "Space") nonSpaceCountBeforeRow++;
+        }
+      }
+    }
     
+    // Find the original index
     let nonSpaceCount = 0;
     for (let i = 0; i < highlightedKeys.length; i++) {
       if (highlightedKeys[i] !== "Space") {
-        if (nonSpaceCount === nonSpaceKeyIndex) {
+        if (nonSpaceCount === nonSpaceCountBeforeRow + nonSpaceCountInRow) {
           return i;
         }
         nonSpaceCount++;
@@ -652,12 +807,13 @@ function LandscapeMobileView({
             const isCurrentKey = originalIndex === currentIndex;
             const keyStatusForThisKey = originalIndex >= 0 ? keyStatus[originalIndex] : null;
             const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
-            const hasGapAfterFirstSpace = displayIdx === 5 && currentRowKeys[4] === "Space";
+            // Check if previous key was a space (for dynamic spacing)
+            const previousKeyWasSpace = displayIdx > 0 && currentRowKeys[displayIdx - 1] === "Space";
             
             let marginClass = "";
             if (displayIdx === 0) {
               marginClass = "";
-            } else if (hasGapAfterFirstSpace) {
+            } else if (previousKeyWasSpace) {
               marginClass = "md:ml-8 ml-6";
             } else {
               marginClass = "md:ml-2 ml-1.5";
@@ -672,18 +828,18 @@ function LandscapeMobileView({
                   transition-all duration-150 flex-shrink-0
                
                   ${
-                    isCurrentKey && key === "Space"
+                    keyStatusForThisKey === "wrong"
+                      ? "bg-red-600 border-red-600 text-white"
+                      : keyStatusForThisKey === "correct"
+                      ? "bg-green-300 border-green-600 text-green-800"
+                      : isCurrentKey && key === "Space"
                       ? "bg-blue-600 border-blue-400 border-2 text-white"
                       : isCurrentKey
                       ? "bg-blue-600 border-blue-400 border-2 text-white"
                       : isPressed && key === "Space"
-                      ? "bg-red-600 text-white border-red-400 border-2 scale-95"
+                      ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
                       : isPressed
-                      ? "bg-red-600 text-white border-red-400 border-2 scale-95"
-                      : keyStatusForThisKey === "correct"
-                      ? "bg-green-300 border-green-600 text-green-800"
-                      : keyStatusForThisKey === "wrong"
-                      ? "bg-red-600 border-red-600 text-white"
+                      ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
                       : "bg-white text-black border-gray-300"
                   }
                   border
@@ -977,49 +1133,47 @@ function KeyboardApp() {
   const [highlightedKeys, setHighlightedKeys] = useState(defaultKeys);
   const [keyStatus, setKeyStatus] = useState(Array(defaultKeys.length).fill(null));
 
-  // Function to organize keys into rows: 4 alphabets + 1 space + 4 alphabets + 1 space (at end)
+  // Function to organize keys into rows: preserve spaces from content, no automatic spaces
   const organizeKeysIntoRows = (keys) => {
     const rows = [];
-    const nonSpaceKeys = keys.filter(k => k !== "Space");
     
-    // If we have 4 or fewer keys, don't add any spaces - just return them as-is
-    if (nonSpaceKeys.length <= 4) {
-      return [nonSpaceKeys];
+    // If no keys, return empty array
+    if (keys.length === 0) {
+      return [];
     }
     
-    // Organize into rows: 4 alphabets + space + 4 alphabets + space (at end)
-    for (let i = 0; i < nonSpaceKeys.length; i += 8) {
-      const rowKeys = [];
+    // Organize keys into rows, preserving spaces from content
+    // Each row can contain up to 8 non-space keys, but spaces are preserved as-is
+    let currentRow = [];
+    let nonSpaceCount = 0;
+    
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
       
-      // First 4 alphabets
-      for (let j = 0; j < 4 && i + j < nonSpaceKeys.length; j++) {
-        rowKeys.push(nonSpaceKeys[i + j]);
+      if (key === "Space") {
+        // Preserve spaces from content - add them to current row
+        currentRow.push("Space");
+      } else {
+        // Count non-space keys
+        if (nonSpaceCount >= 8) {
+          // Start a new row when we reach 8 non-space keys
+          if (currentRow.length > 0) {
+            rows.push(currentRow);
+          }
+          currentRow = [];
+          nonSpaceCount = 0;
+        }
+        currentRow.push(key);
+        nonSpaceCount++;
       }
-      
-      // Check if there are more keys after the first 4
-      const remainingKeys = nonSpaceKeys.length - (i + 4);
-      
-      // Only add first space if we have more than 4 keys total in this row
-      if (remainingKeys > 0 && rowKeys.length === 4) {
-        rowKeys.push("Space");
-      }
-      
-      // Next 4 alphabets (after first space)
-      let hasSecondGroup = false;
-      for (let j = 4; j < 8 && i + j < nonSpaceKeys.length; j++) {
-        rowKeys.push(nonSpaceKeys[i + j]);
-        hasSecondGroup = true;
-      }
-      
-      // Add space at the end after the last two keys (d and s)
-      if (hasSecondGroup) {
-        rowKeys.push("Space");
-      }
-      
-      rows.push(rowKeys);
     }
     
-    return rows;
+    // Add the last row if it has any keys
+    if (currentRow.length > 0) {
+      rows.push(currentRow);
+    }
+    
+    return rows.length > 0 ? rows : [[]];
   };
 
   // Get current row keys based on progress
@@ -1916,12 +2070,16 @@ function KeyboardApp() {
           setIsDarkMode={setIsDarkMode}
           highlightedKeys={highlightedKeys}
           currentIndex={currentIndex}
+          currentRowIndex={currentRowIndex}
+          isRowAnimating={isRowAnimating}
           keyStatus={keyStatus}
           pressedKey={pressedKey}
           keyboard={keyboard}
           hand={hand}
           keys={keys}
           getKeyWidth={getKeyWidth}
+          getCurrentRowKeys={getCurrentRowKeys}
+          organizeKeysIntoRows={organizeKeysIntoRows}
           correctCount={correctCount}
           wrongCount={wrongCount}
           timer={timer}
@@ -2389,7 +2547,7 @@ function KeyboardApp() {
       `}</style>
 
       {/* Theme Toggle Button - Hidden in Portrait Mobile View */}
-      <div className="absolute top-16 md:top-5 right-5 md:right-5 z-50 cursor-pointer theme-toggle-button hidden md:block">
+      <div className="fixed top-4 right-28 z-40 cursor-pointer theme-toggle-button hidden md:block">
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
           className={`p-2 rounded-full shadow text-sm cursor-pointer ${

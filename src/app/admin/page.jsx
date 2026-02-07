@@ -5483,14 +5483,28 @@ function LearningAdmin(){
     setShowDeleteConfirm({ type: 'lesson', id: lessonId });
   };
 
+  const handleDeleteAllSections = async () => {
+    setShowDeleteConfirm({ type: 'section', deleteAll: true });
+  };
+
   const confirmDelete = async () => {
     if (!showDeleteConfirm) return;
-    const { type, id } = showDeleteConfirm;
-    const res = await fetch(`/api/admin/learning?type=${type}&id=${id}`, { method: 'DELETE' });
-    if (res.ok) {
-      refresh();
-      if (type === 'section') setSelectedSection(null);
-      setShowDeleteConfirm(null);
+    const { type, id, deleteAll } = showDeleteConfirm;
+    
+    if (deleteAll && type === 'section') {
+      const res = await fetch(`/api/admin/learning?type=${type}&deleteAll=true`, { method: 'DELETE' });
+      if (res.ok) {
+        refresh();
+        setSelectedSection(null);
+        setShowDeleteConfirm(null);
+      }
+    } else {
+      const res = await fetch(`/api/admin/learning?type=${type}&id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        refresh();
+        if (type === 'section') setSelectedSection(null);
+        setShowDeleteConfirm(null);
+      }
     }
   };
 
@@ -5630,6 +5644,13 @@ function LearningAdmin(){
           >
             + Lesson
           </button>
+          <button 
+            onClick={handleDeleteAllSections}
+            className="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700"
+            disabled={data.sections.length === 0}
+          >
+            Delete All Sections
+          </button>
           <button onClick={refresh} className="bg-gray-200 px-2 py-1 rounded text-sm">Refresh</button>
         </div>
       </div>
@@ -5665,19 +5686,21 @@ function LearningAdmin(){
           <div className="p-4">
             <h3 className="font-semibold mb-3">Confirm Delete</h3>
             <p className="mb-4">
-              Are you sure you want to delete this {showDeleteConfirm.type}? 
-              {showDeleteConfirm.type === 'section' && ' This will also delete all lessons in this section.'}
+              {showDeleteConfirm.deleteAll && showDeleteConfirm.type === 'section' 
+                ? `Are you sure you want to delete ALL learning sections? This will delete ${data.sections.length} section(s) and all their lessons. This action cannot be undone.`
+                : `Are you sure you want to delete this ${showDeleteConfirm.type}? ${showDeleteConfirm.type === 'section' ? ' This will also delete all lessons in this section.' : ''}`
+              }
             </p>
             <div className="flex gap-2">
               <button
                 onClick={confirmDelete}
-                className="bg-red-600 text-white px-4 py-2 rounded"
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
               >
                 Delete
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(null)}
-                className="bg-gray-300 px-4 py-2 rounded"
+                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
               >
                 Cancel
               </button>

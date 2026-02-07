@@ -22,7 +22,8 @@ export async function GET(req) {
   const auth = await requireAdmin(req);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.error === "Forbidden" ? 403 : 401 });
   await dbConnect();
-  const sections = await Section.find({}).sort({ lessonNumber: 1 }).lean();
+  // Only get learning sections (sections without examId - exam sections should not appear in learning)
+  const sections = await Section.find({ examId: { $exists: false } }).sort({ lessonNumber: 1 }).lean();
   const lessons = await Lesson.find({}).lean();
   return NextResponse.json({ sections, lessons });
 }
@@ -64,10 +65,13 @@ export async function POST(req) {
           return NextResponse.json({ error: "Missing required fields: sectionId, id, and title are required" }, { status: 400 });
         }
         
-        // Check if section exists
+        // Check if section exists and is a learning section (not an exam section)
         const section = await Section.findOne({ id: sectionId });
         if (!section) {
           return NextResponse.json({ error: `Section with ID "${sectionId}" not found` }, { status: 404 });
+        }
+        if (section.examId) {
+          return NextResponse.json({ error: `Cannot add lessons to exam sections. Section "${sectionId}" is an exam section.` }, { status: 400 });
         }
         
         // Check if lesson ID already exists
@@ -210,8 +214,34 @@ export async function DELETE(req) {
   const { searchParams } = new URL(req.url);
   const type = searchParams.get("type");
   const id = searchParams.get("id");
+  const deleteAll = searchParams.get("deleteAll") === "true";
+  
+  // Handle delete all learning sections
+  if (deleteAll && type === "section") {
+    // Only delete learning sections (sections without examId)
+    const learningSections = await Section.find({ examId: { $exists: false } }).lean();
+    const sectionIds = learningSections.map(s => s.id);
+    
+    // Delete all lessons belonging to these sections
+    await Lesson.deleteMany({ sectionId: { $in: sectionIds } });
+    
+    // Delete all learning sections
+    const result = await Section.deleteMany({ examId: { $exists: false } });
+    
+    return NextResponse.json({ 
+      ok: true, 
+      deletedSections: result.deletedCount,
+      deletedLessons: sectionIds.length 
+    });
+  }
+  
   if (!type || !id) return NextResponse.json({ error: "Missing params" }, { status: 400 });
   if (type === "section") {
+    // Only allow deleting learning sections (not exam sections)
+    const section = await Section.findOne({ id });
+    if (section && section.examId) {
+      return NextResponse.json({ error: "Cannot delete exam sections from learning management" }, { status: 400 });
+    }
     await Section.deleteOne({ id });
     await Lesson.deleteMany({ sectionId: id });
     return NextResponse.json({ ok: true });
