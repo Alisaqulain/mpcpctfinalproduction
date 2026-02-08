@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 
+// Prevent static generation during build
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(req) {
   try {
     // Get server time
@@ -17,8 +21,13 @@ export async function GET(req) {
     // Try to connect to database
     let dbConnected = false;
     try {
-      await dbConnect();
-      dbConnected = true;
+      // Only try to connect if MONGODB_URI is available
+      if (process.env.MONGODB_URI) {
+        await dbConnect();
+        dbConnected = true;
+      } else {
+        dbConnected = false;
+      }
     } catch (error) {
       console.error("Database connection error:", error);
       dbConnected = false;
