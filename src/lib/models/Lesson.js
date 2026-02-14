@@ -20,6 +20,7 @@ const LessonSchema = new mongoose.Schema(
       hindi_inscript: { type: String, default: "" }
     },
     isFree: { type: Boolean, default: false, index: true },
+    lessonType: { type: String, enum: ["alpha", "word"], default: "alpha" },
   },
   { timestamps: true }
 );

@@ -52,7 +52,8 @@ export async function GET() {
           difficulty: lesson.difficulty,
           estimatedTime: lesson.estimatedTime,
           content: lesson.content || { english: "", hindi_ramington: "", hindi_inscript: "" },
-          isFree: lesson.isFree === true || lesson.isFree === 'true'
+          isFree: lesson.isFree === true || lesson.isFree === 'true',
+          lessonType: lesson.lessonType === "word" ? "word" : "alpha"
         }))
     }));
     

@@ -24,7 +24,9 @@ export async function GET(req) {
   await dbConnect();
   // Only get learning sections (sections without examId - exam sections should not appear in learning)
   const sections = await Section.find({ examId: { $exists: false } }).sort({ lessonNumber: 1 }).lean();
-  const lessons = await Lesson.find({}).lean();
+  const rawLessons = await Lesson.find({}).lean();
+  const lessons = rawLessons.map((l) => ({ ...l, lessonType: l.lessonType === "word" ? "word" : "alpha" }));
+  console.log('[API GET Learning] sample lessonTypes:', rawLessons.slice(0, 5).map((l) => ({ id: l.id, title: l.title, lessonType: l.lessonType })));
   return NextResponse.json({ sections, lessons });
 }
 
@@ -58,7 +60,7 @@ export async function POST(req) {
     }
     if (type === "lesson") {
       try {
-        const { sectionId, id, title, title_hindi, description, description_hindi, difficulty, estimatedTime, content, isFree } = body;
+        const { sectionId, id, title, title_hindi, description, description_hindi, difficulty, estimatedTime, content, isFree, lessonType } = body;
         
         // Validate required fields
         if (!sectionId || !id || !title) {
@@ -83,6 +85,7 @@ export async function POST(req) {
         // Ensure difficulty is valid
         const validDifficulties = ["beginner", "intermediate", "advanced", "easy", "medium", "hard"];
         const validDifficulty = validDifficulties.includes(difficulty) ? difficulty : "beginner";
+        const validLessonType = lessonType === "word" ? "word" : "alpha";
         
         // Ensure content is an object with the right structure
         const contentData = typeof content === 'object' && content !== null 
@@ -103,7 +106,8 @@ export async function POST(req) {
           difficulty: String(validDifficulty),
           estimatedTime: String(estimatedTime || "5 minutes"),
           content: contentData,
-          isFree: Boolean(isFree)
+          isFree: Boolean(isFree),
+          lessonType: validLessonType
         };
         
         console.log('[Admin API] Creating lesson with data:', JSON.stringify(lessonData, null, 2));
@@ -165,10 +169,13 @@ export async function PUT(req) {
     }
     if (type === "lesson") {
       try {
-        const { sectionId, id, title, title_hindi, description, description_hindi, difficulty, estimatedTime, content, isFree } = body;
+        const { sectionId, id, title, title_hindi, description, description_hindi, difficulty, estimatedTime, content, isFree, lessonType } = body;
+        console.log('[API PUT Lesson] body.lessonType:', lessonType, 'typeof:', typeof lessonType);
         // Ensure difficulty is valid
         const validDifficulties = ["beginner", "intermediate", "advanced", "easy", "medium", "hard"];
         const validDifficulty = validDifficulties.includes(difficulty) ? difficulty : "beginner";
+        const validLessonType = lessonType === "word" ? "word" : "alpha";
+        console.log('[API PUT Lesson] validLessonType:', validLessonType);
         
         // Ensure content is an object with the right structure
         const contentData = typeof content === 'object' && content !== null 
@@ -187,14 +194,21 @@ export async function PUT(req) {
           difficulty: String(validDifficulty),
           estimatedTime: String(estimatedTime || "5 minutes"),
           content: contentData,
-          isFree: Boolean(isFree)
+          isFree: Boolean(isFree),
+          lessonType: validLessonType
         };
         if (sectionId) updateData.sectionId = sectionId;
         if (id) updateData.id = id;
         const query = _id ? { _id } : { id: body.id };
-        const updated = await Lesson.findOneAndUpdate(query, updateData, { new: true });
+        const setPayload = { ...updateData, lessonType: validLessonType };
+        console.log('[API PUT Lesson] query:', query, 'setPayload.lessonType:', setPayload.lessonType);
+        const updated = await Lesson.findOneAndUpdate(query, { $set: setPayload }, { new: true });
         if (!updated) return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
-        return NextResponse.json({ lesson: updated });
+        // Force-write lessonType via native MongoDB (bypasses Mongoose schema cache if lessonType was added later)
+        await Lesson.collection.updateOne({ _id: updated._id }, { $set: { lessonType: validLessonType } });
+        const final = await Lesson.findById(updated._id).lean();
+        console.log('[API PUT Lesson] after raw update - final.lessonType:', final?.lessonType);
+        return NextResponse.json({ lesson: { ...final, lessonType: validLessonType } });
       } catch (error) {
         console.error('Error updating lesson:', error);
         return NextResponse.json({ error: error.message || "Failed to update lesson" }, { status: 500 });

@@ -214,6 +214,27 @@ export default function TypingTutor() {
   const languages = learningData.languages || getLanguages();
   const settings = learningData.settings || getSettings();
 
+  // Word typing progress: only word lessons in Learning require net speed >= 10 to unlock the next word lesson. Alpha/character lessons are not locked by speed.
+  const getWordProgress = () => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = localStorage.getItem("learningWordProgress");
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  };
+  const wordProgress = getWordProgress();
+  const wordLessonsInSection = lessons.filter((l) => l.lessonType === "word");
+  const isWordLessonUnlocked = (lesson) => {
+    if (lesson.lessonType !== "word") return true; // Only word typing uses this lock
+    const idx = wordLessonsInSection.findIndex((l) => l.id === lesson.id);
+    if (idx <= 0) return true;
+    const prevLessonId = wordLessonsInSection[idx - 1].id;
+    const prev = wordProgress.find((p) => p.lessonId === prevLessonId);
+    return prev && prev.netSpeed >= 10;
+  };
+
   return (
     <div className="bg-white font-sans min-h-screen">
       {/* Progress Stats Banner */}
@@ -310,31 +331,24 @@ export default function TypingTutor() {
       </div>
     </div>
 
-    {/* 3. Backspace */}
+    {/* 3. Backspace - locked OFF for learning (user cannot choose) */}
     <div className="bg-[#290c52] p-4 rounded-lg border border-[#ffffff40]">
       <h3 className="font-bold text-sm mb-3 text-white flex items-center gap-2">
         <span className="bg-yellow-400 text-[#290c52] rounded-full w-6 h-6 flex items-center justify-center text-xs">3</span>
-        Backspace Option
+        Backspace (locked)
       </h3>
 
       <div className="grid grid-cols-2 gap-2">
-        {settings.backspaceOptions.map((option) => (
-          <label
-            key={option}
-            className="flex items-center justify-center gap-2 p-2 rounded cursor-pointer bg-white border border-gray-300 hover:bg-gray-100 transition-all"
-          >
-            <input
-              type="radio"
-              name="backspace"
-              className="w-4 h-4"
-              value={option}
-              checked={backspace === option}
-              onChange={() => setBackspace(option)}
-            />
-            <span className="text-xs md:text-sm font-semibold text-[#290c52]">{option}</span>
-          </label>
-        ))}
+        <label className="flex items-center justify-center gap-2 p-2 rounded cursor-not-allowed bg-gray-100 border border-gray-300 opacity-80">
+          <input type="radio" name="backspace" className="w-4 h-4" value="ON" disabled checked={false} readOnly />
+          <span className="text-xs md:text-sm font-semibold text-gray-500">ON</span>
+        </label>
+        <label className="flex items-center justify-center gap-2 p-2 rounded bg-white border-2 border-[#290c52] cursor-default">
+          <input type="radio" name="backspace" className="w-4 h-4" value="OFF" disabled checked readOnly />
+          <span className="text-xs md:text-sm font-semibold text-[#290c52]">OFF</span>
+        </label>
       </div>
+      <p className="text-white/80 text-xs mt-2">Backspace is disabled for Learning (alpha &amp; word).</p>
     </div>
 
   </div>
@@ -380,14 +394,16 @@ export default function TypingTutor() {
                   const isFree = lesson.isFree === true || lesson.isFree === 'true';
                   // Free content is always accessible - no need to check subscription
                   const hasAccess = isFree ? true : (userSubscription || accessChecks[lesson.id] === true);
-                  // Only lock if it's NOT free AND user doesn't have access
-                  const isLocked = !isFree && !hasAccess;
+                  // Word typing: need net speed >= 10 on previous word lesson to unlock next
+                  const wordUnlocked = isWordLessonUnlocked(lesson);
+                  // Lock if subscription required and no access, OR word lesson not yet unlocked by progress
+                  const isLocked = (!isFree && !hasAccess) || (lesson.lessonType === "word" && !wordUnlocked);
                   
                   return (
                   <li 
                     key={lesson.id} 
                     className={`flex items-center gap-4 ${isLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-                    title={isLocked ? 'Please purchase subscription to access this content' : ''}
+                    title={isLocked ? (lesson.lessonType === "word" && !wordUnlocked ? 'Complete previous word lesson with net speed ≥ 10 to unlock' : 'Please purchase subscription to access this content') : ''}
                   >
   {/* Lesson Number */}
   <span className="text-sm sm:text-base md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl">
@@ -440,6 +456,11 @@ export default function TypingTutor() {
                             FREE
                           </span>
                         )}
+                        {lesson.lessonType === "word" && (
+                          <span className="hidden md:inline-block text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">
+                            Word
+                          </span>
+                        )}
                       </div>
                       <p className={`text-sm mt-1 ${isLocked ? 'text-gray-400' : 'text-gray-600'}`}>
                         {selectedLanguage === "Hindi" && lesson.description_hindi ? lesson.description_hindi : lesson.description}
@@ -449,21 +470,27 @@ export default function TypingTutor() {
                 )})}
           </ul>
 
-              {/* Selected Lesson Content Preview */}
+              {/* Selected Lesson - Start button */}
               {selectedCheckbox && (
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-2">Content Preview ({selectedLanguage}{selectedSubLanguage ? ` - ${selectedSubLanguage}` : ''})</h3>
-                  <div className="bg-white p-3 rounded border font-mono text-sm">
-                    {currentLessonContent || "Select a language and script to view content"}
-                  </div>
-                  <div className="mt-3">
+                  {selectedCheckbox.lessonType === "word" ? (
+                    <>
+                      <p className="text-sm text-amber-700 mb-3">Word typing — complete with net speed ≥ 10 to unlock the next word lesson.</p>
+                      <a
+                        href={`/typing?lesson=${selectedCheckbox.id}&section=${selectedSection}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}&from=learning`}
+                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors text-2xl text-center block"
+                      >
+                        Start
+                      </a>
+                    </>
+                  ) : (
                     <a
                       href={`/tips/home?lesson=${selectedCheckbox.id}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}`}
                       className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors text-2xl text-center block"
                     >
-                      Start 
+                      Start
                     </a>
-                  </div>
+                  )}
                 </div>
               )}
 

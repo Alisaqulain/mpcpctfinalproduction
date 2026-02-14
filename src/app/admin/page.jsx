@@ -5558,6 +5558,7 @@ function LearningAdmin(){
     setSaveError('');
     try {
       const method = editingLesson ? 'PUT' : 'POST';
+      const lessonTypeValue = formData.lessonType === 'word' ? 'word' : 'alpha';
       const body = {
         type: 'lesson',
         sectionId: formData.sectionId,
@@ -5568,6 +5569,7 @@ function LearningAdmin(){
         description_hindi: formData.description_hindi || '',
         difficulty: formData.difficulty || 'beginner',
         estimatedTime: formData.estimatedTime || '5 minutes',
+        lessonType: lessonTypeValue,
         content: {
           english: formData.content_english || '',
           hindi_ramington: formData.content_hindi_ramington || '',
@@ -5578,6 +5580,7 @@ function LearningAdmin(){
       if (editingLesson) {
         body._id = editingLesson._id;
       }
+      console.log('[Admin Save Lesson] formData.lessonType:', formData.lessonType, '-> body.lessonType:', body.lessonType, 'method:', editingLesson ? 'PUT' : 'POST', 'body._id:', body._id);
       const res = await fetch('/api/admin/learning', {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -5594,6 +5597,7 @@ function LearningAdmin(){
       }
       
       if (res.ok) {
+        console.log('[Admin Save Lesson] API success, result.lesson.lessonType:', result?.lesson?.lessonType);
         await refresh();
         setShowLessonForm(false);
         setEditingLesson(null);
@@ -5608,6 +5612,26 @@ function LearningAdmin(){
     } catch (error) {
       setSaveError('Network error: ' + error.message);
       console.error('Save lesson error:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddDemoWordLesson = async () => {
+    setSaving(true);
+    setSaveError('');
+    try {
+      const res = await fetch('/api/admin/learning/demo-word-lesson', { method: 'POST' });
+      const result = await res.json().catch(() => ({}));
+      if (res.ok && result.success) {
+        await refresh();
+        setSaveError('');
+        alert(result.message || 'Demo word lesson added to Home (order 1).');
+      } else {
+        setSaveError(result.error || 'Failed to add demo word lesson.');
+      }
+    } catch (error) {
+      setSaveError('Network error: ' + error.message);
     } finally {
       setSaving(false);
     }
@@ -5643,6 +5667,14 @@ function LearningAdmin(){
             className="bg-green-600 text-white px-2 py-1 rounded text-sm"
           >
             + Lesson
+          </button>
+          <button 
+            onClick={handleAddDemoWordLesson}
+            disabled={saving || data.sections.length === 0}
+            className="bg-amber-600 text-white px-2 py-1 rounded text-sm hover:bg-amber-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            title="Add a demo word typing lesson in Home (order 1)"
+          >
+            Add demo word lesson
           </button>
           <button 
             onClick={handleDeleteAllSections}
@@ -5750,8 +5782,16 @@ function LearningAdmin(){
                 <li key={l._id} className="border rounded p-3 bg-white">
                   <div className="font-semibold text-base">{l.title}</div>
                   {l.title_hindi && <div className="text-sm text-gray-600 mt-1">{l.title_hindi}</div>}
-                  <div className="text-sm text-gray-600 mt-1">
-                    {l.difficulty} • {l.estimatedTime}
+                  <div className="text-sm text-gray-600 mt-1 flex flex-wrap gap-1 items-center">
+                    <span>{l.difficulty}</span>
+                    <span>•</span>
+                    <span>{l.estimatedTime}</span>
+                    {l.lessonType === 'word' && (
+                      <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Word</span>
+                    )}
+                    {(!l.lessonType || l.lessonType === 'alpha') && (
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Alphabet</span>
+                    )}
                   </div>
                   <div className="flex justify-between items-center mt-3">
                     <span className={`text-xs px-2 py-1 rounded font-medium ${l.isFree ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -5904,6 +5944,7 @@ function SectionForm({ section, onSave, onCancel, saving, error }) {
 }
 
 function LessonForm({ lesson, sections, onSave, onCancel, saving, error }) {
+  const initialLessonType = lesson?.lessonType === 'word' ? 'word' : 'alpha';
   const [formData, setFormData] = useState({
     sectionId: lesson?.sectionId || '',
     id: lesson?.id || '',
@@ -5913,11 +5954,13 @@ function LessonForm({ lesson, sections, onSave, onCancel, saving, error }) {
     description_hindi: lesson?.description_hindi || '',
     difficulty: lesson?.difficulty || 'beginner',
     estimatedTime: lesson?.estimatedTime || '5 minutes',
+    lessonType: initialLessonType,
     content_english: lesson?.content?.english || '',
     content_hindi_ramington: lesson?.content?.hindi_ramington || '',
     content_hindi_inscript: lesson?.content?.hindi_inscript || '',
     isFree: lesson?.isFree || false
   });
+  console.log('[LessonForm] lesson?.lessonType:', lesson?.lessonType, 'initialLessonType:', initialLessonType, 'formData.lessonType:', formData.lessonType);
 
   // Auto-generate lesson ID when section changes (only for new lessons)
   const handleSectionChange = (sectionId) => {
@@ -6051,6 +6094,24 @@ function LessonForm({ lesson, sections, onSave, onCancel, saving, error }) {
               required
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Type *</label>
+          <select
+            value={formData.lessonType}
+            onChange={(e) => {
+            const v = e.target.value;
+            console.log('[LessonForm] Type dropdown changed to:', v);
+            setFormData({...formData, lessonType: v});
+          }}
+            className="w-full border rounded px-3 py-2"
+            required
+          >
+            <option value="alpha">Alphabet (character typing)</option>
+            <option value="word">Word typing</option>
+          </select>
+          <p className="text-xs text-gray-500 mt-1">Alphabet for character-by-character lessons; Word for word typing lessons.</p>
         </div>
 
         <div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+
 export default function DemoPage() {
   const [serverTime, setServerTime] = useState(null);
   const [dbStatus, setDbStatus] = useState("checking");
@@ -70,7 +71,7 @@ export default function DemoPage() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             🚀 Deployment Status best way to checkgchchg  bets web last update
-            
+
           </h1>
           <p className="text-gray-600">
             Check if your application is deployed and running correctlydasdsa

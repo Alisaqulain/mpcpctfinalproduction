@@ -4,6 +4,8 @@ import { useSearchParams } from "next/navigation";
 import { getLearningData, getLessonContent } from "@/lib/learningData";
 import { useHindiTyping } from "@/hooks/useHindiTyping";
 
+const MIN_NET_SPEED_LEARNING = 10;
+
 // Desktop View Component
 function DesktopView({
   content,
@@ -43,12 +45,17 @@ function DesktopView({
   showKeyboardWarning,
   setShowKeyboardWarning,
   subLanguage,
-  hindiLayout
+  hindiLayout,
+  closeHref = "/skill_test",
+  isLearningWordMode = false,
+  lessonTitle = "",
+  lessonPassed = false,
+  netSpeedLearning = 0
 }) {
   return (
     <>
       <button className="hidden md:absolute md:right-22 md:top-6 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md md:block">
-        <a href="/skill_test">close</a>
+        <a href={closeHref}>close</a>
       </button>
 
       <div className="flex flex-col-reverse lg:flex-row gap-6">
@@ -58,39 +65,64 @@ function DesktopView({
             {/* Results Display */}
             {isCompleted && (
               <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
-                <h2 className="text-xl font-bold text-green-800 mb-3">Test Completed!</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{wpm}</div>
-                    <div className="text-sm text-green-700">WPM</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
-                    <div className="text-sm text-green-700">Accuracy</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
-                    <div className="text-sm text-green-700">Time</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{correctWords.length}</div>
-                    <div className="text-sm text-green-700">Correct</div>
-                  </div>
-                </div>
-                <div className="flex gap-3 justify-center">
-                  <button
-                    onClick={handleDownloadPDF}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
-                  >
-                    Download PDF
-                  </button>
-                  <button
-                    onClick={handleReset}
-                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
-                  >
-                    Try Again
-                  </button>
-                </div>
+                {isLearningWordMode ? (
+                  <>
+                    <h2 className="text-xl font-bold text-green-800 mb-3">Lesson Complete</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{netSpeedLearning}</div>
+                        <div className="text-sm text-green-700">Net Speed (WPM)</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{wpm}</div>
+                        <div className="text-sm text-green-700">WPM</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
+                        <div className="text-sm text-green-700">Accuracy</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
+                        <div className="text-sm text-green-700">Time</div>
+                      </div>
+                    </div>
+                    {lessonPassed ? (
+                      <p className="text-green-700 font-semibold mb-4">You reached net speed {netSpeedLearning} (≥ {MIN_NET_SPEED_LEARNING}). The next word lesson is now unlocked.</p>
+                    ) : (
+                      <p className="text-amber-700 font-semibold mb-4">Net speed must be at least {MIN_NET_SPEED_LEARNING} to unlock the next word lesson (only word typing in Learning). Your net speed: {netSpeedLearning}. Practice again to improve.</p>
+                    )}
+                    <div className="flex gap-3 justify-center">
+                      <a href={closeHref} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold inline-block">Back to Learning</a>
+                      <button onClick={handleReset} className="bg-[#290c52] hover:opacity-90 text-white px-6 py-2 rounded-lg font-semibold">Try Again</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl font-bold text-green-800 mb-3">Test Completed!</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{wpm}</div>
+                        <div className="text-sm text-green-700">WPM</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
+                        <div className="text-sm text-green-700">Accuracy</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
+                        <div className="text-sm text-green-700">Time</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{correctWords.length}</div>
+                        <div className="text-sm text-green-700">Correct</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 justify-center">
+                      <button onClick={handleDownloadPDF} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold">Download PDF</button>
+                      <button onClick={handleReset} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold">Try Again</button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -330,12 +362,17 @@ function PortraitView({
   showKeyboardWarning,
   setShowKeyboardWarning,
   subLanguage,
-  hindiLayout
+  hindiLayout,
+  closeHref = "/skill_test",
+  isLearningWordMode = false,
+  lessonTitle = "",
+  lessonPassed = false,
+  netSpeedLearning = 0
 }) {
   return (
     <>
       <button className="absolute md:hidden right-3 top-20 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md">
-        <a href="/skill_test">close</a>
+        <a href={closeHref}>close</a>
       </button>
 
       <div className="flex flex-col-reverse gap-6">
@@ -351,39 +388,64 @@ function PortraitView({
             {/* Results Display */}
             {isCompleted && (
               <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
-                <h2 className="text-xl font-bold text-green-800 mb-3">Test Completed!</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{wpm}</div>
-                    <div className="text-sm text-green-700">WPM</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
-                    <div className="text-sm text-green-700">Accuracy</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
-                    <div className="text-sm text-green-700">Time</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{correctWords.length}</div>
-                    <div className="text-sm text-green-700">Correct</div>
-                  </div>
-                </div>
-                <div className="flex gap-3 justify-center">
-                  <button
-                    onClick={handleDownloadPDF}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
-                  >
-                    Download PDF
-                  </button>
-                  <button
-                    onClick={handleReset}
-                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
-                  >
-                    Try Again
-                  </button>
-                </div>
+                {isLearningWordMode ? (
+                  <>
+                    <h2 className="text-xl font-bold text-green-800 mb-3">Lesson Complete</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{netSpeedLearning}</div>
+                        <div className="text-sm text-green-700">Net Speed (WPM)</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{wpm}</div>
+                        <div className="text-sm text-green-700">WPM</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
+                        <div className="text-sm text-green-700">Accuracy</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
+                        <div className="text-sm text-green-700">Time</div>
+                      </div>
+                    </div>
+                    {lessonPassed ? (
+                      <p className="text-green-700 font-semibold mb-4">You reached net speed {netSpeedLearning} (≥ {MIN_NET_SPEED_LEARNING}). The next word lesson is now unlocked.</p>
+                    ) : (
+                      <p className="text-amber-700 font-semibold mb-4">Net speed must be at least {MIN_NET_SPEED_LEARNING} to unlock the next word lesson (only word typing in Learning). Your net speed: {netSpeedLearning}. Practice again to improve.</p>
+                    )}
+                    <div className="flex gap-3 justify-center">
+                      <a href={closeHref} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold inline-block">Back to Learning</a>
+                      <button onClick={handleReset} className="bg-[#290c52] hover:opacity-90 text-white px-6 py-2 rounded-lg font-semibold">Try Again</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl font-bold text-green-800 mb-3">Test Completed!</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{wpm}</div>
+                        <div className="text-sm text-green-700">WPM</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
+                        <div className="text-sm text-green-700">Accuracy</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
+                        <div className="text-sm text-green-700">Time</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{correctWords.length}</div>
+                        <div className="text-sm text-green-700">Correct</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 justify-center">
+                      <button onClick={handleDownloadPDF} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold">Download PDF</button>
+                      <button onClick={handleReset} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold">Try Again</button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -629,7 +691,12 @@ function LandscapeView({
   showKeyboardWarning,
   setShowKeyboardWarning,
   subLanguage,
-  hindiLayout
+  hindiLayout,
+  closeHref = "/skill_test",
+  isLearningWordMode = false,
+  lessonTitle = "",
+  lessonPassed = false,
+  netSpeedLearning = 0
 }) {
   return (
     <>
@@ -645,7 +712,7 @@ function LandscapeView({
           visibility: 'visible'
         }}
       >
-        <a href="/skill_test" className="font-semibold">close</a>
+        <a href={closeHref} className="font-semibold">close</a>
       </button>
       <div className="landscape-mobile-container">
 
@@ -669,41 +736,64 @@ function LandscapeView({
             {/* Results Display */}
             {isCompleted && (
               <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500" style={{ padding: '1.5vh 1.5vw', marginBottom: '1vh' }}>
-                <h2 className="text-xl font-bold text-green-800 mb-3" style={{ fontSize: 'clamp(12px, 2.5vw, 18px)', marginBottom: '1vh' }}>Test Completed!</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3" style={{ gap: '1vw', marginBottom: '1vh' }}>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{wpm}</div>
-                    <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>WPM</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{accuracy}%</div>
-                    <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Accuracy</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{formatClock(elapsedTime)}</div>
-                    <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Time</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{correctWords.length}</div>
-                    <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Correct</div>
-                  </div>
-                </div>
-                <div className="flex gap-3 justify-center" style={{ gap: '1vw' }}>
-                  <button
-                    onClick={handleDownloadPDF}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
-                    style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}
-                  >
-                    Download PDF
-                  </button>
-                  <button
-                    onClick={handleReset}
-                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
-                    style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}
-                  >
-                    Try Again
-                  </button>
-                </div>
+                {isLearningWordMode ? (
+                  <>
+                    <h2 className="text-xl font-bold text-green-800 mb-3" style={{ fontSize: 'clamp(12px, 2.5vw, 18px)', marginBottom: '1vh' }}>Lesson Complete</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3" style={{ gap: '1vw', marginBottom: '1vh' }}>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{netSpeedLearning}</div>
+                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Net Speed (WPM)</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{wpm}</div>
+                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>WPM</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{accuracy}%</div>
+                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Accuracy</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{formatClock(elapsedTime)}</div>
+                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Time</div>
+                      </div>
+                    </div>
+                    {lessonPassed ? (
+                      <p className="text-green-700 font-semibold mb-4" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>You reached net speed {netSpeedLearning} (≥ {MIN_NET_SPEED_LEARNING}). The next word lesson is now unlocked.</p>
+                    ) : (
+                      <p className="text-amber-700 font-semibold mb-4" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Net speed must be at least {MIN_NET_SPEED_LEARNING} to unlock the next word lesson (only word typing in Learning). Your net speed: {netSpeedLearning}. Practice again to improve.</p>
+                    )}
+                    <div className="flex gap-3 justify-center" style={{ gap: '1vw' }}>
+                      <a href={closeHref} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold inline-block" style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}>Back to Learning</a>
+                      <button onClick={handleReset} className="bg-[#290c52] hover:opacity-90 text-white px-6 py-2 rounded-lg font-semibold" style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}>Try Again</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl font-bold text-green-800 mb-3" style={{ fontSize: 'clamp(12px, 2.5vw, 18px)', marginBottom: '1vh' }}>Test Completed!</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3" style={{ gap: '1vw', marginBottom: '1vh' }}>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{wpm}</div>
+                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>WPM</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{accuracy}%</div>
+                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Accuracy</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{formatClock(elapsedTime)}</div>
+                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Time</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{correctWords.length}</div>
+                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Correct</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 justify-center" style={{ gap: '1vw' }}>
+                      <button onClick={handleDownloadPDF} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold" style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}>Download PDF</button>
+                      <button onClick={handleReset} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold" style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}>Try Again</button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -890,23 +980,71 @@ function LandscapeView({
 function TypingTutorForm() {
   const searchParams = useSearchParams();
   const exerciseId = searchParams.get("exercise");
+  const lessonId = searchParams.get("lesson");
+  const sectionId = searchParams.get("section");
+  const fromLearning = searchParams.get("from");
+  const isLearningWordMode = fromLearning === "learning" && !!lessonId;
+
   const language = searchParams.get("language") || "english";
   const subLanguage = searchParams.get("subLanguage") || "";
   const duration = parseInt(searchParams.get("duration")) || 5;
   const backspace = searchParams.get("backspace") || "OFF";
+  const effectiveBackspace = isLearningWordMode ? "OFF" : backspace;
 
   const [content, setContent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [learningData, setLearningData] = useState(null);
+  const [lessonTitle, setLessonTitle] = useState("");
+  const [lessonPassed, setLessonPassed] = useState(false);
+  const [netSpeedLearning, setNetSpeedLearning] = useState(0);
 
-  // Fetch exercise content from API
+  // Fetch lesson content when in learning word mode (from /learning hub)
   useEffect(() => {
-    const fetchData = async () => {
-      if (!exerciseId) {
-        setLoading(false);
-        return;
-      }
+    if (!isLearningWordMode) return;
+    if (!lessonId) {
+      setLoading(false);
+      return;
+    }
 
+    const fetchLessonContent = async () => {
+      try {
+        const res = await fetch('/api/learning?' + new Date().getTime());
+        if (!res.ok) {
+          setLoading(false);
+          return;
+        }
+        const data = await res.json();
+        const section = data.sections?.find((s) => s.id === sectionId);
+        const found = section?.lessons?.find((l) => l.id === lessonId);
+        if (found) {
+          setLessonTitle(found.title || "");
+          let contentKey = "english";
+          if (language === "hindi") {
+            contentKey = subLanguage.toLowerCase().includes("inscript") ? "hindi_inscript" : "hindi_ramington";
+          }
+          const text = (found.content?.[contentKey] || found.content?.english || "").trim();
+          if (text) {
+            const normalized = text.replace(/\r\n/g, " ").replace(/\r/g, " ").replace(/\n/g, " ").replace(/\s+/g, " ").trim();
+            setContent([normalized]);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLessonContent();
+  }, [isLearningWordMode, lessonId, sectionId, language, subLanguage]);
+
+  // Fetch exercise content from API (skill test mode)
+  useEffect(() => {
+    if (isLearningWordMode || !exerciseId) {
+      if (!isLearningWordMode) setLoading(false);
+      return;
+    }
+
+    const fetchData = async () => {
       try {
         // Fetch skill test data
         const res = await fetch('/api/skill-test?' + new Date().getTime());
@@ -1220,11 +1358,65 @@ function TypingTutorForm() {
   const saveTypingResult = React.useCallback(async (endTime, startTime, grossWpm, accuracy) => {
     try {
       const timeTaken = Math.round((endTime - startTime) / 1000);
-      const timeInMinutes = timeTaken / 60;
+      const timeInMinutes = timeTaken / 60 || 1;
       const wordsTyped = typedWords.length;
       const correct = correctWords.length;
       const wrong = wrongWords.length;
       const netSpeed = Math.round((correct / timeInMinutes) || 0);
+
+      // Learning word mode: save progress, put result in sessionStorage, redirect to result page (like skill-test)
+      if (isLearningWordMode && lessonId) {
+        setNetSpeedLearning(netSpeed);
+        setLessonPassed(netSpeed >= MIN_NET_SPEED_LEARNING);
+        try {
+          const raw = typeof window !== "undefined" ? localStorage.getItem("learningWordProgress") : null;
+          const list = raw ? JSON.parse(raw) : [];
+          const without = list.filter((p) => p.lessonId !== lessonId);
+          without.push({ lessonId, netSpeed });
+          localStorage.setItem("learningWordProgress", JSON.stringify(without));
+        } catch (e) {
+          console.error("Save learning progress failed", e);
+        }
+        // Build errors for result page
+        const errorStrings = [];
+        for (let i = 0; i < Math.min(typedWords.length, words.length); i++) {
+          if (typedWords[i] !== words[i]) {
+            errorStrings.push(`${typedWords[i]} [${words[i]}]`);
+          }
+        }
+        const finalResult = netSpeed >= MIN_NET_SPEED_LEARNING ? "PASS" : "FAIL";
+        let remarks = "Fair";
+        if (netSpeed >= 50) remarks = "Excellent";
+        else if (netSpeed >= 40) remarks = "Very Good";
+        else if (netSpeed >= 30) remarks = "Good";
+        else if (netSpeed >= 20) remarks = "Fair";
+        else remarks = "Poor";
+        const userDataStr = typeof window !== "undefined" ? localStorage.getItem("examUserData") : null;
+        const userData = userDataStr ? JSON.parse(userDataStr) : {};
+        const resultForPage = {
+          userName: userName && userName !== "User" ? userName : (userData.name || "User"),
+          lessonTitle: lessonTitle || "Word Lesson",
+          language: language === "hindi" ? "Hindi" : "English",
+          subLanguage: subLanguage || "",
+          resultDate: new Date().toLocaleString(),
+          timeTaken,
+          grossSpeed: grossWpm,
+          netSpeed,
+          totalWords: wordsTyped,
+          correctWords: correct,
+          wrongWords: wrong,
+          accuracy,
+          backspaceCount,
+          errors: errorStrings,
+          finalResult,
+          remarks,
+        };
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("learningWordResult", JSON.stringify(resultForPage));
+          window.location.href = "/result/learning-word";
+        }
+        return;
+      }
       
       // Calculate errors in format "THGe [The]"
       const errorStrings = [];
@@ -1297,7 +1489,7 @@ function TypingTutorForm() {
     } catch (error) {
       console.error('Error saving typing result:', error);
     }
-  }, [typedWords, correctWords, wrongWords, words, learningData, exerciseId, language, subLanguage, duration, backspace, backspaceCount]);
+  }, [typedWords, correctWords, wrongWords, words, learningData, exerciseId, language, subLanguage, duration, backspace, backspaceCount, isLearningWordMode, lessonId, lessonTitle, userName]);
 
   const handleCompletion = React.useCallback(() => {
     if (isCompleted) return;
@@ -1378,8 +1570,8 @@ function TypingTutorForm() {
     
     // Handle backspace
     if (typedText.length > newValue.length) {
-      if (backspace === "OFF") {
-        // Prevent backspace if disabled
+      if (effectiveBackspace === "OFF") {
+        // Prevent backspace if disabled (skill test OFF or learning mode)
         e.target.value = typedText;
         return;
       }
@@ -1592,7 +1784,12 @@ function TypingTutorForm() {
     subLanguage,
     hindiLayout,
     decreaseFont,
-    textareaRef
+    textareaRef,
+    closeHref: isLearningWordMode ? "/learning" : "/skill_test",
+    isLearningWordMode,
+    lessonTitle,
+    lessonPassed,
+    netSpeedLearning
   };
 
   return (

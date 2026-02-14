@@ -27,11 +27,13 @@ export default function LearningAdmin() {
           lessons: json.lessons
             .filter(l => l.sectionId === section.id)
             .map(l => ({
+              _id: l._id,
               id: l.id,
               title: l.title,
               description: l.description,
               difficulty: l.difficulty,
               estimatedTime: l.estimatedTime,
+              lessonType: l.lessonType === "word" ? "word" : "alpha",
             }))
         }));
         setLearningData({ sections: lessonsBySection });
@@ -67,7 +69,7 @@ export default function LearningAdmin() {
       const res = await fetch("/api/admin/learning", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "lesson", ...updatedLesson, sectionId: selectedSection })
+        body: JSON.stringify({ type: "lesson", _id: editingLesson._id, ...updatedLesson, sectionId: selectedSection })
       });
       if (!res.ok) throw new Error("Failed to update lesson");
       const refreshed = await fetch("/api/admin/learning");
@@ -78,11 +80,13 @@ export default function LearningAdmin() {
         lessons: json.lessons
           .filter(l => l.sectionId === section.id)
           .map(l => ({
+            _id: l._id,
             id: l.id,
             title: l.title,
             description: l.description,
             difficulty: l.difficulty,
             estimatedTime: l.estimatedTime,
+            lessonType: l.lessonType === "word" ? "word" : "alpha",
           }))
       }));
       setLearningData({ sections: lessonsBySection });
@@ -114,11 +118,13 @@ export default function LearningAdmin() {
         lessons: json.lessons
           .filter(l => l.sectionId === section.id)
           .map(l => ({
+            _id: l._id,
             id: l.id,
             title: l.title,
             description: l.description,
             difficulty: l.difficulty,
             estimatedTime: l.estimatedTime,
+            lessonType: l.lessonType === "word" ? "word" : "alpha",
           }))
       }));
       setLearningData({ sections: lessonsBySection });
@@ -184,6 +190,9 @@ export default function LearningAdmin() {
                       <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
                         {lesson.difficulty}
                       </span>
+                      <span className="text-sm bg-gray-200 text-gray-700 px-2 py-1 rounded">
+                        {lesson.lessonType === "word" ? "Word" : "Alphabet"}
+                      </span>
                       <span className="text-sm text-gray-500">
                         {lesson.estimatedTime}
                       </span>
@@ -237,7 +246,8 @@ function LessonForm({ lesson, onSave, onCancel }) {
     title: lesson?.title || "",
     description: lesson?.description || "",
     difficulty: lesson?.difficulty || "beginner",
-    estimatedTime: lesson?.estimatedTime || "5 minutes"
+    estimatedTime: lesson?.estimatedTime || "5 minutes",
+    lessonType: lesson?.lessonType === "word" ? "word" : "alpha"
   });
 
   const handleSubmit = (e) => {
@@ -297,6 +307,19 @@ function LessonForm({ lesson, onSave, onCancel }) {
           placeholder="e.g., 5 minutes"
           required
         />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Lesson Type
+        </label>
+        <select
+          value={formData.lessonType}
+          onChange={(e) => setFormData({ ...formData, lessonType: e.target.value })}
+          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        >
+          <option value="alpha">Alphabet (character typing)</option>
+          <option value="word">Word typing</option>
+        </select>
       </div>
       <div className="flex gap-3 pt-4">
         <button

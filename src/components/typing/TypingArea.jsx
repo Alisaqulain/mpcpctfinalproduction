@@ -11,8 +11,12 @@ export default function TypingArea({
   allowBackspace = true,
   language = "English",
   scriptType = null,
-  mode = "character" // "character" or "word"
+  mode = "character", // "character" or "word"
+  visibleInput = false,
+  fontSize: fontSizeProp = null,
+  disabled = false
 }) {
+  const fontSize = fontSizeProp ?? 16;
   const [typedText, setTypedText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mistakes, setMistakes] = useState(0);
@@ -84,8 +88,8 @@ export default function TypingArea({
         const correctWords = typedWords.filter((word, i) => word === words[i]).length;
         accuracy = wordsTyped > 0 ? Math.round((correctWords / wordsTyped) * 100) : 100;
       } else {
-        const words = typedText.trim().split(/\s+/).length;
-        wpm = elapsed > 0 ? Math.round(words / elapsed) : 0;
+        const wordCount = typedText.trim().split(/\s+/).length;
+        wpm = elapsed > 0 ? Math.round(wordCount / elapsed) : 0;
         accuracy = typedText.length > 0 
           ? Math.round(((typedText.length - mistakes) / typedText.length) * 100)
           : 100;
@@ -96,7 +100,10 @@ export default function TypingArea({
         accuracy,
         mistakes,
         backspaceCount,
-        timeLeft
+        timeLeft,
+        typedText: mode === "word" ? typedText : undefined,
+        correctCount: mode === "word" ? (typedWords.filter((word, i) => word === words[i]).length) : undefined,
+        totalCount: mode === "word" ? words.length : undefined
       });
     }
   }, [typedText, typedWords, mistakes, backspaceCount, timeLeft, startTime, onProgress, mode, words]);
@@ -296,7 +303,8 @@ export default function TypingArea({
 
       {/* Typing Area */}
       <div
-        className="w-full p-6 bg-gray-50 border-2 border-gray-300 rounded-lg text-lg md:text-xl font-mono min-h-[200px] max-h-[500px] overflow-y-auto cursor-text"
+        className="w-full p-6 bg-gray-50 border-2 border-gray-300 rounded-lg font-mono min-h-[200px] max-h-[500px] overflow-y-auto cursor-text"
+        style={{ fontSize: `${fontSize}px` }}
         onClick={() => inputRef.current?.focus()}
         ref={containerRef}
       >
@@ -322,11 +330,15 @@ export default function TypingArea({
           value={typedText}
           onChange={handleChange}
           onKeyDown={handleKeyPress}
-          placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : undefined}
-          className="absolute opacity-0 pointer-events-none w-0 h-0"
+          placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Start typing here..."}
+          className={visibleInput
+            ? "w-full min-h-[80px] max-h-[100px] lg:min-h-[180px] lg:max-h-[220px] p-2 border border-gray-400 border-b-4 border-b-[#290c52] rounded-md mt-1 bg-white font-sans text-base text-gray-800 focus:outline-none disabled:opacity-50"
+            : "absolute opacity-0 pointer-events-none w-0 h-0"}
+          style={visibleInput ? { fontSize: `${fontSize}px` } : undefined}
           autoFocus
-          tabIndex={-1}
+          tabIndex={visibleInput ? 0 : -1}
           spellCheck={false}
+          disabled={disabled}
         />
       ) : (
         <input
