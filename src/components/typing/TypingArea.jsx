@@ -109,8 +109,18 @@ export default function TypingArea({
   }, [typedText, typedWords, mistakes, backspaceCount, timeLeft, startTime, onProgress, mode, words]);
 
   const handleChange = (e) => {
-    const value = e.target.value;
-    
+    let value = e.target.value;
+
+    // Hindi: mobile fallback when keydown doesn't fire (e.g. Unidentified key)
+    if (mode === "word" && isHindiTyping && hindiTyping.isEnabled && hindiTyping.handleInputChange) {
+      const converted = hindiTyping.handleInputChange(value, typedText);
+      if (converted !== null) {
+        value = converted;
+        e.target.value = converted;
+        e.target.setSelectionRange(converted.length, converted.length);
+      }
+    }
+
     setTypedText(value);
     
     if (!isActive && value.length > 0) {
@@ -330,6 +340,7 @@ export default function TypingArea({
           value={typedText}
           onChange={handleChange}
           onKeyDown={handleKeyPress}
+          onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
           placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Start typing here..."}
           className={visibleInput
             ? "w-full min-h-[80px] max-h-[100px] lg:min-h-[180px] lg:max-h-[220px] p-2 border border-gray-400 border-b-4 border-b-[#290c52] rounded-md mt-1 bg-white font-sans text-base text-gray-800 focus:outline-none disabled:opacity-50"

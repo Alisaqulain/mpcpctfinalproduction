@@ -202,7 +202,17 @@ export default function ExamTypingInterface({
   }, [typedWords.length, errorCount, backspaceCount, keystrokesCount, startTime, words.length]);
 
   const handleInputChange = (e) => {
-    const value = e.target.value;
+    let value = e.target.value;
+
+    // Hindi: mobile fallback when keydown doesn't fire
+    if (isHindiTyping && hindiTyping.isEnabled && hindiTyping.handleInputChange) {
+      const converted = hindiTyping.handleInputChange(value, typedText);
+      if (converted !== null) {
+        value = converted;
+        e.target.value = converted;
+        e.target.setSelectionRange(converted.length, converted.length);
+      }
+    }
     
     // Prevent unnecessary updates if value hasn't changed
     if (value === typedText) {
@@ -489,6 +499,7 @@ export default function ExamTypingInterface({
             value={typedText}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
+            onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
             placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
             className="w-full h-28 p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono resize-none"
             spellCheck={false}
@@ -526,6 +537,7 @@ export default function ExamTypingInterface({
             value={typedText}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
+            onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
             placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
             className="w-full h-28 md:h-24 lg:h-36 p-3 md:p-2 lg:p-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-sm lg:text-base font-mono resize-none flex-shrink-0 landscape-input"
             spellCheck={false}

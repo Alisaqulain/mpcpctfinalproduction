@@ -31,15 +31,16 @@ const REMINGTON_MAP = {
   'ai': 'ऐ', 'o': 'ओ', 'O': 'ओ', 'au': 'औ',
   'ri': 'ऋ', 'Ri': 'ऋ', 'lri': 'ऌ', 'Lri': 'ऌ',
   
-  // Consonants (vyanjan) - Based on Remington layout
-  // Home row mappings (ASDF...)
+  // Consonants (vyanjan) - Based on Remington layout (phonetic)
+  // Home row mappings (ASDF...) - S key = स for phonetic typing
+  's': 'स',      // S = स (sa)
   'd': 'क',      // D = क
   'f': 'ि',      // F = इ matra
   'g': 'ह',      // G = ह
   'h': '़',      // H = nukta
   'j': 'र',      // J = र
   'k': 'ा',      // K = आ matra
-  'l': 'स',      // L = स
+  'l': 'स',      // L = स (alternate)
   ';': 'य',      // ; = य
   "'": 'श',      // ' = श
   
@@ -924,9 +925,23 @@ export class HindiTypingConverter {
    * @returns {object|null} - Conversion result or null
    */
   handleKeyPress(event, currentText = '', selectionStart = 0, selectionEnd = 0) {
-    const key = event.key;
+    let key = event.key;
     const shift = event.shiftKey;
     const alt = event.altKey;
+
+    // Mobile/IME fallback: when key is "Unidentified", try to derive from event.code (e.g. KeyS -> s)
+    if (key === 'Unidentified' && event.code) {
+      const code = event.code;
+      if (code.startsWith('Key') && code.length === 4) {
+        const letter = code.charAt(3);
+        key = shift ? letter.toUpperCase() : letter.toLowerCase();
+      } else if (code.startsWith('Digit') && code.length === 6) {
+        key = code.charAt(5);
+      }
+    }
+    if (key === 'Unidentified' || key.length !== 1) {
+      return null; // Cannot convert
+    }
     
     // Skip Alt code processing in keypress (handled in keydown/keyup)
     if (alt && this.altCodeBuffer.length > 0) {
@@ -941,8 +956,7 @@ export class HindiTypingConverter {
         key === 'ArrowUp' || key === 'ArrowDown' ||
         key === 'Home' || key === 'End' || 
         key === 'PageUp' || key === 'PageDown' ||
-        key === 'Control' || key === 'Alt' || key === 'Meta' ||
-        key.length > 1) {
+        key === 'Control' || key === 'Alt' || key === 'Meta') {
       return null; // Let browser handle these
     }
 

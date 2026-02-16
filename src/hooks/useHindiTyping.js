@@ -65,10 +65,10 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
         setValue(newValue);
         textarea.value = newValue;
         
-        // Set cursor position
-        setTimeout(() => {
+        // Set cursor position (rAF for stable cursor)
+        requestAnimationFrame(() => {
           textarea.selectionStart = textarea.selectionEnd = backspaceResult.newCursorPos;
-        }, 0);
+        });
         
         return true;
       }
@@ -108,10 +108,10 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
         : result.char.length;
       const newCursorPos = replaceStart + cursorOffset;
       
-      // Set cursor position after inserted character
-      setTimeout(() => {
+      // Set cursor position after inserted character (rAF for stable cursor)
+      requestAnimationFrame(() => {
         textarea.selectionStart = textarea.selectionEnd = newCursorPos;
-      }, 0);
+      });
       
       return true; // Event was handled
     }
@@ -152,14 +152,36 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
       textarea.value = newValue;
       
       const newCursorPos = replaceStart + altCodeResult.char.length;
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         textarea.selectionStart = textarea.selectionEnd = newCursorPos;
-      }, 0);
+      });
       
       return true;
     }
     
     return false;
+  }, [enabled]);
+
+  /**
+   * Handle input change (mobile fallback when keydown/key is "Unidentified" or missing).
+   * Call from onChange when Hindi is enabled: if return is not null, use it as the new value instead.
+   * @param {string} newValue - Value after input event
+   * @param {string} prevValue - Value before (current state)
+   * @returns {string|null} - Converted value to use, or null to keep newValue
+   */
+  const handleInputChange = useCallback((newValue, prevValue) => {
+    if (!enabled || !converterRef.current) return null;
+    if (newValue === prevValue) return null;
+    if (newValue.length <= prevValue.length) return null; // Deletion or same
+    // Append at end (typical mobile typing)
+    if (newValue.startsWith(prevValue)) {
+      const inserted = newValue.slice(prevValue.length);
+      const converted = converterRef.current.convertText(inserted);
+      if (converted !== inserted) {
+        return prevValue + converted;
+      }
+    }
+    return null;
   }, [enabled]);
 
   /**
@@ -190,6 +212,7 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
   return {
     handleKeyDown,
     handleKeyUp,
+    handleInputChange,
     convertText,
     clearBuffer,
     switchLayout,

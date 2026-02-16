@@ -481,7 +481,7 @@ export default function TypingTutor() {
           {/* Exercise List - Left Sidebar */}
           <div className="w-full md:w-80 border-r border-gray-300 bg-white p-4">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm md:text-base font-semibold text-gray-700">Available Exercises1</h3>
+              <h3 className="text-sm md:text-base font-semibold text-gray-700">Available Exercises</h3>
               <div className="flex items-center gap-2">
                 {selectedExercise && selectedExercise.isUserExercise && (
                   <button

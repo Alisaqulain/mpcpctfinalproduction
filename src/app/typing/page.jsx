@@ -177,6 +177,7 @@ function DesktopView({
                   value={typedText}
                   onChange={handleChange}
                   onKeyDown={handleKeyDown}
+                  onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
                   onFocus={(e) => {
                     // Auto-activate Hindi IME on focus (for mobile devices)
                     if (isHindiTyping) {
@@ -499,6 +500,8 @@ function PortraitView({
                   ref={textareaRef}
                   value={typedText}
                   onChange={handleChange}
+                  onKeyDown={handleKeyDown}
+                  onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
                   onFocus={(e) => {
                     // Auto-activate Hindi IME on focus
                     if (isHindiTyping) {
@@ -847,6 +850,8 @@ function LandscapeView({
                   ref={textareaRef}
                   value={typedText}
                   onChange={handleChange}
+                  onKeyDown={handleKeyDown}
+                  onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
                   onFocus={(e) => {
                     // Auto-activate Hindi IME on focus
                     if (isHindiTyping) {
@@ -1566,8 +1571,18 @@ function TypingTutorForm() {
   const handleChange = (e) => {
     if (isPaused || isCompleted) return;
     
-    const newValue = e.target.value;
-    
+    let newValue = e.target.value;
+
+    // Hindi: mobile fallback - convert roman input when keydown didn't fire (e.g. Unidentified key)
+    if (isHindiTyping && hindiTyping.isEnabled && hindiTyping.handleInputChange) {
+      const converted = hindiTyping.handleInputChange(newValue, typedText);
+      if (converted !== null) {
+        newValue = converted;
+        e.target.value = converted;
+        e.target.setSelectionRange(converted.length, converted.length);
+      }
+    }
+
     // Handle backspace
     if (typedText.length > newValue.length) {
       if (effectiveBackspace === "OFF") {

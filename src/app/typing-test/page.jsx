@@ -276,7 +276,18 @@ function TypingTestForm() {
   const handleInputChange = (e) => {
     if (!isStarted) return;
 
-    const value = e.target.value;
+    let value = e.target.value;
+
+    // Hindi: mobile fallback when keydown doesn't fire
+    if (isHindiTyping && hindiTyping.isEnabled && hindiTyping.handleInputChange) {
+      const converted = hindiTyping.handleInputChange(value, userInput);
+      if (converted !== null) {
+        value = converted;
+        e.target.value = converted;
+        e.target.setSelectionRange(converted.length, converted.length);
+      }
+    }
+
     const previousLength = userInput.length;
     
     // Check if this is a backspace (input got shorter)
@@ -545,6 +556,7 @@ function TypingTestForm() {
                 value={userInput}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
+                onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, userInput, setUserInput) : undefined}
                 placeholder={isHindiTyping ? `Start typing in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout)...` : "Start typing here..."}
                 className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-lg"
                 rows="4"
