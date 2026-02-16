@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import HindiTextarea from "@/components/typing/HindiTextarea";
 
 export default function AdminPanel() {
   const router = useRouter();
@@ -2095,10 +2096,11 @@ export default function AdminPanel() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Hindi Typing Content (Section C):</label>
-                <textarea
+                <HindiTextarea
+                  layout="remington"
                   value={cpctHindiTypingContent}
                   onChange={(e) => setCpctHindiTypingContent(e.target.value)}
-                  placeholder="Paste Hindi typing content here..."
+                  placeholder="Type or paste Hindi content (type in English to convert to Devanagari)"
                   className="w-full h-32 border border-gray-300 rounded p-2 text-sm font-mono"
                 />
               </div>
@@ -5348,23 +5350,25 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
                 <>
                   <div>
                     <label className="block text-sm font-medium mb-2">Typing Content (Hindi - Ramington Gail) *</label>
-                    <textarea
+                    <HindiTextarea
+                      layout="remington"
                       value={formData.typingContent_hindi_ramington}
                       onChange={(e) => setFormData({...formData, typingContent_hindi_ramington: e.target.value})}
                       className="w-full border rounded-lg px-4 py-2 font-serif"
                       rows="8"
-                      placeholder="Enter the Hindi text in Ramington Gail script"
+                      placeholder="Enter the Hindi text in Ramington Gail script (type in English to convert)"
                       required={formData.typingScriptType === 'Ramington Gail'}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Typing Content (Hindi - Inscript) *</label>
-                    <textarea
+                    <HindiTextarea
+                      layout="inscript"
                       value={formData.typingContent_hindi_inscript}
                       onChange={(e) => setFormData({...formData, typingContent_hindi_inscript: e.target.value})}
                       className="w-full border rounded-lg px-4 py-2 font-serif"
                       rows="8"
-                      placeholder="Enter the Hindi text in Inscript script"
+                      placeholder="Enter the Hindi text in Inscript script (type in English to convert)"
                       required={formData.typingScriptType === 'Inscript'}
                     />
                   </div>
@@ -6043,6 +6047,8 @@ function LessonForm({ lesson, sections, onSave, onCancel, saving, error }) {
               type="text"
               value={formData.title_hindi}
               onChange={(e) => setFormData({...formData, title_hindi: e.target.value})}
+              lang="hi"
+              inputMode="text"
               className="w-full border rounded px-3 py-2"
             />
           </div>
@@ -6128,7 +6134,8 @@ function LessonForm({ lesson, sections, onSave, onCancel, saving, error }) {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Content (Hindi - Ramington)</label>
-            <textarea
+            <HindiTextarea
+              layout="remington"
               value={formData.content_hindi_ramington}
               onChange={(e) => setFormData({...formData, content_hindi_ramington: e.target.value})}
               className="w-full border rounded px-3 py-2 font-mono text-sm"
@@ -6137,7 +6144,8 @@ function LessonForm({ lesson, sections, onSave, onCancel, saving, error }) {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Content (Hindi - Inscript)</label>
-            <textarea
+            <HindiTextarea
+              layout="inscript"
               value={formData.content_hindi_inscript}
               onChange={(e) => setFormData({...formData, content_hindi_inscript: e.target.value})}
               className="w-full border rounded px-3 py-2 font-mono text-sm"
@@ -6706,7 +6714,8 @@ function ExerciseForm({ exercise, lessons, onSave, onCancel, saving, error }) {
             </div>
               <div>
               <label className="block text-sm font-medium mb-1">Content (Hindi - Ramington) - Optional</label>
-                <textarea
+                <HindiTextarea
+                  layout="remington"
                   value={formData.content_hindi_ramington}
                   onChange={(e) => setFormData({...formData, content_hindi_ramington: e.target.value})}
                 className="w-full border rounded px-3 py-2 text-sm"
@@ -6716,7 +6725,8 @@ function ExerciseForm({ exercise, lessons, onSave, onCancel, saving, error }) {
               </div>
               <div>
               <label className="block text-sm font-medium mb-1">Content (Hindi - Inscript) - Optional</label>
-                <textarea
+                <HindiTextarea
+                  layout="inscript"
                   value={formData.content_hindi_inscript}
                   onChange={(e) => setFormData({...formData, content_hindi_inscript: e.target.value})}
                 className="w-full border rounded px-3 py-2 text-sm"

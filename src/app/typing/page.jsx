@@ -50,7 +50,9 @@ function DesktopView({
   isLearningWordMode = false,
   lessonTitle = "",
   lessonPassed = false,
-  netSpeedLearning = 0
+  netSpeedLearning = 0,
+  hindiTyping,
+  setTypedText
 }) {
   return (
     <>
@@ -177,7 +179,7 @@ function DesktopView({
                   value={typedText}
                   onChange={handleChange}
                   onKeyDown={handleKeyDown}
-                  onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
+                  onKeyUp={isHindiTyping && hindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
                   onFocus={(e) => {
                     // Auto-activate Hindi IME on focus (for mobile devices)
                     if (isHindiTyping) {
@@ -368,7 +370,9 @@ function PortraitView({
   isLearningWordMode = false,
   lessonTitle = "",
   lessonPassed = false,
-  netSpeedLearning = 0
+  netSpeedLearning = 0,
+  hindiTyping,
+  setTypedText
 }) {
   return (
     <>
@@ -501,7 +505,7 @@ function PortraitView({
                   value={typedText}
                   onChange={handleChange}
                   onKeyDown={handleKeyDown}
-                  onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
+                  onKeyUp={isHindiTyping && hindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
                   onFocus={(e) => {
                     // Auto-activate Hindi IME on focus
                     if (isHindiTyping) {
@@ -699,7 +703,9 @@ function LandscapeView({
   isLearningWordMode = false,
   lessonTitle = "",
   lessonPassed = false,
-  netSpeedLearning = 0
+  netSpeedLearning = 0,
+  hindiTyping,
+  setTypedText
 }) {
   return (
     <>
@@ -851,7 +857,7 @@ function LandscapeView({
                   value={typedText}
                   onChange={handleChange}
                   onKeyDown={handleKeyDown}
-                  onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
+                  onKeyUp={isHindiTyping && hindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
                   onFocus={(e) => {
                     // Auto-activate Hindi IME on focus
                     if (isHindiTyping) {
@@ -1804,7 +1810,9 @@ function TypingTutorForm() {
     isLearningWordMode,
     lessonTitle,
     lessonPassed,
-    netSpeedLearning
+    netSpeedLearning,
+    hindiTyping,
+    setTypedText
   };
 
   return (
