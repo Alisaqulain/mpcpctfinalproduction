@@ -115,9 +115,11 @@ export default function TypingArea({
     if (mode === "word" && isHindiTyping && hindiTyping.isEnabled && hindiTyping.handleInputChange) {
       const converted = hindiTyping.handleInputChange(value, typedText);
       if (converted !== null) {
-        value = converted;
-        e.target.value = converted;
-        e.target.setSelectionRange(converted.length, converted.length);
+        const val = typeof converted === 'object' && 'value' in converted ? converted.value : converted;
+        const cursor = typeof converted === 'object' && 'cursor' in converted ? converted.cursor : val.length;
+        value = val;
+        e.target.value = val;
+        e.target.setSelectionRange(cursor, cursor);
       }
     }
 

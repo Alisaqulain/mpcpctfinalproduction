@@ -167,12 +167,30 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
    * Call from onChange when Hindi is enabled: if return is not null, use it as the new value instead.
    * @param {string} newValue - Value after input event
    * @param {string} prevValue - Value before (current state)
-   * @returns {string|null} - Converted value to use, or null to keep newValue
+   * @returns {string|{value:string,cursor:number}|null} - Value/cursor to use, or null to keep newValue
    */
   const handleInputChange = useCallback((newValue, prevValue) => {
     if (!enabled || !converterRef.current) return null;
     if (newValue === prevValue) return null;
-    if (newValue.length <= prevValue.length) return null; // Deletion or same
+
+    // Mobile backspace: value shortened (often keydown Backspace doesn't fire on mobile)
+    if (newValue.length < prevValue.length) {
+      // Deletion at end (common case): apply one-cluster delete like desktop backspace
+      if (prevValue.startsWith(newValue)) {
+        const backspaceResult = converterRef.current.handleBackspace(
+          prevValue,
+          prevValue.length,
+          prevValue.length
+        );
+        if (backspaceResult) {
+          const value = prevValue.substring(0, backspaceResult.deleteStart) +
+            prevValue.substring(backspaceResult.deleteStart + backspaceResult.deleteLength);
+          return { value, cursor: backspaceResult.newCursorPos };
+        }
+      }
+      return null;
+    }
+
     // Append at end (typical mobile typing)
     if (newValue.startsWith(prevValue)) {
       const inserted = newValue.slice(prevValue.length);

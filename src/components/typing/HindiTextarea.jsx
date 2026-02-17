@@ -41,9 +41,11 @@ export default function HindiTextarea({ layout = "remington", value, onChange, .
       if (hindiTyping.isEnabled && hindiTyping.handleInputChange) {
         const converted = hindiTyping.handleInputChange(newValue, value);
         if (converted !== null) {
-          newValue = converted;
-          e.target.value = converted;
-          e.target.setSelectionRange(converted.length, converted.length);
+          const val = typeof converted === 'object' && 'value' in converted ? converted.value : converted;
+          const cursor = typeof converted === 'object' && 'cursor' in converted ? converted.cursor : val.length;
+          newValue = val;
+          e.target.value = val;
+          e.target.setSelectionRange(cursor, cursor);
         }
       }
       onChange({ target: { value: newValue } });

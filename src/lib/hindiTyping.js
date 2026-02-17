@@ -394,21 +394,32 @@ function getClusterLength(text, startPos) {
 }
 
 /**
- * Utility: Get previous cluster start position
+ * Devanagari base: consonant or independent vowel (starts a grapheme cluster).
+ * Combining marks (matra, halant, nukta) follow a base and must not start a new cluster.
+ */
+function isDevanagariBase(code) {
+  return (
+    (code >= 0x0904 && code <= 0x0914) || /* independent vowels */
+    (code >= 0x0915 && code <= 0x0939)    /* consonants */
+  );
+}
+
+/**
+ * Utility: Get previous cluster start position (one Devanagari grapheme cluster only).
+ * Stops at a base character (consonant/independent vowel) so we don't delete the whole word.
  */
 function getPreviousClusterStart(text, cursorPos) {
   if (cursorPos <= 0) return 0;
   
   let pos = cursorPos - 1;
   
-  // Move back through combining marks
+  // Walk backward until we hit a cluster start (base) or non-Devanagari
   while (pos > 0) {
-    const char = text[pos - 1];
-    const code = char.charCodeAt(0);
-    
-    if (code >= 0x0900 && code <= 0x097F) {
-      pos--;
-    } else if (code === 0x200D || code === 0x200C) {
+    const code = text.charCodeAt(pos - 1);
+    if (isDevanagariBase(code)) {
+      break; // this base starts the cluster we're deleting
+    }
+    if ((code >= 0x0900 && code <= 0x097F) || code === 0x200D || code === 0x200C) {
       pos--;
     } else {
       break;
