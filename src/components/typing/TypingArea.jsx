@@ -38,7 +38,7 @@ export default function TypingArea({
   );
   
   // Initialize Hindi typing hook
-  const hindiTyping = useHindiTyping(hindiLayout || 'remington', isHindiTyping);
+  const hindiTyping = useHindiTyping(hindiLayout || 'remington', isHindiTyping, allowBackspace);
   
   // Function to detect if text contains English characters
   const containsEnglishChars = (text) => {
@@ -344,6 +344,8 @@ export default function TypingArea({
           onKeyDown={handleKeyPress}
           onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
           placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Start typing here..."}
+          lang={isHindiTyping ? "hi" : undefined}
+          inputMode={isHindiTyping ? "text" : undefined}
           className={visibleInput
             ? "w-full min-h-[80px] max-h-[100px] lg:min-h-[180px] lg:max-h-[220px] p-2 border border-gray-400 border-b-4 border-b-[#290c52] rounded-md mt-1 bg-white font-sans text-base text-gray-800 focus:outline-none disabled:opacity-50"
             : "absolute opacity-0 pointer-events-none w-0 h-0"}

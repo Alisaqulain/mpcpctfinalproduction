@@ -47,7 +47,7 @@ function TypingTestForm() {
   );
   
   // Initialize Hindi typing hook
-  const hindiTyping = useHindiTyping(hindiLayout || 'remington', isHindiTyping);
+  const hindiTyping = useHindiTyping(hindiLayout || 'remington', isHindiTyping, backspaceEnabled);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -560,6 +560,8 @@ function TypingTestForm() {
                 onKeyDown={handleKeyDown}
                 onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, userInput, setUserInput) : undefined}
                 placeholder={isHindiTyping ? `Start typing in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout)...` : "Start typing here..."}
+                lang={isHindiTyping ? "hi" : undefined}
+                inputMode={isHindiTyping ? "text" : undefined}
                 className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-lg"
                 rows="4"
                 disabled={isCompleted}

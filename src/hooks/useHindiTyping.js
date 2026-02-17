@@ -5,19 +5,20 @@ import { HindiTypingConverter } from '@/lib/hindiTyping';
 /**
  * React Hook for Hindi Typing
  * Provides Hindi typing conversion functionality with proper cursor management
- * 
+ *
  * @param {string} layout - 'remington' or 'inscript'
  * @param {boolean} enabled - Whether Hindi typing is enabled
+ * @param {boolean} allowBackspace - If false, backspace is not handled (matches "Backspace OFF" in tests)
  * @returns {object} - Hook return object with handlers and utilities
  */
-export function useHindiTyping(layout = 'remington', enabled = false) {
+export function useHindiTyping(layout = 'remington', enabled = false, allowBackspace = true) {
   const converterRef = useRef(null);
-  
+
   // Initialize converter
   if (!converterRef.current) {
     converterRef.current = new HindiTypingConverter(layout);
   }
-  
+
   // Update layout when it changes
   if (converterRef.current.layout !== layout.toLowerCase()) {
     converterRef.current.setLayout(layout.toLowerCase());
@@ -27,7 +28,7 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
    * Handle keydown event for Hindi conversion
    * Properly manages cursor position and text replacement
    * Includes Alt code support
-   * 
+   *
    * @param {KeyboardEvent} event - Keyboard event
    * @param {string} currentValue - Current textarea/input value
    * @param {function} setValue - State setter for value
@@ -40,36 +41,41 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
 
     const converter = converterRef.current;
     const textarea = event.target;
-    
+
     // Get current cursor positions
     const selectionStart = textarea.selectionStart || 0;
     const selectionEnd = textarea.selectionEnd || selectionStart;
-    
+
     // Handle Alt code detection (on keydown)
     const isAltCode = converter.handleKeyDown(event);
     if (isAltCode) {
       // Alt code is being buffered, wait for keyup
       return true;
     }
-    
+
+    // When backspace is OFF, do not handle Backspace so the app can revert in onChange
+    if (event.key === 'Backspace' && !allowBackspace) {
+      return false;
+    }
+
     // Handle backspace with Unicode cluster awareness
     if (event.key === 'Backspace' && !event.ctrlKey && !event.metaKey) {
       const backspaceResult = converter.handleBackspace(currentValue, selectionStart, selectionEnd);
       if (backspaceResult) {
         event.preventDefault();
-        
-        const newValue = 
-          currentValue.substring(0, backspaceResult.deleteStart) + 
+
+        const newValue =
+          currentValue.substring(0, backspaceResult.deleteStart) +
           currentValue.substring(backspaceResult.deleteStart + backspaceResult.deleteLength);
-        
+
         setValue(newValue);
         textarea.value = newValue;
-        
+
         // Set cursor position (rAF for stable cursor)
         requestAnimationFrame(() => {
           textarea.selectionStart = textarea.selectionEnd = backspaceResult.newCursorPos;
         });
-        
+
         return true;
       }
       return false;
@@ -117,7 +123,7 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
     }
 
     return false; // Let browser handle normally
-  }, [enabled]);
+  }, [enabled, allowBackspace]);
   
   /**
    * Handle keyup event for Alt code processing
@@ -175,6 +181,9 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
 
     // Mobile backspace: value shortened (often keydown Backspace doesn't fire on mobile)
     if (newValue.length < prevValue.length) {
+      if (!allowBackspace) {
+        return null; // Let app revert in onChange when backspace is OFF
+      }
       // Deletion at end (common case): apply one-cluster delete like desktop backspace
       if (prevValue.startsWith(newValue)) {
         const backspaceResult = converterRef.current.handleBackspace(
@@ -200,7 +209,7 @@ export function useHindiTyping(layout = 'remington', enabled = false) {
       }
     }
     return null;
-  }, [enabled]);
+  }, [enabled, allowBackspace]);
 
   /**
    * Convert text to Hindi (for batch conversion)

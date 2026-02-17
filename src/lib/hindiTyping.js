@@ -2,7 +2,14 @@
  * Professional Hindi IME Engine
  * CPCTMaster-style Hindi Typing Conversion Library
  * Supports Remington (phonetic) and InScript (fixed layout) Hindi typing
- * 
+ *
+ * SINGLE SOURCE: This Remington layout is used everywhere Hindi Remington is enabled:
+ * - Admin (HindiTextarea for CPCT/lesson/exercise Hindi content)
+ * - Learning (TypingArea with Hindi)
+ * - Skill test (typing page)
+ * - Exam (ExamTypingInterface)
+ * - Mobile keyboard (same conversion via handleInputChange when keydown is Unidentified)
+ *
  * Features:
  * - Real-time phonetic conversion (Remington)
  * - Fixed keyboard layout (InScript)
@@ -16,161 +23,91 @@
 
 /**
  * Complete Remington Gail (Phonetic) Hindi Mapping
- * Maps Roman characters to Hindi based on phonetic similarity
- * Based on Mangal Font Remington Layout
- * 
- * Key feature: Shift + consonant = halant (half consonant)
- * Example: Shift+d → क्, then type 'r' → forms 'क्त'
+ * Matches Gyanians.com / standard Remington Gail chart exactly.
+ * Shift + consonant = halant (half form); Shift+A and Shift+G = no output (per user).
  */
 const REMINGTON_MAP = {
-  // Basic vowels (swar) - standalone
-  'a': 'अ', 'aa': 'आ', 'A': 'आ', 
-  'i': 'इ', 'ee': 'ई', 'I': 'ई',
-  'u': 'उ', 'oo': 'ऊ', 'U': 'ऊ', 
-  'e': 'ए', 'E': 'ए',
-  'ai': 'ऐ', 'o': 'ओ', 'O': 'ओ', 'au': 'औ',
-  'ri': 'ऋ', 'Ri': 'ऋ', 'lri': 'ऌ', 'Lri': 'ऌ',
+  // Home row (no shift)
+  'a': 'ं',      // anusvara
+  's': 'े',      // e matra
+  'd': 'क',
+  'f': 'ि',      // i matra
+  'g': 'ह',
+  'h': 'ी',      // ii matra
+  'j': 'र',
+  'k': 'ा',      // aa matra
+  'l': 'स',
+  ';': 'य',
+  "'": 'श्',     // apostrophe = श्
+  '\\': '(',     // backslash = opening paren
   
-  // Consonants (vyanjan) - Based on Remington layout (phonetic)
-  // Home row mappings (ASDF...) - S key = स for phonetic typing
-  's': 'स',      // S = स (sa)
-  'd': 'क',      // D = क
-  'f': 'ि',      // F = इ matra
-  'g': 'ह',      // G = ह
-  'h': '़',      // H = nukta
-  'j': 'र',      // J = र
-  'k': 'ा',      // K = आ matra
-  'l': 'स',      // L = स (alternate)
-  ';': 'य',      // ; = य
-  "'": 'श',      // ' = श
+  // Upper row (QWERTY)
+  'q': 'ु',
+  'w': 'ू',
+  'e': 'म',
+  'r': 'त',
+  't': 'ज',
+  'y': 'ल',
+  'u': 'न',
+  'i': 'प',
+  'o': 'व',
+  'p': 'च',
+  '[': 'ख',
+  ']': ',',
   
-  // Top row mappings (QWERTY...)
-  'q': 'ौ',      // Q = औ matra (also ृ, ऒ)
-  'w': 'ॉ',      // W = ऑ matra (also ॊ, ॅ)
-  'e': 'म',      // E = म
-  'r': 'त',      // R = त
-  't': 'ज',      // T = ज
-  'y': 'ल',      // Y = ल
-  'u': 'न',      // U = न
-  'i': 'प',      // I = प
-  'o': 'व',      // O = व
-  'p': 'च',      // P = च
-  '[': 'ख',      // [ = ख
-  ']': ',',      // ] = comma
+  // Lower row
+  'z': '्र',
+  'x': 'ग',
+  'c': 'ब',
+  'v': 'अ',
+  'b': 'इ',
+  'n': 'द',
+  'm': 'उ',
+  ',': 'ए',
+  '.': 'ण्',
+  '/': 'ध्',
   
-  // Bottom row mappings (ZXCV...)
-  'z': 'ड्',     // Z = ड् (retroflex da with halant)
-  'x': 'ग',      // X = ग
-  'c': 'ब',      // C = ब
-  'v': 'अ',      // V = अ
-  'b': 'इ',      // B = इ
-  'n': 'द',      // N = द
-  'm': 'उ',      // M = उ
-  ',': 'ए',      // , = ए
-  '.': 'ण',      // . = ण
-  '/': 'ध',      // / = ध
+  // Number row (normal)
+  '`': '़',      // grave = nukta
+  '1': '1', '2': '2', '3': '3', '4': '4', '5': '5',
+  '6': '6', '7': '7', '8': '8', '9': '9', '0': '0',
+  '-': ';',      // minus = semicolon
+  '=': 'ृ',      // equals = ri matra
   
-  // Shift mappings for consonants (half forms with halant)
-  // These are handled separately in convertKey method
-  
-  // Multi-character sequences
-  'kh': 'ख', 'Kh': 'ख',
-  'gh': 'घ', 'Gh': 'घ',
-  'ch': 'छ', 'Ch': 'छ',
-  'jh': 'झ', 'Jh': 'झ',
-  'th': 'थ', 'Th': 'थ',
-  'dh': 'ध', 'Dh': 'ध',
-  'ph': 'फ', 'Ph': 'फ',
-  'bh': 'भ', 'Bh': 'भ',
-  'sh': 'श', 'Sh': 'श',
-  'ny': 'ञ', 'Ny': 'ञ',
-  
-  // Retroflex consonants
-  'T': 'ट', 'Th': 'ठ', 'D': 'ड', 'Dh': 'ढ', 'N': 'ण',
-  
-  // Special consonants and conjuncts
-  'gya': 'ज्ञ', 'Gya': 'ज्ञ',
-  'ksh': 'क्ष', 'Ksh': 'क्ष',
-  'tr': 'त्र', 'Tr': 'त्र',
-  'shra': 'श्र', 'Shra': 'श्र',
-  
-  // Special characters
-  '-': 'ः',      // - = visarga
-  '=': 'ऋ',      // = = ऋ
-  '.': '।',      // . = danda
-  '|': '॥',      // | = double danda
-  
-  // Numbers
-  '0': '०', '1': '१', '2': '२', '3': '३', '4': '४',
-  '5': '५', '6': '६', '7': '७', '8': '८', '9': '९',
+  // Multi-character sequences (phonetic typing)
+  'aa': 'आ', 'ee': 'ई', 'oo': 'ऊ', 'ai': 'ऐ', 'au': 'औ',
+  'kh': 'ख', 'gh': 'घ', 'ch': 'छ', 'jh': 'झ', 'th': 'थ', 'dh': 'ध',
+  'ph': 'फ', 'bh': 'भ', 'sh': 'श', 'gya': 'ज्ञ', 'ksh': 'क्ष',
+  'tr': 'त्र', 'shra': 'श्र',
 };
 
 /**
- * Remington Matra (Vowel Signs) Mapping
- * These attach to consonants
- * Based on Mangal Font Remington Layout
+ * Remington Matra (Vowel Signs) - for attach-to-consonant logic when buffer matches
  */
 const REMINGTON_MATRA_MAP = {
-  'a': '',      // No matra (inherent 'a')
-  'aa': 'ा', 'A': 'ा',  // Shift+A = ौ (double au matra)
-  'i': 'ि', 'I': 'ि',   // F = इ matra, Shift+F = थ
-  'ee': 'ी', 'ee': 'ी',
-  'u': 'ु', 'U': 'ु',   // M = उ
-  'oo': 'ू', 'oo': 'ू',
-  'e': 'े', 'E': 'े',   // S = ए matra, Shift+S = ै
-  'ai': 'ै',
-  'o': 'ो', 'O': 'ो',   // A = ओ matra
-  'au': 'ौ',            // Q = ौ matra, Shift+Q = फ
-  'ri': 'ृ', 'Ri': 'ृ',
-  'lri': 'ॢ', 'Lri': 'ॢ',
+  'ि': 'ि', 'ी': 'ी', 'ा': 'ा', 'े': 'े', 'ै': 'ै', 'ु': 'ु', 'ू': 'ू', 'ृ': 'ृ', '्र': '्र',
 };
 
 /**
- * Remington Shift mappings for consonants (half forms with halant)
- * Shift + consonant key = halant form
- * Based on Mangal Font Remington Layout
+ * Remington Gail Shift mappings (key = character produced when shift is held)
+ * Shift+A and Shift+G = no mapping (user requested nothing on them).
  */
 const REMINGTON_SHIFT_CONSONANT_MAP = {
-  // Home row - Shift gives halant
-  'D': 'क्',    // Shift+D = क्
-  'E': 'म्',    // Shift+E = म्
-  'R': 'त्',    // Shift+R = त्
-  'T': 'ज्',    // Shift+T = ज्
-  'Y': 'ल्',    // Shift+Y = ल्
-  'U': 'न्',    // Shift+U = न्
-  'I': 'प्',    // Shift+I = प्
-  'O': 'व्',    // Shift+O = व्
-  'P': 'च्',    // Shift+P = च्
+  // Home row shift (no A, no G)
+  'S': 'ै', 'D': 'क्', 'F': 'थ', 'H': 'भ्', 'J': 'श्र', 'K': 'ज्ञ', 'L': 'स्',
+  ':': 'रु', '"': 'ष्', '|': ')',   // Shift+; = रु, Shift+' = ष्, Shift+\ = )
   
-  // Bottom row - Shift gives halant or alternate
-  'Z': 'र्',    // Shift+Z = र्
-  'X': 'ग्',    // Shift+X = ग्
-  'C': 'ब्',    // Shift+C = ब्
-  'V': 'ट',     // Shift+V = ट
-  'B': 'ठ',     // Shift+B = ठ
-  'N': 'छ',     // Shift+N = छ
-  'M': 'ड',     // Shift+M = ड
-  '<': 'ढ',     // Shift+, = ढ
-  '>': 'झ',     // Shift+. = झ
-  '?': 'घ',     // Shift+/ = घ
+  // Upper row shift
+  'Q': 'फ', 'W': 'ॅ', 'E': 'म्', 'R': 'त्', 'T': 'ज्', 'Y': 'ल्', 'U': 'न्', 'I': 'प्', 'O': 'व्', 'P': 'च्',
+  '{': 'क्ष', '}': 'द्व',
   
-  // Top row - Shift gives alternate characters
-  'Q': 'फ',     // Shift+Q = फ (also ऍ)
-  'W': 'ॊ',     // Shift+W = ॊ (also ॅ)
-  '[': 'क्ष',   // Shift+[ = क्ष
-  ']': 'द',     // Shift+] = द
+  // Lower row shift
+  'Z': 'र्', 'X': 'ग्', 'C': 'ब्', 'V': 'ट', 'B': 'ठ', 'N': 'छ', 'M': 'ड',
+  '<': 'ढ', '>': 'झ', '?': 'घ',
   
-  // Home row - Shift gives alternate
-  'A': 'ौ',     // Shift+A = ौ (double au matra)
-  'S': 'ै',     // Shift+S = ै (double e matra)
-  'F': 'थ',     // Shift+F = थ
-  'G': 'ळ',     // Shift+G = ळ
-  'H': 'भ',     // Shift+H = भ
-  'J': 'श्र',   // Shift+J = श्र
-  'K': 'ज्ञ',   // Shift+K = ज्ञ
-  'L': 'रु',    // Shift+L = रु
-  ':': 'ष',     // Shift+; = ष
-  '"': 'घ',     // Shift+' = घ
+  // Number row shift (key = shifted character: ~!@#$%^&*()_+)
+  '~': 'द्य', '!': '।', '@': '/', '#': 'ः', '$': '*', '%': '-', '^': "'", '&': "'",
+  '*': 'द्ध', '(': 'त्र', ')': 'ऋ', '_': '.', '+': '्',
 };
 
 /**
@@ -447,10 +384,11 @@ class RemingtonConverter {
     const lowerKey = key.toLowerCase();
     const upperKey = key.toUpperCase();
     
-    // Handle Shift + consonant = halant (half consonant)
-    // Based on Remington layout: Shift+D = क्, Shift+R = त्, etc.
+    // Handle Shift: Remington Gail - Shift+A and Shift+G = no output
     if (shiftKey) {
-      // Check Remington shift mappings first
+      if (upperKey === 'A' || upperKey === 'G') {
+        return null; // User: "A aur G mene chod diya h us pr kuch nhi dena"
+      }
       if (REMINGTON_SHIFT_CONSONANT_MAP[upperKey]) {
         const shiftChar = REMINGTON_SHIFT_CONSONANT_MAP[upperKey];
         return {
@@ -459,8 +397,7 @@ class RemingtonConverter {
           cursorOffset: shiftChar.length
         };
       }
-      
-      // Fallback: try to get halant form from consonant map
+      // Fallback: halant form only for keys that have a shift mapping
       const consonant = REMINGTON_MAP[lowerKey];
       if (consonant && isHindiConsonant(consonant)) {
         const halantForm = CONSONANT_HALANT_MAP[consonant];
@@ -971,8 +908,8 @@ export class HindiTypingConverter {
       return null; // Let browser handle these
     }
 
-    // Handle space and punctuation - allow through
-    if (key === ' ' || /[.,!?;:'"()\[\]{}\-_=+@#$%^&*\/\\|]/.test(key)) {
+    // Space always passes through; other keys (punctuation, numbers) go to Remington for mapping
+    if (key === ' ') {
       return null;
     }
 

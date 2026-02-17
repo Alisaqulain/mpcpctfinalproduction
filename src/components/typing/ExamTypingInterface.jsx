@@ -38,7 +38,7 @@ export default function ExamTypingInterface({
   );
   
   // Initialize Hindi typing hook
-  const hindiTyping = useHindiTyping(hindiLayout || 'remington', isHindiTyping);
+  const hindiTyping = useHindiTyping(hindiLayout || 'remington', isHindiTyping, allowBackspace);
   
   // Function to detect if text contains English characters
   const containsEnglishChars = (text) => {
@@ -503,6 +503,8 @@ export default function ExamTypingInterface({
             onKeyDown={handleKeyDown}
             onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
             placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
+            lang={isHindiTyping ? "hi" : undefined}
+            inputMode={isHindiTyping ? "text" : undefined}
             className="w-full h-28 p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono resize-none"
             spellCheck={false}
             autoFocus
@@ -541,6 +543,8 @@ export default function ExamTypingInterface({
             onKeyDown={handleKeyDown}
             onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
             placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
+            lang={isHindiTyping ? "hi" : undefined}
+            inputMode={isHindiTyping ? "text" : undefined}
             className="w-full h-28 md:h-24 lg:h-36 p-3 md:p-2 lg:p-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-sm lg:text-base font-mono resize-none flex-shrink-0 landscape-input"
             spellCheck={false}
             autoFocus

@@ -1247,7 +1247,7 @@ function TypingTutorForm() {
   );
   
   // Initialize Hindi typing hook for automatic conversion
-  const hindiTyping = useHindiTyping(hindiLayout || 'remington', isHindiTyping);
+  const hindiTyping = useHindiTyping(hindiLayout || 'remington', isHindiTyping, effectiveBackspace === 'ON');
   
   // Function to detect if text contains English characters
   const containsEnglishChars = (text) => {
