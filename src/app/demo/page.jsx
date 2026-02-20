@@ -80,7 +80,7 @@ export default function DemoPage() {
 
         <div className="space-y-4">
           {/* Server Status */}
-          <div
+          <div  
             className={`p-6 rounded-lg border-2 ${getStatusColor(
               apiStatus
             )}`}
@@ -184,24 +184,3 @@ export default function DemoPage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

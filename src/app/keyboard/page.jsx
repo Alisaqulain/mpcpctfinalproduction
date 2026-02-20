@@ -389,7 +389,10 @@ function PortraitMobileView({
   timer,
   elapsedTime,
   totalAttempts,
-  formatClock
+  formatClock,
+  leftHandImage,
+  rightHandImage,
+  onRequestFocusInput
 }) {
   const [showSettings, setShowSettings] = useState(false);
   const currentRowKeys = getCurrentRowKeys();
@@ -505,10 +508,15 @@ function PortraitMobileView({
 
       {/* Left Section */}
       <div className="flex-1 flex flex-col items-center gap-6 mobile-stack">
-        {/* Typing Prompt Buttons - Show current row only with auto-slide like desktop */}
+        {/* Typing Prompt Buttons - Show current row only with auto-slide like desktop; tap to focus hidden input for typing */}
         <div 
           className="flex flex-nowrap justify-between items-center gap-1 relative mt-6 px-2 typing-prompt-container w-full portrait-typing-prompt"
           style={{ overflow: 'hidden', maxWidth: '100%' }}
+          onClick={() => onRequestFocusInput?.()}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onRequestFocusInput?.(); }}
+          aria-label="Tap to focus and type"
         >
           {currentRowKeys.map((key, displayIdx) => {
             const originalIndex = getOriginalIndex(displayIdx);
@@ -604,9 +612,16 @@ function PortraitMobileView({
 
         {/* Keyboard */}
         {keyboard && (
-          <div className={`relative mt-4 p-1 w-full border border-gray-600 rounded-3xl shadow-md keyboard-container portrait-keyboard ${
-            isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
-          }`}>
+          <div 
+            className={`relative mt-4 p-1 w-full border border-gray-600 rounded-3xl shadow-md keyboard-container portrait-keyboard ${
+              isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
+            }`}
+            onClick={() => onRequestFocusInput?.()}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onRequestFocusInput?.(); }}
+            aria-label="Tap to focus and type"
+          >
             <style jsx>{`
               /* PORTRAIT: Increase space button size */
               .portrait-keyboard .flex > div[class*="flex-1"] {
@@ -618,7 +633,7 @@ function PortraitMobileView({
                 font-weight: 600 !important;
               }
               
-              /* PORTRAIT: Hand image overlay styles */
+              /* PORTRAIT: Dual hand overlay - same dynamic images as landscape so hands move when typing */
               .portrait-keyboard-hand-overlay {
                 position: absolute;
                 inset: 0;
@@ -626,29 +641,42 @@ function PortraitMobileView({
                 z-index: 10;
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                top: 150;
+                justify-content: space-between;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                padding: 0 2%;
               }
               
               .portrait-keyboard-hand-image {
-                width: 100%;
-                max-width: 90%;
+                width: 42%;
+                max-width: 42%;
                 height: auto;
                 object-fit: contain;
-                opacity: 0.7;
+                opacity: 0.85;
                 transition: all 0.2s ease-in-out;
-              
-              
+              }
+              .portrait-keyboard-hand-image.left {
+                object-position: left center;
+              }
+              .portrait-keyboard-hand-image.right {
+                object-position: right center;
               }
             `}</style>
             
-            {/* Hand Image Overlay - Portrait Mobile */}
-            {hand && (
+            {/* Hand Image Overlay - Portrait: use dynamic left/right images so hands move when typing (same as landscape) */}
+            {hand && (leftHandImage || rightHandImage) && (
               <div className="portrait-keyboard-hand-overlay">
                 <img 
-                  src="/hand.png" 
-                  alt="Hand position guide" 
-                  className="portrait-keyboard-hand-image"
+                  src={leftHandImage} 
+                  alt="Left hand position" 
+                  className="portrait-keyboard-hand-image left"
+                />
+                <img 
+                  src={rightHandImage} 
+                  alt="Right hand position" 
+                  className="portrait-keyboard-hand-image right"
                 />
               </div>
             )}
@@ -1327,6 +1355,7 @@ function KeyboardApp() {
   const [sound, setSound] = useState(true);
   const [keyboard, setKeyboard] = useState(true);
   const [pressedKey, setPressedKey] = useState("");
+  const [mobileInputValue, setMobileInputValue] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
   const [timer, setTimer] = useState(180);
@@ -1976,63 +2005,61 @@ function KeyboardApp() {
     return () => clearInterval(interval);
   }, []);
 
+  // Shared logic for both desktop (keydown) and mobile (input onChange)
+  const processKeyForPractice = useCallback((normalizedKey, isBackspace = false) => {
+    if (currentIndex >= highlightedKeys.length) return;
+    if (isBackspace) {
+      setBackspaceCount(prev => prev + 1);
+      return;
+    }
+    const expectedKey = highlightedKeys[currentIndex];
+    const isCorrect = normalizedKey === expectedKey;
+    const newKeyStatus = [...keyStatus];
+    newKeyStatus[currentIndex] = isCorrect ? 'correct' : 'wrong';
+    setKeyStatus(newKeyStatus);
+    if (!isCorrect && expectedKey) {
+      setKeyDifficulties(prev => ({
+        ...prev,
+        [expectedKey]: (prev[expectedKey] || 0) + 1
+      }));
+    }
+    if (!startTime && currentIndex === 0) {
+      setStartTime(Date.now());
+    }
+    if (isCorrect) {
+      setCurrentIndex(prev => {
+        const nextIndex = prev + 1;
+        if (nextIndex >= highlightedKeys.length) {
+          setIsCompleted(true);
+          setEndTime(Date.now());
+        }
+        return nextIndex;
+      });
+    }
+    const totalAttempts = currentIndex + (isCorrect ? 1 : 0) + wrongCount;
+    const newAccuracy = Math.round(((currentIndex + (isCorrect ? 1 : 0)) / totalAttempts) * 100);
+    setAccuracy(newAccuracy);
+    if (sound) {
+      const audio = new Audio(isCorrect ? '/correct.mp3' : '/wrong.mp3');
+      audio.play().catch(e => console.log("Audio play failed:", e));
+    }
+  }, [currentIndex, keyStatus, wrongCount, sound, highlightedKeys, startTime]);
+
   const handleKeyPress = useCallback((e) => {
     const normalizedKey = normalizeKey(e.key);
-    
-    // Update hand images for any key press
     updateHandImages(normalizedKey);
     setPressedKey(normalizedKey);
-
-    // Only process typing practice if we're still in the exercise
     if (currentIndex < highlightedKeys.length) {
       if (e.key === "Backspace") {
-        setBackspaceCount(prev => prev + 1);
+        processKeyForPractice(normalizedKey, true);
+        return;
       }
-
       if (e.key === ' ' || highlightedKeys.includes(normalizedKey)) {
         e.preventDefault();
       }
-      
-      const expectedKey = highlightedKeys[currentIndex];
-      const isCorrect = normalizedKey === expectedKey;
-      const newKeyStatus = [...keyStatus];
-      newKeyStatus[currentIndex] = isCorrect ? 'correct' : 'wrong';
-      setKeyStatus(newKeyStatus);
-      
-      // Track key difficulties (wrong attempts)
-      if (!isCorrect && expectedKey) {
-        setKeyDifficulties(prev => ({
-          ...prev,
-          [expectedKey]: (prev[expectedKey] || 0) + 1
-        }));
-      }
-      
-      // Set start time on first key press
-      if (!startTime && currentIndex === 0) {
-        setStartTime(Date.now());
-      }
-      
-      if (isCorrect) {
-        setCurrentIndex(prev => {
-          const nextIndex = prev + 1;
-          // Check if completed
-          if (nextIndex >= highlightedKeys.length) {
-            setIsCompleted(true);
-            setEndTime(Date.now());
-          }
-          return nextIndex;
-        });
-      }
-      const totalAttempts = currentIndex + (isCorrect ? 1 : 0) + wrongCount;
-      const newAccuracy = Math.round(((currentIndex + (isCorrect ? 1 : 0)) / totalAttempts) * 100);
-      setAccuracy(newAccuracy);
-
-      if (sound) {
-        const audio = new Audio(isCorrect ? '/correct.mp3' : '/wrong.mp3');
-        audio.play().catch(e => console.log("Audio play failed:", e));
-      }
+      processKeyForPractice(normalizedKey);
     }
-  }, [currentIndex, keyStatus, wrongCount, sound, updateHandImages]);
+  }, [currentIndex, highlightedKeys, updateHandImages, processKeyForPractice]);
 
   const handleKeyUp = useCallback(() => {
     setPressedKey("");
@@ -2042,15 +2069,44 @@ function KeyboardApp() {
   }, []);
 
   useEffect(() => {
-    // Add single set of key listeners
     window.addEventListener('keydown', handleKeyPress);
     window.addEventListener('keyup', handleKeyUp);
-    
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, [handleKeyPress, handleKeyUp]);
+
+  // Mobile: soft keyboard doesn't fire keydown; drive hands and practice from input onChange
+  const handleMobileInputChange = useCallback((e) => {
+    const v = e.target.value;
+    if (v.length > mobileInputValue.length) {
+      const added = v.slice(mobileInputValue.length);
+      for (let i = 0; i < added.length; i++) {
+        const ch = added[i];
+        const norm = normalizeKey(ch);
+        updateHandImages(norm);
+        setPressedKey(norm);
+        processKeyForPractice(norm);
+      }
+      setTimeout(() => {
+        setPressedKey("");
+        setLeftHandImage(keyToHandImage["resting"].left);
+        setRightHandImage(keyToHandImage["resting"].right);
+      }, 180);
+    } else if (v.length < mobileInputValue.length) {
+      const norm = "Backspace";
+      updateHandImages(norm);
+      setPressedKey(norm);
+      processKeyForPractice(norm, true);
+      setTimeout(() => {
+        setPressedKey("");
+        setLeftHandImage(keyToHandImage["resting"].left);
+        setRightHandImage(keyToHandImage["resting"].right);
+      }, 180);
+    }
+    setMobileInputValue("");
+  }, [mobileInputValue, updateHandImages, processKeyForPractice]);
 
 
   const resetStats = () => {
@@ -2069,6 +2125,7 @@ function KeyboardApp() {
     setKeyDifficulties({});
     setLeftHandImage(keyToHandImage["resting"].left);
     setRightHandImage(keyToHandImage["resting"].right);
+    setMobileInputValue("");
     if (isMobile && inputRef.current) {
       inputRef.current.focus();
     }
@@ -2319,6 +2376,9 @@ function KeyboardApp() {
           elapsedTime={elapsedTime}
           totalAttempts={totalAttempts}
           formatClock={formatClock}
+          leftHandImage={leftHandImage}
+          rightHandImage={rightHandImage}
+          onRequestFocusInput={() => inputRef.current?.focus()}
         />
       );
     } else {
@@ -2369,15 +2429,18 @@ function KeyboardApp() {
         minHeight: '100dvh', // Dynamic viewport height for mobile
       }}
     >
-      {/* Hidden input for mobile keyboard */}
+      {/* Hidden input for mobile keyboard - value + onChange so hands move when typing on soft keyboard */}
       <input
         type="text"
         ref={inputRef}
+        value={mobileInputValue}
+        onChange={handleMobileInputChange}
         className="absolute opacity-0 h-0 w-0"
         autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck="false"
+        inputMode="text"
       />
 
       <div

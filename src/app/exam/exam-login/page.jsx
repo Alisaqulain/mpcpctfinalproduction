@@ -95,11 +95,13 @@ function StartTestPageContent() {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      // Clear all previous exam data to start fresh
+      // Clear all previous exam data to start fresh (so exam starts from Q1, no resume)
       localStorage.removeItem('examAnswers');
       localStorage.removeItem('visitedQuestions');
       localStorage.removeItem('markedForReview');
       localStorage.removeItem('completedSections');
+      localStorage.removeItem('examProgress');
+      localStorage.removeItem('examTimeLeft');
       localStorage.removeItem('currentExamId');
       localStorage.removeItem('currentTopicId');
       

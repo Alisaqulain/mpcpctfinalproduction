@@ -80,7 +80,7 @@ export default function CharacterTypingPage() {
     setSelectedLesson(lesson);
   };
 
-  const handleKeyPress = (key) => {
+  const handleActiveKey = (key) => {
     setActiveKey(key);
     setTimeout(() => setActiveKey(null), 200);
   };
@@ -220,6 +220,7 @@ export default function CharacterTypingPage() {
                 <TypingArea
                   content={selectedLesson.characters.join(" ")}
                   onComplete={handleTypingComplete}
+                  onActiveKey={handleActiveKey}
                   allowBackspace={false}
                   language={language}
                   scriptType={language === "Hindi" ? scriptType : null}

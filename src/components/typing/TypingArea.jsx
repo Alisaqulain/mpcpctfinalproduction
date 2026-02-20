@@ -14,7 +14,8 @@ export default function TypingArea({
   mode = "character", // "character" or "word"
   visibleInput = false,
   fontSize: fontSizeProp = null,
-  disabled = false
+  disabled = false,
+  onActiveKey = null // (key) => {} - called when a key is pressed (for virtual keyboard highlight); works on desktop (keydown) and mobile (input)
 }) {
   const fontSize = fontSizeProp ?? 16;
   const [typedText, setTypedText] = useState("");
@@ -188,6 +189,38 @@ export default function TypingArea({
     }
   };
 
+  // Character mode: handle input from mobile soft keyboard (onChange fires; keydown often doesn't)
+  const handleCharacterInput = (e) => {
+    const value = e.target.value;
+    if (value.length > typedText.length) {
+      const newChar = value[typedText.length];
+      if (typeof onActiveKey === "function") {
+        onActiveKey(newChar);
+      }
+      const expectedChar = content[currentIndex];
+      if (newChar === expectedChar) {
+        setTypedText(value);
+        setCurrentIndex((prev) => {
+          const newIndex = prev + 1;
+          if (newIndex >= content.length) {
+            setIsActive(false);
+            if (onComplete) {
+              onComplete({ typedText: value, mistakes, backspaceCount });
+            }
+            return newIndex;
+          }
+          return newIndex;
+        });
+      } else {
+        setTypedText(value);
+        setMistakes((prev) => prev + 1);
+      }
+    } else if (value.length < typedText.length) {
+      setTypedText(value);
+      setCurrentIndex((prev) => Math.max(0, prev - 1));
+    }
+  };
+
   const handleKeyPress = (e) => {
     // Play sound
     if (audioRef.current) {
@@ -217,21 +250,27 @@ export default function TypingArea({
       const pressedChar = e.key;
 
       // Character mode - single character at a time
-      if (pressedChar === expectedChar) {
-        setTypedText((prev) => prev + pressedChar);
-        setCurrentIndex((prev) => {
-          const newIndex = prev + 1;
-          if (newIndex >= content.length) {
-            setIsActive(false);
-            if (onComplete) {
-              onComplete({ typedText: typedText + pressedChar, mistakes, backspaceCount });
+      if (pressedChar.length === 1) {
+        e.preventDefault();
+        if (typeof onActiveKey === "function") {
+          onActiveKey(pressedChar);
+        }
+        if (pressedChar === expectedChar) {
+          setTypedText((prev) => prev + pressedChar);
+          setCurrentIndex((prev) => {
+            const newIndex = prev + 1;
+            if (newIndex >= content.length) {
+              setIsActive(false);
+              if (onComplete) {
+                onComplete({ typedText: typedText + pressedChar, mistakes, backspaceCount });
+              }
             }
-          }
-          return newIndex;
-        });
-      } else if (pressedChar.length === 1) {
-        // Wrong character
-        setMistakes((prev) => prev + 1);
+            return newIndex;
+          });
+        } else {
+          // Wrong character
+          setMistakes((prev) => prev + 1);
+        }
       }
     } else {
       // Word mode - handle backspace
@@ -359,12 +398,14 @@ export default function TypingArea({
         <input
           ref={inputRef}
           type="text"
-          value=""
-          onChange={() => {}}
+          value={typedText}
+          onChange={handleCharacterInput}
           onKeyDown={handleKeyPress}
           className="absolute opacity-0 pointer-events-none"
           autoFocus
           tabIndex={-1}
+          inputMode="text"
+          autoComplete="off"
         />
       )}
 
@@ -377,7 +418,7 @@ export default function TypingArea({
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-[#290c52] h-2 rounded-full transition-all"
-              style={{ width: `${(currentIndex / content.length) * 100}%` }}
+              style={{ width: `${content.length ? Math.min(100, (currentIndex / content.length) * 100) : 0}%` }}
             />
           </div>
         </div>

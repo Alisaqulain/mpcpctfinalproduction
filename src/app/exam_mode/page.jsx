@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import TypingArea from "@/components/typing/TypingArea";
 import ExamTypingInterface from "@/components/typing/ExamTypingInterface";
 
@@ -788,6 +789,26 @@ function ExamModeContent() {
     }
   }, [selectedAnswers]);
 
+  // Save exam position (section, question index, part) so back & return resumes where user left off
+  useEffect(() => {
+    if (!section) return;
+    const examId = typeof window !== 'undefined' ? localStorage.getItem('currentExamId') : null;
+    const topicId = typeof window !== 'undefined' ? localStorage.getItem('currentTopicId') : null;
+    if (examId || topicId) {
+      try {
+        localStorage.setItem('examProgress', JSON.stringify({
+          examId: examId || undefined,
+          topicId: topicId || undefined,
+          section,
+          currentQuestionIndex,
+          selectedPart: selectedPart || undefined
+        }));
+      } catch (e) {
+        console.error('Error saving exam progress:', e);
+      }
+    }
+  }, [section, currentQuestionIndex, selectedPart]);
+
   // Load exam data from database
   useEffect(() => {
     const loadExamData = async () => {
@@ -1105,54 +1126,103 @@ function ExamModeContent() {
                   targetSectionName = null; // Don't set anything, let useEffect handle it
                 }
               } else {
-                // No section parameter - check if we should use first incomplete section or first section
-                // First, check if there are any completed sections
-                const savedCompletedSections = localStorage.getItem('completedSections');
-                let firstIncompleteSection = null;
-                
-                if (savedCompletedSections) {
+                // No section parameter - try to restore from last position (resume exam)
+                const savedProgressStr = localStorage.getItem('examProgress');
+                let restored = false;
+                if (savedProgressStr) {
                   try {
-                    const completedArray = JSON.parse(savedCompletedSections);
-                    const completedSet = new Set(completedArray);
-                    firstIncompleteSection = sortedSectionsForInit.find(s => !completedSet.has(s.name));
+                    const saved = JSON.parse(savedProgressStr);
+                    const sameExam = (saved.examId && saved.examId === examId) || (saved.topicId && saved.topicId === topicId);
+                    const sectionExists = sortedSectionsForInit.some(s => s.name === saved.section);
+                    if (sameExam && sectionExists && saved.section) {
+                      targetSectionName = saved.section;
+                      restored = true;
+                      console.log('ℹ️ Restoring exam position:', saved.section, 'question', saved.currentQuestionIndex, 'part', saved.selectedPart);
+                    }
                   } catch (e) {
-                    console.error('Error parsing completed sections:', e);
+                    console.error('Error parsing exam progress:', e);
                   }
                 }
-                
-                // Use first incomplete section if available, otherwise use first section
-                targetSectionName = firstIncompleteSection ? firstIncompleteSection.name : sortedSectionsForInit[0].name;
-                console.log('ℹ️ Initial load - No section parameter in URL');
-                console.log('ℹ️ Using section:', targetSectionName, firstIncompleteSection ? '(first incomplete)' : '(first section)');
+                if (!restored) {
+                  // First, check if there are any completed sections
+                  const savedCompletedSections = localStorage.getItem('completedSections');
+                  let firstIncompleteSection = null;
+                  if (savedCompletedSections) {
+                    try {
+                      const completedArray = JSON.parse(savedCompletedSections);
+                      const completedSet = new Set(completedArray);
+                      firstIncompleteSection = sortedSectionsForInit.find(s => !completedSet.has(s.name));
+                    } catch (e) {
+                      console.error('Error parsing completed sections:', e);
+                    }
+                  }
+                  targetSectionName = firstIncompleteSection ? firstIncompleteSection.name : sortedSectionsForInit[0].name;
+                  console.log('ℹ️ Initial load - No section parameter in URL');
+                  console.log('ℹ️ Using section:', targetSectionName, firstIncompleteSection ? '(first incomplete)' : '(first section)');
+                }
               }
               
               // Only set section if we have a valid targetSectionName
               if (targetSectionName) {
                 console.log('✅ Setting section to:', targetSectionName);
                 setSection(targetSectionName);
-                setCurrentQuestionIndex(0); // Reset to first question when changing sections
+                const targetSection = sortedSectionsForInit.find(s => s.name === targetSectionName) || sortedSectionsForInit[0];
+                const targetSectionParts = (data.data.parts || []).filter(p => {
+                  const pSectionId = String(p.sectionId).trim();
+                  const secIdStr = String(targetSection.id).trim();
+                  const secIdObj = String(targetSection._id).trim();
+                  return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === targetSection._id.toString();
+                }).sort((a, b) => (a.order || 0) - (b.order || 0));
+                const hasSectionParam = searchParams?.get('section');
+                if (!hasSectionParam) {
+                  const savedProgressStr = localStorage.getItem('examProgress');
+                  try {
+                    const saved = JSON.parse(savedProgressStr || '{}');
+                    const sameExam = (saved.examId && saved.examId === examId) || (saved.topicId && saved.topicId === topicId);
+                    if (sameExam && saved.section === targetSectionName) {
+                      const partQuestions = questionsByPartData[targetSectionName]?.[saved.selectedPart] ?? questionsBySection[targetSectionName] ?? [];
+                      const maxIndex = Math.max(0, partQuestions.length - 1);
+                      const savedIndex = typeof saved.currentQuestionIndex === 'number' ? Math.min(maxIndex, Math.max(0, saved.currentQuestionIndex)) : 0;
+                      setCurrentQuestionIndex(savedIndex);
+                      if (targetSectionParts.length > 0) {
+                        const partExists = targetSectionParts.some(p => p.name === saved.selectedPart);
+                        setSelectedPart(partExists ? saved.selectedPart : targetSectionParts[0].name);
+                      } else {
+                        setSelectedPart(null);
+                      }
+                    } else {
+                      setCurrentQuestionIndex(0);
+                      setSelectedPart(targetSectionParts.length > 0 ? targetSectionParts[0].name : null);
+                    }
+                  } catch (_) {
+                    setCurrentQuestionIndex(0);
+                    setSelectedPart(targetSectionParts.length > 0 ? targetSectionParts[0].name : null);
+                  }
+                } else {
+                  setCurrentQuestionIndex(0);
+                  setSelectedPart(targetSectionParts.length > 0 ? targetSectionParts[0].name : null);
+                }
               } else {
                 console.log('⏸️ Not setting section yet, will be set by useEffect from URL parameter');
               }
               
-              // Set first part as default if section has parts
-              const targetSection = targetSectionName 
-                ? sortedSectionsForInit.find(s => s.name === targetSectionName) || sortedSectionsForInit[0]
-                : sortedSectionsForInit[0];
-              const targetSectionParts = (data.data.parts || []).filter(p => {
-                const pSectionId = String(p.sectionId).trim();
-                const secIdStr = String(targetSection.id).trim();
-                const secIdObj = String(targetSection._id).trim();
-                return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === targetSection._id.toString();
-              });
-              if (targetSectionParts.length > 0) {
-                targetSectionParts.sort((a, b) => (a.order || 0) - (b.order || 0));
-                const firstPartName = targetSectionParts[0].name;
-                setSelectedPart(firstPartName);
-                console.log('Set default part to:', firstPartName, 'for section:', targetSectionName);
+              // Set first part as default if section has parts (only when section came from URL; otherwise already set above)
+              if (searchParams?.get('section')) {
+                const targetSectionForPart = targetSectionName 
+                  ? sortedSectionsForInit.find(s => s.name === targetSectionName) || sortedSectionsForInit[0]
+                  : sortedSectionsForInit[0];
+                const targetSectionPartsForPart = (data.data.parts || []).filter(p => {
+                  const pSectionId = String(p.sectionId).trim();
+                  const secIdStr = String(targetSectionForPart.id).trim();
+                  const secIdObj = String(targetSectionForPart._id).trim();
+                  return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === targetSectionForPart._id.toString();
+                });
+                if (targetSectionPartsForPart.length > 0) {
+                  targetSectionPartsForPart.sort((a, b) => (a.order || 0) - (b.order || 0));
+                  setSelectedPart(targetSectionPartsForPart[0].name);
+                  console.log('Set default part to:', targetSectionPartsForPart[0].name, 'for section:', targetSectionName);
+                }
                 console.log('QuestionsByPart for this section:', questionsByPartData[targetSectionName]);
-              } else {
-                setSelectedPart(null);
               }
               
               // Mark first question of TARGET section as visited (not first section)
@@ -2204,6 +2274,7 @@ function ExamModeContent() {
             <div className="flex flex-col items-center py-6">
               <img src="/lo.jpg" className="w-24 h-24 rounded-full border-2" />
               <p className="mt-2 font-semibold text-blue-800">{userName}</p>
+              <Link href="/" className="mt-2 text-[#290c52] font-medium underline">Home</Link>
               <hr className="border w-full mt-2" />
             </div>
             <div className="text-xs grid grid-cols-2 gap-2 mb-4">
@@ -2311,7 +2382,12 @@ function ExamModeContent() {
       <div className="flex-1 flex flex-col h-full overflow-hidden" data-exam-mode={currentQuestion?.questionType !== "TYPING" ? "mcq" : "typing"}>
         {/* Header with User Info */}
         <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30 landscape-reduce-header">
-          <div className="font-semibold">MPCPCT 2025</div>
+          <div className="flex items-center gap-3">
+            <span className="font-semibold">MPCPCT 2025</span>
+            <Link href="/" className="cursor-pointer inline-flex items-center justify-center text-[12px] font-medium px-3 py-1.5 rounded bg-white/20 hover:bg-white/30 text-white border border-white/40">
+              Home
+            </Link>
+          </div>
           <div className="flex gap-2 items-center">
             {/* Sound Icon - Show in mobile and landscape mode for questions only */}
             {currentQuestion?.questionType !== "TYPING" && (

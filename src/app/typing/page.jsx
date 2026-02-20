@@ -724,10 +724,9 @@ function LandscapeView({
         <a href={closeHref} className="font-semibold">close</a>
       </button>
       <div className="landscape-mobile-container">
-
-      <div className="flex flex-row gap-6">
-        {/* Typing Area */}
-        <div className="landscape-mobile-typing-area ml-26 " style={{ flex: '1', overflowY: 'auto', padding: '0.5vh 0.5vw', height: '100vh', width: 'calc(90vw - 18vw)', maxWidth: 'calc(100vw - 18vw)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div className="landscape-mobile-flex-row flex flex-row flex-1 min-h-0 w-full overflow-hidden">
+        {/* Typing Area - no extra margin so it stays on screen */}
+        <div className="landscape-mobile-typing-area flex-1 min-w-0 min-h-0 flex flex-col items-center overflow-y-auto overflow-x-hidden" style={{ padding: '0.5vh 0.5vw', height: '100%' }}>
           {/* Stats row at header */}
           <div className="flex gap-x-4  justify-center items-center w-full" style={{ marginBottom: '5vh', flexWrap: 'wrap', gap: '1vw' }}>
             {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
@@ -859,7 +858,10 @@ function LandscapeView({
                   onKeyDown={handleKeyDown}
                   onKeyUp={isHindiTyping && hindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
                   onFocus={(e) => {
-                    // Auto-activate Hindi IME on focus
+                    // Keep typing area visible when virtual keyboard opens (mobile landscape)
+                    requestAnimationFrame(() => {
+                      e.target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                    });
                     if (isHindiTyping) {
                       e.target.setAttribute('lang', 'hi');
                       e.target.setAttribute('inputmode', 'text');
@@ -872,7 +874,7 @@ function LandscapeView({
                     }
                   }}
                   disabled={isPaused || isCompleted}
-                  className="w-full auto-focus min-h-[150px] max-h-[180px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-2 disabled:opacity-50"
+                  className="w-full auto-focus min-h-[150px] max-h-[180px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-2 disabled:opacity-50 landscape-typing-input"
                   placeholder={isHindiTyping ? "Type Here in Hindi (हिंदी में टाइप करें)..." : "Type Here..."}
                   lang={isHindiTyping ? "hi" : undefined}
                   inputMode={isHindiTyping ? "text" : undefined}
@@ -910,7 +912,7 @@ function LandscapeView({
         </div>
 
         {/* Sidebar */}
-        <div className="landscape-mobile-sidebar text-white bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat" style={{ width: '18vw', minWidth: '18vw', maxWidth: '18vw', height: '100vh', padding: '1vh 1vw' }}>
+        <div className="landscape-mobile-sidebar flex-shrink-0 text-white bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat" style={{ width: '18vw', minWidth: '18vw', maxWidth: '18vw', height: '100%', padding: '1vh 1vw' }}>
           <div className="flex flex-col items-center justify-center h-full">
             {/* User Profile */}
             <div className="mb-4 absolute top-14.5 left-4">
@@ -1551,7 +1553,9 @@ function TypingTutorForm() {
     if (elapsedTime === 0 || isPaused || isCompleted) return;
     const timeInMinutes = elapsedTime / 60;
     if (timeInMinutes > 0) {
-      setWPM(Math.floor((correctWords.length / timeInMinutes)));
+      // Use gross WPM (total typed words / time) for the live meter so the needle moves as user types
+      const grossWpm = Math.floor((typedWords.length / timeInMinutes));
+      setWPM(grossWpm);
       // Calculate accuracy
       const totalTyped = typedWords.length;
       const correct = correctWords.length;
@@ -1936,24 +1940,34 @@ function TypingTutorForm() {
             display: block !important;
             visibility: visible !important;
           }
-          /* Landscape mobile layout adjustments */
+          /* Landscape mobile layout - keep typing area on screen, no overflow */
           .landscape-mobile-container {
             display: flex !important;
-            flex-direction: row !important;
+            flex-direction: column !important;
             height: 100vh !important;
+            height: 100dvh !important; /* dynamic viewport when keyboard opens */
             width: 100vw !important;
             overflow: hidden !important;
             max-width: 100vw !important;
             margin: 0 !important;
             padding: 0 !important;
           }
+          .landscape-mobile-flex-row {
+            display: flex !important;
+            flex: 1 !important;
+            min-height: 0 !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            overflow: hidden !important;
+          }
           .landscape-mobile-typing-area {
             flex: 1 !important;
+            min-width: 0 !important;
+            min-height: 0 !important;
             overflow-y: auto !important;
+            overflow-x: hidden !important;
             padding: 0.5vh 0.5vw !important;
-            height: 100vh !important;
-            width: calc(100vw - 18vw) !important;
-            max-width: calc(100vw - 18vw) !important;
+            -webkit-overflow-scrolling: touch !important;
           }
           .landscape-mobile-sidebar {
             width: 18vw !important;
@@ -1961,8 +1975,12 @@ function TypingTutorForm() {
             max-width: 18vw !important;
             flex-shrink: 0 !important;
             overflow-y: auto !important;
-            height: 100vh !important;
+            height: 100% !important;
             padding: 1vh 1vw !important;
+          }
+          /* Keep textarea visible when keyboard opens - scroll margin for smooth focus */
+          .landscape-typing-input {
+            scroll-margin-bottom: 20vh !important;
           }
           /* Hide user profile in landscape mobile view */
           .user-profile-landscape {

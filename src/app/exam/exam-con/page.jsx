@@ -222,6 +222,9 @@ export default function ExamInstructions() {
                   return;
                 }
                 setShowError(false);
+                // Clear saved position so exam starts fresh from Q1
+                localStorage.removeItem('examProgress');
+                localStorage.removeItem('examTimeLeft');
                 // Store question language preference
                 localStorage.setItem('questionLanguage', questionLanguage);
                 window.location.href = "/exam_mode";
