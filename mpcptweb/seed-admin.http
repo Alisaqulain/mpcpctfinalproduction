@@ -1,0 +1,5 @@
+### Seed admin user
+POST http://localhost:3000/api/seed-admin?token=dev-seed-token-please-change
+Content-Type: application/json
+
+{}

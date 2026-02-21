@@ -1,0 +1,414 @@
+{
+  "languages": {
+    "main": [
+      {
+        "id": "hindi",
+        "name": "Hindi",
+        "subLanguages": [
+          {
+            "id": "ramington",
+            "name": "Ramington Gail"
+          },
+          {
+            "id": "inscript",
+            "name": "Inscript"
+          }
+        ]
+      },
+      {
+        "id": "english",
+        "name": "English",
+        "subLanguages": []
+      }
+    ]
+  },
+  "settings": {
+    "durations": [3, 5, 10],
+    "backspaceOptions": ["OFF", "ON"]
+  },
+  "sections": [
+    {
+      "id": "home",
+      "name": "Home",
+      "lessonNumber": 1,
+      "description": "Home Row",
+      "lessons": [
+        {
+          "id": "1.1",
+          "title": "ASDF & JKL;",
+          "title_hindi": "असदफ और जकल;",
+          "description": "Basic home row keys",
+          "description_hindi": "बुनियादी होम रो कीज़",
+          "difficulty": "beginner",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "asdf jkl; asdf jkl; asdf jkl; asdf jkl; asdf jkl; asdf jkl; asdf jkl; asdf jkl; asdf jkl; asdf jkl;",
+            "hindi_ramington": "असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल;",
+            "hindi_inscript": "असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल; असदफ जकल;"
+          }
+        },
+        {
+          "id": "1.2",
+          "title": "GH & '",
+          "title_hindi": "घ और '",
+          "description": "Center home row keys",
+          "description_hindi": "केंद्र होम रो कीज़",
+          "difficulty": "beginner",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "gh ' gh ' gh ' gh ' gh ' gh ' gh ' gh ' gh ' gh '",
+            "hindi_ramington": "घ ' घ ' घ ' घ ' घ ' घ ' घ ' घ ' घ ' घ '",
+            "hindi_inscript": "घ ' घ ' घ ' घ ' घ ' घ ' घ ' घ ' घ ' घ '"
+          }
+        },
+        {
+          "id": "1.3",
+          "title": "Word Practice",
+          "title_hindi": "शब्द अभ्यास",
+          "description": "Practice typing words using home row",
+          "description_hindi": "होम रो का उपयोग करके शब्द टाइप करने का अभ्यास",
+          "difficulty": "beginner",
+          "estimatedTime": "10 minutes",
+          "content": {
+            "english": "sad dad fad gas has lad sad dad fad gas has lad sad dad fad gas has lad",
+            "hindi_ramington": "सद दद फद गस हस लद सद दद फद गस हस लद सद दद फद गस हस लद",
+            "hindi_inscript": "सद दद फद गस हस लद सद दद फद गस हस लद सद दद फद गस हस लद"
+          }
+        }
+      ]
+    },
+    {
+      "id": "upper",
+      "name": "Upper",
+      "lessonNumber": 2,
+      "description": "Upper Row",
+      "lessons": [
+        {
+          "id": "2.1",
+          "title": "QWER & UIOP",
+          "title_hindi": "क्वेर और उइओप",
+          "description": "Upper row keys",
+          "description_hindi": "ऊपरी पंक्ति कीज़",
+          "difficulty": "intermediate",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "qwer uiop qwer uiop qwer uiop qwer uiop qwer uiop qwer uiop",
+            "hindi_ramington": "क्वेर उइओप क्वेर उइओप क्वेर उइओप क्वेर उइओप क्वेर उइओप क्वेर उइओप",
+            "hindi_inscript": "क्वेर उइओप क्वेर उइओप क्वेर उइओप क्वेर उइओप क्वेर उइओप क्वेर उइओप"
+          }
+        },
+        {
+          "id": "2.2",
+          "title": "T & Y",
+          "title_hindi": "ट और य",
+          "description": "Center upper row keys",
+          "description_hindi": "केंद्र ऊपरी पंक्ति कीज़",
+          "difficulty": "intermediate",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "ty ty ty ty ty ty ty ty ty ty ty ty ty ty ty ty ty ty ty ty",
+            "hindi_ramington": "टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय",
+            "hindi_inscript": "टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय"
+          }
+        },
+        {
+          "id": "2.3",
+          "title": "Word Practice",
+          "title_hindi": "शब्द अभ्यास",
+          "description": "Practice typing words using upper row",
+          "description_hindi": "ऊपरी पंक्ति का उपयोग करके शब्द टाइप करने का अभ्यास",
+          "difficulty": "intermediate",
+          "estimatedTime": "10 minutes",
+          "content": {
+            "english": "quit wire type quit wire type quit wire type quit wire type",
+            "hindi_ramington": "क्विट वायर टाइप क्विट वायर टाइप क्विट वायर टाइप क्विट वायर टाइप",
+            "hindi_inscript": "क्विट वायर टाइप क्विट वायर टाइप क्विट वायर टाइप क्विट वायर टाइप"
+          }
+        }
+      ]
+    },
+    {
+      "id": "lower",
+      "name": "Lower",
+      "lessonNumber": 3,
+      "description": "Lower Row",
+      "lessons": [
+        {
+          "id": "3.1",
+          "title": "ZXCV & NM,.",
+          "title_hindi": "जक्सव और नम,.",
+          "description": "Lower row keys",
+          "description_hindi": "निचली पंक्ति कीज़",
+          "difficulty": "intermediate",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "zxcv nm,. zxcv nm,. zxcv nm,. zxcv nm,. zxcv nm,. zxcv nm,.",
+            "hindi_ramington": "जक्सव नम,. जक्सव नम,. जक्सव नम,. जक्सव नम,. जक्सव नम,. जक्सव नम,.",
+            "hindi_inscript": "जक्सव नम,. जक्सव नम,. जक्सव नम,. जक्सव नम,. जक्सव नम,. जक्सव नम,."
+          }
+        },
+        {
+          "id": "3.2",
+          "title": "B & /",
+          "title_hindi": "ब और /",
+          "description": "Center lower row keys",
+          "description_hindi": "केंद्र निचली पंक्ति कीज़",
+          "difficulty": "intermediate",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "b / b / b / b / b / b / b / b / b / b / b / b / b / b /",
+            "hindi_ramington": "ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब /",
+            "hindi_inscript": "ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब /"
+          }
+        },
+        {
+          "id": "3.3",
+          "title": "Word Practice",
+          "title_hindi": "शब्द अभ्यास",
+          "description": "Practice typing words using lower row",
+          "description_hindi": "निचली पंक्ति का उपयोग करके शब्द टाइप करने का अभ्यास",
+          "difficulty": "intermediate",
+          "estimatedTime": "10 minutes",
+          "content": {
+            "english": "zinc next back zinc next back zinc next back zinc next back",
+            "hindi_ramington": "जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक",
+            "hindi_inscript": "जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक"
+          }
+        }
+      ]
+    },
+    {
+      "id": "shift",
+      "name": "Shift",
+      "lessonNumber": 4,
+      "description": "Shift Key Practice",
+      "lessons": [
+        {
+          "id": "4.1",
+          "title": "ABDF & JKL;",
+          "title_hindi": "अबदफ और जकल;",
+          "description": "Home row with shift",
+          "description_hindi": "शिफ्ट के साथ होम रो",
+          "difficulty": "advanced",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "ABDF JKL; ABDF JKL; ABDF JKL; ABDF JKL; ABDF JKL; ABDF JKL;",
+            "hindi_ramington": "अबदफ जकल; अबदफ जकल; अबदफ जकल; अबदफ जकल; अबदफ जकल; अबदफ जकल;",
+            "hindi_inscript": "अबदफ जकल; अबदफ जकल; अबदफ जकल; अबदफ जकल; अबदफ जकल; अबदफ जकल;"
+          }
+        },
+        {
+          "id": "4.2",
+          "title": "GH & '",
+          "title_hindi": "घ और '",
+          "description": "Center home row with shift",
+          "description_hindi": "शिफ्ट के साथ केंद्र होम रो",
+          "difficulty": "advanced",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "GH ' GH ' GH ' GH ' GH ' GH ' GH ' GH ' GH ' GH '",
+            "hindi_ramington": "घ ' घ ' घ ' घ ' घ ' घ ' घ ' घ ' घ ' घ '",
+            "hindi_inscript": "घ ' घ ' घ ' घ ' घ ' घ ' घ ' घ ' घ ' घ '"
+          }
+        },
+        {
+          "id": "4.3",
+          "title": "Lower Row Word Practice",
+          "title_hindi": "निचली पंक्ति शब्द अभ्यास",
+          "description": "Practice words with shift on lower row",
+          "description_hindi": "निचली पंक्ति पर शिफ्ट के साथ शब्दों का अभ्यास",
+          "difficulty": "advanced",
+          "estimatedTime": "10 minutes",
+          "content": {
+            "english": "ZINC NEXT BACK ZINC NEXT BACK ZINC NEXT BACK ZINC NEXT BACK",
+            "hindi_ramington": "जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक",
+            "hindi_inscript": "जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक"
+          }
+        },
+        {
+          "id": "4.4",
+          "title": "QWER & UIOP",
+          "title_hindi": "क्वेर और उइओप",
+          "description": "Upper row with shift",
+          "description_hindi": "शिफ्ट के साथ ऊपरी पंक्ति",
+          "difficulty": "advanced",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "QWER UIOP QWER UIOP QWER UIOP QWER UIOP QWER UIOP QWER UIOP",
+            "hindi_ramington": "क्वेर उइओप क्वेर उइओप क्वेर उइओप क्वेर उइओप क्वेर उइओप क्वेर उइओप",
+            "hindi_inscript": "क्वेर उइओप क्वेर उइओप क्वेर उइओप क्वेर उइओप क्वेर उइओप क्वेर उइओप"
+          }
+        },
+        {
+          "id": "4.5",
+          "title": "T & Y",
+          "title_hindi": "ट और य",
+          "description": "Center upper row with shift",
+          "description_hindi": "शिफ्ट के साथ केंद्र ऊपरी पंक्ति",
+          "difficulty": "advanced",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "TY TY TY TY TY TY TY TY TY TY TY TY TY TY TY TY TY TY TY TY",
+            "hindi_ramington": "टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय",
+            "hindi_inscript": "टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय टय"
+          }
+        },
+        {
+          "id": "4.6",
+          "title": "Upper Row Word Practice",
+          "title_hindi": "ऊपरी पंक्ति शब्द अभ्यास",
+          "description": "Practice words with shift on upper row",
+          "description_hindi": "ऊपरी पंक्ति पर शिफ्ट के साथ शब्दों का अभ्यास",
+          "difficulty": "advanced",
+          "estimatedTime": "10 minutes",
+          "content": {
+            "english": "QUIT WIRE TYPE QUIT WIRE TYPE QUIT WIRE TYPE QUIT WIRE TYPE",
+            "hindi_ramington": "क्विट वायर टाइप क्विट वायर टाइप क्विट वायर टाइप क्विट वायर टाइप",
+            "hindi_inscript": "क्विट वायर टाइप क्विट वायर टाइप क्विट वायर टाइप क्विट वायर टाइप"
+          }
+        },
+        {
+          "id": "4.7",
+          "title": "ZXCV & NM,.",
+          "title_hindi": "जक्सव और नम,.",
+          "description": "Lower row with shift",
+          "description_hindi": "शिफ्ट के साथ निचली पंक्ति",
+          "difficulty": "advanced",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "ZXCV NM,. ZXCV NM,. ZXCV NM,. ZXCV NM,. ZXCV NM,. ZXCV NM,.",
+            "hindi_ramington": "जक्सव नम,. जक्सव नम,. जक्सव नम,. जक्सव नम,. जक्सव नम,. जक्सव नम,.",
+            "hindi_inscript": "जक्सव नम,. जक्सव नम,. जक्सव नम,. जक्सव नम,. जक्सव नम,. जक्सव नम,."
+          }
+        },
+        {
+          "id": "4.8",
+          "title": "B & /",
+          "title_hindi": "ब और /",
+          "description": "Center lower row with shift",
+          "description_hindi": "शिफ्ट के साथ केंद्र निचली पंक्ति",
+          "difficulty": "advanced",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "B / B / B / B / B / B / B / B / B / B / B / B / B / B /",
+            "hindi_ramington": "ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब /",
+            "hindi_inscript": "ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब / ब /"
+          }
+        },
+        {
+          "id": "4.9",
+          "title": "Lower Row Word Practice",
+          "title_hindi": "निचली पंक्ति शब्द अभ्यास",
+          "description": "Practice words with shift on lower row",
+          "description_hindi": "निचली पंक्ति पर शिफ्ट के साथ शब्दों का अभ्यास",
+          "difficulty": "advanced",
+          "estimatedTime": "10 minutes",
+          "content": {
+            "english": "ZINC NEXT BACK ZINC NEXT BACK ZINC NEXT BACK ZINC NEXT BACK",
+            "hindi_ramington": "जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक",
+            "hindi_inscript": "जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक जिंक नेक्स्ट बैक"
+          }
+        }
+      ]
+    },
+    {
+      "id": "numbers",
+      "name": "Numbers",
+      "lessonNumber": 5,
+      "description": "Number Row",
+      "lessons": [
+        {
+          "id": "5.1",
+          "title": "(1,2,3,4) and (7,8,9,0)",
+          "title_hindi": "(१,२,३,४) और (७,८,९,०)",
+          "description": "Number row practice",
+          "description_hindi": "संख्या पंक्ति अभ्यास",
+          "difficulty": "intermediate",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "1234 7890 1234 7890 1234 7890 1234 7890 1234 7890",
+            "hindi_ramington": "१२३४ ७८९० १२३४ ७८९० १२३४ ७८९० १२३४ ७८९० १२३४ ७८९०",
+            "hindi_inscript": "१२३४ ७८९० १२३४ ७८९० १२३४ ७८९० १२३४ ७८९० १२३४ ७८९०"
+          }
+        },
+        {
+          "id": "5.2",
+          "title": "Practice with Shift(!,@,#,$) and (%,^,&,*)",
+          "title_hindi": "शिफ्ट के साथ अभ्यास(!,@,#,$) और (%,^,&,*)",
+          "description": "Symbols with shift key",
+          "description_hindi": "शिफ्ट की के साथ प्रतीक",
+          "difficulty": "advanced",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "!@#$ %^&* !@#$ %^&* !@#$ %^&* !@#$ %^&* !@#$ %^&* !@#$ %^&*",
+            "hindi_ramington": "!@#$ %^&* !@#$ %^&* !@#$ %^&* !@#$ %^&* !@#$ %^&* !@#$ %^&*",
+            "hindi_inscript": "!@#$ %^&* !@#$ %^&* !@#$ %^&* !@#$ %^&* !@#$ %^&* !@#$ %^&*"
+          }
+        },
+        {
+          "id": "5.3",
+          "title": "Word Practice",
+          "title_hindi": "शब्द अभ्यास",
+          "description": "Practice with numbers and symbols",
+          "description_hindi": "संख्या और प्रतीकों के साथ अभ्यास",
+          "difficulty": "advanced",
+          "estimatedTime": "10 minutes",
+          "content": {
+            "english": "test123 pass456 test123 pass456 test123 pass456 test123 pass456",
+            "hindi_ramington": "टेस्ट१२३ पास४५६ टेस्ट१२३ पास४५६ टेस्ट१२३ पास४५६ टेस्ट१२३ पास४५६",
+            "hindi_inscript": "टेस्ट१२३ पास४५६ टेस्ट१२३ पास४५६ टेस्ट१२३ पास४५६ टेस्ट१२३ पास४५६"
+          }
+        },
+        {
+          "id": "5.4",
+          "title": "(5,6 & -,=)",
+          "title_hindi": "(५,६ और -,=)",
+          "description": "Center number row",
+          "description_hindi": "केंद्र संख्या पंक्ति",
+          "difficulty": "intermediate",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "56 -= 56 -= 56 -= 56 -= 56 -= 56 -= 56 -= 56 -= 56 -= 56 -=",
+            "hindi_ramington": "५६ -= ५६ -= ५६ -= ५६ -= ५६ -= ५६ -= ५६ -= ५६ -= ५६ -= ५६ -=",
+            "hindi_inscript": "५६ -= ५६ -= ५६ -= ५६ -= ५६ -= ५६ -= ५६ -= ५६ -= ५६ -= ५६ -="
+          }
+        },
+        {
+          "id": "5.5",
+          "title": "Practice with Shift(%,* & -,+)",
+          "title_hindi": "शिफ्ट के साथ अभ्यास(%,* और -,+)",
+          "description": "Center symbols with shift",
+          "description_hindi": "शिफ्ट के साथ केंद्र प्रतीक",
+          "difficulty": "advanced",
+          "estimatedTime": "5 minutes",
+          "content": {
+            "english": "%* -+ %* -+ %* -+ %* -+ %* -+ %* -+ %* -+ %* -+ %* -+ %* -+",
+            "hindi_ramington": "%* -+ %* -+ %* -+ %* -+ %* -+ %* -+ %* -+ %* -+ %* -+ %* -+",
+            "hindi_inscript": "%* -+ %* -+ %* -+ %* -+ %* -+ %* -+ %* -+ %* -+ %* -+ %* -+"
+          }
+        },
+        {
+          "id": "5.6",
+          "title": "Word Practice",
+          "title_hindi": "शब्द अभ्यास",
+          "description": "Final number and symbol practice",
+          "description_hindi": "अंतिम संख्या और प्रतीक अभ्यास",
+          "difficulty": "advanced",
+          "estimatedTime": "10 minutes",
+          "content": {
+            "english": "user123 admin456 user123 admin456 user123 admin456 user123 admin456",
+            "hindi_ramington": "यूजर१२३ एडमिन४५६ यूजर१२३ एडमिन४५६ यूजर१२३ एडमिन४५६ यूजर१२३ एडमिन४५६",
+            "hindi_inscript": "यूजर१२३ एडमिन४५६ यूजर१२३ एडमिन४५६ यूजर१२३ एडमिन४५६ यूजर१२३ एडमिन४५६"
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "lastUpdated": "2025-01-27",
+    "totalLessons": 24,
+    "difficultyLevels": ["beginner", "intermediate", "advanced"],
+    "estimatedTotalTime": "120 minutes"
+  }
+}

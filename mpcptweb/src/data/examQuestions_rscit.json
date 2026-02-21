@@ -1,0 +1,59 @@
+{
+  "examInfo": {
+    "title": "RSCIT (Rajasthan State Certificate in Information Technology)",
+    "totalTime": 60,
+    "totalQuestions": 50,
+    "sections": [
+      "BASICS OF IT",
+      "INTERNET AND EMAIL",
+      "MS OFFICE"
+    ]
+  },
+  "questions": {
+    "BASICS OF IT": [
+      {
+        "id": "r_it1",
+        "question": "Which device is used to input text into a computer?",
+        "question_hi": "कंप्यूटर में टेक्स्ट इनपुट करने के लिए कौन-सा उपकरण उपयोग होता है?",
+        "options": ["Monitor", "Keyboard", "Printer", "Speaker"],
+        "options_hi": ["मॉनिटर", "कीबोर्ड", "प्रिंटर", "स्पीकर"],
+        "correctAnswer": 1,
+        "explanation": "Keyboard is used to input text."
+      }
+    ],
+    "INTERNET AND EMAIL": [
+      {
+        "id": "r_net1",
+        "question": "What does 'www' stand for in a website address?",
+        "question_hi": "वेबसाइट पते में 'www' का क्या अर्थ है?",
+        "options": [
+          "World Wide Web",
+          "World Web Window",
+          "Wide World Web",
+          "Web World Wide"
+        ],
+        "options_hi": [
+          "वर्ल्ड वाइड वेब",
+          "वर्ल्ड वेब विंडो",
+          "वाइड वर्ल्ड वेब",
+          "वेब वर्ल्ड वाइड"
+        ],
+        "correctAnswer": 0,
+        "explanation": "WWW stands for World Wide Web."
+      }
+    ],
+    "MS OFFICE": [
+      {
+        "id": "r_ms1",
+        "question": "Which MS Office application is used to create spreadsheets?",
+        "question_hi": "स्प्रेडशीट बनाने के लिए किस MS Office एप्लिकेशन का उपयोग किया जाता है?",
+        "options": ["Word", "Excel", "PowerPoint", "Access"],
+        "options_hi": ["वर्ड", "एक्सेल", "पावरपॉइंट", "एक्सेस"],
+        "correctAnswer": 1,
+        "explanation": "Excel is used to create spreadsheets."
+      }
+    ]
+  }
+}
+
+

@@ -1,0 +1,111 @@
+===========================================
+CPCT QUESTION BANK - SUPPORTED FORMATS
+===========================================
+
+IMPORTANT: Each question must be on a SINGLE LINE with "Ans:" at the end.
+
+===========================================
+FORMAT 1: With Hindi in Question AND Options (RECOMMENDED)
+===========================================
+
+Which shortcut key is used to open the 'Developer' tab in Excel if it's not visible? (एक्सेल में 'डेवलपर' टैब खोलने के लिए किस शॉर्टकट का उपयोग किया जाता है?) A. Alt + F11 (ऑल्ट + एफ11) B. Alt + F8 C. Ctrl + D D. Shift + F11 Ans: A. Alt + F11
+
+What is the full form of GIGO? (GIGO का पूर्ण रूप क्या है?) A. Garbage In Garbage Out (गारबेज इन गारबेज आउट) B. Garbage In Gold Out C. General Input General Output D. Global Input Global Output Ans: A. Garbage In Garbage Out
+
+Which function key is used to change the cell reference type in Excel? (एक्सेल में सेल रेफरेंस प्रकार बदलने के लिए किस फंक्शन कुंजी का उपयोग किया जाता है?) A. F2 B. F4 (एफ4) C. F8 D. F10 Ans: B. F4
+
+What is the full form of VIRUS? (VIRUS का पूर्ण रूप क्या है?) A. Vital Information Resources Under Siege (वाइटल इंफॉर्मेशन रिसोर्सेज अंडर सीज) B. Very Important Resource Under Search C. Virtual Information Record User System D. None Ans: A. Vital Information Resources Under Siege
+
+Which of the following is an example of a Web Browser? (निम्नलिखित में से कौन सा वेब ब्राउज़र का उदाहरण है?) A. Google B. Mozilla Firefox (मोज़िला फ़ायरफ़ॉक्स) C. Windows D. MS Office Ans: B. Mozilla Firefox
+
+What is the shortcut key to 'Insert a Comment' in Excel? (एक्सेल में 'कमेंट डालने' की शॉर्टकट कुंजी क्या है?) A. Shift + F2 (शिफ्ट + एफ2) B. Ctrl + F2 C. Alt + F2 D. Shift + C Ans: A. Shift + F2
+
+In MS Word, which feature allows you to change the distance between lines? (एमएस वर्ड में, कौन सा फीचर आपको लाइनों के बीच की दूरी बदलने की अनुमति देता है?) A. Line Spacing (लाइन स्पेसिंग) B. Word Wrap C. Alignment D. Indentation Ans: A. Line Spacing
+
+What is the shortcut to 'Apply or Remove Strike-through' in Excel? (एक्सेल में 'स्ट्राइक-थ्रू लागू करने या हटाने' का शॉर्टकट क्या है?) A. Ctrl + 5 (कंट्रोल + 5) B. Ctrl + 6 C. Alt + 5 D. Shift + 5 Ans: A. Ctrl + 5
+
+Which device connects multiple computers in a LAN using packet switching? (कौन सा डिवाइस पैकेट स्विचिंग का उपयोग करके लैन में कई कंप्यूटरों को जोड़ता है?) A. Hub B. Switch (स्विच) C. Repeater D. Gateway Ans: B. Switch
+
+What is the full form of SQL? (SQL का पूर्ण रूप क्या है?) A. Structured Query Language (स्ट्रक्चर्ड क्वेरी लैंग्वेज) B. Simple Query Language C. Statistical Query Language D. System Query Language Ans: A. Structured Query Language
+
+===========================================
+FORMAT 2: With Hindi in Question Only (No Hindi in Options)
+===========================================
+
+Which shortcut is used to 'Minimize the Ribbon' in MS Word? (एमएस वर्ड में 'रिबन को मिनिमाइज' करने के लिए किस शॉर्टकट का उपयोग किया जाता है?) A. Ctrl + F1 B. Alt + F1 C. Shift + F1 D. Ctrl + R Ans: A. Ctrl + F1
+
+Which part of the computer is known as the 'Storage'? (कंप्यूटर के किस भाग को 'स्टोरेज' के रूप में जाना जाता है?) A. CPU B. RAM C. Hard Disk D. Monitor Ans: C. Hard Disk
+
+What is the shortcut for 'Thesaurus' in MS Word? (एमएस वर्ड में 'थिसॉरस' का शॉर्टकट क्या है?) A. Shift + F7 B. Ctrl + F7 C. Alt + F7 D. F7 Ans: A. Shift + F7
+
+What is the full form of BIOS? (BIOS का पूर्ण रूप क्या है?) A. Basic Input Output System B. Basic Interface Output System C. Binary Input Output System D. Base Interface Operating System Ans: A. Basic Input Output System
+
+Which key is used to exit from 'Full Screen' mode in a browser? (ब्राउज़र में 'फुल स्क्रीन' मोड से बाहर निकलने के लिए किस कुंजी का उपयोग किया जाता है?) A. F10 B. F11 C. Esc D. Alt + Enter Ans: B. F11
+
+===========================================
+FORMAT 3: Without Hindi (English Only)
+===========================================
+
+Which shortcut is used to 'Center Align' text in MS Word? A. Ctrl + E B. Ctrl + C C. Ctrl + L D. Ctrl + R Ans: A. Ctrl + E
+
+What is the full form of WAN? A. Wide Area Network B. World Area Network C. Wireless Area Network D. Web Area Network Ans: A. Wide Area Network
+
+Which shortcut is used to 'Right Align' text in MS Word? A. Ctrl + R B. Ctrl + L C. Ctrl + E D. Ctrl + J Ans: A. Ctrl + R
+
+What is the full form of CPU? A. Central Processing Unit B. Control Processing Unit C. Computer Processing Unit D. Central Programming Unit Ans: A. Central Processing Unit
+
+Which shortcut is used to 'Left Align' text in MS Word? A. Ctrl + L B. Ctrl + R C. Ctrl + E D. Ctrl + J Ans: A. Ctrl + L
+
+===========================================
+FORMAT 4: Mixed - Some Options with Hindi, Some Without
+===========================================
+
+Which of the following is a cloud storage service? (निम्नलिखित में से कौन सी क्लाउड स्टोरेज सेवा है?) A. Google Drive (गूगल ड्राइव) B. MS Word C. Photoshop D. VLC Player Ans: A. Google Drive
+
+Which part of the computer is responsible for the 'Boot' process? (कंप्यूटर का कौन सा भाग 'बूट' प्रक्रिया के लिए जिम्मेदार है?) A. RAM B. BIOS (बायोस) C. Hard Disk D. Monitor Ans: B. BIOS
+
+What is the full form of MODEM? (MODEM का पूर्ण रूप क्या है?) A. Modular Demodulator B. Modulator-Demodulator (मॉड्यूलेटर-डीमॉड्यूलेटर) C. Mobile Demodulator D. None Ans: B. Modulator-Demodulator
+
+===========================================
+COMPLETE EXAMPLE - Copy and Paste This:
+===========================================
+
+Which shortcut key is used to open the 'Developer' tab in Excel if it's not visible? (एक्सेल में 'डेवलपर' टैब खोलने के लिए किस शॉर्टकट का उपयोग किया जाता है?) A. Alt + F11 (ऑल्ट + एफ11) B. Alt + F8 C. Ctrl + D D. Shift + F11 Ans: A. Alt + F11
+
+What is the full form of GIGO? (GIGO का पूर्ण रूप क्या है?) A. Garbage In Garbage Out (गारबेज इन गारबेज आउट) B. Garbage In Gold Out C. General Input General Output D. Global Input Global Output Ans: A. Garbage In Garbage Out
+
+Which function key is used to change the cell reference type in Excel? (एक्सेल में सेल रेफरेंस प्रकार बदलने के लिए किस फंक्शन कुंजी का उपयोग किया जाता है?) A. F2 B. F4 (एफ4) C. F8 D. F10 Ans: B. F4
+
+What is the full form of VIRUS? (VIRUS का पूर्ण रूप क्या है?) A. Vital Information Resources Under Siege (वाइटल इंफॉर्मेशन रिसोर्सेज अंडर सीज) B. Very Important Resource Under Search C. Virtual Information Record User System D. None Ans: A. Vital Information Resources Under Siege
+
+Which of the following is an example of a Web Browser? (निम्नलिखित में से कौन सा वेब ब्राउज़र का उदाहरण है?) A. Google B. Mozilla Firefox (मोज़िला फ़ायरफ़ॉक्स) C. Windows D. MS Office Ans: B. Mozilla Firefox
+
+Which shortcut is used to 'Center Align' text in MS Word? A. Ctrl + E B. Ctrl + C C. Ctrl + L D. Ctrl + R Ans: A. Ctrl + E
+
+What is the full form of WAN? A. Wide Area Network B. World Area Network C. Wireless Area Network D. Web Area Network Ans: A. Wide Area Network
+
+Which shortcut is used to 'Right Align' text in MS Word? A. Ctrl + R B. Ctrl + L C. Ctrl + E D. Ctrl + J Ans: A. Ctrl + R
+
+===========================================
+IMPORTANT RULES:
+===========================================
+
+1. ✅ Each question MUST be on a SINGLE LINE
+2. ✅ Each question MUST end with "Ans: X" where X is A, B, C, or D
+3. ✅ Question text can have Hindi: Question? (Hindi text)
+4. ✅ Options must be: A. Option1 B. Option2 C. Option3 D. Option4
+5. ✅ Options can have Hindi: A. Option (Hindi) or A. Option (no Hindi)
+6. ✅ Separate questions with a BLANK LINE (press Enter twice)
+7. ✅ Question mark (?) is optional but recommended
+
+===========================================
+DO NOT USE (WILL FAIL):
+===========================================
+
+❌ Multi-line questions (each part on separate line)
+❌ Missing "Ans:" at the end
+❌ Options without A., B., C., D. markers
+❌ Answer format like "Answer: A" (must be "Ans: A")
+❌ Questions split across multiple lines
+
+===========================================
