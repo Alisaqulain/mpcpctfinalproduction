@@ -74,7 +74,8 @@ export default function DemoPage() {
 
           </h1>
           <p className="text-gray-600">
-            Check if your application is deployed and running correctlydasdsa
+            Check if your application is deployed and running correctlydasdsa 
+             mobile first
           </p>
         </div>
 
