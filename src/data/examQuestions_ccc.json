@@ -1,0 +1,49 @@
+{
+  "examInfo": {
+    "title": "CCC (Course on Computer Concepts)",
+    "totalTime": 60,
+    "totalQuestions": 50,
+    "sections": [
+      "INTRODUCTION TO COMPUTER",
+      "APPLICATIONS OF COMPUTER",
+      "INTERNET BASICS"
+    ]
+  },
+  "questions": {
+    "INTRODUCTION TO COMPUTER": [
+      {
+        "id": "c_int1",
+        "question": "CPU is also known as?",
+        "question_hi": "CPU को किस नाम से भी जाना जाता है?",
+        "options": ["Microprocessor", "Monitor", "Mouse", "Modem"],
+        "options_hi": ["माइक्रोप्रोसेसर", "मॉनिटर", "माउस", "मोडेम"],
+        "correctAnswer": 0,
+        "explanation": "CPU is often called the microprocessor."
+      }
+    ],
+    "APPLICATIONS OF COMPUTER": [
+      {
+        "id": "c_app1",
+        "question": "Which of these is an example of system software?",
+        "question_hi": "इनमें से कौन सिस्टम सॉफ़्टवेयर का उदाहरण है?",
+        "options": ["MS Word", "Windows 10", "Tally", "Photoshop"],
+        "options_hi": ["एमएस वर्ड", "विंडोज 10", "टैली", "फोटोशॉप"],
+        "correctAnswer": 1,
+        "explanation": "Operating systems are system software."
+      }
+    ],
+    "INTERNET BASICS": [
+      {
+        "id": "c_net1",
+        "question": "Which protocol is used for web pages?",
+        "question_hi": "वेब पेज के लिए कौन-सा प्रोटोकॉल उपयोग होता है?",
+        "options": ["FTP", "SMTP", "HTTP", "SNMP"],
+        "options_hi": ["FTP", "SMTP", "HTTP", "SNMP"],
+        "correctAnswer": 2,
+        "explanation": "HTTP is used for web pages."
+      }
+    ]
+  }
+}
+
+

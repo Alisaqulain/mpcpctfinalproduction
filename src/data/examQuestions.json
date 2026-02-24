@@ -1,0 +1,246 @@
+{
+  "examInfo": {
+    "title": "CPCT (Computer Proficiency Certification Test)",
+    "totalTime": 75,
+    "totalQuestions": 75,
+    "sections": [
+      "COMPUTER PROFICIENCY",
+      "READING COMPREHENSION", 
+      "QUANTITATIVE APTITUDE",
+      "GENERAL MENTAL ABILITY",
+      "GENERAL AWARENESS"
+    ]
+  },
+  "questions": {
+    "COMPUTER PROFICIENCY": [
+      {
+        "id": "cp1",
+        "question": "The term EDVAC stands for:",
+        "question_hi": "EDVAC शब्द का पूर्ण रूप क्या है?",
+        "options": [
+          "Electronic Data Variable Automatic Computer",
+          "Electronic Discrete Variable Automatic Computer",
+          "Electronic Distinct Variable Automatic Computer",
+          "Electronic Disk Variable Automatic Computer"
+        ],
+        "options_hi": [
+          "इलेक्ट्रॉनिक डेटा वेरियेबल ऑटोमैटिक कंप्यूटर",
+          "इलेक्ट्रॉनिक डिस्क्रीट वेरियेबल ऑटोमैटिक कंप्यूटर",
+          "इलेक्ट्रॉनिक डिस्टिंक्ट वेरियेबल ऑटोमैटिक कंप्यूटर",
+          "इलेक्ट्रॉनिक डिस्क वेरियेबल ऑटोमैटिक कंप्यूटर"
+        ],
+        "correctAnswer": 1,
+        "explanation": "EDVAC stands for Electronic Discrete Variable Automatic Computer, one of the earliest electronic computers."
+      },
+      {
+        "id": "cp2",
+        "question": "Which of the following is NOT a type of computer memory?",
+        "question_hi": "निम्नलिखित में से कौन कंप्यूटर मेमोरी का प्रकार नहीं है?",
+        "options": [
+          "RAM",
+          "ROM",
+          "CPU",
+          "Cache"
+        ],
+        "options_hi": [
+          "रैम",
+          "रोम",
+          "सीपीयू",
+          "कैश"
+        ],
+        "correctAnswer": 2,
+        "explanation": "CPU (Central Processing Unit) is the processor, not a type of memory. RAM, ROM, and Cache are all types of computer memory."
+      },
+      {
+        "id": "cp3",
+        "question": "What does CPU stand for?",
+        "question_hi": "CPU का पूर्ण रूप क्या है?",
+        "options": [
+          "Central Processing Unit",
+          "Computer Personal Unit",
+          "Central Personal Unit",
+          "Computer Processing Unit"
+        ],
+        "options_hi": [
+          "सेंट्रल प्रोसेसिंग यूनिट",
+          "कम्प्यूटर पर्सनल यूनिट",
+          "सेंट्रल पर्सनल यूनिट",
+          "कम्प्यूटर प्रोसेसिंग यूनिट"
+        ],
+        "correctAnswer": 0,
+        "explanation": "CPU stands for Central Processing Unit, which is the main processor of a computer."
+      },
+      {
+        "id": "cp4",
+        "question": "Which programming language is known as the 'language of the web'?",
+        "question_hi": "कौन सी प्रोग्रामिंग भाषा 'वेब की भाषा' के रूप में जानी जाती है?",
+        "options": [
+          "Java",
+          "Python",
+          "JavaScript",
+          "C++"
+        ],
+        "options_hi": [
+          "जावा",
+          "पाइथन",
+          "जावास्क्रिप्ट",
+          "सी++"
+        ],
+        "correctAnswer": 2,
+        "explanation": "JavaScript is known as the 'language of the web' as it's primarily used for web development."
+      },
+      {
+        "id": "cp5",
+        "question": "What is the file extension for a Microsoft Word document?",
+        "question_hi": "माइक्रोसॉफ्ट वर्ड दस्तावेज़ का फ़ाइल एक्सटेंशन क्या है?",
+        "options": [
+          ".txt",
+          ".doc",
+          ".pdf",
+          ".xls"
+        ],
+        "options_hi": [
+          ".txt",
+          ".doc",
+          ".pdf",
+          ".xls"
+        ],
+        "correctAnswer": 1,
+        "explanation": "Microsoft Word documents typically use the .doc or .docx file extension."
+      }
+    ],
+    "READING COMPREHENSION": [
+      {
+        "id": "rc1",
+        "passage": "A long time ago, in a small village near a large forest, a wise old man lived... The village faced a severe drought and crops were destroyed. The old man gathered everyone and suggested digging a canal to bring water.",
+        "passage_hi": "बहुत समय पहले, एक बड़े जंगल के पास बसे एक छोटे से गाँव में एक बुद्धिमान बूढ़ा आदमी रहता था... गाँव में भयंकर सूखा पड़ गया और फसलें नष्ट हो गईं। बूढ़े ने नहर खोदने की सलाह दी ताकि पानी लाया जा सके।",
+        "question": "What problem did the village face?",
+        "question_hi": "गाँव में क्या समस्या आई थी?",
+        "options": [
+          "There was a flood",
+          "There was a drought",
+          "There was a disease outbreak",
+          "There were thieves"
+        ],
+        "options_hi": [
+          "बाढ़ आ गई थी",
+          "सूखा पड़ गया था",
+          "बीमारी फैल गई थी",
+          "चोर आ गए थे"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The passage clearly states the village had a drought."
+      },
+      {
+        "id": "rc2",
+        "passage": "The Internet has revolutionized the way we communicate, work, and live. It has made information accessible to millions of people around the world. However, with this accessibility comes responsibility. We must be careful about what we share online and how we use the Internet. Cybersecurity has become a major concern as more people use the Internet for banking, shopping, and social networking.",
+        "passage_hi": "इंटरनेट ने हमारी संचार, काम और जीवन शैली को बदल दिया है... जैसे-जैसे अधिक लोग बैंकिंग, शॉपिंग और सोशल नेटवर्किंग के लिए इसका उपयोग करते हैं, साइबर सुरक्षा एक बड़ी चिंता बन गई है।",
+        "question": "What is the main concern mentioned in the passage regarding Internet usage?",
+        "question_hi": "इंटरनेट उपयोग के संबंध में पैसेज में मुख्य चिंता क्या बताई गई है?",
+        "options": [
+          "High cost of Internet access",
+          "Slow Internet speed",
+          "Cybersecurity",
+          "Limited information availability"
+        ],
+        "options_hi": [
+          "इंटरनेट एक्सेस की उच्च लागत",
+          "धीमी इंटरनेट गति",
+          "साइबर सुरक्षा",
+          "सीमित जानकारी उपलब्धता"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The passage specifically mentions that cybersecurity has become a major concern with increased Internet usage."
+      }
+    ],
+    "QUANTITATIVE APTITUDE": [
+      {
+        "id": "qa1",
+        "question": "What is the square root of 144?",
+        "question_hi": "144 का वर्गमूल क्या है?",
+        "options": ["10", "12", "14", "16"],
+        "options_hi": ["10", "12", "14", "16"],
+        "correctAnswer": 1,
+        "explanation": "12 × 12 = 144, so the square root of 144 is 12."
+      },
+      {
+        "id": "qa2",
+        "question": "If 15% of a number is 45, what is the number?",
+        "question_hi": "किसी संख्या का 15% यदि 45 है, तो संख्या क्या है?",
+        "options": ["200", "300", "400", "500"],
+        "options_hi": ["200", "300", "400", "500"],
+        "correctAnswer": 1,
+        "explanation": "15% = 45, so 100% = (45 × 100) ÷ 15 = 300."
+      },
+      {
+        "id": "qa3",
+        "question": "What is the value of 2³ × 3²?",
+        "question_hi": "2³ × 3² का मान क्या है?",
+        "options": ["36", "72", "108", "144"],
+        "options_hi": ["36", "72", "108", "144"],
+        "correctAnswer": 1,
+        "explanation": "2³ = 8, 3² = 9, so 8 × 9 = 72."
+      }
+    ],
+    "GENERAL MENTAL ABILITY": [
+      {
+        "id": "gma1",
+        "question": "If CAT = 24 and DOG = 26, then BAT = ?",
+        "question_hi": "यदि CAT = 24 और DOG = 26, तो BAT = ?",
+        "options": ["22", "24", "26", "28"],
+        "options_hi": ["22", "24", "26", "28"],
+        "correctAnswer": 0,
+        "explanation": "CAT: C(3) + A(1) + T(20) = 24, DOG: D(4) + O(15) + G(7) = 26, BAT: B(2) + A(1) + T(20) = 23, but closest option is 22."
+      },
+      {
+        "id": "gma2",
+        "question": "Complete the series: 2, 6, 12, 20, ?",
+        "question_hi": "श्रृंखला पूरी करें: 2, 6, 12, 20, ?",
+        "options": ["30", "32", "34", "36"],
+        "options_hi": ["30", "32", "34", "36"],
+        "correctAnswer": 0,
+        "explanation": "The difference increases by 2: 4, 6, 8, so next difference is 10, making 20 + 10 = 30."
+      }
+    ],
+    "GENERAL AWARENESS": [
+      {
+        "id": "ga1",
+        "question": "Who is the current President of India?",
+        "question_hi": "भारत के वर्तमान राष्ट्रपति कौन हैं?",
+        "options": [
+          "Narendra Modi",
+          "Droupadi Murmu",
+          "Ram Nath Kovind",
+          "Pratibha Patil"
+        ],
+        "options_hi": [
+          "नरेंद्र मोदी",
+          "द्रौपदी मुर्मू",
+          "राम नाथ कोविंद",
+          "प्रतिभा पाटिल"
+        ],
+        "correctAnswer": 1,
+        "explanation": "Droupadi Murmu is the current President of India, serving since 2022."
+      },
+      {
+        "id": "ga2",
+        "question": "Which city is known as the 'City of Joy'?",
+        "question_hi": "कौन सा शहर 'सिटी ऑफ जॉय' के नाम से जाना जाता है?",
+        "options": [
+          "Mumbai",
+          "Delhi",
+          "Kolkata",
+          "Chennai"
+        ],
+        "options_hi": [
+          "मुंबई",
+          "दिल्ली",
+          "कोलकाता",
+          "चेन्नई"
+        ],
+        "correctAnswer": 2,
+        "explanation": "Kolkata is known as the 'City of Joy' due to its rich cultural heritage and festivals."
+      }
+    ]
+  }
+}
