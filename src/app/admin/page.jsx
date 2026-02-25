@@ -4481,13 +4481,13 @@ function UsersAdmin() {
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date joined</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">City/State</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Referral Code</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subscriptions</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Referrals</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -4509,6 +4509,9 @@ function UsersAdmin() {
                         {user.role === 'admin' && (
                           <span className="text-xs text-purple-600 font-semibold">Admin</span>
                         )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{formatDate(user.createdAt)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{user.email}</div>
@@ -4542,9 +4545,6 @@ function UsersAdmin() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{formatDate(user.createdAt)}</div>
-                      </td>
                     </tr>
                   ))
                 )}
@@ -4564,30 +4564,69 @@ function UsersAdmin() {
                 </button>
               </div>
               
-              <div className="grid md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p className="text-sm text-gray-600">Email</p>
-                  <p className="font-medium">{selectedUser.email}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Phone</p>
-                  <p className="font-medium">{selectedUser.phoneNumber}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Location</p>
-                  <p className="font-medium">{selectedUser.city}, {selectedUser.states}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Referral Code</p>
-                  <p className="font-medium font-mono">{selectedUser.referralCode || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Referral Rewards</p>
-                  <p className="font-medium">{selectedUser.referralRewards || 0} months earned</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Total Subscriptions</p>
-                  <p className="font-medium">{selectedUser.totalSubscriptions} ({selectedUser.activeSubscriptions} active)</p>
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">Account details (as created)</h4>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">Name</p>
+                    <p className="font-medium text-gray-900">{selectedUser.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">Email</p>
+                    <p className="font-medium text-gray-900">{selectedUser.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">Phone</p>
+                    <p className="font-medium text-gray-900">{selectedUser.phoneNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">State</p>
+                    <p className="font-medium text-gray-900">{selectedUser.states || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">City</p>
+                    <p className="font-medium text-gray-900">{selectedUser.city || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">Role</p>
+                    <p className="font-medium text-gray-900 capitalize">{selectedUser.role || 'user'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">Referral Code</p>
+                    <p className="font-medium font-mono text-gray-900">{selectedUser.referralCode || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">Referral Rewards</p>
+                    <p className="font-medium text-gray-900">{selectedUser.referralRewards ?? 0} months earned</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">Referred by (user ID)</p>
+                    <p className="font-medium font-mono text-gray-900 text-xs">{selectedUser.referredBy ? String(selectedUser.referredBy) : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">Profile photo</p>
+                    {selectedUser.profileUrl ? (
+                      <a href={selectedUser.profileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">View URL</a>
+                    ) : (
+                      <p className="font-medium text-gray-500">—</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">Joined (created)</p>
+                    <p className="font-medium text-gray-900">{formatDate(selectedUser.createdAt)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">Last updated</p>
+                    <p className="font-medium text-gray-900">{selectedUser.updatedAt ? formatDate(selectedUser.updatedAt) : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">Subscriptions</p>
+                    <p className="font-medium text-gray-900">{selectedUser.totalSubscriptions} total ({selectedUser.activeSubscriptions} active)</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase">Referrals</p>
+                    <p className="font-medium text-gray-900">{selectedUser.referralsGiven} given, {selectedUser.referralsReceived ?? 0} received</p>
+                  </div>
                 </div>
               </div>
 

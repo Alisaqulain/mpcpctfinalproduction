@@ -255,7 +255,7 @@ function DesktopView({
                   <img 
                     src={leftHandImage} 
                     alt="Left hand finger position" 
-                    className="w-130 h-600 object-contain opacity-85 transition-all duration-300 ease-out transform scale-110"
+                    className="w-130 h-600 object-contain opacity-85 transition-all duration-500 ease-in-out transform scale-110"
                   />
                 </div>
                 
@@ -263,7 +263,7 @@ function DesktopView({
                   <img 
                     src={rightHandImage} 
                     alt="Right hand finger position" 
-                    className="w-130 h-600 object-contain opacity-85 transition-all duration-300 ease-out transform scale-110"
+                    className="w-130 h-600 object-contain opacity-85 transition-all duration-500 ease-in-out transform scale-110"
                   />
                 </div>
                 
@@ -675,7 +675,7 @@ function PortraitMobileView({
                 height: auto;
                 object-fit: contain;
                 opacity: 0.85;
-                transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+                transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
               }
               .portrait-keyboard-hand-image.left {
                 object-position: left center;
@@ -1063,7 +1063,7 @@ function LandscapeMobileView({
                   <img 
                     src={leftHandImage} 
                     alt="Left hand finger position" 
-                    className="w-100 h-260 object-contain opacity-85 transition-all duration-300 ease-out transform scale-110"
+                    className="w-100 h-260 object-contain opacity-85 transition-all duration-500 ease-in-out transform scale-110"
                   />
                 </div>
                 
@@ -1071,7 +1071,7 @@ function LandscapeMobileView({
                   <img 
                     src={rightHandImage} 
                     alt="Right hand finger position" 
-                    className="w-100 h-260 object-contain opacity-85 transition-all duration-300 ease-out transform scale-110"
+                    className="w-100 h-260 object-contain opacity-85 transition-all duration-500 ease-in-out transform scale-110"
                   />
                 </div>
                 
@@ -2097,6 +2097,10 @@ function KeyboardApp() {
   // Single unified handler: hand animation, virtual keyboard highlight, typing correctness, stats.
   // Desktop: keydown. Mobile: beforeinput/input. On mobile, flushSync so animation commits immediately.
   const handleTypingKey = useCallback((key, source) => {
+    if (releaseKeyVisualTimeoutRef.current) {
+      clearTimeout(releaseKeyVisualTimeoutRef.current);
+      releaseKeyVisualTimeoutRef.current = null;
+    }
     const normalizedKey = normalizeKey(key);
     console.log("[Keyboard]", "source=" + source, "character=" + (key === " " ? "<space>" : key), "animation triggered");
     debugLog("handleTypingKey", { source, character: key === " " ? " " : key, normalizedKey });
@@ -2138,9 +2142,19 @@ function KeyboardApp() {
     handleTypingKey(e.key, "desktop");
   }, [handleTypingKey, currentIndex, highlightedKeys]);
 
+  const scheduleReleaseKeyVisual = useCallback(() => {
+    if (releaseKeyVisualTimeoutRef.current) clearTimeout(releaseKeyVisualTimeoutRef.current);
+    releaseKeyVisualTimeoutRef.current = setTimeout(() => {
+        releaseKeyVisualTimeoutRef.current = null;
+        setPressedKey("");
+        setLeftHandImage(keyToHandImage["resting"].left);
+        setRightHandImage(keyToHandImage["resting"].right);
+      }, 420);
+  }, []);
+
   const onDesktopKeyUp = useCallback(() => {
-    releaseKeyVisual();
-  }, [releaseKeyVisual]);
+    scheduleReleaseKeyVisual();
+  }, [scheduleReleaseKeyVisual]);
 
   // Desktop only: do NOT attach keydown on mobile user-agent to prevent double trigger (Android can fire both keydown and input)
   useEffect(() => {
@@ -2152,16 +2166,6 @@ function KeyboardApp() {
       window.removeEventListener("keyup", onDesktopKeyUp);
     };
   }, [onDesktopKeyDown, onDesktopKeyUp]);
-
-  const scheduleReleaseKeyVisual = useCallback(() => {
-    if (releaseKeyVisualTimeoutRef.current) clearTimeout(releaseKeyVisualTimeoutRef.current);
-    releaseKeyVisualTimeoutRef.current = setTimeout(() => {
-        releaseKeyVisualTimeoutRef.current = null;
-        setPressedKey("");
-        setLeftHandImage(keyToHandImage["resting"].left);
-        setRightHandImage(keyToHandImage["resting"].right);
-      }, 480);
-  }, []);
 
   // Mobile: process one key from value (last char or Backspace). Dedupe with beforeinput when it already handled.
   const processMobileInput = useCallback((value, fromBeforeInput = false) => {

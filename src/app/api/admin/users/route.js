@@ -21,9 +21,12 @@ export async function GET(request) {
 
     await dbConnect();
     
-    // Fetch all users with their subscriptions and referral stats
-    const users = await User.find({}).sort({ createdAt: -1 }).lean();
-    
+    // Fetch all users (exclude password) with their subscriptions and referral stats
+    const users = await User.find({})
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .lean();
+
     // Get subscription counts and referral stats for each user
     const usersWithStats = await Promise.all(
       users.map(async (user) => {
@@ -31,10 +34,10 @@ export async function GET(request) {
         const activeSubscriptions = subscriptions.filter(
           sub => sub.status === "active" && new Date(sub.endDate) > new Date()
         );
-        
+
         const referralsGiven = await Referral.countDocuments({ referrerId: user._id });
         const referralsReceived = await Referral.countDocuments({ referredUserId: user._id });
-        
+
         return {
           ...user,
           totalSubscriptions: subscriptions.length,

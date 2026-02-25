@@ -85,7 +85,8 @@ export default function TypingTutor() {
           const data = await res.json();
           console.log('[Learning Page] Loaded data:', data.sections?.length, 'sections,', data.sections?.reduce((sum, s) => sum + (s.lessons?.length || 0), 0), 'lessons');
           setLearningData(data);
-          
+          setSelectedSection(data.sections?.[0]?.id ?? "home");
+
           // Calculate statistics
           const totalLessons = data.metadata?.totalLessons || 0;
           const sections = data.sections?.length || 0;
@@ -115,6 +116,7 @@ export default function TypingTutor() {
           // Fallback to local data if API fails
           const data = getLearningData();
           setLearningData(data);
+          setSelectedSection(data.sections?.[0]?.id ?? "home");
           const statistics = getProgressStats();
           setStats(statistics);
           const languages = getAvailableLanguages();
@@ -125,6 +127,7 @@ export default function TypingTutor() {
         // Fallback to local data
         const data = getLearningData();
         setLearningData(data);
+        setSelectedSection(data.sections?.[0]?.id ?? "home");
         const statistics = getProgressStats();
         setStats(statistics);
         const languages = getAvailableLanguages();
