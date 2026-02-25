@@ -295,7 +295,7 @@ export default function TypingArea({
           if (index < highlightedIndex) {
             className = typedWords[index] === word ? "text-green-600" : "text-red-600";
           } else if (index === highlightedIndex) {
-            className = "bg-blue-500 text-white px-1 rounded";
+            className = "bg-blue-500 text-white px-1 rounded current-word-to-type";
           } else {
             className = "text-gray-500";
           }

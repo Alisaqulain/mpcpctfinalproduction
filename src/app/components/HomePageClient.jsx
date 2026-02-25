@@ -163,19 +163,19 @@ const App = () => {
 
                 if (label === "Learning")
                   return (
-                    <a href="/learning" key={label} aria-label={`Go to MPCPCT ${label} page`}>
+                    <a href="/learning" key={label} className="flex-1 min-w-0 sm:flex-initial" aria-label={`Go to MPCPCT ${label} page`}>
                       {card}
                     </a>
                   );
                 if (label === "Skill Test")
                   return (
-                    <a href="/skill_test" key={label} aria-label={`Go to MPCPCT ${label} page`}>
+                    <a href="/skill_test" key={label} className="flex-1 min-w-0 sm:flex-initial" aria-label={`Go to MPCPCT ${label} page`}>
                       {card}
                     </a>
                   );
                 if (label === "Exam Mode")
                   return (
-                    <a href="/exam" key={label} aria-label={`Go to MPCPCT ${label} page`}>
+                    <a href="/exam" key={label} className="flex-1 min-w-0 sm:flex-initial" aria-label={`Go to MPCPCT ${label} page`}>
                       {card}
                     </a>
                   );
@@ -185,34 +185,20 @@ const App = () => {
             </nav>
 
             {/* RIGHT SIDE LOGIN / LOGGED IN BOX */}
-            <aside className="w-full lg:w-48 border border-[#290c52] bg-gray-50 shadow-md p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:h-[620px] rounded animate-fadeInUp lg:mt-[-147px] flex flex-col items-center justify-center">
+            <aside className={`w-full lg:w-48 border border-[#290c52] bg-gray-50 shadow-md p-4 rounded animate-fadeInUp flex flex-col items-center justify-start ${isAuthenticated ? "py-4 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto lg:mt-[-147px] self-start" : "space-y-4 py-4 md:py-20 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:h-[620px] lg:mt-[-147px]"}`}>
               {isAuthenticated ? (
-                <>
-                  <div className="text-center">
-                    <div className="text-green-700 text-xl font-semibold">
-                      You are logged in
-                    </div>
-                    <a
-                      href="/profile"
-                      className="mt-4 block mx-auto bg-red-600 text-white py-2 px-4 rounded hover:scale-105 transition-transform text-center"
-                      aria-label="Go to MPCPCT profile"
-                    >
-                      Go to Profile
-                    </a>
+                <div className="text-center">
+                  <div className="text-green-700 text-xl font-semibold">
+                    You are logged in
                   </div>
-                  <div className="mt-auto">
-                    <Image
-                      src="/mpc.png"
-                      alt="MPCPCT Logo"
-                      width={80}
-                      height={80}
-                      className="w-16 h-16 md:w-20 md:h-20 mx-auto"
-                    />
-                    <p className="text-center text-xs md:text-[13px] text-gray-600 mt-1">
-                      MPCPCT - Empowering Education
-                    </p>
-                  </div>
-                </>
+                  <a
+                    href="/profile"
+                    className="mt-4 block mx-auto bg-red-600 text-white py-2 px-4 rounded hover:scale-105 transition-transform text-center"
+                    aria-label="Go to MPCPCT profile"
+                  >
+                    Go to Profile
+                  </a>
+                </div>
               ) : (
                 <>
                   <span className="text-pink-300 font-semibold text-[20px] border-l border-[#290c52] bg-[#290c52] pt-4 md:pt-7 pb-0 md:pb-6 text-center w-full lg:w-48 absolute right-0 lg:right-[-16px] z-10 top-[155px] rounded-tl-lg rounded-tr-lg md:rounded-none lg:top-[-148px]">
@@ -267,6 +253,14 @@ const App = () => {
                       {error && (
                         <p className="text-red-600 text-sm mt-1" role="alert">{error}</p>
                       )}
+
+                      <a
+                        href="/forgot-password"
+                        className="block text-sm text-red-600 hover:underline mt-2"
+                        aria-label="Forgot password"
+                      >
+                        Forgot Password?
+                      </a>
 
                       <button
                         type="submit"

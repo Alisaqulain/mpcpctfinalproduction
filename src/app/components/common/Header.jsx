@@ -7,18 +7,23 @@ export default function Header() {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
+  const [userProfile, setUserProfile] = useState(null); // { name, profileUrl }
+
   const checkAuthStatus = React.useCallback(async () => {
     try {
       const response = await fetch('/api/profile');
       if (response.ok) {
+        const data = await response.json();
         setIsAuthenticated(true);
+        setUserProfile(data.user ? { name: data.user.name, profileUrl: data.user.profileUrl } : null);
       } else {
         setIsAuthenticated(false);
+        setUserProfile(null);
       }
     } catch (error) {
       console.error('Auth check error:', error);
       setIsAuthenticated(false);
+      setUserProfile(null);
     }
   }, []);
 
@@ -38,6 +43,7 @@ export default function Header() {
 
     const handleAuthStateChanged = (event) => {
       setIsAuthenticated(event.detail.isAuthenticated);
+      if (!event.detail.isAuthenticated) setUserProfile(null);
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -81,29 +87,29 @@ export default function Header() {
 
   return (
     <header className="border-b shadow-sm relative z-50">
-      {/* Top Section */}
-      <div className="bg-white flex items-center justify-between px-4 py-4 relative">
-        <div className="z-10 md:block hidden">
-          <img src="/logor.png" alt="CPCT Logo" className="w-50 ml-35" />
+      {/* Top Section - mobile: logo left, title centered in rest; desktop: unchanged */}
+      <div className="bg-white flex flex-row items-center justify-between px-4 py-4 relative min-h-[80px] md:min-h-[120px]">
+        <div className="z-10 flex-shrink-0">
+          <img src="/logor.png" alt="CPCT Logo" className="h-10 w-auto object-contain md:w-50 md:ml-35 md:h-auto" />
         </div>
 
-        <div className="md:absolute inset-0 flex flex-col justify-center items-center text-center px-4 md:ml-0 ml-11">
+        <div className="flex-1 md:flex-none md:absolute inset-0 flex flex-col justify-center items-center text-center px-4 md:ml-0 min-w-0">
           <h1
-            className="text-3xl md:text-7xl font-extrabold uppercase md:mt-0 leading-[1.2] text-transparent bg-clip-text bg-center bg-cover"
+            className="text-4xl md:text-7xl font-extrabold uppercase md:mt-0 leading-[1.2] text-transparent bg-clip-text bg-center bg-cover"
             style={{
               backgroundImage: "url('/bg.jpg')",
             }}
           >
             MPCPCT
           </h1>
-          <p className="text-[12px] sm:text-sm md:text-2xl lg:text-3xl text-gray-600 font-semibold">
+          <p className="text-[11px] sm:text-sm md:text-2xl lg:text-3xl text-gray-600 font-semibold">
             <span className="hidden md:inline"></span>
             To Help in typing & computer proficiency
             <span className="hidden md:inline"></span>
           </p>
         </div>
 
-        <div className="z-10 text-right text-sm"></div>
+        <div className="z-10 text-right text-sm hidden md:block"></div>
       </div>
 
       {/* Mobile Nav Toggle */}
@@ -230,8 +236,15 @@ export default function Header() {
           <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-4 ml-2 md:ml-4">
             {isAuthenticated ? (
               <>
-                <a href="/profile" className="text-white hover:text-blue-300 transition-colors" title="Profile">
-                  <FaUserCircle className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7" />
+                <a href="/profile" className="flex items-center gap-2 text-white hover:text-blue-300 transition-colors" title="Profile">
+                  {userProfile?.profileUrl ? (
+                    <img src={userProfile.profileUrl} alt={userProfile?.name || "Profile"} className="w-8 h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-full border-2 border-white object-cover" />
+                  ) : (
+                    <FaUserCircle className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7" />
+                  )}
+                  {userProfile?.name && (
+                    <span className="hidden sm:inline text-xs md:text-sm lg:text-base font-medium truncate max-w-[100px] lg:max-w-[120px]">{userProfile.name}</span>
+                  )}
                 </a>
                 <button
                   onClick={handleLogout}
@@ -250,80 +263,101 @@ export default function Header() {
         </div>
       </nav>
 
+      {/* Mobile: backdrop - click outside to close */}
+      {mobileNavOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={() => setMobileNavOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Mobile Sidebar Navigation */}
       <div
-        className={`fixed top-0 right-0 h-full w-[80%] bg-[#290c52] text-white z-50 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-[80%] max-w-[320px] bg-[#290c52] text-white z-50 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
           mobileNavOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex justify-end p-4">
-          <button onClick={toggleMobileNav}>
+        <div className="flex justify-end p-3">
+          <button onClick={toggleMobileNav} className="p-1 text-red-500 hover:text-red-400" aria-label="Close menu">
             <FaTimes size={24} />
           </button>
         </div>
-<div className="flex flex-col items-center">
-          <img
-            src="/user.jpg"
-            alt="User"
-            className="w-24 h-24 rounded-full border-2 border-white mb-2"
-          />
-          <p className="text-lg font-semibold">User</p>
-        </div>
-        <ul className="mt-6 space-y-2 px-4">
-          <li className="border-b py-2"><a href="/">HOME</a></li>
+        <a
+          href={isAuthenticated ? "/profile" : "/login"}
+          onClick={() => setMobileNavOpen(false)}
+          className="flex flex-col items-center pb-3 no-underline text-white hover:opacity-90"
+        >
+          {isAuthenticated && (userProfile?.profileUrl) ? (
+            <img
+              src={userProfile.profileUrl}
+              alt={userProfile?.name || "User"}
+              className="w-16 h-16 rounded-full border-2 border-white mb-2 object-cover"
+            />
+          ) : (
+            <img
+              src="/user.jpg"
+              alt="User"
+              className="w-16 h-16 rounded-full border-2 border-white mb-2 object-cover"
+            />
+          )}
+          <p className="text-sm font-semibold">{isAuthenticated && (userProfile?.name) ? userProfile.name : "User"}</p>
+        </a>
+        <ul className="mt-3 space-y-1 px-3">
+          <li className="border-b border-white/20 py-2"><a href="/" onClick={() => setMobileNavOpen(false)} className="text-sm">HOME</a></li>
           <li>
             <button
               onClick={() => toggleDropdown("mobileCourse")}
-              className="w-full border-b pt-5 text-left py-2 flex justify-between items-center"
+              className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm"
             >
-              <span>COURSE</span> <span className="text-3xl">▾</span>
+              <span>COURSE</span> <span className="text-2xl">▾</span>
             </button>
             {openDropdown === "mobileCourse" && (
-              <ul className="pl-4 space-y-1 pt-4 text-sm text-gray-300">
-                <li><a href="/learning">Learning</a></li>
-                <li><a href="/skill_test">Skill Test</a></li>
-                <li><a href="/exam">Exam Mode</a></li>
-                <li><a href="/topicwise">Topic Wise MCQ</a></li>
+              <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-gray-300">
+                <li><a href="/learning" onClick={() => setMobileNavOpen(false)}>Learning</a></li>
+                <li><a href="/skill_test" onClick={() => setMobileNavOpen(false)}>Skill Test</a></li>
+                <li><a href="/exam" onClick={() => setMobileNavOpen(false)}>Exam Mode</a></li>
+                <li><a href="/topicwise" onClick={() => setMobileNavOpen(false)}>Topic Wise MCQ</a></li>
               </ul>
             )}
           </li>
           <li>
             <button
               onClick={() => toggleDropdown("mobileDownload")}
-              className="w-full border-b pt-5 text-left py-2 flex justify-between items-center"
+              className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm"
             >
-              <span>DOWNLOAD</span> <span className="text-3xl">▾</span>
+              <span>DOWNLOAD</span> <span className="text-2xl">▾</span>
             </button>
             {openDropdown === "mobileDownload" && (
-              <ul className="pl-4 space-y-1 pt-4 text-sm text-gray-300">
-                <li><a href="/notes?type=video_notes">Video Notes</a></li>
-                <li><a href="/notes?type=pdf_notes">Pdf Notes</a></li>
-                <li><a href="/notes?type=syllabus_pdf">Syllabus PDF</a></li>
+              <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-gray-300">
+                <li><a href="/notes?type=video_notes" onClick={() => setMobileNavOpen(false)}>Video Notes</a></li>
+                <li><a href="/notes?type=pdf_notes" onClick={() => setMobileNavOpen(false)}>Pdf Notes</a></li>
+                <li><a href="/notes?type=syllabus_pdf" onClick={() => setMobileNavOpen(false)}>Syllabus PDF</a></li>
               </ul>
             )}
           </li>
           <li>
             <button
               onClick={() => toggleDropdown("mobileOurApp")}
-              className="w-full border-b pt-5 text-left py-2 flex justify-between items-center"
+              className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm"
             >
-              <span>OUR APP</span> <span className="text-3xl">▾</span>
+              <span>OUR APP</span> <span className="text-2xl">▾</span>
             </button>
             {openDropdown === "mobileOurApp" && (
-              <ul className="pl-4 space-y-1 pt-4 text-sm text-gray-300">
-                <li><a href="android">Android App</a></li>
-                <li><a href="android">iOS App</a></li>
-                <li><a href="android">App Features</a></li>
+              <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-gray-300">
+                <li><a href="android" onClick={() => setMobileNavOpen(false)}>Android App</a></li>
+                <li><a href="android" onClick={() => setMobileNavOpen(false)}>iOS App</a></li>
+                <li><a href="android" onClick={() => setMobileNavOpen(false)}>App Features</a></li>
               </ul>
             )}
           </li>
-          <li className="border-b pt-5 py-2"><a href="/about-us">ABOUT US</a></li>
-          <li className="border-b pt-5 py-2"><a href="/payment-app">PAYMENT</a></li>
-          <li className="border-b pt-5 py-2"><a href="/contact-us">CONTACT US</a></li>
-          <li className="border-b pt-5 py-2"><a href="/faq">FAQ</a></li>
+          <li className="border-b border-white/20 py-2"><a href="/about-us" onClick={() => setMobileNavOpen(false)} className="text-sm">ABOUT US</a></li>
+          <li className="border-b border-white/20 py-2"><a href="/payment-app" onClick={() => setMobileNavOpen(false)} className="text-sm">PAYMENT</a></li>
+          <li className="border-b border-white/20 py-2"><a href="/contact-us" onClick={() => setMobileNavOpen(false)} className="text-sm">CONTACT US</a></li>
+          <li className="border-b border-white/20 py-2"><a href="/faq" onClick={() => setMobileNavOpen(false)} className="text-sm">FAQ</a></li>
         </ul>
 
-        <div className="flex justify-center items-center mt-10 px-4 space-x-2">
+        <div className="flex justify-center items-center mt-4 px-3 space-x-2 py-3">
           {isAuthenticated ? (
             <>
               <a href="/profile" className="text-white hover:text-blue-300 transition-colors" title="Profile">
@@ -331,15 +365,15 @@ export default function Header() {
               </a>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors text-sm"
               >
                 Logout
               </button>
             </>
           ) : (
             <>
-              <a href="/login" className="bg-white text-black px-4 py-2 rounded hover:bg-gray-100 transition-colors">Login</a>
-              <a href="/signup" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">Signup</a>
+              <a href="/login" className="bg-white text-black px-4 py-2 rounded hover:bg-gray-100 transition-colors text-sm">Login</a>
+              <a href="/signup" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors text-sm">Signup</a>
             </>
           )}
         </div>

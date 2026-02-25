@@ -1739,8 +1739,8 @@ function TypingTutorForm() {
               // Already typed words
               className = typedWords[index] === word ? "text-green-600" : "text-red-600";
             } else if (index === highlightedIndex) {
-              // Current word being typed (highlighted)
-              className = "bg-blue-500 text-white";
+              // Current word being typed (highlighted) - blue on all devices; explicit on mobile so it never shows red
+              className = "bg-blue-500 text-white current-word-to-type";
             } else {
               // Future words
               className = "text-gray-500";

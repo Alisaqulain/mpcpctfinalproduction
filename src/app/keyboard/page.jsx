@@ -152,20 +152,18 @@ function DesktopView({
               <div
                 key={`${currentRowIndex}-${displayIdx}`}
                 className={`
-                  ${key === "Space" ? "w-28 h-20 md:w-35 md:h-14 mt-1 mobile-space-key" : "w-16 h-14 mobile-small-key"}
+                  ${key === "Space" ? "w-28 h-8 md:w-35 md:h-10 mt-1 mobile-space-key space-key-box" : "w-16 h-14 mobile-small-key"}
                   rounded flex items-center justify-center text-2xl font-semibold mobile-small-text
                   ${marginClass}
                   transition-all duration-150
                   ${isRowAnimating ? 'animate-slide-in-right-key' : ''}
                   ${
-                    keyStatusForThisKey === "wrong"
+                    (isCurrentKey && keyStatusForThisKey !== "wrong")
+                      ? "bg-blue-600 border-blue-400 border-2 text-white"
+                      : keyStatusForThisKey === "wrong"
                       ? "bg-red-600 border-red-600 text-white"
                       : keyStatusForThisKey === "correct"
                       ? "bg-green-300 border-green-600 text-green-800"
-                      : isCurrentKey && key === "Space"
-                      ? "bg-blue-600 border-blue-400 border-2 text-white"
-                      : isCurrentKey
-                      ? "bg-blue-600 border-blue-400 border-2 text-white"
                       : isPressed && key === "Space"
                       ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
                       : isPressed
@@ -545,19 +543,17 @@ function PortraitMobileView({
               <div
                 key={`${currentRowIndex}-${displayIdx}`}
                 className={`
-                  ${key === "Space" ? "w-12 h-10 min-w-[36px]" : "w-8 h-10 min-w-[24px]"}
+                  ${key === "Space" ? "w-12 h-8 min-w-[36px] space-key-box portrait-space-key" : "w-8 h-10 min-w-[24px]"}
                   rounded flex items-center justify-center text-xs font-semibold
                   transition-all duration-200 ease-out flex-shrink-0 portrait-char-box
                   ${isRowAnimating ? 'animate-slide-in-right-key' : ''}
                   ${
-                    keyStatusForThisKey === "wrong"
+                    isCurrentKey
+                      ? "bg-blue-600 border-blue-400 border-2 text-white"
+                      : keyStatusForThisKey === "wrong"
                       ? "bg-red-600 border-red-600 text-white"
                       : keyStatusForThisKey === "correct"
                       ? "bg-green-300 border-green-600 text-green-800"
-                      : isCurrentKey && key === "Space"
-                      ? "bg-blue-600 border-blue-400 border-2 text-white"
-                      : isCurrentKey
-                      ? "bg-blue-600 border-blue-400 border-2 text-white"
                       : isPressed && key === "Space"
                       ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
                       : isPressed
@@ -1019,19 +1015,17 @@ function LandscapeMobileView({
               <div
                 key={`${currentRowIndex}-${displayIdx}`}
                 className={`
-                  ${key === "Space" ? "w-32 h-14 text-xl" : "w-16 h-14"}
+                  ${key === "Space" ? "w-32 h-8 text-xl space-key-box landscape-space-key" : "w-16 h-14"}
                   rounded flex items-center justify-center text-2xl font-semibold
                   transition-all duration-200 ease-out flex-shrink-0 landscape-char-box
                
                   ${
-                    keyStatusForThisKey === "wrong"
+                    isCurrentKey
+                      ? "bg-blue-600 border-blue-400 border-2 text-white"
+                      : keyStatusForThisKey === "wrong"
                       ? "bg-red-600 border-red-600 text-white"
                       : keyStatusForThisKey === "correct"
                       ? "bg-green-300 border-green-600 text-green-800"
-                      : isCurrentKey && key === "Space"
-                      ? "bg-blue-600 border-blue-400 border-2 text-white"
-                      : isCurrentKey
-                      ? "bg-blue-600 border-blue-400 border-2 text-white"
                       : isPressed && key === "Space"
                       ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
                       : isPressed
@@ -1387,6 +1381,11 @@ function KeyboardApp() {
   const releaseKeyVisualTimeoutRef = useRef(null);
   // Prevent double trigger: beforeinput and input both fire on mobile; we skip input if beforeinput already handled
   const lastHandledByBeforeInputRef = useRef(null);
+  // Keep currentIndex in a ref so processKeyForPractice always updates ONLY the current index (avoids wrong/next index on double events)
+  const currentIndexRef = useRef(0);
+  // Mobile: avoid duplicate state update when multiple events fire for one keypress (beforeinput + input, etc.)
+  const mobileKeyDedupeRef = useRef({ index: -1, key: null, at: 0 });
+  const MOBILE_DEDUPE_MS = 120;
   const isMobileUserAgentRef = useRef(
     typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(navigator.userAgent)
   );
@@ -2054,25 +2053,33 @@ function KeyboardApp() {
     }
   }, [timer, isCompleted]);
 
-  // Shared logic for both desktop (keydown) and mobile (input onChange)
+  // Shared logic for both desktop and mobile. Only updates keyStatus at the CURRENT index (from ref) to avoid next letter turning red on double events.
   const processKeyForPractice = useCallback((normalizedKey, isBackspace = false) => {
-    if (currentIndex >= highlightedKeys.length) return;
+    const indexToUpdate = currentIndexRef.current;
+    if (indexToUpdate < 0 || indexToUpdate >= highlightedKeys.length) return;
     if (isBackspace) {
       setBackspaceCount(prev => prev + 1);
       return;
     }
-    const expectedKey = highlightedKeys[currentIndex];
+    const expectedKey = highlightedKeys[indexToUpdate];
     const isCorrect = normalizedKey === expectedKey;
-    const newKeyStatus = [...keyStatus];
-    newKeyStatus[currentIndex] = isCorrect ? 'correct' : 'wrong';
-    setKeyStatus(newKeyStatus);
+
+    // Only ever update the single index that is current; use functional update to avoid stale state
+    setKeyStatus(prev => {
+      const next = [...prev];
+      if (indexToUpdate >= 0 && indexToUpdate < next.length) {
+        next[indexToUpdate] = isCorrect ? 'correct' : 'wrong';
+      }
+      return next;
+    });
+
     if (!isCorrect && expectedKey) {
       setKeyDifficulties(prev => ({
         ...prev,
         [expectedKey]: (prev[expectedKey] || 0) + 1
       }));
     }
-    if (!startTime && currentIndex === 0) {
+    if (!startTime && indexToUpdate === 0) {
       setStartTime(Date.now());
     }
     if (isCorrect) {
@@ -2085,25 +2092,36 @@ function KeyboardApp() {
         return nextIndex;
       });
     }
-    const totalAttempts = currentIndex + (isCorrect ? 1 : 0) + wrongCount;
-    const newAccuracy = Math.round(((currentIndex + (isCorrect ? 1 : 0)) / totalAttempts) * 100);
+    const totalAttempts = indexToUpdate + (isCorrect ? 1 : 0) + wrongCount;
+    const newAccuracy = Math.round(((indexToUpdate + (isCorrect ? 1 : 0)) / totalAttempts) * 100);
     setAccuracy(newAccuracy);
     if (sound) {
       const audio = new Audio(isCorrect ? '/correct.mp3' : '/wrong.mp3');
       audio.play().catch(e => console.log("Audio play failed:", e));
     }
-  }, [currentIndex, keyStatus, wrongCount, sound, highlightedKeys, startTime]);
+  }, [wrongCount, sound, highlightedKeys, startTime]);
 
   // Single unified handler: hand animation, virtual keyboard highlight, typing correctness, stats.
-  // Desktop: keydown. Mobile: beforeinput/input. On mobile, flushSync so animation commits immediately.
+  // Desktop: keydown. Mobile: beforeinput/input. On mobile we dedupe so only one state update runs per keypress.
   const handleTypingKey = useCallback((key, source) => {
     if (releaseKeyVisualTimeoutRef.current) {
       clearTimeout(releaseKeyVisualTimeoutRef.current);
       releaseKeyVisualTimeoutRef.current = null;
     }
     const normalizedKey = normalizeKey(key);
+    const idx = currentIndexRef.current;
     console.log("[Keyboard]", "source=" + source, "character=" + (key === " " ? "<space>" : key), "animation triggered");
     debugLog("handleTypingKey", { source, character: key === " " ? " " : key, normalizedKey });
+
+    // Mobile: prevent duplicate state update when beforeinput + input (or multiple events) fire for one keypress
+    if (source === "mobile") {
+      const now = Date.now();
+      const d = mobileKeyDedupeRef.current;
+      if (d.index === idx && d.key === normalizedKey && (now - d.at) < MOBILE_DEDUPE_MS) {
+        return;
+      }
+      mobileKeyDedupeRef.current = { index: idx, key: normalizedKey, at: now };
+    }
 
     const applyVisual = () => {
       updateHandImages(normalizedKey);
@@ -2115,13 +2133,13 @@ function KeyboardApp() {
       applyVisual();
     }
 
-    if (currentIndex >= highlightedKeys.length) return;
+    if (idx >= highlightedKeys.length) return;
     if (key === "Backspace" || normalizedKey === "Backspace") {
       processKeyForPractice(normalizedKey, true);
       return;
     }
     processKeyForPractice(normalizedKey);
-  }, [currentIndex, highlightedKeys, updateHandImages, processKeyForPractice]);
+  }, [highlightedKeys, updateHandImages, processKeyForPractice]);
 
   const releaseKeyVisual = useCallback(() => {
     if (releaseKeyVisualTimeoutRef.current) {
@@ -2280,6 +2298,8 @@ function KeyboardApp() {
     setRightHandImage(keyToHandImage["resting"].right);
     setMobileInputValue("");
     lastProcessedValueRef.current = 0;
+    currentIndexRef.current = 0;
+    mobileKeyDedupeRef.current = { index: -1, key: null, at: 0 };
     if (isMobile && inputRef.current) {
       inputRef.current.value = "";
       inputRef.current.focus();
@@ -2455,12 +2475,19 @@ function KeyboardApp() {
     saveAndRedirect();
   }, [isCompleted, startTime, endTime, totalCount, highlightedKeys, keyDifficulties, lessonId, language, subLanguage, userName]);
 
+  // Keep currentIndexRef in sync so we only ever update keyStatus for the true current index
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+
   // Update keyStatus when highlightedKeys changes
   useEffect(() => {
     setKeyStatus(Array(highlightedKeys.length).fill(null));
     setCurrentIndex(0);
     setCurrentRowIndex(0);
     setIsRowAnimating(false);
+    currentIndexRef.current = 0;
+    mobileKeyDedupeRef.current = { index: -1, key: null, at: 0 };
   }, [highlightedKeys]);
 
   const formatClock = (seconds) => {
@@ -2771,10 +2798,10 @@ function KeyboardApp() {
             font-size: 0.7rem !important;
           }
           
-          /* PORTRAIT: Space key size for typing prompt in portrait */
+          /* PORTRAIT: Space key size for typing prompt in portrait - reduced height */
           .mobile-space-key {
             width: 60px !important;
-            height: 30px !important;
+            height: 14px !important;
           }
           
           /* PORTRAIT: Typing prompt - tight layout so all 8 boxes fit, no half-cut */
@@ -2809,13 +2836,13 @@ function KeyboardApp() {
             flex-shrink: 0 !important;
           }
           
-          /* PORTRAIT: Space box - 36px so total row fits */
+          /* PORTRAIT: Space box - reduced height so row is compact */
           .portrait-typing-prompt > div[class*="w-12"]:not([class*="w-8"]) {
             width: 36px !important;
             min-width: 36px !important;
             max-width: 36px !important;
-            height: 40px !important;
-            min-height: 40px !important;
+            height: 20px !important;
+            min-height: 20px !important;
             flex-shrink: 0 !important;
           }
           
@@ -2965,10 +2992,10 @@ function KeyboardApp() {
             font-size: 0.8rem !important;
           }
           
-          /* LANDSCAPE: Space key size for landscape mobile */
+          /* LANDSCAPE: Space key size for landscape mobile - reduced height */
           .mobile-space-key {
             width: 90px !important;
-            height: 20px !important;
+            height: 10px !important;
             font-size: 0.8rem !important;
           }
           
@@ -3129,15 +3156,15 @@ function KeyboardApp() {
             flex-shrink: 0 !important;
           }
           
-          /* LANDSCAPE: Space key in typing prompt - increased size */
+          /* LANDSCAPE: Space key in typing prompt - reduced height */
           .landscape-typing-prompt > div[class*="w-32"],
           .landscape-typing-prompt > div[class*="w-22"],
           .landscape-typing-prompt > div[class*="w-24"] {
             width: 140px !important;
             min-width: 140px !important;
             max-width: 140px !important;
-            height: 64px !important;
-            min-height: 64px !important;
+            height: 34px !important;
+            min-height: 34px !important;
             flex-shrink: 0 !important;
           }
           
@@ -3226,48 +3253,7 @@ function KeyboardApp() {
       {/* Render appropriate view based on device and orientation */}
       {renderView()}
 
-      {/* Completion Result Modal */}
-      {isCompleted && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`bg-white rounded-lg p-6 md:p-8 max-w-md w-full mx-4 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}>
-            <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 text-green-600">
-              🎉 Practice Completed!
-            </h2>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-3xl font-bold text-green-600">{finalWpm}</div>
-                <div className="text-sm text-gray-600 mt-1">WPM</div>
-              </div>
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-3xl font-bold text-blue-600">{finalAccuracy}%</div>
-                <div className="text-sm text-gray-600 mt-1">Accuracy</div>
-              </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-3xl font-bold text-purple-600">{Math.round(timeTaken)}s</div>
-                <div className="text-sm text-gray-600 mt-1">Time</div>
-              </div>
-              <div className="text-center p-4 bg-orange-50 rounded-lg">
-                <div className="text-3xl font-bold text-orange-600">{displayCorrectCount}/{totalCount}</div>
-                <div className="text-sm text-gray-600 mt-1">Correct/Total</div>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={resetStats}
-                className="flex-1 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors font-semibold"
-              >
-                Try Again
-              </button>
-              <button
-                onClick={() => window.location.href = '/learning'}
-                className="flex-1 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-semibold"
-              >
-                Back to Lessons
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* No popup: redirect goes directly to result page */}
       </div>
     </div>
   );

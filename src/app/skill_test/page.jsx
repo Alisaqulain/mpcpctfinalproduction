@@ -38,6 +38,7 @@ export default function TypingTutor() {
     }
   });
   const [loading, setLoading] = useState(true);
+  const exerciseSectionRef = useRef(null);
 
   // Load learning data for exercise content linking
   const [learningData, setLearningData] = useState(null);
@@ -427,7 +428,10 @@ export default function TypingTutor() {
               className="w-4 h-4"
               value={time}
               checked={duration === time}
-              onChange={() => setDuration(time)}
+              onChange={() => {
+                setDuration(time);
+                exerciseSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
             />
             <span className="text-xs md:text-sm font-semibold text-[#290c52]">{time}M</span>
           </label>
@@ -469,8 +473,8 @@ export default function TypingTutor() {
 
 
 
-      {/* Exercise Selection & Preview - Main Content Area */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden mb-4">
+      {/* Exercise Selection & Preview - Main Content Area (ref for scroll on duration change) */}
+      <div ref={exerciseSectionRef} className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden mb-4">
         <div className="bg-[#290c52] text-white p-3 border-b border-gray-300">
           <h2 className="text-base md:text-xl font-bold text-white flex items-center gap-2">
             <span className="bg-yellow-400 text-[#290c52] rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">4</span>

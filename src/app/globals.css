@@ -76,6 +76,44 @@ body {
   display: none;  /* Chrome, Safari and Opera */
 }
 
+/* Mobile: word-to-type always blue (match desktop), never red */
+@media (max-width: 768px) {
+  .current-word-to-type {
+    background-color: #3b82f6 !important;
+    color: white !important;
+  }
+}
+
+/* Keyboard page: Space key height on mobile (portrait + landscape) - slightly taller for tap */
+@media (max-width: 768px) {
+  .space-key-box.mobile-space-key,
+  .space-key-box {
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+  }
+  .space-key-box.portrait-space-key {
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+  }
+  .space-key-box.landscape-space-key {
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+  }
+}
+
+/* Learning page: increase gap between sidebar sections (Home, lower, etc.) on mobile */
+@media (max-width: 767px) {
+  .learning-sidebar-sections {
+    gap: 2rem !important;
+  }
+  .learning-sidebar-item {
+    margin-bottom: 0.25rem !important;
+  }
+}
+
 /* Landscape view optimizations for typing interface */
 @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
   .landscape-typing-box {

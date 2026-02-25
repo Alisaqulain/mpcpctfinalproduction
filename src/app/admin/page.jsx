@@ -64,6 +64,12 @@ export default function AdminPanel() {
   const [examTypesLoading, setExamTypesLoading] = useState(false);
   const [showExamTypeForm, setShowExamTypeForm] = useState(false);
   const [editingExamType, setEditingExamType] = useState(null);
+  // Number of MCQ options per question (default 4; admin can increase for exams that need 5, 6, etc.)
+  const [numberOfMcqOptions, setNumberOfMcqOptions] = useState(() => {
+    if (typeof window === 'undefined') return 4;
+    const v = parseInt(localStorage.getItem('admin_mcq_options_count'), 10);
+    return (v >= 2 && v <= 10) ? v : 4;
+  });
 
   // Check if user is admin
   useEffect(() => {
@@ -764,7 +770,8 @@ export default function AdminPanel() {
 
       {activeTab==='exams' && (
         <>
-          {/* CPCT PDF Upload and Import - MOVED TO TOP */}
+          {/* COMMENTED OUT: Upload CPCT PDF, CPCT/CCC/RSCIT Management, Import sections - remove {false && ( <> and </> )} to restore */}
+          {false && (<>
           <div className="bg-green-50 border-2 border-green-400 rounded-lg p-4 mb-6">
             <p className="text-sm text-green-900 mb-3 font-bold">
               <strong>📄 Upload CPCT Exam PDF:</strong>
@@ -3104,6 +3111,37 @@ What has enabled cashless transactions? A. Barter B. Digital payments C. Physica
             </button>
           </div>
 
+          </>)}
+
+          {/* Exam options count: admin can increase from default 4 to 5, 6, etc. */}
+          <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-4 mb-6">
+            <p className="text-sm text-amber-900 mb-2 font-bold">
+              📋 Number of MCQ options per question
+            </p>
+            <p className="text-xs text-amber-700 mb-3">
+              Default is 4 (A, B, C, D). Increase this if your exams have more choices per question (e.g. 5 or 6 options).
+              <br />This setting is saved in your browser and applies when adding/editing questions.
+            </p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <label className="text-sm font-medium text-gray-700">Options per question:</label>
+              <input
+                type="number"
+                min={2}
+                max={10}
+                value={numberOfMcqOptions}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  if (v >= 2 && v <= 10) {
+                    setNumberOfMcqOptions(v);
+                    localStorage.setItem('admin_mcq_options_count', String(v));
+                  }
+                }}
+                className="w-20 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              />
+              <span className="text-xs text-gray-500">(2–10). Current: {numberOfMcqOptions} options</span>
+            </div>
+          </div>
+
           {/* Four Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Exams Column */}
@@ -3539,6 +3577,13 @@ What has enabled cashless transactions? A. Barter B. Digital payments C. Physica
               onSave={handleSaveExam} 
               onClose={() => { setShowExamForm(false); setEditingExam(null); }} 
               saving={saving}
+              onOpenAddExamType={() => {
+                setShowExamForm(false);
+                setEditingExam(null);
+                setActiveTab('examTypes');
+                setShowExamTypeForm(true);
+                setEditingExamType(null);
+              }}
             />
           )}
           {showSectionForm && (
@@ -4824,7 +4869,7 @@ function UsersAdmin() {
 }
 
 // Form Modal Components
-function ExamFormModal({ exam, examTypes = [], onSave, onClose, saving }) {
+function ExamFormModal({ exam, examTypes = [], onSave, onClose, saving, onOpenAddExamType }) {
   const defaultKey = examTypes.length > 0 ? (examTypes.find((t) => !t.isTopicWise)?.key || examTypes[0].key) : 'CPCT';
   const [formData, setFormData] = useState({
     title: exam?.title || '',
@@ -4901,8 +4946,20 @@ function ExamFormModal({ exam, examTypes = [], onSave, onClose, saving }) {
               )}
             </select>
             <p className="text-xs text-gray-500 mt-1">
-              {exam ? 'Exam type cannot be changed after creation' : 'This determines which exam mode it appears in. Add more types under Exam Types tab.'}
+              {exam ? 'Exam type cannot be changed after creation' : 'This determines which exam mode it appears in.'}
             </p>
+            {!exam && onOpenAddExamType && (
+              <p className="mt-2">
+                <button
+                  type="button"
+                  onClick={onOpenAddExamType}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  + Add new exam type (e.g. 4th, 5th exam)
+                </button>
+                <span className="text-xs text-gray-500 block mt-0.5">You’ll add the type, then return here to create the exam.</span>
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -5161,6 +5218,7 @@ function SectionFormModal({ onSave, onClose, saving }) {
 }
 
 function QuestionFormModal({ question, onSave, onClose, saving }) {
+  const numberOfMcqOptions = (typeof window !== 'undefined' && (v => (v >= 2 && v <= 10) ? v : 4)(parseInt(localStorage.getItem('admin_mcq_options_count'), 10))) || 4;
   console.log('📋 QuestionFormModal rendered with question:', {
     _id: question?._id,
     question_en: question?.question_en,
@@ -5525,10 +5583,10 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
                   value={formData.options}
                   onChange={(e) => setFormData({...formData, options: e.target.value})}
                   className="w-full border rounded-lg px-4 py-2"
-                  placeholder="Option 1, Option 2, Option 3, Option 4"
+                  placeholder={Array.from({ length: numberOfMcqOptions }, (_, i) => `Option ${i + 1}`).join(', ')}
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">Separate options with commas</p>
+                <p className="text-xs text-gray-500 mt-1">Separate options with commas ({numberOfMcqOptions} options)</p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Options (Hindi) - Optional</label>
@@ -5537,9 +5595,9 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
                   value={formData.options_hi}
                   onChange={(e) => setFormData({...formData, options_hi: e.target.value})}
                   className="w-full border rounded-lg px-4 py-2"
-                  placeholder="विकल्प 1, विकल्प 2, विकल्प 3, विकल्प 4"
+                  placeholder={Array.from({ length: numberOfMcqOptions }, (_, i) => `विकल्प ${i + 1}`).join(', ')}
                 />
-                <p className="text-xs text-gray-500 mt-1">Separate options with commas (optional)</p>
+                <p className="text-xs text-gray-500 mt-1">Separate options with commas, optional ({numberOfMcqOptions} options)</p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Correct Answer Index *</label>
@@ -9146,6 +9204,7 @@ function TopicForm({ topic, onSave, onCancel, saving, error }) {
 }
 
 function TopicWiseQuestionForm({ question, onSave, onCancel, saving, error }) {
+  const numOptions = (typeof window !== 'undefined' && (v => (v >= 2 && v <= 10) ? v : 4)(parseInt(localStorage.getItem('admin_mcq_options_count'), 10))) || 4;
   const [formData, setFormData] = useState({
     question: question?.question_en || '',
     question_hi: question?.question_hi || '',
@@ -9203,10 +9262,10 @@ function TopicWiseQuestionForm({ question, onSave, onCancel, saving, error }) {
             value={formData.options}
             onChange={(e) => setFormData({...formData, options: e.target.value})}
             className="w-full border rounded px-3 py-2 text-sm"
-            placeholder="Option 1, Option 2, Option 3, Option 4"
+            placeholder={Array.from({ length: numOptions }, (_, i) => `Option ${i + 1}`).join(', ')}
             required
           />
-          <p className="text-xs text-gray-500 mt-1">Separate options with commas</p>
+          <p className="text-xs text-gray-500 mt-1">Separate options with commas ({numOptions} options)</p>
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Options (Hindi) - Optional</label>
@@ -9215,7 +9274,7 @@ function TopicWiseQuestionForm({ question, onSave, onCancel, saving, error }) {
             value={formData.options_hi}
             onChange={(e) => setFormData({...formData, options_hi: e.target.value})}
             className="w-full border rounded px-3 py-2 text-sm"
-            placeholder="विकल्प 1, विकल्प 2, विकल्प 3, विकल्प 4"
+            placeholder={Array.from({ length: numOptions }, (_, i) => `विकल्प ${i + 1}`).join(', ')}
           />
         </div>
         <div>
@@ -9226,9 +9285,10 @@ function TopicWiseQuestionForm({ question, onSave, onCancel, saving, error }) {
             onChange={(e) => setFormData({...formData, correctAnswer: parseInt(e.target.value) || 0})}
             className="w-full border rounded px-3 py-2 text-sm"
             min="0"
+            max={numOptions - 1}
             required
           />
-          <p className="text-xs text-gray-500 mt-1">0 = first option, 1 = second option, etc.</p>
+          <p className="text-xs text-gray-500 mt-1">0 = first option, 1 = second option, etc. (0–{numOptions - 1})</p>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>

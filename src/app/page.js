@@ -497,7 +497,7 @@ const App = () => {
           </div>
 
           <div className="flex flex-col lg:flex-row justify-between gap-4 md:gap-6 relative">
-            <div className="flex justify-center ml-0 md:ml-28 md:justify-start mt-10 md:mt-20 animate-fadeInUp gap-4 md:gap-8 lg:gap-x-8 lg:gap-y-6 w-full home-card-container">
+            <div className="flex justify-center ml-0 md:ml-28 md:justify-start mt-10 md:mt-20 animate-fadeInUp gap-2 md:gap-8 lg:gap-x-8 lg:gap-y-6 w-full home-card-container">
               {items.map(({ label, img }) => {
                 let colorClass = "bg-red-600";
                 if (label === "Learning") colorClass = "bg-green-800";
@@ -507,7 +507,7 @@ const App = () => {
                 const card = (
                   <div
                     key={label}
-                    className="w-25 sm:w-72 h-auto md:h-64 rounded-xl overflow-hidden shadow-md border-4 md:border-8 border-[#290c52] bg-white cursor-pointer transform transition-transform duration-300 hover:scale-105 home-card"
+                    className="w-full sm:w-72 h-auto md:h-64 rounded-xl overflow-hidden shadow-md border-4 md:border-8 border-[#290c52] bg-white cursor-pointer transform transition-transform duration-300 hover:scale-105 home-card"
                   >
                     <div className="h-20 w-full md:h-48 md:w-full home-card-image relative">
                       <Image
@@ -530,19 +530,19 @@ const App = () => {
 
                 if (label === "Learning")
                   return (
-                    <a href="/learning" key={label}>
+                    <a href="/learning" key={label} className="flex-1 min-w-0 sm:flex-initial">
                       {card}
                     </a>
                   );
                 if (label === "Skill Test")
                   return (
-                    <a href="/skill_test" key={label}>
+                    <a href="/skill_test" key={label} className="flex-1 min-w-0 sm:flex-initial">
                       {card}
                     </a>
                   );
                 if (label === "Exam Mode")
                   return (
-                    <a href="/exam" key={label}>
+                    <a href="/exam" key={label} className="flex-1 min-w-0 sm:flex-initial">
                       {card}
                     </a>
                   );
@@ -553,7 +553,7 @@ const App = () => {
 
             {/* RIGHT SIDE LOGIN / LOGGED IN BOX */}
             {isAuthenticated ? (
-              <div className="w-full lg:w-48 border border-[#290c52] bg-gray-50 shadow-md p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:h-[620px] rounded animate-fadeInUp lg:mt-[-147px] flex flex-col items-center justify-center home-login-box">
+              <div className="w-full lg:w-48 border border-[#290c52] bg-gray-50 shadow-md p-4 py-4 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto rounded animate-fadeInUp lg:mt-[-147px] flex flex-col items-center justify-start self-start home-login-box">
                 <div className="text-center">
                   <div className="text-green-700 text-xl font-semibold">
                     You are logged in
@@ -564,18 +564,6 @@ const App = () => {
                   >
                     Go to Profile
                   </a>
-                </div>
-                <div className="mt-auto">
-                  <Image
-                    src="/mpc.png"
-                    alt="MPCPCT Logo"
-                    width={80}
-                    height={80}
-                    className="w-16 h-16 md:w-20 md:h-20 mx-auto"
-                  />
-                  <p className="text-center text-xs md:text-[13px] text-gray-600 mt-1">
-                    MPCPCT - Empowering Education
-                  </p>
                 </div>
               </div>
             ) : (
@@ -632,6 +620,13 @@ const App = () => {
                     {error && (
                       <p className="text-red-600 text-sm mt-1">{error}</p>
                     )}
+
+                    <a
+                      href="/forgot-password"
+                      className="block text-sm text-red-600 hover:underline mt-2"
+                    >
+                      Forgot Password?
+                    </a>
 
                     <button
                       type="submit"

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   getLearningData, 
   getSections, 
@@ -25,6 +25,8 @@ export default function TypingTutor() {
   const [currentLessonContent, setCurrentLessonContent] = useState("");
   const [userSubscription, setUserSubscription] = useState(null);
   const [accessChecks, setAccessChecks] = useState({});
+  const [showWordTypingPopup, setShowWordTypingPopup] = useState(false);
+  const lessonSectionRef = useRef(null);
 
   // Check user subscription and access
   useEffect(() => {
@@ -136,6 +138,24 @@ export default function TypingTutor() {
     };
     fetchData();
   }, []);
+
+  // By default select first lesson of current section (e.g. section 1 → 1.1, section 2 → 2.1). Works on mobile too.
+  useEffect(() => {
+    if (!learningData?.sections?.length || !selectedSection) return;
+    const section = learningData.sections.find((s) => s.id === selectedSection);
+    const firstLesson = section?.lessons?.[0];
+    if (firstLesson) setSelectedCheckbox(firstLesson);
+  }, [learningData, selectedSection]);
+
+  // Auto-show word typing popup only on mobile when a word lesson is selected
+  useEffect(() => {
+    if (selectedCheckbox?.lessonType !== "word") {
+      setShowWordTypingPopup(false);
+      return;
+    }
+    if (typeof window !== "undefined" && window.innerWidth < 768) setShowWordTypingPopup(true);
+    else setShowWordTypingPopup(false);
+  }, [selectedCheckbox?.id, selectedCheckbox?.lessonType]);
 
   // Update lesson content when language or lesson selection changes
   useEffect(() => {
@@ -326,7 +346,10 @@ export default function TypingTutor() {
               className="w-4 h-4"
               value={time}
               checked={duration === time}
-              onChange={() => setDuration(time)}
+              onChange={() => {
+                setDuration(time);
+                lessonSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
             />
             <span className="text-xs md:text-sm font-semibold text-[#290c52]">{time}M</span>
           </label>
@@ -359,21 +382,22 @@ export default function TypingTutor() {
 
 
 
-      {/* Main Content Section */}
-      <div className="flex flex-row min-h-screen bg-blue-200 bg-[url('/bg.jpg')]">
-        {/* Sidebar Navigation */}
-        <div className="w-32 bg-transparent text-white pt-14 space-y-17 text-1rem md:text-4xl pl-2 md:pl-10 flex flex-col">
+      {/* Main Content Section - ref for scroll on duration change */}
+      <div ref={lessonSectionRef} className="flex flex-row min-h-screen bg-blue-200 bg-[url('/bg.jpg')]">
+        {/* Sidebar - mobile: 20% left; desktop: w-32 unchanged */}
+        <div className="w-[20%] min-w-0 flex-shrink-0 md:w-32 bg-transparent text-white pt-14 pl-1 md:pl-10 flex flex-col gap-8 md:gap-[2.5rem] text-sm md:text-1rem md:text-4xl learning-sidebar-sections">
           {learningData.sections?.map((section, index) => (
             <p
               key={section.id}
               onClick={() => {
                 setSelectedSection(section.id);
-                setSelectedCheckbox(null);
+                const firstLesson = section.lessons?.[0];
+                setSelectedCheckbox(firstLesson ?? null);
               }}
-              className={`cursor-pointer py-2 rounded-md ${
-                selectedSection === section.id 
-                  ? "w-[200] md:w-[500] bg-white text-[#290c52] font-bold pl-2" 
-                  : "w-[190px] border-none pl-2"
+              className={`cursor-pointer py-1.5 md:py-2 rounded-md learning-sidebar-item ${
+                selectedSection === section.id
+                  ? "bg-white text-[#290c52] font-bold pl-1 md:pl-2 md:w-[500px]"
+                  : "border-none pl-1 md:pl-2 md:w-[190px]"
               }`}
             >
               <span className="text-yellow-400">{section.lessonNumber}.</span>{section.name}
@@ -381,8 +405,9 @@ export default function TypingTutor() {
           ))}
         </div>
 
-        {/* Content Area */}
-        <div className="bg-white p-6 shadow-md w-[60%] md:w-[70%] mx-auto mt-5 mr-2 md:mr-25">
+        {/* Content Area - mobile: rest (80%); desktop: unchanged */}
+        <div className="flex-1 min-w-0 flex justify-center md:contents">
+          <div className="bg-white p-4 md:p-6 shadow-md w-full max-w-[100%] md:w-[85%] md:max-w-none mx-auto mt-5 mr-1 md:mr-4 min-w-0">
           {currentSection && (
             <>
           <h2 className="text-center font-bold italic mb-4 text-md md:text-5xl">
@@ -390,37 +415,22 @@ export default function TypingTutor() {
           </h2>
               <p className="text-center text-gray-600 mb-6">{currentSection.description}</p>
 
-          {/* Lesson List with Single Select Checkbox */}
-          <ul className="space-y-8 mb-6 ml-0 md:ml-75 mt-10">
+          {/* Lesson List - mobile: slightly larger than default; desktop: full (number, title, difficulty, time, badges, description) */}
+          <ul className="space-y-4 md:space-y-8 mb-6 ml-0 md:ml-75 mt-10">
                 {lessons.map((lesson, idx) => {
-                  // Check if lesson is free - handle boolean, string, or undefined
                   const isFree = lesson.isFree === true || lesson.isFree === 'true';
-                  // Free content is always accessible - no need to check subscription
                   const hasAccess = isFree ? true : (userSubscription || accessChecks[lesson.id] === true);
-                  // Word typing: need net speed >= 10 on previous word lesson to unlock next
                   const wordUnlocked = isWordLessonUnlocked(lesson);
-                  // Lock if subscription required and no access, OR word lesson not yet unlocked by progress
                   const isLocked = (!isFree && !hasAccess) || (lesson.lessonType === "word" && !wordUnlocked);
-                  
                   return (
                   <li 
                     key={lesson.id} 
-                    className={`flex items-center gap-4 ${isLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                    className={`flex items-center gap-3 md:gap-4 ${isLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                     title={isLocked ? (lesson.lessonType === "word" && !wordUnlocked ? 'Complete previous word lesson with net speed ≥ 10 to unlock' : 'Please purchase subscription to access this content') : ''}
                   >
-  {/* Lesson Number */}
-  <span className="text-sm sm:text-base md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl">
-                      {lesson.id}
-  </span>
-
-  {/* Lock Icon or Checkbox */}
   {isLocked ? (
-    <div className="relative group">
-      <svg 
-        className="w-6 h-6 text-gray-400 flex-shrink-0" 
-        fill="currentColor" 
-        viewBox="0 0 20 20"
-      >
+    <div className="relative group flex-shrink-0">
+      <svg className="w-5 h-5 md:w-6 md:h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
       </svg>
       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
@@ -436,39 +446,29 @@ export default function TypingTutor() {
       onChange={() => handleCheckboxChange(lesson)}
     />
   )}
-
-  {/* Lesson Title */}
-                    <div className="flex-1">
-                      <span className={`text-sm sm:text-base md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl ${isLocked ? 'text-gray-400' : ''}`}>
-                        {selectedLanguage === "Hindi" && lesson.title_hindi ? lesson.title_hindi : lesson.title}
-                      </span>
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          {lesson.difficulty}
-                        </span>
-                        <span className="hidden md:inline text-xs text-gray-500">
-                          {lesson.estimatedTime}
-  </span>
-                        {isLocked && (
-                          <span className="hidden md:inline-block text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-                            LOCKED
-                          </span>
-                        )}
-                        {isFree && (
-                          <span className="hidden md:inline-block text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                            FREE
-                          </span>
-                        )}
-                        {lesson.lessonType === "word" && (
-                          <span className="hidden md:inline-block text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">
-                            Word
-                          </span>
-                        )}
-                      </div>
-                      <p className={`text-sm mt-1 ${isLocked ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {selectedLanguage === "Hindi" && lesson.description_hindi ? lesson.description_hindi : lesson.description}
-                      </p>
-                    </div>
+  <span className="text-base md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl flex-shrink-0">{lesson.id}</span>
+  {/* Mobile: name + FREE/PAID or word only */}
+  <div className="flex-1 md:flex-1">
+    <div className="flex items-center gap-2 flex-wrap md:block">
+      <span className={`text-base md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl ${isLocked ? 'text-gray-400' : ''}`}>
+        {lesson.lessonType === "word" ? "word" : (selectedLanguage === "Hindi" && lesson.title_hindi ? lesson.title_hindi : lesson.title)}
+      </span>
+      {lesson.lessonType !== "word" && (
+        <span className={`md:hidden text-xs px-2 py-0.5 rounded ${isFree ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-700"}`}>{isFree ? "FREE" : "PAID"}</span>
+      )}
+    </div>
+    {/* Desktop only: difficulty, time, badges, description */}
+    <div className="hidden md:flex items-center gap-4 mt-2">
+      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{lesson.difficulty}</span>
+      <span className="text-xs text-gray-500">{lesson.estimatedTime}</span>
+      {isLocked && <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">LOCKED</span>}
+      {isFree && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">FREE</span>}
+      {lesson.lessonType === "word" && <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">Word</span>}
+    </div>
+    <p className={`hidden md:block text-sm mt-1 ${isLocked ? 'text-gray-400' : 'text-gray-600'}`}>
+      {selectedLanguage === "Hindi" && lesson.description_hindi ? lesson.description_hindi : lesson.description}
+    </p>
+  </div>
 </li>
                 )})}
           </ul>
@@ -478,10 +478,26 @@ export default function TypingTutor() {
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                   {selectedCheckbox.lessonType === "word" ? (
                     <>
-                      <p className="text-sm text-amber-700 mb-3">Word typing — complete with net speed ≥ 10 to unlock the next word lesson.</p>
+                      <p className="hidden md:block text-sm text-amber-700 mb-3">Word typing — complete with net speed ≥ 10 to unlock the next word lesson.</p>
+                      {showWordTypingPopup && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 md:hidden" onClick={() => setShowWordTypingPopup(false)}>
+                          <div className="bg-white rounded-xl shadow-xl max-w-[95vw] w-full max-w-md p-4 text-left" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex justify-between items-start gap-4 mb-4">
+                              <h3 className="text-lg font-bold text-[#290c52]">Word typing</h3>
+                              <button type="button" onClick={() => setShowWordTypingPopup(false)} className="text-gray-500 hover:text-gray-700 text-2xl leading-none" aria-label="Close">×</button>
+                            </div>
+                            <p className="text-sm text-amber-700 mb-4">Word typing — complete with net speed ≥ 10 to unlock the next word lesson.</p>
+                            <p className="text-sm text-amber-700 mb-6 font-medium" dir="ltr">वर्ड टाइपिंग — अगला वर्ड लेसन अनलॉक करने के लिए नेट स्पीड 10 या उससे अधिक के साथ पूरा करें।</p>
+                            <div className="flex flex-wrap gap-3">
+                              <a href={`/typing?lesson=${selectedCheckbox.id}&section=${selectedSection}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}&from=learning&duration=${duration}`} className="bg-green-500 text-white px-4 py-1.5 rounded hover:bg-green-600 transition-colors text-base text-center inline-block">Start</a>
+                              <button type="button" onClick={() => setShowWordTypingPopup(false)} className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 text-base">Close</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       <a
                         href={`/typing?lesson=${selectedCheckbox.id}&section=${selectedSection}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}&from=learning&duration=${duration}`}
-                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors text-2xl text-center block"
+                        className="bg-green-500 text-white px-4 py-1.5 rounded hover:bg-green-600 transition-colors text-lg md:text-xl text-center block"
                       >
                         Start
                       </a>
@@ -489,7 +505,7 @@ export default function TypingTutor() {
                   ) : (
                     <a
                       href={`/tips/home?lesson=${selectedCheckbox.id}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}&duration=${duration}`}
-                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors text-2xl text-center block"
+                      className="bg-green-500 text-white px-4 py-1.5 rounded hover:bg-green-600 transition-colors text-lg md:text-xl text-center block"
                     >
                       Start
                     </a>
@@ -509,6 +525,7 @@ export default function TypingTutor() {
               )}
             </>
           )}
+          </div>
         </div>
       </div>
     </div>
