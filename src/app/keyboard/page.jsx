@@ -13,7 +13,7 @@ function debugLog(...args) {
 
 // Typing key handling: single unified handleTypingKey(key, source).
 // - Desktop: window keydown -> handleTypingKey(e.key, "desktop") [disabled on mobile UA to prevent double trigger].
-// - Mobile: hidden input onBeforeInput + onInput -> lastChar = e.data || e.target.value.slice(-1) -> handleTypingKey(lastChar, "mobile"); clear input.
+// - Mobile: hidden input onInput/onChange only -> processMobileInput(value) -> handleTypingKey(lastChar, "mobile"); single state path.
 // Hidden input: autoFocus, opacity 0, absolute, ref; prevent blur (refocus on blur); clear after read.
 
 // ==================== DESKTOP VIEW COMPONENT ====================
@@ -548,7 +548,7 @@ function PortraitMobileView({
                   transition-all duration-200 ease-out flex-shrink-0 portrait-char-box
                   ${isRowAnimating ? 'animate-slide-in-right-key' : ''}
                   ${
-                    isCurrentKey
+                    (isCurrentKey && keyStatusForThisKey !== "wrong")
                       ? "bg-blue-600 border-blue-400 border-2 text-white"
                       : keyStatusForThisKey === "wrong"
                       ? "bg-red-600 border-red-600 text-white"
@@ -1020,7 +1020,7 @@ function LandscapeMobileView({
                   transition-all duration-200 ease-out flex-shrink-0 landscape-char-box
                
                   ${
-                    isCurrentKey
+                    (isCurrentKey && keyStatusForThisKey !== "wrong")
                       ? "bg-blue-600 border-blue-400 border-2 text-white"
                       : keyStatusForThisKey === "wrong"
                       ? "bg-red-600 border-red-600 text-white"
@@ -1379,13 +1379,13 @@ function KeyboardApp() {
   const lastKeyDownTimeRef = useRef(0);
   const lastKeyDownKeyRef = useRef("");
   const releaseKeyVisualTimeoutRef = useRef(null);
-  // Prevent double trigger: beforeinput and input both fire on mobile; we skip input if beforeinput already handled
-  const lastHandledByBeforeInputRef = useRef(null);
   // Keep currentIndex in a ref so processKeyForPractice always updates ONLY the current index (avoids wrong/next index on double events)
   const currentIndexRef = useRef(0);
   // Mobile: avoid duplicate state update when multiple events fire for one keypress (beforeinput + input, etc.)
   const mobileKeyDedupeRef = useRef({ index: -1, key: null, at: 0 });
   const MOBILE_DEDUPE_MS = 120;
+  // Ensure only one keypress updates state (avoids double fire from beforeinput+input on mobile)
+  const processingLockRef = useRef(false);
   const isMobileUserAgentRef = useRef(
     typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(navigator.userAgent)
   );
@@ -2059,10 +2059,21 @@ function KeyboardApp() {
     if (indexToUpdate < 0 || indexToUpdate >= highlightedKeys.length) return;
     if (isBackspace) {
       setBackspaceCount(prev => prev + 1);
+      console.log("[Keyboard TEST] Backspace at index", indexToUpdate);
       return;
     }
     const expectedKey = highlightedKeys[indexToUpdate];
     const isCorrect = normalizedKey === expectedKey;
+
+    // TEST: log and alert so only current index is updated
+    console.log("[Keyboard TEST] processKeyForPractice", {
+      indexToUpdate,
+      expectedKey,
+      typed: normalizedKey,
+      isCorrect,
+      nextIndexWillBe: isCorrect ? indexToUpdate + 1 : indexToUpdate
+    });
+    // try { alert(`TEST: index=${indexToUpdate} expected="${expectedKey}" typed="${normalizedKey}" ${isCorrect ? "CORRECT" : "WRONG"} (only this index updated)`); } catch (e) { /* alert not available */ }
 
     // Only ever update the single index that is current; use functional update to avoid stale state
     setKeyStatus(prev => {
@@ -2083,8 +2094,9 @@ function KeyboardApp() {
       setStartTime(Date.now());
     }
     if (isCorrect) {
+      const nextIndex = indexToUpdate + 1;
+      currentIndexRef.current = nextIndex; // sync ref immediately so next event sees correct index
       setCurrentIndex(prev => {
-        const nextIndex = prev + 1;
         if (nextIndex >= highlightedKeys.length) {
           setIsCompleted(true);
           setEndTime(Date.now());
@@ -2102,7 +2114,7 @@ function KeyboardApp() {
   }, [wrongCount, sound, highlightedKeys, startTime]);
 
   // Single unified handler: hand animation, virtual keyboard highlight, typing correctness, stats.
-  // Desktop: keydown. Mobile: beforeinput/input. On mobile we dedupe so only one state update runs per keypress.
+  // Only this path updates keyStatus/currentIndex. Desktop: keydown. Mobile: input/change only (no beforeinput).
   const handleTypingKey = useCallback((key, source) => {
     if (releaseKeyVisualTimeoutRef.current) {
       clearTimeout(releaseKeyVisualTimeoutRef.current);
@@ -2110,18 +2122,34 @@ function KeyboardApp() {
     }
     const normalizedKey = normalizeKey(key);
     const idx = currentIndexRef.current;
-    console.log("[Keyboard]", "source=" + source, "character=" + (key === " " ? "<space>" : key), "animation triggered");
-    debugLog("handleTypingKey", { source, character: key === " " ? " " : key, normalizedKey });
 
-    // Mobile: prevent duplicate state update when beforeinput + input (or multiple events) fire for one keypress
+    // Guard: only one keypress can update state at a time (prevents double fire on mobile)
+    if (processingLockRef.current) {
+      console.log("[Keyboard TEST] BLOCKED by processingLock (double event)");
+      // try { alert("TEST: BLOCKED by lock (double event ignored)"); } catch (e) {}
+      return;
+    }
+    processingLockRef.current = true;
+    const releaseLock = () => {
+      processingLockRef.current = false;
+    };
+
+    // Mobile: extra dedupe when multiple events fire for one keypress
     if (source === "mobile") {
       const now = Date.now();
       const d = mobileKeyDedupeRef.current;
       if (d.index === idx && d.key === normalizedKey && (now - d.at) < MOBILE_DEDUPE_MS) {
+        console.log("[Keyboard TEST] BLOCKED by mobile dedupe (same key at same index within 120ms)");
+        // try { alert("TEST: BLOCKED by mobile dedupe"); } catch (e) {}
+        releaseLock();
         return;
       }
       mobileKeyDedupeRef.current = { index: idx, key: normalizedKey, at: now };
     }
+
+    console.log("[Keyboard]", "source=" + source, "character=" + (key === " " ? "<space>" : key), "animation triggered");
+    console.log("[Keyboard TEST] handleTypingKey proceeding", { source, idx, normalizedKey });
+    debugLog("handleTypingKey", { source, character: key === " " ? " " : key, normalizedKey });
 
     const applyVisual = () => {
       updateHandImages(normalizedKey);
@@ -2133,12 +2161,17 @@ function KeyboardApp() {
       applyVisual();
     }
 
-    if (idx >= highlightedKeys.length) return;
+    if (idx >= highlightedKeys.length) {
+      queueMicrotask(releaseLock);
+      return;
+    }
     if (key === "Backspace" || normalizedKey === "Backspace") {
       processKeyForPractice(normalizedKey, true);
+      queueMicrotask(releaseLock);
       return;
     }
     processKeyForPractice(normalizedKey);
+    queueMicrotask(releaseLock);
   }, [highlightedKeys, updateHandImages, processKeyForPractice]);
 
   const releaseKeyVisual = useCallback(() => {
@@ -2185,8 +2218,8 @@ function KeyboardApp() {
     };
   }, [onDesktopKeyDown, onDesktopKeyUp]);
 
-  // Mobile: process one key from value (last char or Backspace). Dedupe with beforeinput when it already handled.
-  const processMobileInput = useCallback((value, fromBeforeInput = false) => {
+  // Mobile: single state-update path from input/change only. One key per call (last char or Backspace).
+  const processMobileInput = useCallback((value) => {
     const input = inputRef.current;
     if (!input) return;
     const prevLen = lastProcessedValueRef.current;
@@ -2194,41 +2227,21 @@ function KeyboardApp() {
 
     if (len > prevLen) {
       const lastChar = value[value.length - 1];
-      if (!fromBeforeInput && lastHandledByBeforeInputRef.current === lastChar) {
-        lastHandledByBeforeInputRef.current = null;
-        lastProcessedValueRef.current = 0;
-        setMobileInputValue("");
-        if (inputRef.current) inputRef.current.value = "";
-        return;
-      }
-      console.log("[Keyboard]", "source=mobile", "character=" + (lastChar === " " ? "<space>" : lastChar), "animation triggered");
       handleTypingKey(lastChar, "mobile");
       scheduleReleaseKeyVisual();
     } else if (len < prevLen) {
-      console.log("[Keyboard]", "source=mobile", "character=Backspace", "animation triggered");
       handleTypingKey("Backspace", "mobile");
       scheduleReleaseKeyVisual();
     }
 
     lastProcessedValueRef.current = 0;
-    lastHandledByBeforeInputRef.current = null;
     setMobileInputValue("");
     if (inputRef.current) inputRef.current.value = "";
   }, [handleTypingKey, scheduleReleaseKeyVisual]);
 
-  // React handlers: onInput and onBeforeInput (both used on mobile)
-  const handleBeforeInput = useCallback((e) => {
-    const lastChar = e.data ?? (e.target?.value && e.target.value.slice(-1));
-    if (lastChar && lastChar.length === 1) {
-      lastHandledByBeforeInputRef.current = lastChar;
-      handleTypingKey(lastChar, "mobile");
-      scheduleReleaseKeyVisual();
-    }
-  }, [handleTypingKey, scheduleReleaseKeyVisual]);
-
   const handleMobileInputChange = useCallback((e) => {
     const v = e.target?.value ?? "";
-    processMobileInput(v, false);
+    processMobileInput(v);
   }, [processMobileInput]);
 
   // Refs for native listeners (mobile soft keyboard may not fire React synthetic events)
@@ -2236,27 +2249,17 @@ function KeyboardApp() {
   scheduleReleaseKeyVisualRef.current = scheduleReleaseKeyVisual;
   processMobileInputRef.current = processMobileInput;
 
-  // Native input, change, and beforeinput so mobile always gets events
+  // Mobile: only input/change update state (single path; no beforeinput) so we never double-update
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
     const onInput = () => {
       const v = el.value ?? "";
-      processMobileInputRef.current(v, false);
+      processMobileInputRef.current(v);
     };
-    const onBeforeInput = (e) => {
-      const data = e.data;
-      if (data && data.length === 1) {
-        lastHandledByBeforeInputRef.current = data;
-        handleTypingKeyRef.current(data, "mobile");
-        scheduleReleaseKeyVisualRef.current();
-      }
-    };
-    el.addEventListener("beforeinput", onBeforeInput);
     el.addEventListener("input", onInput);
     el.addEventListener("change", onInput);
     return () => {
-      el.removeEventListener("beforeinput", onBeforeInput);
       el.removeEventListener("input", onInput);
       el.removeEventListener("change", onInput);
     };
@@ -2300,6 +2303,7 @@ function KeyboardApp() {
     lastProcessedValueRef.current = 0;
     currentIndexRef.current = 0;
     mobileKeyDedupeRef.current = { index: -1, key: null, at: 0 };
+    processingLockRef.current = false;
     if (isMobile && inputRef.current) {
       inputRef.current.value = "";
       inputRef.current.focus();
@@ -2488,6 +2492,7 @@ function KeyboardApp() {
     setIsRowAnimating(false);
     currentIndexRef.current = 0;
     mobileKeyDedupeRef.current = { index: -1, key: null, at: 0 };
+    processingLockRef.current = false;
   }, [highlightedKeys]);
 
   const formatClock = (seconds) => {
@@ -2634,13 +2639,12 @@ function KeyboardApp() {
       role="application"
       aria-label="Keyboard practice — tap to focus and type"
     >
-      {/* Hidden input: autoFocus, opacity 0, absolute, ref. Prevent blur (refocus on blur). Clear after read. Mobile: onBeforeInput + onInput -> handleTypingKey(key, "mobile"). */}
+      {/* Hidden input: autoFocus, opacity 0, absolute, ref. Mobile: only onInput/onChange update state (single path). */}
       <input
         type="text"
         ref={inputRef}
         data-typing-input
         defaultValue=""
-        onBeforeInput={handleBeforeInput}
         onInput={handleMobileInputChange}
         onChange={handleMobileInputChange}
         onFocus={(e) => {
