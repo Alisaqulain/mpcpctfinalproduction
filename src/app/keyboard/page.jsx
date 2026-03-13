@@ -242,7 +242,7 @@ function DesktopView({
 
         {/* Keyboard */}
         {keyboard && (
-          <div className={`relative mt-4 p-5 border border-gray-600 rounded-3xl shadow-md keyboard-container ${
+          <div className={`relative mt-4 p-5 border border-gray-600 rounded-2xl shadow-md keyboard-container ${
             isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
           } mobile-scale`}>
             
@@ -402,7 +402,8 @@ function PortraitMobileView({
   formatClock,
   leftHandImage,
   rightHandImage,
-  onRequestFocusInput
+  onRequestFocusInput,
+  showRotatePrompt
 }) {
   const [showSettings, setShowSettings] = useState(false);
   const currentRowKeys = getCurrentRowKeys();
@@ -573,62 +574,67 @@ function PortraitMobileView({
           Tap above to open keyboard
         </p>
 
-        {/* Rotation Prompt - Rotate your phone (original in-view design) */}
-        <div className="rotate-prompt-mobile fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 flex items-center gap-3 shadow-lg border border-gray-700 md:hidden" style={{ pointerEvents: 'none' }}>
-          <div className="relative flex items-center justify-center w-20 h-20 animate-rotate-phone" style={{ transformOrigin: 'center center' }}>
-            <svg width="80" height="80" viewBox="0 0 80 80" className="absolute inset-0">
-              <path
-                d="M 20 20 Q 10 40, 20 60"
-                stroke="#3b82f6"
-                strokeWidth="3"
-                fill="none"
-                strokeLinecap="round"
-                className="animate-pulse"
-                style={{ animationDuration: '2s' }}
-              />
-              <path
-                d="M 18 25 L 20 20 L 22 25"
-                stroke="#3b82f6"
-                strokeWidth="3"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M 60 60 Q 70 40, 60 20"
-                stroke="#3b82f6"
-                strokeWidth="3"
-                fill="none"
-                strokeLinecap="round"
-                className="animate-pulse"
-                style={{ animationDuration: '2s' }}
-              />
-              <path
-                d="M 62 55 L 60 60 L 58 55"
-                stroke="#3b82f6"
-                strokeWidth="3"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <div className="relative w-9 h-14 bg-blue-500 rounded-md border-2 border-blue-400 flex flex-col items-center justify-between py-1.5">
-              <div className="w-1.5 h-1.5 bg-blue-300 rounded-full" />
-              <div className="flex-1 w-5 bg-blue-400 rounded my-1" />
-              <div className="w-2.5 h-0.5 bg-blue-300 rounded" />
+        {/* Rotation Prompt - Rotate your phone (mobile only, animated SVG) */}
+        {showRotatePrompt && (
+          <div
+            className="rotate-prompt-mobile fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 flex items-center gap-3 shadow-lg border border-gray-700 md:hidden"
+            style={{ pointerEvents: "none" }}
+          >
+            <div className="relative flex items-center justify-center w-20 h-20 animate-rotate-phone">
+              <svg width="80" height="80" viewBox="0 0 80 80" className="absolute inset-0">
+                <path
+                  d="M 20 20 Q 10 40, 20 60"
+                  stroke="#3b82f6"
+                  strokeWidth="3"
+                  fill="none"
+                  strokeLinecap="round"
+                  className="animate-pulse"
+                  style={{ animationDuration: "2s" }}
+                />
+                <path
+                  d="M 18 25 L 20 20 L 22 25"
+                  stroke="#3b82f6"
+                  strokeWidth="3"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M 60 60 Q 70 40, 60 20"
+                  stroke="#3b82f6"
+                  strokeWidth="3"
+                  fill="none"
+                  strokeLinecap="round"
+                  className="animate-pulse"
+                  style={{ animationDuration: "2s" }}
+                />
+                <path
+                  d="M 62 55 L 60 60 L 58 55"
+                  stroke="#3b82f6"
+                  strokeWidth="3"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <div className="relative w-9 h-14 bg-blue-500 rounded-md border-2 border-blue-400 flex flex-col items-center justify-between py-1.5">
+                <div className="w-1.5 h-1.5 bg-blue-300 rounded-full" />
+                <div className="flex-1 w-5 bg-blue-400 rounded my-1" />
+                <div className="w-2.5 h-0.5 bg-blue-300 rounded" />
+              </div>
+            </div>
+            <div className="flex flex-row items-center text-white font-semibold text-sm gap-1">
+              <span>Rotate</span>
+              <span>Your</span>
+              <span>Phone</span>
             </div>
           </div>
-          <div className="flex flex-row items-center text-white font-semibold text-sm gap-1">
-            <span>Rotate</span>
-            <span>Your</span>
-            <span>Phone</span>
-          </div>
-        </div>
+        )}
 
         {/* Keyboard */}
         {keyboard && (
           <div 
-            className={`relative mt-4 p-1 w-full border border-gray-600 rounded-3xl shadow-md keyboard-container portrait-keyboard touch-manipulation cursor-pointer active:opacity-95 ${
+            className={`relative mt-4 p-1 w-full border border-gray-600 rounded-2xl shadow-md keyboard-container portrait-keyboard touch-manipulation cursor-pointer active:opacity-95 ${
               isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
             }`}
             onClick={() => onRequestFocusInput?.()}
@@ -1998,11 +2004,11 @@ function KeyboardApp() {
 
     try {
       if (isThumb) {
-        // For thumb (space key), show both hands with thumb position
+        // For thumb (space key), show both hands on the space bar image
         if (key === "Space" || key === " ") {
-          // Special handling for space key - use existing images for both thumbs
-          setLeftHandImage("/images/left-key-ctrl.webp");
-          setRightHandImage("/images/right-key- .webp");
+          const handImages = keyToHandImage["Space"] || keyToHandImage["resting"];
+          setLeftHandImage(handImages.left);
+          setRightHandImage(handImages.right);
         } else {
           const handImages = keyToHandImage[key] || keyToHandImage["resting"];
           setLeftHandImage(handImages.left);
@@ -2030,6 +2036,23 @@ function KeyboardApp() {
       setRightHandImage(keyToHandImage["resting"].right);
     }
   }, []);
+
+  // Whenever the current target key changes, update hand images so hands
+  // always point to the correct key even before the user presses anything.
+  useEffect(() => {
+    if (!highlightedKeys || highlightedKeys.length === 0) {
+      setLeftHandImage(keyToHandImage["resting"].left);
+      setRightHandImage(keyToHandImage["resting"].right);
+      return;
+    }
+    const targetKey = highlightedKeys[Math.min(currentIndex, highlightedKeys.length - 1)];
+    if (!targetKey) {
+      setLeftHandImage(keyToHandImage["resting"].left);
+      setRightHandImage(keyToHandImage["resting"].right);
+      return;
+    }
+    updateHandImages(targetKey);
+  }, [highlightedKeys, currentIndex, updateHandImages]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -2566,6 +2589,7 @@ function KeyboardApp() {
           formatClock={formatClock}
           leftHandImage={leftHandImage}
           rightHandImage={rightHandImage}
+          showRotatePrompt={showRotatePrompt}
           onRequestFocusInput={() => {
             if (inputRef.current) {
               inputRef.current.value = "";

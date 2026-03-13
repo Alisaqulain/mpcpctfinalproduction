@@ -26,6 +26,7 @@ location /_next/ {
     expires 365d;
     access_log off;
 }
+
 ```
 
 ## 📋 Steps to Fix on Your Server

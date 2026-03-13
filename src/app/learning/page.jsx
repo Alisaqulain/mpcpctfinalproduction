@@ -262,11 +262,32 @@ export default function TypingTutor() {
     <div className="bg-white font-sans min-h-screen">
       {/* Progress Stats Banner */}
       {stats && (
-        <div className="bg-[#290c52] text-white p-4  mb-4">
-          <div className="flex flex-wrap justify-between items-center">
-  <h1 className="text-2xl font-bold text-center w-full text-yellow-400">Learning</h1>
-</div>
-
+        <div className="bg-[#290c52] text-white p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => typeof window !== "undefined" && window.history.back()}
+              className="flex items-center gap-2 text-xs md:text-sm text-white"
+            >
+              <span className="bg-white text-[#290c52] rounded-full w-8 h-8 flex items-center justify-center">
+                <svg
+                  className="w-4 h-4 md:w-5 md:h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </span>
+              <span className="hidden md:inline font-semibold">Back</span>
+            </button>
+            <h1 className="text-xl md:text-3xl font-bold text-center flex-1 text-yellow-400">
+              Learning
+            </h1>
+            {/* Spacer to keep title centered */}
+            <div className="w-8 md:w-12" />
+          </div>
         </div>
       )}
 
@@ -383,9 +404,9 @@ export default function TypingTutor() {
 
 
       {/* Main Content Section - ref for scroll on duration change */}
-      <div ref={lessonSectionRef} className="flex flex-row min-h-screen bg-blue-200 bg-[url('/bg.jpg')]">
+      <div ref={lessonSectionRef} className="flex flex-row bg-blue-200 bg-[url('/bg.jpg')] pb-10 md:pb-16">
         {/* Sidebar - mobile: 20% left; desktop: w-32 unchanged */}
-        <div className="w-[20%] min-w-0 flex-shrink-0 md:w-32 bg-transparent text-white pt-14 pl-1 md:pl-10 flex flex-col gap-8 md:gap-[2.5rem] text-sm md:text-1rem md:text-4xl learning-sidebar-sections">
+        <div className="w-[20%] min-w-0 flex-shrink-0 md:w-32 bg-transparent text-white pt-14 pl-1 md:pl-10 flex flex-col gap-8 md:gap-[3rem] text-xs md:text-1rem md:text-4xl learning-sidebar-sections">
           {learningData.sections?.map((section, index) => (
             <p
               key={section.id}
@@ -394,13 +415,14 @@ export default function TypingTutor() {
                 const firstLesson = section.lessons?.[0];
                 setSelectedCheckbox(firstLesson ?? null);
               }}
-              className={`cursor-pointer py-1.5 md:py-2 rounded-md learning-sidebar-item ${
+              className={`cursor-pointer py-1.5 md:py-2 rounded-md md:rounded-full mr-1 md:mr-3 learning-sidebar-item ${
                 selectedSection === section.id
-                  ? "bg-white text-[#290c52] font-bold pl-1 md:pl-2 md:w-[500px]"
-                  : "border-none pl-1 md:pl-2 md:w-[190px]"
+                  ? "bg-white text-[#290c52] font-bold pl-1 md:pl-4 md:pr-4 md:w-[500px]"
+                  : "border-none pl-1 md:pl-4 md:pr-4 md:w-[190px]"
               }`}
             >
-              <span className="text-yellow-400">{section.lessonNumber}.</span>{section.name}
+              <span className="text-yellow-400">{section.lessonNumber}.</span>
+              <span className="md:ml-4">{section.name}</span>
             </p>
           ))}
         </div>
@@ -430,7 +452,7 @@ export default function TypingTutor() {
                   >
   {isLocked ? (
     <div className="relative group flex-shrink-0">
-      <svg className="w-5 h-5 md:w-6 md:h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+      <svg className="w-5 h-5 md:w-6 md:h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
       </svg>
       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
@@ -446,7 +468,7 @@ export default function TypingTutor() {
       onChange={() => handleCheckboxChange(lesson)}
     />
   )}
-  <span className="text-base md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl flex-shrink-0">{lesson.id}</span>
+  <span className="text-base md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl flex-shrink-0 mr-2 md:mr-4">{lesson.id}</span>
   {/* Mobile: name + FREE/PAID or word only */}
   <div className="flex-1 md:flex-1">
     <div className="flex items-center gap-2 flex-wrap md:block">
@@ -454,7 +476,7 @@ export default function TypingTutor() {
         {lesson.lessonType === "word" ? "word" : (selectedLanguage === "Hindi" && lesson.title_hindi ? lesson.title_hindi : lesson.title)}
       </span>
       {lesson.lessonType !== "word" && (
-        <span className={`md:hidden text-xs px-2 py-0.5 rounded ${isFree ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-700"}`}>{isFree ? "FREE" : "PAID"}</span>
+        <span className={`md:hidden text-xs px-2 py-0.5 rounded ${isFree ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>{isFree ? "FREE" : "PAID"}</span>
       )}
     </div>
     {/* Desktop only: difficulty, time, badges, description */}
@@ -475,7 +497,7 @@ export default function TypingTutor() {
 
               {/* Selected Lesson - Start button */}
               {selectedCheckbox && (
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <div className="mb-6 p-6 bg-gray-50 rounded-lg text-center">
                   {selectedCheckbox.lessonType === "word" ? (
                     <>
                       <p className="hidden md:block text-sm text-amber-700 mb-3">Word typing — complete with net speed ≥ 10 to unlock the next word lesson.</p>
@@ -497,7 +519,7 @@ export default function TypingTutor() {
                       )}
                       <a
                         href={`/typing?lesson=${selectedCheckbox.id}&section=${selectedSection}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}&from=learning&duration=${duration}`}
-                        className="bg-green-500 text-white px-4 py-1.5 rounded hover:bg-green-600 transition-colors text-lg md:text-xl text-center block"
+                        className="bg-green-500 text-white w-full max-w-lg md:w-[320px] px-6 md:px-10 py-3.5 md:py-4 rounded-xl hover:bg-green-600 transition-colors text-xl md:text-5xl inline-block"
                       >
                         Start
                       </a>
@@ -505,7 +527,7 @@ export default function TypingTutor() {
                   ) : (
                     <a
                       href={`/tips/home?lesson=${selectedCheckbox.id}&language=${selectedLanguage.toLowerCase()}&subLanguage=${selectedSubLanguage.toLowerCase()}&duration=${duration}`}
-                      className="bg-green-500 text-white px-4 py-1.5 rounded hover:bg-green-600 transition-colors text-lg md:text-xl text-center block"
+                      className="bg-green-500 text-white w-full max-w-lg md:w-[320px] px-6 md:px-10 py-3.5 md:py-4 rounded-xl hover:bg-green-600 transition-colors text-xl md:text-5xl inline-block"
                     >
                       Start
                     </a>
