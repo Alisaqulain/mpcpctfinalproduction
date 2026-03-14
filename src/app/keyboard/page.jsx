@@ -1155,11 +1155,11 @@ function LandscapeMobileView({
                 height: 80px !important;
               }
               
-              /* Base pixel sizes - keys stay the same size */
+              /* Base pixel sizes - keys (overridden larger in mobile landscape media query) */
               .landscape-keyboard-small .flex > div {
                 height: 44px !important;
                 min-height: 44px !important;
-                max-height: 34px !important;
+                max-height: 44px !important;
                 font-size: 0.9rem !important;
                 margin-left: 0.5px !important;
                 margin-right: 0.5px !important;
@@ -1310,16 +1310,27 @@ function LandscapeMobileView({
         )}
       </div>
 
-      {/* Right Section - Landscape: Close top right (a little right to avoid overlap), then Stats, then Settings/Theme at bottom */}
+      {/* Right Section - Landscape: Settings & Day/Night top right, then Stats (Close X is inside Settings modal) */}
       <div className="flex flex-col items-center gap-2 mt-2 mobile-stack mobile-small-text right-section-stats absolute right-4 top-4">
-        {/* Close Button - landscape only: small X icon, pushed right */}
-        <div className="w-full max-w-[100px] flex justify-end mb-2">
+        {/* Settings & Theme - top right (replacing cross) */}
+        <div className="flex items-center gap-2 mb-2 w-full max-w-[100px] justify-end">
           <button
-            onClick={() => window.location.href = '/learning'}
-            className="bg-red-600 text-white hover:bg-red-700 p-1.5 rounded-full shadow transition-all duration-200 hover:scale-110 flex items-center justify-center min-w-[36px] min-h-[36px]"
-            aria-label="Close and return to learning page"
+            onClick={() => setShowSettings(!showSettings)}
+            className={`p-2 rounded-full shadow min-w-[40px] min-h-[40px] flex items-center justify-center ${
+              isDarkMode ? "bg-white text-black" : "bg-black text-white"
+            }`}
+            aria-label="Settings"
           >
-            <X size={20} strokeWidth={2.5} />
+            <Settings size={20} />
+          </button>
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`p-2 rounded-full shadow min-w-[40px] min-h-[40px] flex items-center justify-center ${
+              isDarkMode ? "bg-white text-black" : "bg-black text-white"
+            }`}
+            aria-label="Toggle theme"
+          >
+            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
         </div>
         <div className="flex flex-col gap-2 w-full max-w-[100px] items-center landscape-mobile-stats">
@@ -1344,25 +1355,14 @@ function LandscapeMobileView({
             <div className="bg-white text-blue-500 text-sm font-bold">{backspaceCount}</div>
           </div>
         </div>
-        {/* Settings & Theme - bottom right */}
-        <div className="flex items-center gap-2 mt-4">
+        {/* Close Button - bottom right, below Backspace */}
+        <div className="w-full max-w-[100px] flex justify-end mt-2">
           <button
-            onClick={() => setShowSettings(!showSettings)}
-            className={`p-2 rounded-full shadow min-w-[40px] min-h-[40px] flex items-center justify-center ${
-              isDarkMode ? "bg-white text-black" : "bg-black text-white"
-            }`}
-            aria-label="Settings"
+            onClick={() => window.location.href = '/learning'}
+            className="bg-red-600 text-white hover:bg-red-700 px-6 py-1.5 rounded-md shadow transition-all duration-200 hover:scale-105 flex items-center justify-center text-sm font-medium"
+            aria-label="Close and return to learning page"
           >
-            <Settings size={20} />
-          </button>
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`p-2 rounded-full shadow min-w-[40px] min-h-[40px] flex items-center justify-center ${
-              isDarkMode ? "bg-white text-black" : "bg-black text-white"
-            }`}
-            aria-label="Toggle theme"
-          >
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            Close
           </button>
         </div>
       </div>
@@ -3262,6 +3262,63 @@ function KeyboardApp() {
           .keyboard-container.landscape-keyboard-small + *,
           .landscape-keyboard-small {
             margin-right: 1.5rem !important;
+          }
+
+          /* MOBILE LANDSCAPE: Increase virtual keyboard key size (were too small) */
+          .keyboard-container.landscape-keyboard-small .flex > div {
+            min-height: 40px !important;
+            height: 40px !important;
+            max-height: 40px !important;
+            padding: 6px 4px !important;
+            font-size: 0.85rem !important;
+          }
+          .keyboard-container.landscape-keyboard-small .flex {
+            margin-bottom: 3px !important;
+            gap: 3px !important;
+          }
+          .keyboard-container.landscape-keyboard-small .flex > div[class*="w-"] {
+            min-width: 32px !important;
+            width: 32px !important;
+            max-width: 32px !important;
+          }
+          .keyboard-container.landscape-keyboard-small .flex > div[class*="170px"] {
+            width: 56px !important;
+            min-width: 56px !important;
+            max-width: 56px !important;
+          }
+          .keyboard-container.landscape-keyboard-small .flex > div[class*="175px"] {
+            width: 58px !important;
+            min-width: 58px !important;
+            max-width: 58px !important;
+          }
+          .keyboard-container.landscape-keyboard-small .flex > div[class*="130px"] {
+            width: 44px !important;
+            min-width: 44px !important;
+            max-width: 44px !important;
+          }
+          .keyboard-container.landscape-keyboard-small .flex > div[class*="118px"] {
+            width: 42px !important;
+            min-width: 42px !important;
+            max-width: 42px !important;
+          }
+          .keyboard-container.landscape-keyboard-small .flex > div[class*="100px"] {
+            width: 36px !important;
+            min-width: 36px !important;
+            max-width: 36px !important;
+          }
+          .keyboard-container.landscape-keyboard-small .flex > div[class*="95px"] {
+            width: 38px !important;
+            min-width: 38px !important;
+            max-width: 38px !important;
+          }
+          .keyboard-container.landscape-keyboard-small .flex > div[class*="55px"] {
+            width: 32px !important;
+            min-width: 32px !important;
+            max-width: 32px !important;
+          }
+          .keyboard-container.landscape-keyboard-small .flex > div[class*="flex-1"] {
+            min-width: 80px !important;
+            max-width: 50% !important;
           }
         }
       `}</style>
