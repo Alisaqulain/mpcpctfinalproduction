@@ -384,3 +384,40 @@ body {
   }
 }
 
+/* Portrait: Rotate your phone - moving animation (global so it always runs) */
+.rotate-phone-3d-wrapper {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rotate-phone-3d {
+  animation: rotatePhonePortraitToLandscape 2.2s ease-in-out infinite;
+  -webkit-animation: rotatePhonePortraitToLandscape 2.2s ease-in-out infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+@keyframes rotatePhonePortraitToLandscape {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  35% {
+    transform: rotate(90deg);
+  }
+  65% {
+    transform: rotate(90deg);
+  }
+}
+@-webkit-keyframes rotatePhonePortraitToLandscape {
+  0%, 100% {
+    -webkit-transform: rotate(0deg);
+  }
+  35% {
+    -webkit-transform: rotate(90deg);
+  }
+  65% {
+    -webkit-transform: rotate(90deg);
+  }
+}
+

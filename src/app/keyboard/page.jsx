@@ -574,53 +574,19 @@ function PortraitMobileView({
           Tap above to open keyboard
         </p>
 
-        {/* Rotation Prompt - Rotate your phone (mobile only, animated SVG) */}
+        {/* Rotation Prompt - Rotate your phone (mobile only, 3D animated like GIF/video) */}
         {showRotatePrompt && (
           <div
             className="rotate-prompt-mobile fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 flex items-center gap-3 shadow-lg border border-gray-700 md:hidden"
             style={{ pointerEvents: "none" }}
           >
-            <div className="relative flex items-center justify-center w-20 h-20 animate-rotate-phone">
-              <svg width="80" height="80" viewBox="0 0 80 80" className="absolute inset-0">
-                <path
-                  d="M 20 20 Q 10 40, 20 60"
-                  stroke="#3b82f6"
-                  strokeWidth="3"
-                  fill="none"
-                  strokeLinecap="round"
-                  className="animate-pulse"
-                  style={{ animationDuration: "2s" }}
-                />
-                <path
-                  d="M 18 25 L 20 20 L 22 25"
-                  stroke="#3b82f6"
-                  strokeWidth="3"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M 60 60 Q 70 40, 60 20"
-                  stroke="#3b82f6"
-                  strokeWidth="3"
-                  fill="none"
-                  strokeLinecap="round"
-                  className="animate-pulse"
-                  style={{ animationDuration: "2s" }}
-                />
-                <path
-                  d="M 62 55 L 60 60 L 58 55"
-                  stroke="#3b82f6"
-                  strokeWidth="3"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <div className="relative w-9 h-14 bg-blue-500 rounded-md border-2 border-blue-400 flex flex-col items-center justify-between py-1.5">
-                <div className="w-1.5 h-1.5 bg-blue-300 rounded-full" />
-                <div className="flex-1 w-5 bg-blue-400 rounded my-1" />
-                <div className="w-2.5 h-0.5 bg-blue-300 rounded" />
+            <div className="rotate-phone-3d-wrapper">
+              <div className="rotate-phone-3d">
+                <div className="relative w-9 h-14 bg-blue-500 rounded-lg border-2 border-blue-400 flex flex-col items-center justify-between py-1.5 shadow-lg">
+                  <div className="w-1.5 h-1.5 bg-blue-300 rounded-full" />
+                  <div className="flex-1 w-5 bg-blue-400 rounded my-1" />
+                  <div className="w-2.5 h-0.5 bg-blue-300 rounded" />
+                </div>
               </div>
             </div>
             <div className="flex flex-row items-center text-white font-semibold text-sm gap-1">
@@ -2760,19 +2726,36 @@ function KeyboardApp() {
           animation: rotateArrows 3s linear infinite;
         }
         
-        /* Rotate phone icon animation */
-        @keyframes rotatePhone {
-          0% {
+        /* Rotate phone - smooth 2D rotation (portrait → landscape → portrait, like a GIF/video) */
+        .rotate-phone-3d-wrapper {
+          width: 80px;
+          height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .rotate-phone-3d {
+          animation: rotatePhonePortraitToLandscape 2.2s ease-in-out infinite;
+          transform-origin: center center;
+        }
+        @keyframes rotatePhonePortraitToLandscape {
+          0%, 100% {
             transform: rotate(0deg);
           }
-          100% {
-            transform: rotate(360deg);
+          35% {
+            transform: rotate(90deg);
+          }
+          65% {
+            transform: rotate(90deg);
           }
         }
-        
         .animate-rotate-phone {
           animation: rotatePhone 2s linear infinite !important;
           transform-origin: center center !important;
+        }
+        @keyframes rotatePhone {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
         
         /* On small screens: show typing bar so white keyboard works */
