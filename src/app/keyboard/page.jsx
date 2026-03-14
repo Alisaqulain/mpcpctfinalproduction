@@ -853,7 +853,7 @@ function LandscapeMobileView({
   const [showSettings, setShowSettings] = useState(false);
   const currentRowKeys = getCurrentRowKeys();
   const rows = organizeKeysIntoRows(highlightedKeys);
-  
+
   const getOriginalIndex = (displayKeyIdx) => {
     if (displayKeyIdx >= currentRowKeys.length) return -1;
     
@@ -1004,7 +1004,7 @@ function LandscapeMobileView({
       {/* Left Section - data-typing-area for app WebView so taps focus input and mobile keyboard works */}
       <div className="flex-1 flex flex-col items-center gap-6 mobile-stack relative" data-typing-area>
         {/* Typing Prompt Buttons - Landscape mobile row-based layout */}
-        <div 
+        <div
           className="flex flex-nowrap typing-prompt-mobile justify-between items-center gap-1 md:gap-2 absolute top-0 left-2 typing-prompt-container landscape-typing-prompt"
           style={{ width: 'calc(100% - 280px)', overflow: 'visible', paddingRight: '0', marginRight: '0' }}
         >
@@ -1021,23 +1021,22 @@ function LandscapeMobileView({
               <div
                 key={`${currentRowIndex}-${displayIdx}`}
                 className={`
-                  ${key === "Space" ? "w-32 h-8 text-xl space-key-box landscape-space-key" : "w-16 h-14"}
-                  rounded flex items-center justify-center text-2xl font-semibold
+                  ${key === "Space" ? "w-28 h-8 text-xl space-key-box landscape-space-key" : "w-12 h-10 landscape-letter-box"}
+                  rounded flex items-center justify-center text-xl font-semibold
                   transition-all duration-200 ease-out flex-shrink-0 landscape-char-box
-               
-                  ${
-                    (isCurrentKey && keyStatusForThisKey !== "wrong")
-                      ? "bg-blue-600 border-blue-400 border-2 text-white"
-                      : keyStatusForThisKey === "wrong"
-                      ? "bg-red-600 border-red-600 text-white"
-                      : keyStatusForThisKey === "correct"
-                      ? "bg-green-300 border-green-600 text-green-800"
-                      : isPressed && key === "Space"
-                      ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
-                      : isPressed
-                      ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
-                      : "bg-white text-black border-gray-300"
-                  }
+                    ${
+                      (isCurrentKey && keyStatusForThisKey !== "wrong")
+                        ? "bg-blue-600 border-blue-400 border-2 text-white"
+                        : keyStatusForThisKey === "wrong"
+                        ? "bg-red-600 border-red-600 text-white"
+                        : keyStatusForThisKey === "correct"
+                        ? "bg-green-300 border-green-600 text-green-800"
+                        : isPressed && key === "Space"
+                        ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
+                        : isPressed
+                        ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
+                        : "bg-white text-black border-gray-300"
+                    }
                   border
                 `}
               >
@@ -1048,14 +1047,13 @@ function LandscapeMobileView({
         </div>
 
         {/* Spacer to push keyboard down when typing prompt is absolute */}
-        <div className="h-20 landscape-prompt-spacer"></div>
+        <div className="landscape-prompt-spacer"></div>
 
         {/* Keyboard */}
         {keyboard && (
-          <div className={`absolute top-22 left-2 p-1 border border-gray-600 rounded-xl shadow-md keyboard-container landscape-keyboard-small ${
+          <div className={`absolute landscape-keyboard-top left-2 p-1 border border-gray-600 rounded-xl shadow-md keyboard-container landscape-keyboard-small ${
             isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
           }`}>
-            
             {/* Dual Hand Image Overlay */}
             {hand && (leftHandImage || rightHandImage) && (
               <div className="absolute inset-0 pointer-events-none z-10 hand-overlay">
@@ -1104,11 +1102,12 @@ function LandscapeMobileView({
                 right: auto !important;
               }
               
-              /* LANDSCAPE: Align typing prompt container with keyboard edges */
+              /* LANDSCAPE: Align typing prompt container with keyboard edges; no extra margin top */
               .landscape-typing-prompt {
                 position: absolute !important;
                 left: 0.5rem !important;
                 top: 0 !important;
+                margin-top: 0 !important;
                 width: calc(100% - 280px) !important;
                 max-width: calc(100% - 280px) !important;
                 padding-left: 0 !important;
@@ -1132,27 +1131,34 @@ function LandscapeMobileView({
                 margin-right: 0 !important;
               }
               
-              /* LANDSCAPE: Character boxes size - increased to w-20 (80px) to span full width */
-              .landscape-typing-prompt > div.landscape-char-box:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]),
-              .landscape-typing-prompt > div[class*="w-20"]:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]),
-              .landscape-typing-prompt > div[class*="w-15"]:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]) {
-                width: 80px !important;
-                min-width: 80px !important;
-                max-width: 80px !important;
+              /* LANDSCAPE: Character boxes (asdf jkl;) */
+              .landscape-typing-prompt > div.landscape-char-box,
+              .landscape-typing-prompt > div.landscape-letter-box,
+              .landscape-typing-prompt > div:not([class*="w-32"]):not([class*="space-key"]) {
+                width: 49px !important;
+                min-width: 49px !important;
+                max-width: 49px !important;
+                height: 39px !important;
+                min-height: 39px !important;
+                font-size: 1rem !important;
                 flex-shrink: 0 !important;
+                box-sizing: border-box !important;
               }
               
-              /* LANDSCAPE: Space box size - increased to w-32 (128px) */
+              /* LANDSCAPE: Space box size */
               .landscape-typing-prompt > div[class*="w-32"] {
-                width: 140px !important;
-                min-width: 140px !important;
-                max-width: 140px !important;
+                width: 135px !important;
+                min-width: 135px !important;
+                max-width: 135px !important;
                 flex-shrink: 0 !important;
               }
               
-              /* LANDSCAPE: Add spacer for absolute positioned typing prompt */
+              /* LANDSCAPE: Small gap between box row and keyboard */
               .landscape-prompt-spacer {
-                height: 80px !important;
+                height: 44px !important;
+              }
+              .landscape-keyboard-top {
+                top: 3rem !important;
               }
               
               /* Base pixel sizes - keys (overridden larger in mobile landscape media query) */
@@ -1307,13 +1313,13 @@ function LandscapeMobileView({
               </div>
             ))}
           </div>
-        )}
-      </div>
+          )}
+        </div>
 
       {/* Right Section - Landscape: Settings & Day/Night top right, then Stats (Close X is inside Settings modal) */}
-      <div className="flex flex-col items-center gap-2 mt-2 mobile-stack mobile-small-text right-section-stats absolute right-4 top-4">
-        {/* Settings & Theme - top right (replacing cross) */}
-        <div className="flex items-center gap-2 mb-2 w-full max-w-[100px] justify-end">
+      <div className="flex flex-col items-center gap-1 mt-0 mobile-stack mobile-small-text right-section-stats absolute right-4 top-0 landscape-right-stats">
+        {/* Settings & Theme - top right, minimal margin so Backspace fits on screen */}
+        <div className="flex items-center gap-2 mb-1 w-full max-w-[100px] justify-end">
           <button
             onClick={() => setShowSettings(!showSettings)}
             className={`p-2 rounded-full shadow min-w-[40px] min-h-[40px] flex items-center justify-center ${
@@ -1333,7 +1339,7 @@ function LandscapeMobileView({
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
         </div>
-        <div className="flex flex-col gap-2 w-full max-w-[100px] items-center landscape-mobile-stats">
+        <div className="flex flex-col gap-1 w-full max-w-[100px] items-center landscape-mobile-stats">
           <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
             <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
             <div className="bg-white text-black text-sm font-bold">{formatClock(timer)}</div>
@@ -1356,7 +1362,7 @@ function LandscapeMobileView({
           </div>
         </div>
         {/* Close Button - bottom right, below Backspace */}
-        <div className="w-full max-w-[100px] flex justify-end mt-2">
+        <div className="w-full max-w-[100px] flex justify-end mt-1">
           <button
             onClick={() => window.location.href = '/learning'}
             className="bg-red-600 text-white hover:bg-red-700 px-6 py-1.5 rounded-md shadow transition-all duration-200 hover:scale-105 flex items-center justify-center text-sm font-medium"
@@ -3171,34 +3177,34 @@ function KeyboardApp() {
             margin-right: 0 !important;
           }
           
-          /* LANDSCAPE: Character boxes size - increased to w-20 (80px) to span full width */
+          /* LANDSCAPE: Character boxes size (asdf jkl;) */
           .landscape-typing-prompt > div.landscape-char-box:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]),
           .landscape-typing-prompt > div[class*="w-20"]:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]),
           .landscape-typing-prompt > div[class*="w-15"]:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]) {
-            width: 80px !important;
-            min-width: 80px !important;
-            max-width: 80px !important;
-            height: 64px !important;
-            min-height: 64px !important;
-            font-size: 1.4rem !important;
+            width: 49px !important;
+            min-width: 49px !important;
+            max-width: 49px !important;
+            height: 39px !important;
+            min-height: 39px !important;
+            font-size: 1rem !important;
             flex-shrink: 0 !important;
           }
           
-          /* LANDSCAPE: Space key in typing prompt - reduced height */
+          /* LANDSCAPE: Space key in typing prompt */
           .landscape-typing-prompt > div[class*="w-32"],
           .landscape-typing-prompt > div[class*="w-22"],
           .landscape-typing-prompt > div[class*="w-24"] {
-            width: 140px !important;
-            min-width: 140px !important;
-            max-width: 140px !important;
-            height: 34px !important;
-            min-height: 34px !important;
+            width: 135px !important;
+            min-width: 135px !important;
+            max-width: 135px !important;
+            height: 33px !important;
+            min-height: 33px !important;
             flex-shrink: 0 !important;
           }
           
-          /* LANDSCAPE: Increase gap to distribute boxes evenly across full width */
+          /* LANDSCAPE: Gap to distribute boxes evenly across full width */
           .landscape-typing-prompt {
-            gap: 1.5rem !important;
+            gap: 2rem !important;
           }
         }
 
@@ -3221,8 +3227,12 @@ function KeyboardApp() {
            (max-width: 932px) and (orientation: landscape)
            ============================================ */
         @media (max-width: 932px) and (orientation: landscape) {
-          /* MOBILE LANDSCAPE: Only affect landscape-keyboard-small, not desktop keyboard-container */
-          /* Account for stats panel (120px) + gap (4rem = 64px) on right side */
+          /* MOBILE LANDSCAPE: Minimal top padding so box row has little margin; remove space between keyboard and stats */
+          .landscape-mobile-view-container {
+            padding-top: 2rem !important;
+            padding-right: 0.25rem !important;
+            gap: 0.25rem !important;
+          }
           .keyboard-container.landscape-keyboard-small {
             max-width: calc(100% - 280px) !important;
             width: calc(100% - 280px) !important;
@@ -3231,37 +3241,50 @@ function KeyboardApp() {
             left: 0.5rem !important;
           }
           
-          /* MOBILE LANDSCAPE: Align typing prompt with keyboard edges */
-          .landscape-typing-prompt {
+          /* MOBILE LANDSCAPE: Align typing prompt with keyboard edges; no extra margin top */
+          .landscape-typing-prompt,
+          .practice-row.landscape-typing-prompt {
             position: absolute !important;
             left: 0.5rem !important;
             top: 0 !important;
-            width: calc(100% - 280px) !important;
-            max-width: calc(100% - 280px) !important;
+            margin-top: 0 !important;
+            width: calc(100% - 200px) !important;
+            max-width: calc(100% - 200px) !important;
             padding-left: 0 !important;
             padding-right: 0 !important;
             margin-left: 0 !important;
             margin-right: 0 !important;
             justify-content: space-between !important;
-            gap: 1.5rem !important;
+            gap: 2rem !important;
           }
           
           
-          /* MOBILE LANDSCAPE: Add spacer for absolute positioned typing prompt */
+          /* MOBILE LANDSCAPE: Small gap between box row and keyboard */
           .landscape-prompt-spacer {
-            height: 80px !important;
+            height: 44px !important;
+          }
+          .landscape-keyboard-top {
+            top: 3rem !important;
           }
           
-          /* MOBILE LANDSCAPE: Align stats section to right edge on mobile landscape devices */
+          /* MOBILE LANDSCAPE: Right panel - no top margin, top-aligned so Backspace and Close fit on screen */
+          .right-section-stats.landscape-right-stats,
           .right-section-stats {
-            right: 1rem !important;
-            padding-right: 0.5rem !important;
+            top: 0 !important;
+            margin-top: 0 !important;
+            right: 0 !important;
+            transform: none !important;
+            padding-right: 0.25rem !important;
+            padding-top: 0.25rem !important;
+            gap: 0.25rem !important;
           }
           
-          /* MOBILE LANDSCAPE: Ensure proper gap between keyboard and stats */
+          /* MOBILE LANDSCAPE: Stats box flush right */
+          
+          /* MOBILE LANDSCAPE: No gap between keyboard and stats box */
           .keyboard-container.landscape-keyboard-small + *,
           .landscape-keyboard-small {
-            margin-right: 1.5rem !important;
+            margin-right: 0 !important;
           }
 
           /* MOBILE LANDSCAPE: Increase virtual keyboard key size (were too small) */

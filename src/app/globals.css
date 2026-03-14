@@ -362,3 +362,25 @@ body {
   }
 }
 
+/* Keyboard page: landscape practice boxes (asdf Space jkl;) - global so change shows */
+@media (max-width: 932px) and (orientation: landscape) {
+  .landscape-mobile-view-container .landscape-typing-prompt > div.landscape-char-box,
+  .landscape-mobile-view-container .landscape-typing-prompt > div.landscape-letter-box,
+  .landscape-mobile-view-container .typing-prompt-container.landscape-typing-prompt > div:not(.landscape-space-key):not([class*="space-key-box"]) {
+    width: 49px !important;
+    min-width: 49px !important;
+    max-width: 49px !important;
+    height: 39px !important;
+    min-height: 39px !important;
+    font-size: 1rem !important;
+  }
+  .landscape-mobile-view-container .landscape-typing-prompt > div.landscape-space-key,
+  .landscape-mobile-view-container .landscape-typing-prompt > div[class*="space-key-box"] {
+    width: 135px !important;
+    min-width: 135px !important;
+    max-width: 135px !important;
+    height: 33px !important;
+    min-height: 33px !important;
+  }
+}
+
