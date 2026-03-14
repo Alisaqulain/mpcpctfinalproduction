@@ -362,7 +362,20 @@ body {
   }
 }
 
-/* Keyboard page: landscape practice boxes (asdf Space jkl;) - global so change shows */
+/* Keyboard page: landscape - alignment 100% same as image 3 on every device (XR, phone, tablet) */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .landscape-typing-prompt,
+  .practice-row.landscape-typing-prompt {
+    width: calc(100% - 140px) !important;
+    max-width: calc(100% - 140px) !important;
+    left: 0.5rem !important;
+  }
+  .keyboard-container.landscape-keyboard-small {
+    width: calc(100% - 140px) !important;
+    max-width: calc(100% - 140px) !important;
+    left: 0.5rem !important;
+  }
+}
 @media (max-width: 932px) and (orientation: landscape) {
   .landscape-mobile-view-container .landscape-typing-prompt > div.landscape-char-box,
   .landscape-mobile-view-container .landscape-typing-prompt > div.landscape-letter-box,
@@ -384,10 +397,10 @@ body {
   }
 }
 
-/* Portrait: Rotate your phone - moving animation (global so it always runs) */
+/* Portrait: Rotate your phone - moving animation, larger size (global so it always runs) */
 .rotate-phone-3d-wrapper {
-  width: 80px;
-  height: 80px;
+  width: 96px;
+  height: 96px;
   display: flex;
   align-items: center;
   justify-content: center;

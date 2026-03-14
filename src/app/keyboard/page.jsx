@@ -577,15 +577,15 @@ function PortraitMobileView({
         {/* Rotation Prompt - Rotate your phone (mobile only, 3D animated like GIF/video) */}
         {showRotatePrompt && (
           <div
-            className="rotate-prompt-mobile fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 flex items-center gap-3 shadow-lg border border-gray-700 md:hidden"
+            className="rotate-prompt-mobile fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-gray-800/95 backdrop-blur-sm rounded-xl p-3 flex items-center gap-3 shadow-lg border border-gray-700 md:hidden"
             style={{ pointerEvents: "none" }}
           >
             <div className="rotate-phone-3d-wrapper">
               <div className="rotate-phone-3d">
-                <div className="relative w-9 h-14 bg-blue-500 rounded-lg border-2 border-blue-400 flex flex-col items-center justify-between py-1.5 shadow-lg">
-                  <div className="w-1.5 h-1.5 bg-blue-300 rounded-full" />
-                  <div className="flex-1 w-5 bg-blue-400 rounded my-1" />
-                  <div className="w-2.5 h-0.5 bg-blue-300 rounded" />
+                <div className="relative w-12 h-20 bg-blue-500 rounded-xl border-2 border-blue-400 flex flex-col items-center justify-between py-1.5 shadow-lg">
+                  <div className="w-2 h-2 bg-blue-300 rounded-full" />
+                  <div className="flex-1 w-6 bg-blue-400 rounded my-1" />
+                  <div className="w-3 h-1 bg-blue-300 rounded" />
                 </div>
               </div>
             </div>
@@ -972,7 +972,7 @@ function LandscapeMobileView({
         {/* Typing Prompt Buttons - Landscape mobile row-based layout */}
         <div
           className="flex flex-nowrap typing-prompt-mobile justify-between items-center gap-1 md:gap-2 absolute top-0 left-2 typing-prompt-container landscape-typing-prompt"
-          style={{ width: 'calc(100% - 280px)', overflow: 'visible', paddingRight: '0', marginRight: '0' }}
+          style={{ width: 'calc(100% - 140px)', overflow: 'visible', paddingRight: '0', marginRight: '0' }}
         >
           {currentRowKeys.map((key, displayIdx) => {
             const originalIndex = getOriginalIndex(displayIdx);
@@ -1059,8 +1059,8 @@ function LandscapeMobileView({
               /* Only affects landscape-keyboard-small, not desktop keyboard-container */
               /* Account for stats panel (120px) + gap (4rem) on right side */
               .landscape-keyboard-small {
-                width: calc(100% - 280px) !important;
-                max-width: calc(100% - 280px) !important;
+                width: calc(100% - 140px) !important;
+                max-width: calc(100% - 140px) !important;
                 margin-left: 0 !important;
                 margin-right: 0 !important;
                 transform-origin: left top !important;
@@ -1068,14 +1068,14 @@ function LandscapeMobileView({
                 right: auto !important;
               }
               
-              /* LANDSCAPE: Align typing prompt container with keyboard edges; no extra margin top */
+              /* LANDSCAPE: Same width/left as keyboard = 100% same alignment on every device (image 3) */
               .landscape-typing-prompt {
                 position: absolute !important;
                 left: 0.5rem !important;
                 top: 0 !important;
                 margin-top: 0 !important;
-                width: calc(100% - 280px) !important;
-                max-width: calc(100% - 280px) !important;
+                width: calc(100% - 140px) !important;
+                max-width: calc(100% - 140px) !important;
                 padding-left: 0 !important;
                 padding-right: 0 !important;
                 margin-left: 0 !important;
@@ -2728,8 +2728,8 @@ function KeyboardApp() {
         
         /* Rotate phone - smooth 2D rotation (portrait → landscape → portrait, like a GIF/video) */
         .rotate-phone-3d-wrapper {
-          width: 80px;
-          height: 80px;
+          width: 96px;
+          height: 96px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -2892,13 +2892,13 @@ function KeyboardApp() {
             display: none;
           }
           
-          /* PORTRAIT: Rotation prompt visibility for portrait view */
+          /* PORTRAIT: Rotation prompt - higher up, not at complete bottom */
           .rotate-prompt-mobile {
             display: flex !important;
             visibility: visible !important;
             opacity: 1 !important;
-            bottom: 1rem !important;
-            margin-bottom: 0.5rem !important;
+            bottom: 6rem !important;
+            margin-bottom: 0 !important;
           }
           
           /* LANDSCAPE: Rotation prompt in landscape mobile view */
@@ -3134,10 +3134,10 @@ function KeyboardApp() {
            Increase typing prompt keys size in mobile landscape
            ============================================ */
         @media (max-width: 932px) and (orientation: landscape) {
-          /* LANDSCAPE: Typing prompt container - ensure full width and all boxes visible */
+          /* LANDSCAPE: Typing prompt - same width as keyboard for 100% same alignment on every device */
           .landscape-typing-prompt {
-            width: calc(100% - 280px) !important;
-            max-width: calc(100% - 280px) !important;
+            width: calc(100% - 140px) !important;
+            max-width: calc(100% - 140px) !important;
             justify-content: space-between !important;
             overflow: visible !important;
             flex-wrap: nowrap !important;
@@ -3212,27 +3212,27 @@ function KeyboardApp() {
         @media (max-width: 932px) and (orientation: landscape) {
           /* MOBILE LANDSCAPE: Minimal top padding so box row has little margin; remove space between keyboard and stats */
           .landscape-mobile-view-container {
-            padding-top: 2rem !important;
+            padding-top: 0.25rem !important;
             padding-right: 0.25rem !important;
             gap: 0.25rem !important;
           }
           .keyboard-container.landscape-keyboard-small {
-            max-width: calc(100% - 280px) !important;
-            width: calc(100% - 280px) !important;
+            max-width: calc(100% - 140px) !important;
+            width: calc(100% - 140px) !important;
             margin-left: 0 !important;
-            margin-right: 4rem !important;
+            margin-right: 0 !important;
             left: 0.5rem !important;
           }
           
-          /* MOBILE LANDSCAPE: Align typing prompt with keyboard edges; no extra margin top */
+          /* MOBILE LANDSCAPE: Same width/left as keyboard = alignment 100% same as image 3 on every device */
           .landscape-typing-prompt,
           .practice-row.landscape-typing-prompt {
             position: absolute !important;
             left: 0.5rem !important;
             top: 0 !important;
             margin-top: 0 !important;
-            width: calc(100% - 200px) !important;
-            max-width: calc(100% - 200px) !important;
+            width: calc(100% - 140px) !important;
+            max-width: calc(100% - 140px) !important;
             padding-left: 0 !important;
             padding-right: 0 !important;
             margin-left: 0 !important;
