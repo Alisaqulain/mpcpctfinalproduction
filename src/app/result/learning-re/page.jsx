@@ -66,7 +66,7 @@ export default function CpctScoreCard() {
     );
   }
   return (
-      <div>
+      <div className="max-h-screen overflow-y-auto overflow-x-hidden">
     <div className="max-w-4xl mx-auto border-4 border-[#290c52] bg-white shadow-xl text-sm font-sans my-5">
       {/* Full-Width Header */}
       <div
@@ -172,28 +172,29 @@ export default function CpctScoreCard() {
         </tbody>
       </table>
 
-      {/* Contact Info */}
+      {/* Contact Info - fixed height, scroll when many keys (e.g. 21+) wrap to next line */}
       <div className="bg-white p-4 w-full max-w-full text-sm mb-3">
         <div className="flex justify-between items-center mb-2">
           <h2 className="font-bold">Difficult Keys in this Exercise</h2>
           <a href="#" className="text-blue-600 text-xs underline">Review</a>
         </div>
 
-        {/* Chart area */}
-        <div className="relative h-[140px] border border-black">
-          {/* Difficulty zones */}
-          <div className="absolute top-0 left-0 w-full h-1/3 border-b border-green-300 flex items-center justify-end pr-2 text-xs text-gray-600">
-            Problematic
-          </div>
-          <div className="absolute top-1/3 left-0 w-full h-1/3 border-b border-green-300 flex items-center justify-end pr-2 text-xs text-gray-600">
-            Difficult
-          </div>
-          <div className="absolute top-2/3 left-0 w-full h-1/3 flex items-center justify-end pr-2 text-xs text-gray-600">
-            OK
-          </div>
+        {/* Chart area - no scrollbar here; scrolling is on the result box (outer container) */}
+        <div className="border border-black overflow-visible">
+          <div className="relative min-h-[125px]">
+            {/* Difficulty zones - visual overlay */}
+            <div className="absolute top-0 left-0 w-full h-1/3 border-b border-green-300 flex items-center justify-end pr-2 text-xs text-gray-600 pointer-events-none">
+              Problematic
+            </div>
+            <div className="absolute top-1/3 left-0 w-full h-1/3 border-b border-green-300 flex items-center justify-end pr-2 text-xs text-gray-600 pointer-events-none">
+              Difficult
+            </div>
+            <div className="absolute top-2/3 left-0 w-full h-1/3 flex items-center justify-end pr-2 text-xs text-gray-600 pointer-events-none">
+              OK
+            </div>
 
-          {/* Bars - Show ALL keys with their difficulty levels */}
-          <div className="absolute bottom-0 left-0 right-0 w-full flex gap-x-1 sm:gap-x-2 md:gap-x-3 items-end justify-center px-2 sm:px-4 overflow-x-auto" style={{ height: '100%', paddingBottom: '5px' }}>
+            {/* Bars - flex-wrap so 21st key goes to next line; container grows and parent scrolls */}
+            <div className="flex flex-wrap gap-x-1 sm:gap-x-2 md:gap-x-3 gap-y-2 items-end justify-center px-2 sm:px-4 pt-1" style={{ paddingBottom: '5px', minHeight: '125px' }}>
             {difficultKeysData && Array.isArray(difficultKeysData) && difficultKeysData.length > 0 ? (
               difficultKeysData.map((item, index) => {
                 const difficultyValue = item.difficulty !== undefined ? item.difficulty : (item.value !== undefined ? item.value : 0);
@@ -226,7 +227,7 @@ export default function CpctScoreCard() {
                 const frequency = item.frequency || 1; // How many times this key appeared
                 
                 return (
-                  <div key={`${keyName}-${index}`} className="flex flex-col items-center justify-end flex-shrink-0 h-full" title={`${keyName}: ${difficultyValue} error${difficultyValue !== 1 ? 's' : ''} (appeared ${frequency} time${frequency !== 1 ? 's' : ''})`}>
+                  <div key={`${keyName}-${index}`} className="flex flex-col items-center justify-end flex-shrink-0" title={`${keyName}: ${difficultyValue} error${difficultyValue !== 1 ? 's' : ''} (appeared ${frequency} time${frequency !== 1 ? 's' : ''})`}>
                     <div
                       className={`${barColor} ${barWidth} transition-all rounded-t mb-1`}
                       style={{ height: `${barHeight}px`, minHeight: '10px', maxHeight: '120px' }}
@@ -245,6 +246,7 @@ export default function CpctScoreCard() {
               </div>
             )}
           </div>
+        </div>
         </div>
       </div>
 
@@ -268,9 +270,9 @@ export default function CpctScoreCard() {
         </div>
       </div>
       </div>
-         <button className="bg-red-600 hover:bg-blue-700 text-white font-medium px-4 py-2 mb-2 ml-35 sm:ml-40 md:ml-70 lg:ml-80 xl:ml-156">
-  <a href="/">Go To Home</a>
-</button>
+      <button className="bg-red-600 hover:bg-blue-700 text-white font-medium px-4 py-2 mb-2 ml-35 sm:ml-40 md:ml-70 lg:ml-80 xl:ml-156">
+        <a href="/">Go To Home</a>
+      </button>
     </div>
   );
 }

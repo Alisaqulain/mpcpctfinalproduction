@@ -449,6 +449,11 @@ export default function TypingTutor() {
                     key={lesson.id} 
                     className={`flex items-center gap-3 md:gap-4 ${isLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                     title={isLocked ? (lesson.lessonType === "word" && !wordUnlocked ? 'Complete previous word lesson with net speed ≥ 10 to unlock' : 'Please purchase subscription to access this content') : ''}
+                    onClick={(e) => {
+                      if (isLocked) return;
+                      if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') return;
+                      handleCheckboxChange(lesson);
+                    }}
                   >
   {isLocked ? (
     <div className="relative group flex-shrink-0">
@@ -466,6 +471,7 @@ export default function TypingTutor() {
       className="w-5 h-5 accent-green-500 flex-shrink-0"
       checked={selectedCheckbox?.id === lesson.id}
       onChange={() => handleCheckboxChange(lesson)}
+      onClick={(e) => e.stopPropagation()}
     />
   )}
   <span className="text-base md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl flex-shrink-0 mr-2 md:mr-4">{lesson.id}</span>

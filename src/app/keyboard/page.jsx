@@ -249,19 +249,21 @@ function DesktopView({
             {/* Dual Hand Image Overlay */}
             {hand && (leftHandImage || rightHandImage) && (
               <div className="absolute inset-0 pointer-events-none z-10 hand-overlay">
-                <div className="absolute left-[-10px] top-78 transform -translate-y-1/2 -translate-x-12">
+                <div className="absolute left-[-10px] top-80 transform -translate-y-1/2 -translate-x-16" style={{ marginTop: "6px" }}>
                   <img 
                     src={leftHandImage} 
                     alt="Left hand finger position" 
-                    className="w-130 h-600 object-contain opacity-85 transition-all duration-500 ease-in-out transform scale-110"
+                    className="w-130 h-600 object-contain opacity-85 transition-all duration-500 ease-in-out hand-finger-gap"
+                    style={{ transform: "scale(1.1) scaleX(1.12)" }}
                   />
                 </div>
-                
-                <div className="absolute right-33 top-78 transform -translate-y-1/2 translate-x-12">
+                {/* Right hand overlay - slightly up */}
+                <div className="absolute right-33 top-80" style={{ marginTop: "2px", transform: "translateY(calc(-50% - 0.5rem)) translateX(4rem)" }}>
                   <img 
                     src={rightHandImage} 
                     alt="Right hand finger position" 
-                    className="w-130 h-600 object-contain opacity-85 transition-all duration-500 ease-in-out transform scale-110"
+                    className="w-130 h-600 object-contain opacity-85 transition-all duration-500 ease-in-out hand-finger-gap"
+                    style={{ transform: "scale(1.1) scaleX(1.12)" }}
                   />
                 </div>
                 
@@ -644,6 +646,7 @@ function PortraitMobileView({
                 object-fit: contain;
                 opacity: 0.85;
                 transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+                margin-top: 4rem; /* portrait only: hands a little down */
               }
               .portrait-keyboard-hand-image.left {
                 object-position: left center;
@@ -661,14 +664,14 @@ function PortraitMobileView({
                   src={leftHandImage} 
                   alt="Left hand position" 
                   className="portrait-keyboard-hand-image left"
-                  style={{ backfaceVisibility: 'hidden' }}
+                  style={{ backfaceVisibility: 'hidden', transform: 'scaleX(1.12)' }}
                 />
                 <img 
                   key={`${rightHandImage}-${pressedKey}`}
                   src={rightHandImage} 
                   alt="Right hand position" 
                   className="portrait-keyboard-hand-image right"
-                  style={{ backfaceVisibility: 'hidden' }}
+                  style={{ backfaceVisibility: 'hidden', transform: 'scaleX(1.12)' }}
                 />
               </div>
             )}
@@ -1023,19 +1026,22 @@ function LandscapeMobileView({
             {/* Dual Hand Image Overlay */}
             {hand && (leftHandImage || rightHandImage) && (
               <div className="absolute inset-0 pointer-events-none z-10 hand-overlay">
-                <div className="absolute left-[-45px] top-55 transform -translate-y-1/2 -translate-x-12">
+                {/* Left hand - landscape: a little left */}
+                <div className="absolute left-[-55px] top-[13.5rem] transform -translate-y-1/2 translate-x-0" style={{ marginTop: "4px" }}>
                   <img 
                     src={leftHandImage} 
                     alt="Left hand finger position" 
-                    className="w-100 h-260 object-contain opacity-85 transition-all duration-500 ease-in-out transform scale-110"
+                    className="w-100 h-260 object-contain opacity-85 transition-all duration-500 ease-in-out hand-finger-gap"
+                    style={{ transform: "scale(1.1) scaleX(1.12)" }}
                   />
                 </div>
-                
-                <div className="absolute right-6 top-55 transform -translate-y-1/2 translate-x-12">
+                {/* Right hand overlay - slightly up, moved right (landscape only) */}
+                <div className="absolute right-6 top-[14rem]" style={{ marginTop: "0px", transform: "translateY(calc(-50% - 0.25rem)) translateX(1rem)" }}>
                   <img 
                     src={rightHandImage} 
                     alt="Right hand finger position" 
-                    className="w-100 h-260 object-contain opacity-85 transition-all duration-500 ease-in-out transform scale-110"
+                    className="w-100 h-260 object-contain opacity-85 transition-all duration-500 ease-in-out hand-finger-gap"
+                    style={{ transform: "scale(1.1) scaleX(1.12)" }}
                   />
                 </div>
                 
@@ -2009,22 +2015,52 @@ function KeyboardApp() {
     }
   }, []);
 
-  // Whenever the current target key changes, update hand images so hands
-  // always point to the correct key even before the user presses anything.
+  // Hand position: by default (before typing) always show home row (asdf / jkl;). Only move when typing.
   useEffect(() => {
     if (!highlightedKeys || highlightedKeys.length === 0) {
       setLeftHandImage(keyToHandImage["resting"].left);
       setRightHandImage(keyToHandImage["resting"].right);
       return;
     }
+    // Before user has typed anything, always show home row finger position (asdf space jkl;)
+    if (currentIndex === 0) {
+      setLeftHandImage(keyToHandImage["A"].left);
+      setRightHandImage(keyToHandImage["J"].right);
+      return;
+    }
+    const rows = organizeKeysIntoRows(highlightedKeys);
+    const currentRowKeys = rows[Math.min(currentRowIndex, rows.length - 1)] || rows[0] || [];
     const targetKey = highlightedKeys[Math.min(currentIndex, highlightedKeys.length - 1)];
     if (!targetKey) {
       setLeftHandImage(keyToHandImage["resting"].left);
       setRightHandImage(keyToHandImage["resting"].right);
       return;
     }
-    updateHandImages(targetKey);
-  }, [highlightedKeys, currentIndex, updateHandImages]);
+    const spaceIdx = currentRowKeys.indexOf("Space");
+    const leftKeys = spaceIdx >= 0 ? currentRowKeys.slice(0, spaceIdx) : currentRowKeys.slice(0, 4);
+    const rightKeys = spaceIdx >= 0 ? currentRowKeys.slice(spaceIdx + 1) : currentRowKeys.slice(-4);
+    const norm = (k) => (k === " " ? "Space" : (k && k.length === 1 ? k.toUpperCase() : k));
+    const targetNorm = norm(targetKey);
+    const leftHandKeys = ["`", "1", "2", "3", "4", "5", "Q", "W", "E", "R", "T", "A", "S", "D", "F", "G", "Z", "X", "C", "V", "B", "Shift", "Tab", "Caps", "Ctrl", "Alt", "Win"];
+    const isTargetLeft = leftHandKeys.includes(targetNorm);
+    const leftRep = leftKeys.length > 0 ? norm(leftKeys[0]) : null;
+    const rightRep = rightKeys.length > 0 ? norm(rightKeys[0]) : null;
+    const leftImg = keyToHandImage[targetNorm] || keyToHandImage["resting"];
+    const rightImg = keyToHandImage[targetNorm] || keyToHandImage["resting"];
+    if (targetKey === "Space" || targetKey === " ") {
+      const spaceImg = keyToHandImage["Space"] || keyToHandImage["resting"];
+      setLeftHandImage(spaceImg.left);
+      setRightHandImage(spaceImg.right);
+      return;
+    }
+    if (isTargetLeft) {
+      setLeftHandImage(leftImg.left);
+      setRightHandImage((rightRep && keyToHandImage[rightRep]) ? keyToHandImage[rightRep].right : keyToHandImage["resting"].right);
+    } else {
+      setLeftHandImage((leftRep && keyToHandImage[leftRep]) ? keyToHandImage[leftRep].left : keyToHandImage["resting"].left);
+      setRightHandImage(rightImg.right);
+    }
+  }, [highlightedKeys, currentIndex, currentRowIndex]);
 
   useEffect(() => {
     const interval = setInterval(() => {
