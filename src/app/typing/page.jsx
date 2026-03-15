@@ -56,9 +56,13 @@ function DesktopView({
 }) {
   return (
     <>
-      <button className="hidden md:absolute md:right-22 md:top-6 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md md:block">
-        <a href={closeHref}>close</a>
-      </button>
+      <a
+        href={closeHref}
+        className="hidden md:flex md:items-center md:justify-center md:absolute md:right-20 md:top-4 z-[9999] px-4 py-2 rounded-md border border-gray-600 text-white bg-red-500 hover:bg-red-600 text-sm font-semibold md:block"
+        aria-label="Close"
+      >
+        Close
+      </a>
 
       <div className="flex flex-col-reverse lg:flex-row gap-6">
         {/* Typing Area */}
@@ -229,8 +233,8 @@ function DesktopView({
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="w-full lg:w-[20%] text-white p-3 fixed top-0 mt-[-15] left-0 z-50 bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat lg:static lg:bg-none lg:bg-transparent">
+        {/* Sidebar - pt-20 on lg so close button doesn't overlap meter */}
+        <div className="w-full lg:w-[20%] text-white p-3 fixed top-0 mt-[-15] left-0 z-50 bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat lg:static lg:bg-none lg:bg-transparent lg:pt-20">
           <div className="flex flex-col items-center space-y-1 mt-[-18]">
             <div className="mb-4">
               <img
@@ -377,20 +381,10 @@ function PortraitView({
 }) {
   return (
     <>
-      <button className="absolute md:hidden right-3 top-20 border border-gray-600 text-white bg-red-500 px-4 py-1 rounded-md">
-        <a href={closeHref}>close</a>
-      </button>
-
-      <div className="flex flex-col-reverse gap-6">
+      <div className="flex flex-col-reverse gap-2 pt-2">
         {/* Typing Area */}
         <div className="w-[90%] mx-auto">
-          <p className="block lg:hidden text-md mb-20 mt-[-30px] text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-center font-bold">
-            Typing Tutor
-            <br />
-            <span className="text-xs font-normal text-white">(Type the words as they appear below)</span>
-          </p>
-
-          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg mt-[-45] w-full">
+          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg mt-2 w-full">
             {/* Results Display */}
             {isCompleted && (
               <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
@@ -466,7 +460,7 @@ function PortraitView({
               </div>
             ) : (
               <>
-                <div className="text-sm leading-tight overflow-y-auto min-h-[200px] max-h-[100px] mt-4 break-words font-sans w-full" style={{ fontSize: `${fontSize}px`, width: '100%', maxWidth: '100%' }}>
+                <div className="text-sm leading-tight overflow-y-auto min-h-[120px] max-h-[180px] mt-3 break-words font-sans w-full" style={{ fontSize: `${fontSize}px`, width: '100%', maxWidth: '100%' }}>
                   {renderColoredWords()}
                 </div>
                 {/* Keyboard Warning for Hindi */}
@@ -532,7 +526,7 @@ function PortraitView({
               </>
             )}
           </div>
-          <div className="flex justify-center mt-5 gap-6 flex-wrap">
+          <div className="flex justify-center mt-3 gap-4 flex-wrap">
           <button
               onClick={handleCompletion}
               disabled={!startTime || isCompleted}
@@ -652,7 +646,15 @@ function PortraitView({
                 >
                   A +
                 </button>
-            
+            {/* Close - below A+ (portrait), no overlap with meter */}
+            <a
+              href={closeHref}
+              className="absolute right-4 flex items-center justify-center w-7 h-7 rounded-full border border-gray-600 text-white bg-red-500 hover:bg-red-600 shadow text-base font-bold md:hidden"
+              style={{ top: '10rem' }}
+              aria-label="Close"
+            >
+              ×
+            </a>
             
           </div>
         </div>
@@ -711,20 +713,6 @@ function LandscapeView({
 }) {
   return (
     <>
-      <button 
-        className="fixed md:hidden right-2 top-2 z-[9999] border-2 border-gray-600 text-white bg-red-500 hover:bg-red-600 rounded-md shadow-lg" 
-        style={{ 
-          padding: '0.8vh 2vw', 
-          fontSize: 'clamp(9px, 1.8vw, 12px)', 
-          minHeight: '4vh', 
-          position: 'fixed', 
-          zIndex: 9999,
-          display: 'block',
-          visibility: 'visible'
-        }}
-      >
-        <a href={closeHref} className="font-semibold">close</a>
-      </button>
       <div className="landscape-mobile-container">
       <div className="landscape-mobile-flex-row flex flex-row flex-1 min-h-0 w-full overflow-hidden">
         {/* Typing Area - no extra margin so it stays on screen */}
@@ -914,9 +902,9 @@ function LandscapeView({
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="landscape-mobile-sidebar flex-shrink-0 text-white bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat" style={{ width: '18vw', minWidth: '18vw', maxWidth: '18vw', height: '100%', padding: '1vh 1vw' }}>
-          <div className="flex flex-col items-center justify-center h-full">
+        {/* Sidebar - relative so meter positions below close; meter has top offset to clear close button */}
+        <div className="landscape-mobile-sidebar flex-shrink-0 relative text-white bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat" style={{ width: '18vw', minWidth: '18vw', maxWidth: '18vw', height: '100%', padding: '1vh 1vw', paddingTop: '4.5rem' }}>
+          <div className="flex flex-col items-center justify-center h-full relative">
             {/* User Profile */}
             <div className="mb-4 absolute top-14.5 left-4">
               <img
@@ -936,8 +924,8 @@ function LandscapeView({
                 {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
               </div>
             </div>
-            {/* Speedometer */}
-            <div className="mt-4 absolute top-8 right-1">
+            {/* Speedometer - well below close button to avoid overlap */}
+            <div className="absolute right-1" style={{ top: '4.5rem' }}>
               <div className="border-6 border-black rounded-full mt-2">
                 <div className="relative w-20 h-20 bg-black rounded-full border-4 border-white flex items-center justify-center" style={{ width: 'clamp(60px, 12vw, 80px)', height: 'clamp(60px, 12vw, 80px)' }}>
                   <div className="absolute left-1 text-red-500 text-[6px] font-bold tracking-widest" style={{ fontSize: 'clamp(6px, 1vw, 8px)' }}>SPEED</div>
@@ -984,6 +972,15 @@ function LandscapeView({
                 >
                   A +
                 </button>
+            {/* Close - below A+ */}
+            <a
+              href={closeHref}
+              className="absolute right-4 flex items-center justify-center w-7 h-7 rounded-full border border-gray-600 text-white bg-red-500 hover:bg-red-600 shadow text-base font-bold"
+              style={{ top: '15rem' }}
+              aria-label="Close"
+            >
+              ×
+            </a>
              
           </div>
         </div>
@@ -1829,16 +1826,21 @@ function TypingTutorForm() {
       <style jsx>{`
         @media (max-width: 767px) and (orientation: portrait) {
           html, body {
-            overflow: hidden !important;
-            height: 100vh !important;
-            position: fixed !important;
+            overflow-x: hidden !important;
+            min-height: 100vh !important;
             width: 100% !important;
           }
           .typing-background-container {
-            height: 100vh !important;
-            overflow: hidden !important;
-            position: fixed !important;
+            min-height: 100vh !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            position: relative !important;
             width: 100vw !important;
+            padding-top: 0.75rem !important;
+            padding-bottom: 1rem !important;
+          }
+          .portrait-typing-main {
+            margin-top: 0.5rem !important;
           }
           /* Hide scrollbar for sidebar in mobile */
           .w-full.text-white::-webkit-scrollbar {
@@ -1980,6 +1982,7 @@ function TypingTutorForm() {
             overflow-y: auto !important;
             height: 100% !important;
             padding: 1vh 1vw !important;
+            padding-top: 4.5rem !important; /* gap below close button so meter doesn't overlap */
           }
           /* Keep textarea visible when keyboard opens - scroll margin for smooth focus */
           .landscape-typing-input {
@@ -2122,7 +2125,7 @@ function TypingTutorForm() {
           }
         }
       `}</style>
-      <div className={`max-w-7xl mx-auto mt-30 md:mt-15 ${isMobile && isLandscape ? "landscape-mobile-container" : ""}`}>
+      <div className={`max-w-7xl mx-auto mt-6 md:mt-15 portrait-typing-main ${isMobile && isLandscape ? "landscape-mobile-container" : ""}`}>
         {!isMobile ? (
           <DesktopView {...commonProps} />
         ) : isLandscape ? (
