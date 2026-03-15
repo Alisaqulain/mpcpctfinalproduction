@@ -663,7 +663,7 @@ function PortraitView({
   );
 }
 
-// Landscape View Component (Mobile Landscape)
+// Landscape View Component (Mobile Landscape) - layout matches provided reference; desktop/portrait unchanged
 function LandscapeView({
   content,
   loading,
@@ -713,278 +713,206 @@ function LandscapeView({
 }) {
   return (
     <>
+      <button
+        className="fixed md:hidden right-2 top-2 z-[9999] border-2 border-gray-600 text-white bg-red-500 hover:bg-red-600 rounded-md shadow-lg"
+        style={{
+          padding: '0.8vh 2vw',
+          fontSize: 'clamp(9px, 1.8vw, 12px)',
+          minHeight: '4vh',
+          position: 'fixed',
+          zIndex: 9999,
+          display: 'block',
+          visibility: 'visible'
+        }}
+      >
+        <a href={closeHref} className="font-semibold">close</a>
+      </button>
       <div className="landscape-mobile-container">
-      <div className="landscape-mobile-flex-row flex flex-row flex-1 min-h-0 w-full overflow-hidden">
-        {/* Typing Area - no extra margin so it stays on screen */}
-        <div className="landscape-mobile-typing-area flex-1 min-w-0 min-h-0 flex flex-col items-center overflow-y-auto overflow-x-hidden" style={{ padding: '0.5vh 0.5vw', height: '100%' }}>
-          {/* Stats row at header */}
-          <div className="flex gap-x-4  justify-center items-center w-full" style={{ marginBottom: '5vh', flexWrap: 'wrap', gap: '1vw' }}>
-            {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
-              { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
-              { label: "Total", value: totalTypedWords, color: "text-[#290c52]" },
-              { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
-                <div key={i} className="w-24 h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]" style={{ flexShrink: 0 }}>
-                  <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
-                  <div className={`bg-white ${color} text-sm font-bold`}>{value}</div>
-                </div>
-              ))}
-          </div>
+        <div className="flex flex-row gap-6">
+          {/* Typing Area */}
+          <div className="landscape-mobile-typing-area ml-26" style={{ flex: '1', overflowY: 'auto', padding: '0.5vh 0.5vw', height: '100vh', width: 'calc(90vw - 18vw)', maxWidth: 'calc(100vw - 18vw)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            {/* Stats row at header */}
+            <div className="flex gap-x-4 justify-center items-center w-full" style={{ paddingTop: '0.5rem', marginBottom: '5vh', flexWrap: 'wrap', gap: '1vw' }}>
+              {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
+                { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
+                { label: "Total", value: totalTypedWords, color: "text-[#290c52]" },
+                { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
+                  <div key={i} className="w-24 h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]" style={{ flexShrink: 0 }}>
+                    <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
+                    <div className={`bg-white ${color} text-sm font-bold`}>{value}</div>
+                  </div>
+                ))}
+            </div>
 
-          <div className="bg-white p-2 rounded-xl shadow-lg" style={{ width: '95%', maxWidth: '95%', padding: '1vh 1vw', marginLeft: 'auto', marginRight: 'auto' }}>
-            {/* Results Display */}
-            {isCompleted && (
-              <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500" style={{ padding: '1.5vh 1.5vw', marginBottom: '1vh' }}>
-                {isLearningWordMode ? (
-                  <>
-                    <h2 className="text-xl font-bold text-green-800 mb-3" style={{ fontSize: 'clamp(12px, 2.5vw, 18px)', marginBottom: '1vh' }}>Lesson Complete</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3" style={{ gap: '1vw', marginBottom: '1vh' }}>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{netSpeedLearning}</div>
-                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Net Speed (WPM)</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{wpm}</div>
-                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>WPM</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{accuracy}%</div>
-                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Accuracy</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{formatClock(elapsedTime)}</div>
-                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Time</div>
-                      </div>
+            <div className="bg-white p-2 rounded-xl shadow-lg" style={{ width: '95%', maxWidth: '95%', padding: '1vh 1vw', marginLeft: 'auto', marginRight: 'auto' }}>
+              {/* Results Display */}
+              {isCompleted && (
+                <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500" style={{ padding: '1.5vh 1.5vw', marginBottom: '1vh' }}>
+                  <h2 className="text-xl font-bold text-green-800 mb-3" style={{ fontSize: 'clamp(12px, 2.5vw, 18px)', marginBottom: '1vh' }}>Test Completed!</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3" style={{ gap: '1vw', marginBottom: '1vh' }}>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{wpm}</div>
+                      <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>WPM</div>
                     </div>
-                    {lessonPassed ? (
-                      <p className="text-green-700 font-semibold mb-4" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>You reached net speed {netSpeedLearning} (≥ {MIN_NET_SPEED_LEARNING}). The next word lesson is now unlocked.</p>
-                    ) : (
-                      <p className="text-amber-700 font-semibold mb-4" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Net speed must be at least {MIN_NET_SPEED_LEARNING} to unlock the next word lesson (only word typing in Learning). Your net speed: {netSpeedLearning}. Practice again to improve.</p>
-                    )}
-                    <div className="flex gap-3 justify-center" style={{ gap: '1vw' }}>
-                      <a href={closeHref} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold inline-block" style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}>Back to Learning</a>
-                      <button onClick={handleReset} className="bg-[#290c52] hover:opacity-90 text-white px-6 py-2 rounded-lg font-semibold" style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}>Try Again</button>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{accuracy}%</div>
+                      <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Accuracy</div>
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <h2 className="text-xl font-bold text-green-800 mb-3" style={{ fontSize: 'clamp(12px, 2.5vw, 18px)', marginBottom: '1vh' }}>Test Completed!</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3" style={{ gap: '1vw', marginBottom: '1vh' }}>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{wpm}</div>
-                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>WPM</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{accuracy}%</div>
-                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Accuracy</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{formatClock(elapsedTime)}</div>
-                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Time</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{correctWords.length}</div>
-                        <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Correct</div>
-                      </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{formatClock(elapsedTime)}</div>
+                      <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Time</div>
                     </div>
-                    <div className="flex gap-3 justify-center" style={{ gap: '1vw' }}>
-                      <button onClick={handleDownloadPDF} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold" style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}>Download PDF</button>
-                      <button onClick={handleReset} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold" style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}>Try Again</button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
-            {loading ? (
-              <div className="text-center py-8" style={{ padding: '2vh 0' }}>
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4" style={{ width: '4vw', height: '4vw', minWidth: '30px', minHeight: '30px' }}></div>
-                <p style={{ fontSize: 'clamp(10px, 2vw, 14px)' }}>Loading exercise content...</p>
-              </div>
-            ) : content.length === 0 ? (
-              <div className="text-center py-8 text-gray-500" style={{ padding: '2vh 0', fontSize: 'clamp(10px, 2vw, 14px)' }}>
-                <p>No content available for this exercise.</p>
-              </div>
-            ) : (
-              <>
-                <div className="text-sm leading-tight overflow-y-auto min-h-[180px] max-h-[250px] mt-4 break-words font-sans w-full" style={{ minHeight: '30vh', maxHeight: '25vh', fontSize: 'clamp(10px, 2vw, 14px)', lineHeight: '1.2', width: '100%', maxWidth: '100%' }}>
-                  {renderColoredWords(true)}
-                </div>
-                {/* Keyboard Warning for Hindi */}
-                {isHindiTyping && showKeyboardWarning && (
-                  <div className="mt-2 mb-2 bg-red-100 border-2 border-red-500 rounded-lg p-3 animate-pulse">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-start gap-2 flex-1">
-                        <span className="text-2xl">⚠️</span>
-                        <div className="flex-1">
-                          <p className="text-red-800 font-bold text-sm mb-1">English Keyboard Detected!</p>
-                          <p className="text-red-700 text-xs mb-2">
-                            Please switch to <strong>Hindi ({subLanguage || "Remington Gail"})</strong> keyboard:
-                          </p>
-                          <div className="space-y-1 text-[10px] text-red-700">
-                            <div className="flex items-center gap-1">
-                              <span className="font-semibold">💻 Laptop/PC:</span>
-                              <span>Press <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Windows+Space</kbd> or <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Ctrl+Shift</kbd></span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <span className="font-semibold">📱 Mobile:</span>
-                              <span>Long press <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Space</kbd> key → Select Hindi keyboard</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setShowKeyboardWarning(false)}
-                        className="text-red-600 hover:text-red-800 font-bold text-xl flex-shrink-0"
-                      >
-                        ×
-                      </button>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{correctWords.length}</div>
+                      <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Correct</div>
                     </div>
                   </div>
-                )}
-                <textarea
-                  ref={textareaRef}
-                  value={typedText}
-                  onInput={handleChange}
-                  onChange={handleChange}
-                  onKeyDown={handleKeyDown}
-                  onKeyUp={isHindiTyping && hindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
-                  onFocus={(e) => {
-                    // Keep typing area visible when virtual keyboard opens (mobile landscape)
-                    requestAnimationFrame(() => {
-                      e.target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-                    });
-                    if (isHindiTyping) {
-                      e.target.setAttribute('lang', 'hi');
-                      e.target.setAttribute('inputmode', 'text');
-                      e.target.setAttribute('x-ms-ime-mode', 'active');
-                    }
-                  }}
-                  onCompositionStart={() => {
-                    if (isHindiTyping) {
-                      setShowKeyboardWarning(false);
-                    }
-                  }}
-                  disabled={isPaused || isCompleted}
-                  className="w-full auto-focus min-h-[150px] max-h-[180px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-2 disabled:opacity-50 landscape-typing-input"
-                  placeholder={isHindiTyping ? "Type Here in Hindi (हिंदी में टाइप करें)..." : "Type Here..."}
-                  lang={isHindiTyping ? "hi" : undefined}
-                  inputMode={isHindiTyping ? "text" : undefined}
-                  style={{ fontSize: `clamp(10px, 2vw, ${fontSize}px)`, minHeight: '18vh', maxHeight: '15vh', padding: '1vh 1vw', width: '100%' }}
-                  autoFocus
-                />
-              </>
-            )}
-          </div>
-          <div className="flex justify-center mt-2 gap-6 flex-wrap" style={{ marginTop: '4vh', gap: '1vw' }}>
-            <button
-              onClick={handleReset}
-              className="bg-pink-500 text-lg cursor-pointer hover:bg-orange-500 text-white px-8 py-1 rounded shadow"
-              style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
-            >
-              Reset
-            </button>
-            <button
-              onClick={togglePause}
-              disabled={isCompleted}
-              className="bg-blue-600 cursor-pointer text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow"
-              style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
-            >
-              {isPaused ? "Resume" : "Pause"}
-            </button>
-            <button
-              onClick={handleCompletion}
-              disabled={!startTime || isCompleted}
-              className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold"
-              style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
-            >
-              Submit
-            </button>
-          </div>
-        </div>
+                  <div className="flex gap-3 justify-center" style={{ gap: '1vw' }}>
+                    <button
+                      onClick={handleDownloadPDF}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
+                      style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}
+                    >
+                      Download PDF
+                    </button>
+                    <button
+                      onClick={handleReset}
+                      className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
+                      style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                </div>
+              )}
 
-        {/* Sidebar - relative so meter positions below close; meter has top offset to clear close button */}
-        <div className="landscape-mobile-sidebar flex-shrink-0 relative text-white bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat" style={{ width: '18vw', minWidth: '18vw', maxWidth: '18vw', height: '100%', padding: '1vh 1vw', paddingTop: '4.5rem' }}>
-          <div className="flex flex-col items-center justify-center h-full relative">
-            {/* User Profile */}
-            <div className="mb-4 absolute top-14.5 left-4">
-              <img
-                src={userProfileUrl}
-                alt={userName}
-                className="w-24 h-24 rounded-md border-2 border-white"
-                style={{ width: 'clamp(60px, 12vw, 80px)', height: 'clamp(60px, 12vw, 80px)' }}
-                onError={(e) => {
-                  e.target.src = "/lo.jpg";
-                }}
-              />
-              <p className="font-semibold text-xs text-center text-white" style={{ fontSize: 'clamp(8px, 1.2vw, 10px)', marginTop: '0.5vh' }}>{userName}</p>
+              {loading ? (
+                <div className="text-center py-8" style={{ padding: '2vh 0' }}>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4" style={{ width: '4vw', height: '4vw', minWidth: '30px', minHeight: '30px' }}></div>
+                  <p style={{ fontSize: 'clamp(10px, 2vw, 14px)' }}>Loading exercise content...</p>
+                </div>
+              ) : content.length === 0 ? (
+                <div className="text-center py-8 text-gray-500" style={{ padding: '2vh 0', fontSize: 'clamp(10px, 2vw, 14px)' }}>
+                  <p>No content available for this exercise.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="text-sm leading-tight overflow-y-auto min-h-[160px] max-h-[220px] mt-4 break-words font-sans w-full" style={{ minHeight: '26vh', maxHeight: '22vh', fontSize: 'clamp(10px, 2vw, 14px)', lineHeight: '1.2', width: '100%', maxWidth: '100%' }}>
+                    {renderColoredWords(true)}
+                  </div>
+                  <textarea
+                    ref={textareaRef}
+                    value={typedText}
+                    onChange={handleChange}
+                    disabled={isPaused || isCompleted}
+                    className="w-full auto-focus min-h-[130px] max-h-[160px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-2 disabled:opacity-50"
+                    placeholder="Type Here..."
+                    style={{ fontSize: `clamp(10px, 2vw, ${fontSize}px)`, minHeight: '15vh', maxHeight: '13vh', padding: '1vh 1vw', width: '100%' }}
+                    autoFocus
+                  />
+                </>
+              )}
             </div>
-            <div className="w-[10%] absolute top-35 left-3 h-9 rounded-lg overflow-hidden mx-auto text-center mt-3 md:mt-5 pt-0 md:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
-              <div className="bg-white text-black text-sm font-bold">
-                {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
+            <div className="flex justify-center mt-2 gap-6 flex-wrap" style={{ marginTop: '4vh', gap: '1vw' }}>
+              <button
+                onClick={handleReset}
+                className="bg-pink-500 text-lg cursor-pointer hover:bg-orange-500 text-white px-8 py-1 rounded shadow"
+                style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
+              >
+                Reset
+              </button>
+              <button
+                onClick={togglePause}
+                disabled={isCompleted}
+                className="bg-blue-600 cursor-pointer text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow"
+                style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
+              >
+                {isPaused ? "Resume" : "Pause"}
+              </button>
+              <button
+                onClick={handleCompletion}
+                disabled={!startTime || isCompleted}
+                className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold"
+                style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="landscape-mobile-sidebar text-white bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat" style={{ width: '18vw', minWidth: '18vw', maxWidth: '18vw', height: '100vh', padding: '1vh 1vw' }}>
+            <div className="flex flex-col items-center justify-center h-full">
+              {/* User Profile */}
+              <div className="mb-4 absolute top-14.5 left-4">
+                <img
+                  src={userProfileUrl}
+                  alt={userName}
+                  className="w-24 h-24 rounded-md border-2 border-white"
+                  style={{ width: 'clamp(60px, 12vw, 80px)', height: 'clamp(60px, 12vw, 80px)' }}
+                  onError={(e) => {
+                    e.target.src = "/lo.jpg";
+                  }}
+                />
+                <p className="font-semibold text-xs text-center text-white" style={{ fontSize: 'clamp(8px, 1.2vw, 10px)', marginTop: '0.5vh' }}>{userName}</p>
               </div>
-            </div>
-            {/* Speedometer - well below close button to avoid overlap */}
-            <div className="absolute right-1" style={{ top: '4.5rem' }}>
-              <div className="border-6 border-black rounded-full mt-2">
-                <div className="relative w-20 h-20 bg-black rounded-full border-4 border-white flex items-center justify-center" style={{ width: 'clamp(60px, 12vw, 80px)', height: 'clamp(60px, 12vw, 80px)' }}>
-                  <div className="absolute left-1 text-red-500 text-[6px] font-bold tracking-widest" style={{ fontSize: 'clamp(6px, 1vw, 8px)' }}>SPEED</div>
-                  <svg width="100" height="100" viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
-                    <line
-                      x1="50"
-                      y1="50"
-                      x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                      y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                      stroke="red"
-                      strokeWidth="2"
-                    />
-                    {Array.from({ length: 9 }).map((_, i) => {
-                      const startAngle = (-Math.PI * 5) / 6;
-                      const endAngle = (Math.PI * 5) / 6;
-                      const angle = startAngle + (i / 8) * (endAngle - startAngle);
-                      const x = 50 + 40 * Math.cos(angle);
-                      const y = 50 + 42 * Math.sin(angle);
-                      return (
-                        <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
-                          {(i + 1) * 10}
-                        </text>
-                      );
-                    })}
-                  </svg>
-                  <span className="absolute bottom-5 text-red-500 font-bold text-xs" style={{ fontSize: 'clamp(8px, 1.2vw, 10px)' }}>{wpm}</span>
+              <div className="w-[10%] absolute top-35 left-3 h-9 rounded-lg overflow-hidden mx-auto text-center mt-3 md:mt-5 pt-0 md:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+                <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
+                <div className="bg-white text-black text-sm font-bold">
+                  {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
                 </div>
               </div>
-            </div>
+              {/* Speedometer */}
+              <div className="mt-4 absolute top-8 right-1">
+                <div className="border-6 border-black rounded-full mt-2">
+                  <div className="relative w-20 h-20 bg-black rounded-full border-4 border-white flex items-center justify-center" style={{ width: 'clamp(60px, 12vw, 80px)', height: 'clamp(60px, 12vw, 80px)' }}>
+                    <div className="absolute left-1 text-red-500 text-[6px] font-bold tracking-widest" style={{ fontSize: 'clamp(6px, 1vw, 8px)' }}>SPEED</div>
+                    <svg width="100" height="100" viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                        y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                        stroke="red"
+                        strokeWidth="2"
+                      />
+                      {Array.from({ length: 9 }).map((_, i) => {
+                        const startAngle = (-Math.PI * 5) / 6;
+                        const endAngle = (Math.PI * 5) / 6;
+                        const angle = startAngle + (i / 8) * (endAngle - startAngle);
+                        const x = 50 + 40 * Math.cos(angle);
+                        const y = 50 + 42 * Math.sin(angle);
+                        return (
+                          <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
+                            {(i + 1) * 10}
+                          </text>
+                        );
+                      })}
+                    </svg>
+                    <span className="absolute bottom-5 text-red-500 font-bold text-xs" style={{ fontSize: 'clamp(8px, 1.2vw, 10px)' }}>{wpm}</span>
+                  </div>
+                </div>
+              </div>
 
-            {/* Font Size Controls */}
-            <p className="text-white text-xs font-semibold absolute top-43 right-6">Font size</p>
-                <button
-                  onClick={decreaseFont}
-                  className="bg-white absolute top-57 right-7 text-black border-3 cursor-pointer border-black rounded-md"
-                  style={{ padding: '0.8vh 1.5vw', fontSize: 'clamp(10px, 1.5vw, 14px)', minHeight: '4vh', minWidth: '5vw' }}
-                >
-                  A -
-                </button>
-                <button
-                  onClick={increaseFont}
-                  className="bg-white absolute top-48 right-7 text-black cursor-pointer border-3 border-black rounded-md"
-                  style={{ padding: '0.8vh 1.5vw', fontSize: 'clamp(10px, 1.5vw, 14px)', minHeight: '4vh', minWidth: '5vw' }}
-                >
-                  A +
-                </button>
-            {/* Close - below A+ */}
-            <a
-              href={closeHref}
-              className="absolute right-4 flex items-center justify-center w-7 h-7 rounded-full border border-gray-600 text-white bg-red-500 hover:bg-red-600 shadow text-base font-bold"
-              style={{ top: '15rem' }}
-              aria-label="Close"
-            >
-              ×
-            </a>
-             
+              {/* Font Size Controls */}
+              <p className="text-white text-xs font-semibold absolute top-43 right-6">Font size</p>
+              <button
+                onClick={decreaseFont}
+                className="bg-white absolute top-57 right-7 text-black border-3 cursor-pointer border-black rounded-md"
+                style={{ padding: '0.8vh 1.5vw', fontSize: 'clamp(10px, 1.5vw, 14px)', minHeight: '4vh', minWidth: '5vw' }}
+              >
+                A -
+              </button>
+              <button
+                onClick={increaseFont}
+                className="bg-white absolute top-48 right-7 text-black cursor-pointer border-3 border-black rounded-md"
+                style={{ padding: '0.8vh 1.5vw', fontSize: 'clamp(10px, 1.5vw, 14px)', minHeight: '4vh', minWidth: '5vw' }}
+              >
+                A +
+              </button>
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </>
   );
