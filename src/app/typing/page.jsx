@@ -861,7 +861,7 @@ function LandscapeView({
                 </div>
               </div>
               {/* Speedometer */}
-              <div className="mt-4 absolute top-8 right-1">
+              <div className="mt-0 absolute top-6 right-1">
                 <div className="border-6 border-black rounded-full mt-2">
                   <div className="relative w-20 h-20 bg-black rounded-full border-4 border-white flex items-center justify-center" style={{ width: 'clamp(60px, 12vw, 80px)', height: 'clamp(60px, 12vw, 80px)' }}>
                     <div className="absolute left-1 text-red-500 text-[6px] font-bold tracking-widest" style={{ fontSize: 'clamp(6px, 1vw, 8px)' }}>SPEED</div>
@@ -892,18 +892,18 @@ function LandscapeView({
                 </div>
               </div>
 
-              {/* Font Size Controls */}
-              <p className="text-white text-xs font-semibold absolute top-43 right-6">Font size</p>
+              {/* Font Size Controls - pulled closer to speedometer */}
+              <p className="text-white text-xs font-semibold absolute top-34 right-6">Font size</p>
               <button
                 onClick={decreaseFont}
-                className="bg-white absolute top-57 right-7 text-black border-3 cursor-pointer border-black rounded-md"
+                className="bg-white absolute top-46 right-7 text-black border-3 cursor-pointer border-black rounded-md"
                 style={{ padding: '0.8vh 1.5vw', fontSize: 'clamp(10px, 1.5vw, 14px)', minHeight: '4vh', minWidth: '5vw' }}
               >
                 A -
               </button>
               <button
                 onClick={increaseFont}
-                className="bg-white absolute top-48 right-7 text-black cursor-pointer border-3 border-black rounded-md"
+                className="bg-white absolute top-38 right-7 text-black cursor-pointer border-3 border-black rounded-md"
                 style={{ padding: '0.8vh 1.5vw', fontSize: 'clamp(10px, 1.5vw, 14px)', minHeight: '4vh', minWidth: '5vw' }}
               >
                 A +
