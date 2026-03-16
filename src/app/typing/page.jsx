@@ -66,7 +66,7 @@ function DesktopView({
 
       <div className="flex flex-col-reverse lg:flex-row gap-6">
         {/* Typing Area */}
-        <div className="w-[90%] lg:w-[110%] mx-auto">
+        <div className="w-[90%] lg:w-[110%] mx-auto mt-4">
           <div className="bg-white p-2 lg:p-3 mr-10 md:p-6 rounded-xl shadow-lg ml-5 mt-[-25]">
             {/* Results Display */}
             {isCompleted && (
@@ -233,9 +233,9 @@ function DesktopView({
           </div>
         </div>
 
-        {/* Sidebar - pt-20 on lg so close button doesn't overlap meter */}
-        <div className="w-full lg:w-[20%] text-white p-3 fixed top-0 mt-[-15] left-0 z-50 bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat lg:static lg:bg-none lg:bg-transparent lg:pt-20">
-          <div className="flex flex-col items-center space-y-1 mt-[-18]">
+        {/* Sidebar - desktop: minimal top padding so profile/timer at top; mobile: fixed overlay */}
+        <div className="desktop-typing-sidebar w-full lg:w-[20%] text-white p-3 fixed top-0 mt-[-15] left-0 z-50 bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat lg:static lg:bg-none lg:bg-transparent lg:pt-4 lg:mt-0">
+          <div className="flex flex-col items-center space-y-1 mt-[-18] lg:mt-0">
             <div className="mb-4">
               <img
                 src={userProfileUrl}
@@ -383,8 +383,8 @@ function PortraitView({
     <>
       <div className="flex flex-col-reverse gap-2 pt-2">
         {/* Typing Area */}
-        <div className="w-[90%] mx-auto">
-          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg mt-2 w-full">
+        <div className="w-[90%] mx-auto mt-5">
+          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg mt-8 w-full">
             {/* Results Display */}
             {isCompleted && (
               <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
@@ -632,30 +632,28 @@ function PortraitView({
               </div>
             </div>
 
-            {/* Font Size Controls */}
-              
+            {/* Font Size Controls - portrait only; close (×) directly below A+ */}
                 <button
                   onClick={decreaseFont}
                   className="bg-white absolute top-35 left-4 text-black border-3 cursor-pointer border-black px-5 py-[2px] text-xs rounded-md"
                 >
                   A -
                 </button>
-                <button
-                  onClick={increaseFont}
-                  className="bg-white absolute top-35 right-5 text-black cursor-pointer border-3 border-black px-5 py-[2px] text-xs rounded-md"
-                >
-                  A +
-                </button>
-            {/* Close - below A+ (portrait), no overlap with meter */}
-            <a
-              href={closeHref}
-              className="absolute right-4 flex items-center justify-center w-7 h-7 rounded-full border border-gray-600 text-white bg-red-500 hover:bg-red-600 shadow text-base font-bold md:hidden"
-              style={{ top: '10rem' }}
-              aria-label="Close"
-            >
-              ×
-            </a>
-            
+                <div className="absolute top-35 right-5 flex flex-col items-end gap-1.5">
+                  <button
+                    onClick={increaseFont}
+                    className="bg-white text-black cursor-pointer border-3 border-black px-5 py-[2px] text-xs rounded-md"
+                  >
+                    A +
+                  </button>
+                  <a
+                    href={closeHref}
+                    className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-600 text-white bg-red-500 hover:bg-red-600 shadow text-base font-bold"
+                    aria-label="Close"
+                  >
+                    ×
+                  </a>
+                </div>
           </div>
         </div>
       </div>
@@ -844,7 +842,7 @@ function LandscapeView({
           <div className="landscape-mobile-sidebar text-white bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat" style={{ width: '18vw', minWidth: '18vw', maxWidth: '18vw', height: '100vh', padding: '1vh 1vw' }}>
             <div className="flex flex-col items-center justify-center h-full">
               {/* User Profile */}
-              <div className="mb-4 absolute top-14.5 left-4">
+              <div className="mb-4 absolute top-14.5 left-10">
                 <img
                   src={userProfileUrl}
                   alt={userName}
@@ -856,7 +854,7 @@ function LandscapeView({
                 />
                 <p className="font-semibold text-xs text-center text-white" style={{ fontSize: 'clamp(8px, 1.2vw, 10px)', marginTop: '0.5vh' }}>{userName}</p>
               </div>
-              <div className="w-[10%] absolute top-35 left-3 h-9 rounded-lg overflow-hidden mx-auto text-center mt-3 md:mt-5 pt-0 md:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+              <div className="w-[10%] absolute top-45 left-10 h-9 rounded-lg overflow-hidden mx-auto text-center mt-3 md:mt-5 pt-0 md:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
                 <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
                 <div className="bg-white text-black text-sm font-bold">
                   {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
@@ -1218,12 +1216,12 @@ function TypingTutorForm() {
     const checkMobileAndOrientation = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
-      
-      // More robust mobile detection - check for touch device or small screen
-      const isMobileDevice = width < 768 || 
-                            (navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i)) ||
-                            ('ontouchstart' in window);
-      
+
+      // Treat as mobile only on small screens or known mobile user agents
+      const isMobileDevice =
+        width < 768 ||
+        navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i);
+
       setIsMobile(isMobileDevice);
       
       if (isMobileDevice) {
