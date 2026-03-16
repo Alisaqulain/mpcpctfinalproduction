@@ -384,7 +384,7 @@ function PortraitView({
       <div className="flex flex-col-reverse gap-2 pt-2">
         {/* Typing Area */}
         <div className="w-[90%] mx-auto mt-5">
-          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg mt-8 w-full">
+          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg mt-12 w-full">
             {/* Results Display */}
             {isCompleted && (
               <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
@@ -639,7 +639,7 @@ function PortraitView({
                 >
                   A -
                 </button>
-                <div className="absolute top-35 right-5 flex flex-col items-end gap-1.5">
+                <div className="absolute top-40 right-5 flex flex-col items-end gap-1.5">
                   <button
                     onClick={increaseFont}
                     className="bg-white text-black cursor-pointer border-3 border-black px-5 py-[2px] text-xs rounded-md"
@@ -811,7 +811,7 @@ function LandscapeView({
                 </>
               )}
             </div>
-            <div className="flex justify-center mt-2 gap-6 flex-wrap" style={{ marginTop: '4vh', gap: '1vw' }}>
+            <div className="flex justify-center mt-0 gap-x-2 gap-y-0 flex-wrap" style={{ rowGap: 0 }}>
               <button
                 onClick={handleReset}
                 className="bg-pink-500 text-lg cursor-pointer hover:bg-orange-500 text-white px-8 py-1 rounded shadow"
@@ -854,7 +854,7 @@ function LandscapeView({
                 />
                 <p className="font-semibold text-xs text-center text-white" style={{ fontSize: 'clamp(8px, 1.2vw, 10px)', marginTop: '0.5vh' }}>{userName}</p>
               </div>
-              <div className="w-[10%] absolute top-45 left-10 h-9 rounded-lg overflow-hidden mx-auto text-center mt-3 md:mt-5 pt-0 md:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+              <div className="w-[10%] absolute top-42 left-10 h-9 rounded-lg overflow-hidden mx-auto text-center mt-0 md:mt-0 pt-0 md:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
                 <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
                 <div className="bg-white text-black text-sm font-bold">
                   {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}

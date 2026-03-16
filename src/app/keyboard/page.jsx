@@ -307,8 +307,8 @@ function DesktopView({
       </div>
 
       {/* Right Section - Desktop Stats */}
-      <div className="hidden md:flex flex-col items-center md:mt-25 mt-15 mobile-stack mobile-small-text right-section-stats">
-        <div className="flex flex-col items-center user-profile-section user-profile-landscape mb-16">
+      <div className="hidden md:flex flex-col items-center md:mt-0 mt-0 mobile-stack mobile-small-text right-section-stats">
+        <div className="flex flex-col items-center user-profile-section user-profile-landscape mb-0">
           <img
             src={userProfileUrl}
             alt="User"
@@ -317,11 +317,10 @@ function DesktopView({
               e.target.src = "/lo.jpg";
             }}
           />
-          <p className="font-semibold text-xs md:text-sm mt-1 user-profile-name">{userName}</p>
+          <p className="font-semibold text-xs md:text-sm mt-0 user-profile-name">{userName}</p>
         </div>
         
-        <div className="w-24 h-9 rounded-lg overflow-hidden text-center mb-10 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] mobile-scale">
-          <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
+        <div className="w-24 h-9 rounded-lg overflow-hidden text-center mb-0 md:-mt-1 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] mobile-scale">          <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
           <div className="bg-white text-black text-sm font-bold">{formatClock(timer)}</div>
         </div>
         
@@ -1289,9 +1288,9 @@ function LandscapeMobileView({
         </div>
 
       {/* Right Section - Landscape: Settings & Day/Night top right, then Stats (Close X is inside Settings modal) */}
-      <div className="flex flex-col items-center gap-1 mt-0 mobile-stack mobile-small-text right-section-stats absolute right-4 top-0 landscape-right-stats">
-        {/* Settings & Theme - top right, minimal margin so Backspace fits on screen */}
-        <div className="flex items-center gap-2 mb-1 w-full max-w-[100px] justify-end">
+      <div className="flex flex-col items-center gap-0 mt-0 mobile-stack mobile-small-text right-section-stats absolute right-4 top-0 landscape-right-stats">
+        {/* Settings & Theme - top right, no gap between theme and time */}
+        <div className="flex items-center gap-0.5 mb-0 w-full max-w-[100px] justify-end">
           <button
             onClick={() => setShowSettings(!showSettings)}
             className={`p-2 rounded-full shadow min-w-[40px] min-h-[40px] flex items-center justify-center ${
@@ -1311,7 +1310,7 @@ function LandscapeMobileView({
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
         </div>
-        <div className="flex flex-col gap-1 w-full max-w-[100px] items-center landscape-mobile-stats">
+        <div className="flex flex-col gap-0 w-full max-w-[100px] items-center landscape-mobile-stats">
           <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
             <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
             <div className="bg-white text-black text-sm font-bold">{formatClock(timer)}</div>
@@ -1334,7 +1333,7 @@ function LandscapeMobileView({
           </div>
         </div>
         {/* Close Button - bottom right, below Backspace */}
-        <div className="w-full max-w-[100px] flex justify-end mt-1">
+        <div className="w-full max-w-[100px] flex justify-end mt-0.5">
           <button
             onClick={() => window.location.href = '/learning'}
             className="bg-red-600 text-white hover:bg-red-700 px-6 py-1.5 rounded-md shadow transition-all duration-200 hover:scale-105 flex items-center justify-center text-sm font-medium"
@@ -2979,14 +2978,14 @@ function KeyboardApp() {
             display: none !important;
           }
           
-          /* LANDSCAPE: Right section cards in landscape mobile - single column with 5 cards */
+          /* LANDSCAPE: Right section - no gap between theme, time, Correct, Wrong, Total, Backspace */
           .landscape-mobile-stats {
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
             width: 100% !important;
             max-width: 120px !important;
-            gap: 0.5rem !important;
+            gap: 0 !important;
           }
           
           /* LANDSCAPE: Stats card width in landscape mobile */
