@@ -97,6 +97,10 @@ export default function Footer() {
           <a href="/contact-us" className="text-gray-300 hover:text-white hover:underline">
             Contact Us
           </a>
+          <span className="text-gray-600">|</span>
+          <a href="/blog" className="text-gray-300 hover:text-white hover:underline">
+            Blog — CCC &amp; CPCT Guides
+          </a>
         </div>
       </div>
 

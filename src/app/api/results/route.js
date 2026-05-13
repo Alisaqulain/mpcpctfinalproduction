@@ -30,6 +30,8 @@ export async function POST(req) {
       passingMarks: body.passingMarks || 0,
       isPassed: body.isPassed || false,
       typingResults: body.typingResults || [],
+      typingSpeed: body.typingSpeed,
+      typingAccuracy: body.typingAccuracy,
       timeTaken: body.timeTaken,
       submittedAt: new Date()
     });

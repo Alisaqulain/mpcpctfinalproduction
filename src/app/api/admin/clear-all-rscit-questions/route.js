@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Exam from "@/lib/models/Exam";
 import Question from "@/lib/models/Question";
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 
 async function requireAdmin(req) {
   try {
@@ -14,8 +15,7 @@ async function requireAdmin(req) {
     }
 
     const { jwtVerify } = await import("jose");
-    const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
 
     const User = (await import("@/lib/models/User")).default;
     await dbConnect();

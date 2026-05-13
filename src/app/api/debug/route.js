@@ -2,39 +2,51 @@ import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import dbConnect from "@/lib/db";
 import User from "@/lib/models/User";
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-
+/**
+ * Diagnostic endpoint — disabled in production unless ENABLE_DEBUG_API=true.
+ * Never expose raw secrets or full user records.
+ */
 export async function GET(request) {
+  if (
+    process.env.NODE_ENV === "production" &&
+    process.env.ENABLE_DEBUG_API !== "true"
+  ) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   try {
     const token = request.cookies.get("token")?.value;
-    
+
     const debugInfo = {
-      hasToken: !!token,
+      hasToken: Boolean(token),
       tokenLength: token ? token.length : 0,
-      mongodbUri: process.env.MONGODB_URI ? "Set" : "Not set",
-      jwtSecret: JWT_SECRET ? "Set" : "Not set"
+      mongodbUriConfigured: Boolean(process.env.MONGODB_URI),
+      jwtSecretConfigured: Boolean(process.env.JWT_SECRET),
     };
 
     if (token) {
       try {
-        const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
-        debugInfo.tokenPayload = payload;
-        
-        // Test database connection
+        const { payload } = await jwtVerify(token, getJwtSecretBytes());
+        debugInfo.tokenPayload = {
+          userId: payload.userId,
+          role: payload.role,
+          exp: payload.exp,
+        };
+
         try {
           await dbConnect();
           debugInfo.dbConnection = "Connected";
-          
-          // Try to find user
-          const user = await User.findById(payload.userId).select('-password');
-          debugInfo.userFound = !!user;
+
+          const user = await User.findById(payload.userId).select(
+            "name email phoneNumber role"
+          );
+          debugInfo.userFound = Boolean(user);
           if (user) {
-            debugInfo.userData = {
+            debugInfo.userSummary = {
               id: user._id,
-              name: user.name,
-              email: user.email,
-              phoneNumber: user.phoneNumber
+              role: user.role,
             };
           }
         } catch (dbError) {

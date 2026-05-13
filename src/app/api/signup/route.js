@@ -6,8 +6,6 @@ import User from "@/lib/models/User";
 import bcrypt from "bcryptjs";
 import cloudinary from "@/lib/cloudinary";
 
-const JWT_SECRET = process.env.JWT_SECRET || "secret123"; // keep in .env
-
 export async function POST(req) {
   try {
     await dbConnect();

@@ -3,19 +3,56 @@
  * Implements Schema.org markup for better search engine understanding
  */
 
-export function OrganizationSchema({ siteUrl }) {
+/** Brand-level Organization (parent entity for Knowledge Graph) */
+export function OrganizationBrandSchema({ siteUrl }) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "MPC PCT",
+    "alternateName": ["MPCPCT", "MPC PCT — CCC & CPCT Practice Platform"],
+    "url": siteUrl,
+    "logo": `${siteUrl}/logo2.png`,
+    "image": `${siteUrl}/logo2.png`,
+    "description":
+      "MPC PCT is an online exam and typing practice platform for CCC, CPCT, and government computer certification aspirants in Indore and Madhya Pradesh.",
+    "foundingLocation": {
+      "@type": "Place",
+      "name": "Indore, Madhya Pradesh, India",
+    },
+    "brand": {
+      "@type": "Brand",
+      "name": "MPC PCT",
+      "slogan": "Practice. Improve. Succeed.",
+    },
+    "sameAs": [
+      process.env.NEXT_PUBLIC_FACEBOOK_URL,
+      process.env.NEXT_PUBLIC_INSTAGRAM_URL,
+      process.env.NEXT_PUBLIC_LINKEDIN_URL,
+      process.env.NEXT_PUBLIC_YOUTUBE_URL,
+    ].filter(Boolean),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+export function EducationalOrganizationSchema({ siteUrl }) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
-    "name": "MPCPCT",
-    "alternateName": ["MPCPCT - CPCT, RSCIT, CCC Exam Practice Platform"],
+    "name": "MPC PCT",
+    "alternateName": ["MPCPCT", "MPC PCT Exam Practice"],
     "url": siteUrl,
     "logo": `${siteUrl}/logo2.png`,
     "image": `${siteUrl}/logo2.png`,
     "description": "MPCPCT - The #1 online platform for CPCT, RSCIT, and CCC exam preparation in Indore, Madhya Pradesh, India. MPCPCT offers comprehensive typing practice in Hindi & English, real-time results, expert guidance, and government job exam preparation for Data Entry Operator, IT Operator, Assistant Grade 3, Shorthand, and Typist positions. Best CPCT coaching in Indore, MP.",
     "brand": {
       "@type": "Brand",
-      "name": "MPCPCT"
+      "name": "MPC PCT"
     },
     "contactPoint": {
       "@type": "ContactPoint",
@@ -100,22 +137,51 @@ export function OrganizationSchema({ siteUrl }) {
   );
 }
 
+export function BlogPostingSchema({ siteUrl, post }) {
+  if (!post?.title) return null;
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.metaDescription || post.excerpt || "",
+    image: post.featuredImage ? [post.featuredImage] : [`${siteUrl}/logo2.png`],
+    datePublished: post.publishedAt || post.createdAt,
+    dateModified: post.updatedAt || post.publishedAt,
+    author: {
+      "@type": "Organization",
+      name: post.author || "MPC PCT",
+      url: siteUrl,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "MPC PCT",
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/logo2.png`,
+      },
+    },
+    mainEntityOfPage: `${siteUrl}/blog/${post.slug}`,
+    url: `${siteUrl}/blog/${post.slug}`,
+    inLanguage: "en-IN",
+    keywords: (post.tags || []).join(", "),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 export function WebSiteSchema({ siteUrl }) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "MPCPCT",
-    "alternateName": "MPCPCT",
+    "name": "MPC PCT",
+    "alternateName": ["MPCPCT", "mpcpct.com"],
     "url": siteUrl,
-    "description": "MPCPCT - Practice CPCT, RSCIT, and CCC exams with bilingual support in Indore, Madhya Pradesh. Master typing skills for government jobs in MP with MPCPCT. Best online exam practice platform in Indore for CPCT, RSCIT, and CCC preparation.",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": `${siteUrl}/search?q={search_term_string}`
-      },
-      "query-input": "required name=search_term_string"
-    },
+    "description": "MPC PCT — Practice CCC, CPCT, RSCIT, and typing exams with bilingual support in Indore, Madhya Pradesh. Online mock tests, typing labs, and skill assessments for MP government exam aspirants.",
     "inLanguage": ["en-IN", "hi-IN"]
   };
 
@@ -207,10 +273,10 @@ export function BreadcrumbSchema({ items, siteUrl }) {
 export function LocalBusinessSchema({ siteUrl }) {
   const schema = {
     "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    "@id": `${siteUrl}#organization`,
-    "name": "MPCPCT",
-    "alternateName": "MPCPCT - CPCT, RSCIT, CCC Exam Practice Platform",
+    "@type": "LocalBusiness",
+    "@id": `${siteUrl}#localbusiness`,
+    "name": "MPC PCT",
+    "alternateName": "MPC PCT — CCC, CPCT & Typing Practice (Indore)",
     "url": siteUrl,
     "logo": `${siteUrl}/logo2.png`,
     "image": `${siteUrl}/logo2.png`,

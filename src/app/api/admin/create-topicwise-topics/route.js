@@ -3,8 +3,7 @@ import dbConnect from "@/lib/db";
 import Topic from "@/lib/models/Topic";
 import TopicWiseMCQ from "@/lib/models/TopicWiseMCQ";
 import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 
 // Function to generate topic-specific questions
 function generateTopicQuestions(topicData, count) {
@@ -207,7 +206,7 @@ async function requireAdmin(req) {
     return { ok: false, error: "Unauthorized" };
   }
   try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     if (payload?.role !== "admin") {
       return { ok: false, error: "Forbidden" };
     }

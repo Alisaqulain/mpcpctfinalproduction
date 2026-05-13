@@ -4,8 +4,7 @@ import { jwtVerify } from "jose";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { existsSync } from "fs";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 
 export async function POST(request) {
   try {
@@ -14,7 +13,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "No token provided" }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     if (payload?.role !== "admin") {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }

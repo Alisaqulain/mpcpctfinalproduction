@@ -1,7 +1,5 @@
 import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 /**
  * Verify JWT token and return decoded payload
  * @param {string} token - JWT token to verify
@@ -9,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "secret123";
  */
 export async function verifyJWT(token) {
   try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     return payload;
   } catch (error) {
     console.error("JWT verification error:", error.message);

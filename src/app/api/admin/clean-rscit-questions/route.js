@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Question from "@/lib/models/Question";
 import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 
 async function requireAdmin(req) {
   const token = req.cookies.get("token")?.value;
@@ -11,7 +10,7 @@ async function requireAdmin(req) {
     return { ok: false, error: "Unauthorized" };
   }
   try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     if (payload?.role !== "admin") {
       return { ok: false, error: "Forbidden" };
     }

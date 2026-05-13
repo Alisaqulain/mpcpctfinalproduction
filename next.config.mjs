@@ -1,19 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['via.placeholder.com', 'res.cloudinary.com'], // Add any other external image domains here
-    formats: ['image/avif', 'image/webp'], // Modern image formats for better performance
+    remotePatterns: [
+      { protocol: 'https', hostname: 'res.cloudinary.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'via.placeholder.com', pathname: '/**' },
+    ],
+    formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+    dangerouslyAllowSVG: false,
   },
-  // Enable strict mode
   reactStrictMode: true,
-  
-  // Exclude pdf-parse from bundling (CommonJS module that doesn't work well when bundled)
-  // This prevents the "Class constructor cannot be invoked without 'new'" error
-  experimental: {
-    serverExternalPackages: ['pdf-parse'],
-  },
+
+  serverExternalPackages: ['pdf-parse'],
   
   // Compression
   compress: true,
@@ -70,6 +70,46 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()'
+          },
+        ],
+      },
+      {
+        source: '/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/:path*.png',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=2592000, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      {
+        source: '/:path*.jpg',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=2592000, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      {
+        source: '/:path*.webp',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=2592000, stale-while-revalidate=86400',
           },
         ],
       },

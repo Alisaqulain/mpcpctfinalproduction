@@ -3,9 +3,7 @@ import dbConnect from "@/lib/db";
 import User from "@/lib/models/User";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 export async function POST(req) {
   try {
     await dbConnect();
@@ -18,10 +16,31 @@ export async function POST(req) {
       return NextResponse.json({ error: "Phone number and password required" }, { status: 400 });
     }
 
-    // Get admin credentials from environment variables (fallback to defaults)
-    const adminPhone = process.env.ADMIN_PHONE || "7869654042";
-    const adminPassword = process.env.ADMIN_PASSWORD || "Admin@1234";
+    const isProd = process.env.NODE_ENV === "production";
+    const adminPhone =
+      process.env.ADMIN_PHONE ?? (!isProd ? "7869654042" : undefined);
+    const adminPassword =
+      process.env.ADMIN_PASSWORD ?? (!isProd ? "Admin@1234" : undefined);
     const adminEmail = process.env.ADMIN_EMAIL || "admin@mpcpct.com";
+
+    if (isProd && (!adminPhone || !adminPassword)) {
+      console.error(
+        "admin/login: set ADMIN_PHONE and ADMIN_PASSWORD in production"
+      );
+      return NextResponse.json(
+        { error: "Server misconfiguration" },
+        { status: 500 }
+      );
+    }
+
+    if (
+      !isProd &&
+      (!process.env.ADMIN_PHONE || !process.env.ADMIN_PASSWORD)
+    ) {
+      console.warn(
+        "[mpcpct] ADMIN_PHONE / ADMIN_PASSWORD unset; using insecure dev defaults. Set them before production deploy."
+      );
+    }
 
     // First, try to find user with this phone number
     let user = await User.findOne({ phoneNumber });
@@ -151,7 +170,7 @@ export async function POST(req) {
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setExpirationTime('7d')
-      .sign(new TextEncoder().encode(JWT_SECRET));
+      .sign(getJwtSecretBytes());
 
     // Create response with admin data
     const response = NextResponse.json({

@@ -3,9 +3,7 @@ import dbConnect from "@/lib/db";
 import User from "@/lib/models/User";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 export async function POST(req) {
   try {
     await dbConnect();
@@ -38,7 +36,7 @@ export async function POST(req) {
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setExpirationTime('7d')
-      .sign(new TextEncoder().encode(JWT_SECRET));
+      .sign(getJwtSecretBytes());
 
     // ✅ Create response with user data
     const response = NextResponse.json({

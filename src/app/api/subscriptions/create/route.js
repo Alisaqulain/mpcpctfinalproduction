@@ -5,9 +5,7 @@ import Payment from "@/lib/models/Payment";
 import User from "@/lib/models/User";
 import { sendMail } from "@/lib/email";
 import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 export async function POST(request) {
   try {
     const token = request.cookies.get("token")?.value;
@@ -15,7 +13,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "No token provided" }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     const decoded = { userId: payload.userId };
 
     let { type, plan, amount, duration, paymentId, orderId } = await request.json();

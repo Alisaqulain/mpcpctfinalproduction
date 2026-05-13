@@ -45,7 +45,9 @@ const ResultSchema = new mongoose.Schema(
       netSpeed: Number, // NWPM
       passingSpeed: Number, // Required NWPM (30 for English, 20 for Hindi)
       isPassed: Boolean
-    }]
+    }],
+    typingSpeed: { type: Number },
+    typingAccuracy: { type: Number },
   },
   { timestamps: true }
 );

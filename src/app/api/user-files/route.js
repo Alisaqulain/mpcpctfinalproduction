@@ -2,9 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import UserFile from "@/lib/models/UserFile";
 import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 // GET - Fetch user's own files
 export async function GET(request) {
   try {
@@ -13,7 +11,7 @@ export async function GET(request) {
       return NextResponse.json({ error: "No token provided" }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     const userId = payload?.userId;
 
     if (!userId) {

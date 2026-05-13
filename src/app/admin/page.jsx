@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import HindiTextarea from "@/components/typing/HindiTextarea";
 
 export default function AdminPanel() {
@@ -644,6 +645,23 @@ export default function AdminPanel() {
         >
           Logout
         </button>
+        </div>
+        <div className="max-w-7xl mx-auto px-6 pb-3 flex flex-wrap gap-3 text-sm">
+          <Link href="/admin/categories" className="underline hover:text-yellow-200">
+            Categories
+          </Link>
+          <span className="opacity-50">|</span>
+          <Link href="/admin/subcategories" className="underline hover:text-yellow-200">
+            Subcategories
+          </Link>
+          <span className="opacity-50">|</span>
+          <Link href="/admin/exams" className="underline hover:text-yellow-200">
+            Exams (hierarchy)
+          </Link>
+          <span className="opacity-50">|</span>
+          <Link href="/admin/questions" className="underline hover:text-yellow-200">
+            Bulk questions
+          </Link>
         </div>
       </div>
 

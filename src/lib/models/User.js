@@ -9,6 +9,8 @@ const UserSchema = new mongoose.Schema({
   city: { type: String, required: true },
   profileUrl: { type: String },
   role: { type: String, enum: ["user", "admin"], default: "user" },
+  isMobileVerified: { type: Boolean, default: true },
+  googleId: { type: String, unique: true, sparse: true },
   referralCode: { type: String, unique: true, sparse: true }, // User's own referral code
   referredBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Who referred this user
   referralRewards: { type: Number, default: 0 }, // Number of months earned from referrals

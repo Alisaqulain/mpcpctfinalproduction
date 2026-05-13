@@ -4,9 +4,7 @@ import Subscription from "@/lib/models/Subscription";
 import User from "@/lib/models/User";
 import Topic from "@/lib/models/Topic";
 import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 export async function GET(req) {
   try {
     const { cookies } = await import("next/headers");
@@ -17,7 +15,7 @@ export async function GET(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     const userId = payload.userId;
 
     await dbConnect();

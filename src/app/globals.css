@@ -31,6 +31,24 @@ body {
   padding-right: env(safe-area-inset-right, 0px);
 }
 
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 0.75rem 1rem;
+  background: #290c52;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 0 0 0.5rem 0;
+}
+
+.skip-link:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
 /* Welcome Back Login Box Styling */
 .home-welcome-text {
   border: 2px solid #290c52 !important;

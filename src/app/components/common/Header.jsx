@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function Header() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function Header() {
 
   useEffect(() => {
     checkAuthStatus();
-    const interval = setInterval(checkAuthStatus, 5000); // Check every 5 seconds
+    const interval = setInterval(checkAuthStatus, 45000);
 
     // Cleanup interval on unmount
     return () => clearInterval(interval);
@@ -90,18 +91,27 @@ export default function Header() {
       {/* Top Section - mobile: logo left, title centered in rest; desktop: unchanged */}
       <div className="bg-white flex flex-row items-center justify-between px-4 py-4 relative min-h-[80px] md:min-h-[120px]">
         <div className="z-10 flex-shrink-0">
-          <img src="/logor.png" alt="CPCT Logo" className="h-10 w-auto object-contain md:w-50 md:ml-35 md:h-auto" />
+          <a href="/" className="block relative h-10 w-[120px] md:w-[180px] md:ml-35">
+            <Image
+              src="/logor.png"
+              alt="MPC PCT — CPCT, CCC and typing exam practice"
+              fill
+              className="object-contain object-left"
+              sizes="(max-width: 768px) 120px, 180px"
+              priority
+            />
+          </a>
         </div>
 
         <div className="flex-1 md:flex-none md:absolute inset-0 flex flex-col justify-center items-center text-center px-4 md:ml-0 min-w-0">
-          <h1
+          <p
             className="text-4xl md:text-7xl font-extrabold uppercase md:mt-0 leading-[1.2] text-transparent bg-clip-text bg-center bg-cover"
             style={{
               backgroundImage: "url('/bg.jpg')",
             }}
           >
             MPCPCT
-          </h1>
+          </p>
           <p className="text-[11px] sm:text-sm md:text-2xl lg:text-3xl text-gray-600 font-semibold">
             <span className="hidden md:inline"></span>
             To Help in typing & computer proficiency
@@ -115,8 +125,15 @@ export default function Header() {
       {/* Mobile Nav Toggle */}
       <div className="md:hidden bg-[#290c52] flex justify-between items-center px-4 py-2">
         <span className="text-white font-medium"><a href="/">Home </a></span>
-        <button onClick={toggleMobileNav} className="text-white focus:outline-none">
-          {mobileNavOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+        <button
+          type="button"
+          onClick={toggleMobileNav}
+          className="text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded p-1"
+          aria-expanded={mobileNavOpen}
+          aria-controls="site-mobile-nav"
+          aria-label={mobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
+        >
+          {mobileNavOpen ? <FaTimes size={24} aria-hidden /> : <FaBars size={24} aria-hidden />}
         </button>
       </div>
 
@@ -129,8 +146,11 @@ export default function Header() {
             </li>
             <li className="relative">
               <button
+                type="button"
                 onClick={() => toggleDropdown("course")}
                 className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded flex items-center gap-1 text-xs md:text-sm lg:text-base"
+                aria-expanded={openDropdown === "course"}
+                aria-haspopup="true"
               >
                 Course
                 <span
@@ -247,6 +267,7 @@ export default function Header() {
                   )}
                 </a>
                 <button
+                  type="button"
                   onClick={handleLogout}
                   className="bg-red-500 text-white px-2 md:px-3 py-1 rounded hover:bg-red-600 transition-colors text-xs md:text-sm lg:text-base"
                 >
@@ -274,9 +295,13 @@ export default function Header() {
 
       {/* Mobile Sidebar Navigation */}
       <div
+        id="site-mobile-nav"
         className={`fixed top-0 right-0 h-full w-[80%] max-w-[320px] bg-[#290c52] text-white z-50 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
           mobileNavOpen ? "translate-x-0" : "translate-x-full"
         }`}
+        role="navigation"
+        aria-label="Primary navigation"
+        aria-hidden={!mobileNavOpen}
       >
         <div className="flex justify-end p-3">
           <button onClick={toggleMobileNav} className="p-1 text-red-500 hover:text-red-400" aria-label="Close menu">

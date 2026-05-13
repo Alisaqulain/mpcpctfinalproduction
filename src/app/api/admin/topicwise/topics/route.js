@@ -3,8 +3,7 @@ import dbConnect from "@/lib/db";
 import TopicWiseMCQ from "@/lib/models/TopicWiseMCQ";
 import Topic from "@/lib/models/Topic";
 import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 
 async function requireAdmin(req) {
   try {
@@ -16,9 +15,7 @@ async function requireAdmin(req) {
       return { ok: false, error: "Unauthorized" };
     }
 
-    const { jwtVerify } = await import("jose");
-    const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
 
     const User = (await import("@/lib/models/User")).default;
     await dbConnect();

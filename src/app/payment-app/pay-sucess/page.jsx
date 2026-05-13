@@ -15,14 +15,14 @@ const PaymentSuccess = () => {
         <div>
         <div className="flex justify-center mb-4">
           <div className="rounded-full p-2">
-           <img src="/right.png" alt="" />
+           <img src="/right.png" alt="Payment completed successfully" width={64} height={64} />
           </div>
         </div>
         <h2 className="text-xl font-semibold mb-4">Payment Successfully</h2>
         <hr className="mb-4" />
 
         <div className="text-left space-y-3 text-sm">
-            <h2 className='text-center'>Payment Details</h2>
+            <h3 className='text-center'>Payment Details</h3>
           <div className="flex justify-between">
             <span className="text-gray-500">Payment Amount</span>
             <span className="font-medium">₹ {Details[0].amount}.00</span>

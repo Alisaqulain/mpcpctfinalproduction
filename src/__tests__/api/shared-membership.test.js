@@ -1,14 +1,15 @@
-import { 
-  connectTestDb, 
-  disconnectTestDb, 
-  clearTestDb, 
+import {
+  connectTestDb,
+  disconnectTestDb,
+  clearTestDb,
   createTestUser,
   createTestSubscription,
   createTestSharedMembership,
   createMockRequest,
-  createMockGetRequest
-} from '../helpers/testDb';
-import { SignJWT } from 'jose';
+  createMockGetRequest,
+} from "../helpers/testDb";
+import { SignJWT } from "jose";
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 
 // Mock Next.js server modules before importing routes
 jest.mock('next/server', () => ({
@@ -34,7 +35,7 @@ jest.mock('crypto', () => ({
   })),
 }));
 
-const JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-for-jwt';
+process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret-key-for-jwt";
 
 // Import route handlers
 import { POST as generateLink } from '@/app/api/shared-membership/generate-link/route';
@@ -44,7 +45,7 @@ import { GET as validateToken } from '@/app/api/shared-membership/validate-token
 
 // Helper to create JWT token
 async function createJWTToken(userId) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
+  const secret = getJwtSecretBytes();
   return await new SignJWT({ userId })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()

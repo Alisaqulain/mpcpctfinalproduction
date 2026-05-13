@@ -5,8 +5,7 @@ import User from "@/lib/models/User";
 import Exam from "@/lib/models/Exam";
 import Topic from "@/lib/models/Topic";
 import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 
 export async function POST(request) {
   try {
@@ -17,7 +16,7 @@ export async function POST(request) {
 
     let decoded;
     try {
-      const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+      const { payload } = await jwtVerify(token, getJwtSecretBytes());
       decoded = payload;
     } catch (err) {
       return NextResponse.json({ hasAccess: false, reason: "invalid_token", redirectTo: "/signup" }, { status: 401 });

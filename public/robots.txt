@@ -4,9 +4,6 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 Disallow: /exam_mode
-Disallow: /payment
-Disallow: /payment-success
-Disallow: /payment-failed
 Disallow: /dashboard
 Disallow: /profile
 Disallow: /login
@@ -20,9 +17,6 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 Disallow: /exam_mode
-Disallow: /payment
-Disallow: /payment-success
-Disallow: /payment-failed
 Disallow: /dashboard
 Disallow: /profile
 Disallow: /login

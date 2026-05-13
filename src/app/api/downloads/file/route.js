@@ -7,9 +7,7 @@ import Download from "@/lib/models/Download";
 import Subscription from "@/lib/models/Subscription";
 import User from "@/lib/models/User";
 import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -44,7 +42,7 @@ export async function GET(request) {
           return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }
 
-        const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+        const { payload } = await jwtVerify(token, getJwtSecretBytes());
         const userId = payload?.userId;
 
         if (userId) {

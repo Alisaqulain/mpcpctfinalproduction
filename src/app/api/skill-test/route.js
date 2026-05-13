@@ -5,9 +5,7 @@ import SkillTestExam from "@/lib/models/SkillTestExam";
 import SkillTestSettings from "@/lib/models/SkillTestSettings";
 import UserExercise from "@/lib/models/UserExercise";
 import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 export async function GET(req) {
   try {
     await dbConnect();
@@ -30,7 +28,7 @@ export async function GET(req) {
       const token = req.cookies.get("token")?.value;
       if (token) {
         try {
-          const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+          const { payload } = await jwtVerify(token, getJwtSecretBytes());
           const userId = payload?.userId;
           if (userId) {
             userExercises = await UserExercise.find({ userId }).sort({ createdAt: -1 }).lean();

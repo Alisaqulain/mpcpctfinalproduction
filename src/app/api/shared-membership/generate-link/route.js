@@ -3,8 +3,7 @@ import dbConnect from "@/lib/db";
 import Subscription from "@/lib/models/Subscription";
 import { jwtVerify } from "jose";
 import { randomBytes } from "crypto";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 
 export async function POST(request) {
   try {
@@ -13,7 +12,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "No token provided" }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     
     await dbConnect();
     const { subscriptionId } = await request.json();

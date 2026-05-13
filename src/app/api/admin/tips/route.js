@@ -2,9 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Tip from "@/lib/models/Tip";
 import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 // Helper function to check admin auth
 async function checkAdminAuth(req) {
   try {
@@ -13,7 +11,7 @@ async function checkAdminAuth(req) {
       return { ok: false, error: "Unauthorized" };
     }
 
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     const userId = payload.userId;
 
     await dbConnect();

@@ -3,22 +3,30 @@
  * Centralized metadata configuration for consistent SEO across all pages
  */
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://mpcpct.com';
-const siteName = 'MPCPCT - CPCT Exam Papers, RSCIT, CCC Practice Tests | Free CPCT Question Papers';
-const defaultDescription = 'MPCPCT - Download free CPCT exam papers, practice CPCT question papers online, CPCT previous year papers, CPCT sample papers 2025. Best platform for CPCT exam preparation with real CPCT exam papers, CPCT mock tests, CPCT practice papers in Hindi & English. Get CPCT solved papers, CPCT question bank, CPCT exam pattern, CPCT syllabus. Free CPCT exam papers download, CPCT online test papers for MP government jobs.';
-const defaultKeywords = 'CPCT exam paper, CPCT question paper, CPCT previous year paper, CPCT sample paper, CPCT practice paper, CPCT solved paper, CPCT question bank, CPCT exam pattern, CPCT syllabus, CPCT mock test paper, CPCT online test paper, CPCT exam paper download, CPCT paper PDF, CPCT exam paper 2025, CPCT paper solution, CPCT question paper with answer, CPCT exam paper Hindi, CPCT exam paper English, CPCT paper pattern, CPCT exam paper free download, CPCT previous paper, CPCT model paper, CPCT test paper, CPCT exam paper online, CPCT question paper PDF, CPCT exam paper 2024, CPCT paper download, CPCT solved question paper, CPCT exam paper MP, CPCT paper Indore, MPCPCT, MPCPCT Indore, MPCPCT Madhya Pradesh, CPCT exam Indore, CPCT coaching Indore, CPCT preparation Indore, CPCT practice test Indore, CPCT online exam Indore, CPCT mock test Indore, RSCIT exam paper, RSCIT question paper, RSCIT previous year paper, CCC exam paper, CCC question paper, typing practice Indore, Hindi typing Indore, English typing Indore, government job preparation Indore, MP government job, CPCT exam date, CPCT result, CPCT admit card';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mpcpct.com';
+const siteName =
+  'MPC PCT – Best CCC, CPCT & Typing Test Platform in Indore | Online Exam Practice';
+const defaultDescription =
+  'Prepare for CCC, CPCT, Hindi typing, English typing, and government computer exams with MPC PCT — the online exam platform trusted in Indore & Madhya Pradesh. Practice mock tests, typing speed tests, and skill assessments built for MP CPCT & CCC aspirants.';
+const defaultKeywords =
+  'MPC PCT, CCC exam Indore, CPCT preparation Indore, typing test online, Hindi typing test, English typing practice, CPCT mock test, CCC online exam, MP CPCT, government computer exam practice, CCC mock test free, online typing test platform, computer certification India, Indore computer classes, CPCT practice test, DevsSphere Solutions';
 
 export const defaultMetadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: siteName,
-    template: `%s | MPCPCT`,
+    template: `%s | MPC PCT`,
   },
   description: defaultDescription,
   keywords: defaultKeywords,
-  authors: [{ name: 'MPCPCT Team', url: siteUrl }],
-  creator: 'MPCPCT',
-  publisher: 'MPCPCT',
+  authors: [{ name: 'MPC PCT — DevsSphere Solutions', url: siteUrl }],
+  creator: 'MPC PCT',
+  publisher: 'MPC PCT',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   robots: {
     index: true,
     follow: true,
@@ -30,35 +38,41 @@ export const defaultMetadata = {
       'max-snippet': -1,
     },
   },
+  /** OG/Twitter images: file routes opengraph-image.tsx & twitter-image.tsx supply 1200×630 previews */
   openGraph: {
     type: 'website',
     locale: 'en_IN',
     url: siteUrl,
-    siteName: 'MPCPCT',
+    siteName: 'MPC PCT',
     title: siteName,
     description: defaultDescription,
-    images: [
-      {
-        url: `${siteUrl}/logo2.png`,
-        width: 1200,
-        height: 630,
-        alt: 'MPCPCT - Best CPCT, RSCIT, CCC Exam Practice Platform',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: siteName,
     description: defaultDescription,
-    images: [`${siteUrl}/logo2.png`],
     creator: '@mpcpct',
     site: '@mpcpct',
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/logo2.png', type: 'image/png', sizes: '32x32' },
+      { url: '/logo2.png', type: 'image/png', sizes: '16x16' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: [{ url: '/logo2.png', sizes: '180x180', type: 'image/png' }],
+  },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    title: 'MPC PCT',
+    statusBarStyle: 'default',
   },
   alternates: {
     canonical: siteUrl,
     languages: {
-      'en-IN': `${siteUrl}`,
-      'hi-IN': `${siteUrl}/hi`,
+      'en-IN': siteUrl,
     },
   },
   verification: {
@@ -78,13 +92,18 @@ export function generatePageMetadata({
   image,
   noindex = false,
 }) {
-  const fullTitle = title ? `${title} | MPCPCT` : defaultMetadata.title.default;
+  const fullTitle = title ? `${title} | MPC PCT` : defaultMetadata.title.default;
   const fullDescription = description || defaultDescription;
   const fullKeywords = keywords ? `${defaultKeywords}, ${keywords}` : defaultKeywords;
-  const fullPath = path ? `${siteUrl}${path}` : siteUrl;
-  const ogImage = image || `${siteUrl}/logo2.png`;
+  const fullPath = path ? `${siteUrl}${path.startsWith('/') ? path : `/${path}`}` : siteUrl;
+  const ogImageUrl = image
+    ? image.startsWith('http')
+      ? image
+      : `${siteUrl}${image.startsWith('/') ? image : `/${image}`}`
+    : `${siteUrl}/opengraph-image`;
 
   return {
+    metadataBase: new URL(siteUrl),
     title: fullTitle,
     description: fullDescription,
     keywords: fullKeywords,
@@ -98,7 +117,7 @@ export function generatePageMetadata({
       url: fullPath,
       images: [
         {
-          url: ogImage,
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: fullTitle,
@@ -109,7 +128,7 @@ export function generatePageMetadata({
       ...defaultMetadata.twitter,
       title: fullTitle,
       description: fullDescription,
-      images: [ogImage],
+      images: [ogImageUrl],
     },
     alternates: {
       canonical: fullPath,
@@ -119,9 +138,12 @@ export function generatePageMetadata({
 
 export const pageMetadata = {
   home: generatePageMetadata({
-    title: 'CPCT Exam Papers Free Download - CPCT Question Papers, Previous Year Papers | MPCPCT.com',
-    description: 'MPCPCT.com - Download free CPCT exam papers, CPCT question papers, CPCT previous year papers, CPCT sample papers 2025. Practice CPCT exam papers online with answers. Get CPCT solved papers, CPCT mock test papers, CPCT practice papers in Hindi & English. Best platform for CPCT exam paper preparation. Free CPCT exam papers download, CPCT question bank, CPCT exam pattern for MP government jobs. CPCT exam paper 2025, CPCT paper PDF download.',
-    keywords: 'CPCT exam paper, CPCT question paper, CPCT previous year paper, CPCT sample paper, CPCT practice paper, CPCT solved paper, CPCT question bank, CPCT exam pattern, CPCT syllabus, CPCT mock test paper, CPCT online test paper, CPCT exam paper download, CPCT paper PDF, CPCT exam paper 2025, CPCT paper solution, CPCT question paper with answer, CPCT exam paper Hindi, CPCT exam paper English, CPCT paper pattern, CPCT exam paper free download, CPCT previous paper, CPCT model paper, CPCT test paper, CPCT exam paper online, CPCT question paper PDF, CPCT exam paper 2024, CPCT paper download, CPCT solved question paper, MPCPCT, MPCPCT Indore, CPCT exam Indore, CPCT coaching Indore, CPCT preparation Indore, typing practice Indore, government job preparation Indore, MP government job',
+    title:
+      'Best CCC, CPCT & Typing Test Platform in Indore',
+    description:
+      'Prepare for CCC, CPCT, Hindi Typing, English Typing, and government computer exams with MPC PCT. Best online practice platform in Indore, Madhya Pradesh — mock tests, typing labs & skill assessments.',
+    keywords:
+      'CCC exam Indore, CPCT preparation Indore, typing test online, Hindi typing test, CPCT mock test, CCC online exam, MP CPCT, government computer exam practice, CCC mock test free, online typing test platform, MPC PCT',
     path: '/',
   }),
   about: generatePageMetadata({

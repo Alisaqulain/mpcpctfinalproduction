@@ -4,14 +4,12 @@ import SkillTestExercise from "@/lib/models/SkillTestExercise";
 import SkillTestExam from "@/lib/models/SkillTestExam";
 import SkillTestSettings from "@/lib/models/SkillTestSettings";
 import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 async function requireAdmin(req) {
   const token = req.cookies.get("token")?.value;
   if (!token) return { ok: false, error: "Unauthorized" };
   try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     if (payload.role !== "admin") return { ok: false, error: "Forbidden" };
     return { ok: true, userId: payload.userId };
   } catch (e) {

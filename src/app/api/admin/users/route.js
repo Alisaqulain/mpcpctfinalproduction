@@ -4,8 +4,7 @@ import User from "@/lib/models/User";
 import Subscription from "@/lib/models/Subscription";
 import Referral from "@/lib/models/Referral";
 import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 
 export async function GET(request) {
   try {
@@ -14,7 +13,7 @@ export async function GET(request) {
       return NextResponse.json({ error: "No token provided" }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     if (payload?.role !== "admin") {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }

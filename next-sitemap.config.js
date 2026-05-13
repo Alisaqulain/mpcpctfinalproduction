@@ -7,9 +7,6 @@ module.exports = {
     '/admin',
     '/api/*',
     '/exam_mode',
-    '/payment',
-    '/payment-success',
-    '/payment-failed',
     '/dashboard',
     '/profile',
     '/login',
@@ -22,38 +19,12 @@ module.exports = {
       {
         userAgent: '*',
         allow: '/',
-        disallow: [
-          '/admin',
-          '/api/',
-          '/exam_mode',
-          '/payment',
-          '/payment-success',
-          '/payment-failed',
-          '/dashboard',
-          '/profile',
-          '/login',
-          '/signup',
-          '/forget',
-          '/debug',
-        ],
+        disallow: ['/admin', '/api/', '/exam_mode', '/dashboard', '/profile', '/login', '/signup', '/forget', '/debug'],
       },
       {
         userAgent: 'Googlebot',
         allow: '/',
-        disallow: [
-          '/admin',
-          '/api/',
-          '/exam_mode',
-          '/payment',
-          '/payment-success',
-          '/payment-failed',
-          '/dashboard',
-          '/profile',
-          '/login',
-          '/signup',
-          '/forget',
-          '/debug',
-        ],
+        disallow: ['/admin', '/api/', '/exam_mode', '/dashboard', '/profile', '/login', '/signup', '/forget', '/debug'],
       },
     ],
     additionalSitemaps: [
@@ -68,7 +39,21 @@ module.exports = {
     if (path === '/') {
       priority = 1.0;
       changefreq = 'daily';
-    } else if (['/exam', '/learning', '/skill_test'].includes(path)) {
+    } else if (
+      [
+        '/exam',
+        '/learning',
+        '/skill_test',
+        '/blog',
+        '/ccc-exam-indore',
+        '/cpct-preparation-indore',
+        '/typing-test-indore',
+        '/ccc-mock-test',
+        '/hindi-typing-test',
+        '/english-typing-test',
+        '/cpct-practice-test',
+      ].includes(path)
+    ) {
       priority = 0.9;
       changefreq = 'weekly';
     } else if (['/price', '/about-us', '/contact-us'].includes(path)) {

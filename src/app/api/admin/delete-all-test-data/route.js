@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import { jwtVerify } from "jose";
+import { getJwtSecretBytes } from "@/lib/jwtSecret";
 
 // Import all models
 import SkillLesson from "@/lib/models/SkillLesson";
@@ -15,15 +16,13 @@ import Part from "@/lib/models/Part";
 import TopicWiseMCQ from "@/lib/models/TopicWiseMCQ";
 import Topic from "@/lib/models/Topic";
 
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
-
 async function requireAdmin(req) {
   const token = req.cookies.get("token")?.value;
   if (!token) {
     return { ok: false, error: "Unauthorized" };
   }
   try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     if (payload?.role !== "admin") {
       return { ok: false, error: "Forbidden" };
     }
