@@ -5,6 +5,9 @@ import { getLearningData, getLessonContent } from "@/lib/learningData";
 import { useHindiTyping } from "@/hooks/useHindiTyping";
 
 const MIN_NET_SPEED_LEARNING = 10;
+const TYPING_FONT_MIN = 12;
+const TYPING_FONT_MAX = 24;
+const TYPING_FONT_STEP = 2;
 
 // Desktop View Component
 function DesktopView({
@@ -311,14 +314,20 @@ function DesktopView({
               <p className="text-center text-sm mb-1">Font Size</p>
               <div className="flex justify-center gap-3">
                 <button
+                  type="button"
                   onClick={decreaseFont}
-                  className="bg-white text-black border-3 cursor-pointer border-black px-5 py-[2px] text-xs rounded-md"
+                  aria-label="Decrease font size"
+                  className="bg-white text-red-600 font-bold border-3 cursor-pointer border-black text-xs rounded-md flex items-center justify-center touch-manipulation box-border hover:bg-gray-100"
+                  style={{ minWidth: "56px", minHeight: "36px", padding: "8px 16px" }}
                 >
                   A -
                 </button>
                 <button
+                  type="button"
                   onClick={increaseFont}
-                  className="bg-white text-black cursor-pointer border-3 border-black px-5 py-[2px] text-xs rounded-md"
+                  aria-label="Increase font size"
+                  className="bg-white text-green-600 font-bold cursor-pointer border-3 border-black text-xs rounded-md flex items-center justify-center touch-manipulation box-border hover:bg-gray-100"
+                  style={{ minWidth: "56px", minHeight: "36px", padding: "8px 16px" }}
                 >
                   A +
                 </button>
@@ -383,7 +392,14 @@ function PortraitView({
     <>
       <div className="flex flex-col-reverse gap-2 pt-2">
         {/* Typing Area */}
-        <div className="w-[90%] mx-auto mt-5">
+        <div className="w-[90%] mx-auto mt-5 relative">
+          <a
+            href={closeHref}
+            className="absolute right-0 top-[2.75rem] z-30 flex items-center justify-center w-7 h-7 rounded-full border border-gray-600 text-white bg-red-500 hover:bg-red-600 shadow text-base font-bold"
+            aria-label="Close"
+          >
+            ×
+          </a>
           <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg mt-12 w-full">
             {/* Results Display */}
             {isCompleted && (
@@ -460,7 +476,16 @@ function PortraitView({
               </div>
             ) : (
               <>
-                <div className="text-sm leading-tight overflow-y-auto min-h-[120px] max-h-[180px] mt-3 break-words font-sans w-full" style={{ fontSize: `${fontSize}px`, width: '100%', maxWidth: '100%' }}>
+                <div
+                  className="typing-passage-font leading-relaxed overflow-y-auto min-h-[120px] max-h-[180px] mt-3 break-words font-sans w-full"
+                  style={{
+                    fontSize: `${fontSize}px`,
+                    lineHeight: 1.5,
+                    width: "100%",
+                    maxWidth: "100%",
+                    ["--typing-passage-size"]: `${fontSize}px`,
+                  }}
+                >
                   {renderColoredWords()}
                 </div>
                 {/* Keyboard Warning for Hindi */}
@@ -516,11 +541,10 @@ function PortraitView({
                     }
                   }}
                   disabled={isPaused || isCompleted}
-                  className="w-full min-h-[100px] max-h-[100px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-3 disabled:opacity-50"
+                  className="w-full min-h-[100px] max-h-[100px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-3 disabled:opacity-50 text-sm"
                   placeholder={isHindiTyping ? "Start typing in Hindi (हिंदी में टाइप करें)..." : "Start typing here..."}
                   lang={isHindiTyping ? "hi" : undefined}
                   inputMode={isHindiTyping ? "text" : undefined}
-                  style={{ fontSize: `${fontSize}px` }}
                   autoFocus
                 />
               </>
@@ -561,17 +585,38 @@ function PortraitView({
         {/* Sidebar */}
         <div className="w-full text-white p-3 fixed top-0 mt-[-15] left-0 z-50 bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat">
           <div className="flex flex-col items-center space-y-1 mt-[-18]">
-            {/* User Profile */}
-            <div className="mb-4 absolute top-10 left-2">
-              <img
-                src={userProfileUrl}
-                alt={userName}
-                className="w-20 h-20 md:w-30 md:h-25 rounded-md border-2 border-white"
-                onError={(e) => {
-                  e.target.src = "/lo.jpg";
+            {/* Left: profile + A- (aligned row with speedometer + A+) */}
+            <div className="absolute top-10 left-2 z-50 flex flex-col items-center w-20 pointer-events-auto">
+              <div
+                className="flex flex-col items-center w-full"
+                style={{ minHeight: "6.25rem" }}
+              >
+                <img
+                  src={userProfileUrl}
+                  alt={userName}
+                  className="w-20 h-20 md:w-30 md:h-25 rounded-md border-2 border-white"
+                  onError={(e) => {
+                    e.target.src = "/lo.jpg";
+                  }}
+                />
+                <p className="font-semibold text-xs text-center mt-0.5 leading-tight">
+                  {userName}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={decreaseFont}
+                aria-label="Decrease font size"
+                className="bg-white mt-1.5 w-full text-red-600 border-3 border-black rounded-md flex items-center justify-center text-xs font-bold touch-manipulation cursor-pointer hover:bg-gray-100 active:bg-gray-200 box-border"
+                style={{
+                  height: "40px",
+                  minHeight: "40px",
+                  minWidth: "56px",
+                  padding: 0,
                 }}
-              />
-              <p className="font-semibold text-xs text-center">{userName}</p>
+              >
+                A -
+              </button>
             </div>
             
             <div className="grid grid-cols-2 gap-3 mt-10 w-[40%] md:w-full text-center">
@@ -600,60 +645,69 @@ function PortraitView({
               </div>
             )}
 
-            {/* Speedometer */}
-            <div className="mt-4 absolute bottom-13 right-2">
-              <div className="border-6 border-black rounded-full mt-2">
-                <div className="relative w-20 h-20 bg-black rounded-full border-4 border-white flex items-center justify-center">
-                  <div className="absolute left-1 text-red-500 text-[8px] font-bold tracking-widest">SPEED</div>
-                  <svg width="100" height="100" viewBox="0 0 100 100">
-                    <line
-                      x1="50"
-                      y1="50"
-                      x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                      y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                      stroke="red"
-                      strokeWidth="2"
-                    />
-                    {Array.from({ length: 9 }).map((_, i) => {
-                      const startAngle = (-Math.PI * 5) / 6;
-                      const endAngle = (Math.PI * 5) / 6;
-                      const angle = startAngle + (i / 8) * (endAngle - startAngle);
-                      const x = 50 + 40 * Math.cos(angle);
-                      const y = 50 + 42 * Math.sin(angle);
-                      return (
-                        <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
-                          {(i + 1) * 10}
-                        </text>
-                      );
-                    })}
-                  </svg>
-                  <span className="absolute bottom-5 text-red-500 font-bold text-xs">{wpm}</span>
+            {/* Right: speedometer + A+ (same top as profile column) */}
+            <div className="absolute top-10 right-2 z-50 flex flex-col items-center w-20 pointer-events-auto">
+              <div
+                className="flex flex-col items-center justify-center w-full"
+                style={{ minHeight: "6.25rem" }}
+              >
+                <div className="border-6 border-black rounded-full">
+                  <div className="relative w-20 h-20 bg-black rounded-full border-4 border-white flex items-center justify-center">
+                    <div className="absolute left-1 text-red-500 text-[8px] font-bold tracking-widest">
+                      SPEED
+                    </div>
+                    <svg width="100" height="100" viewBox="0 0 100 100">
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                        y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                        stroke="red"
+                        strokeWidth="2"
+                      />
+                      {Array.from({ length: 9 }).map((_, i) => {
+                        const startAngle = (-Math.PI * 5) / 6;
+                        const endAngle = (Math.PI * 5) / 6;
+                        const angle =
+                          startAngle + (i / 8) * (endAngle - startAngle);
+                        const x = 50 + 40 * Math.cos(angle);
+                        const y = 50 + 42 * Math.sin(angle);
+                        return (
+                          <text
+                            key={i}
+                            x={x}
+                            y={y}
+                            fontSize="10"
+                            fill="white"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                          >
+                            {(i + 1) * 10}
+                          </text>
+                        );
+                      })}
+                    </svg>
+                    <span className="absolute bottom-5 text-red-500 font-bold text-xs">
+                      {wpm}
+                    </span>
+                  </div>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={increaseFont}
+                aria-label="Increase font size"
+                className="bg-white mt-1.5 w-full text-green-600 border-3 border-black rounded-md flex items-center justify-center text-xs font-bold touch-manipulation cursor-pointer hover:bg-gray-100 active:bg-gray-200 box-border"
+                style={{
+                  height: "40px",
+                  minHeight: "40px",
+                  minWidth: "56px",
+                  padding: 0,
+                }}
+              >
+                A +
+              </button>
             </div>
-
-            {/* Font Size Controls - portrait only; close (×) directly below A+ */}
-                <button
-                  onClick={decreaseFont}
-                  className="bg-white absolute top-35 left-4 text-black border-3 cursor-pointer border-black px-5 py-[2px] text-xs rounded-md"
-                >
-                  A -
-                </button>
-                <div className="absolute top-40 right-5 flex flex-col items-end gap-1.5">
-                  <button
-                    onClick={increaseFont}
-                    className="bg-white text-black cursor-pointer border-3 border-black px-5 py-[2px] text-xs rounded-md"
-                  >
-                    A +
-                  </button>
-                  <a
-                    href={closeHref}
-                    className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-600 text-white bg-red-500 hover:bg-red-600 shadow text-base font-bold"
-                    aria-label="Close"
-                  >
-                    ×
-                  </a>
-                </div>
           </div>
         </div>
       </div>
@@ -795,7 +849,18 @@ function LandscapeView({
                 </div>
               ) : (
                 <>
-                  <div className="text-sm leading-tight overflow-y-auto min-h-[160px] max-h-[220px] mt-4 break-words font-sans w-full" style={{ minHeight: '26vh', maxHeight: '22vh', fontSize: 'clamp(10px, 2vw, 14px)', lineHeight: '1.2', width: '100%', maxWidth: '100%' }}>
+                  <div
+                    className="typing-passage-font landscape-typing-passage leading-tight overflow-y-auto min-h-[160px] max-h-[220px] mt-4 break-words font-sans w-full"
+                    style={{
+                      minHeight: "26vh",
+                      maxHeight: "22vh",
+                      fontSize: `${fontSize}px`,
+                      lineHeight: "1.2",
+                      width: "100%",
+                      maxWidth: "100%",
+                      ["--typing-passage-size"]: `${fontSize}px`,
+                    }}
+                  >
                     {renderColoredWords(true)}
                   </div>
                   <textarea
@@ -803,9 +868,14 @@ function LandscapeView({
                     value={typedText}
                     onChange={handleChange}
                     disabled={isPaused || isCompleted}
-                    className="w-full auto-focus min-h-[130px] max-h-[160px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-2 disabled:opacity-50"
+                    className="landscape-typing-input-field w-full auto-focus min-h-[130px] max-h-[160px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-2 disabled:opacity-50 text-sm"
                     placeholder="Type Here..."
-                    style={{ fontSize: `clamp(10px, 2vw, ${fontSize}px)`, minHeight: '15vh', maxHeight: '13vh', padding: '1vh 1vw', width: '100%' }}
+                    style={{
+                      minHeight: "15vh",
+                      maxHeight: "13vh",
+                      padding: "1vh 1vw",
+                      width: "100%",
+                    }}
                     autoFocus
                   />
                 </>
@@ -841,23 +911,40 @@ function LandscapeView({
           {/* Sidebar */}
           <div className="landscape-mobile-sidebar text-white bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat" style={{ width: '18vw', minWidth: '18vw', maxWidth: '18vw', height: '100vh', padding: '1vh 1vw' }}>
             <div className="flex flex-col items-center justify-center h-full">
-              {/* User Profile */}
-              <div className="mb-4 absolute top-14.5 left-10">
-                <img
-                  src={userProfileUrl}
-                  alt={userName}
-                  className="w-24 h-24 rounded-md border-2 border-white"
-                  style={{ width: 'clamp(60px, 12vw, 80px)', height: 'clamp(60px, 12vw, 80px)' }}
-                  onError={(e) => {
-                    e.target.src = "/lo.jpg";
-                  }}
-                />
-                <p className="font-semibold text-xs text-center text-white" style={{ fontSize: 'clamp(8px, 1.2vw, 10px)', marginTop: '0.5vh' }}>{userName}</p>
-              </div>
-              <div className="w-[10%] absolute top-42 left-10 h-9 rounded-lg overflow-hidden mx-auto text-center mt-0 md:mt-0 pt-0 md:pt-0 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-                <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
-                <div className="bg-white text-black text-sm font-bold">
-                  {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
+              {/* Profile + Time — minimal gap between them (landscape only) */}
+              <div className="absolute top-14 left-2 z-10 flex flex-col items-center gap-1">
+                <div className="flex flex-col items-center">
+                  <img
+                    src={userProfileUrl}
+                    alt={userName}
+                    className="w-24 h-24 rounded-md border-2 border-white"
+                    style={{
+                      width: "clamp(60px, 12vw, 80px)",
+                      height: "clamp(60px, 12vw, 80px)",
+                    }}
+                    onError={(e) => {
+                      e.target.src = "/lo.jpg";
+                    }}
+                  />
+                  <p
+                    className="font-semibold text-xs text-center text-white"
+                    style={{
+                      fontSize: "clamp(8px, 1.2vw, 10px)",
+                      marginTop: "0.25vh",
+                    }}
+                  >
+                    {userName}
+                  </p>
+                </div>
+                <div className="w-24 h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+                  <div className="bg-black text-white text-[10px] font-semibold py-[1px]">
+                    Time
+                  </div>
+                  <div className="bg-white text-black text-sm font-bold">
+                    {isCompleted
+                      ? formatClock(elapsedTime)
+                      : formatClock(timeRemaining)}
+                  </div>
                 </div>
               </div>
               {/* Speedometer */}
@@ -893,18 +980,38 @@ function LandscapeView({
               </div>
 
               {/* Font Size Controls - pulled closer to speedometer */}
-              <p className="text-white text-xs font-semibold absolute top-34 right-6">Font size</p>
+              <p className="text-white text-xs font-semibold absolute top-34 right-6">
+                Font size
+              </p>
               <button
+                type="button"
                 onClick={decreaseFont}
-                className="bg-white absolute top-46 right-7 text-black border-3 cursor-pointer border-black rounded-md"
-                style={{ padding: '0.8vh 1.5vw', fontSize: 'clamp(10px, 1.5vw, 14px)', minHeight: '4vh', minWidth: '5vw' }}
+                aria-label="Decrease font size"
+                className="bg-white absolute top-46 right-7 z-50 text-red-600 font-bold border-3 cursor-pointer border-black rounded-md flex items-center justify-center touch-manipulation box-border hover:bg-gray-100 active:bg-gray-200 pointer-events-auto"
+                style={{
+                  width: "72px",
+                  height: "40px",
+                  minHeight: "40px",
+                  minWidth: "72px",
+                  padding: 0,
+                  fontSize: "clamp(10px, 1.5vw, 14px)",
+                }}
               >
                 A -
               </button>
               <button
+                type="button"
                 onClick={increaseFont}
-                className="bg-white absolute top-38 right-7 text-black cursor-pointer border-3 border-black rounded-md"
-                style={{ padding: '0.8vh 1.5vw', fontSize: 'clamp(10px, 1.5vw, 14px)', minHeight: '4vh', minWidth: '5vw' }}
+                aria-label="Increase font size"
+                className="bg-white absolute top-38 right-7 z-50 text-green-600 font-bold cursor-pointer border-3 border-black rounded-md flex items-center justify-center touch-manipulation box-border hover:bg-gray-100 active:bg-gray-200 pointer-events-auto"
+                style={{
+                  width: "72px",
+                  height: "40px",
+                  minHeight: "40px",
+                  minWidth: "72px",
+                  padding: 0,
+                  fontSize: "clamp(10px, 1.5vw, 14px)",
+                }}
               >
                 A +
               </button>
@@ -1629,20 +1736,22 @@ function TypingTutorForm() {
         <p
           key={lineIndex}
           className="mb-0 break-words w-full"
-          style={isLandscapeMode ? { 
-            fontSize: `clamp(10px, 2vw, ${fontSize}px)`, 
-            height: 'auto', 
-            minHeight: 'auto', 
-            marginBottom: '0.2vh',
-            lineHeight: '1.2',
-            width: '100%',
-            maxWidth: '100%'
-          } : { 
-            fontSize: `${fontSize}px`,
-            lineHeight: '1.2',
-            width: '100%',
-            maxWidth: '100%'
-          }}
+          style={
+            isLandscapeMode
+              ? {
+                  height: "auto",
+                  minHeight: "auto",
+                  marginBottom: "0.2vh",
+                  lineHeight: "1.2",
+                  width: "100%",
+                  maxWidth: "100%",
+                }
+              : {
+                  lineHeight: "1.5",
+                  width: "100%",
+                  maxWidth: "100%",
+                }
+          }
           ref={lineIndex === 0 ? containerRef : null}
         >
           {lineWords.map((word, i) => {
@@ -1683,8 +1792,10 @@ function TypingTutorForm() {
     });
   };
 
-  const increaseFont = () => setFontSize((prev) => Math.min(prev + 2, 30));
-  const decreaseFont = () => setFontSize((prev) => Math.max(prev - 2, 10));
+  const increaseFont = () =>
+    setFontSize((prev) => Math.min(prev + TYPING_FONT_STEP, TYPING_FONT_MAX));
+  const decreaseFont = () =>
+    setFontSize((prev) => Math.max(prev - TYPING_FONT_STEP, TYPING_FONT_MIN));
 
   const handleDownloadPDF = () => {
     if (!resultId) {
@@ -1787,6 +1898,13 @@ function TypingTutorForm() {
           .overflow-y-auto {
             scrollbar-width: none !important;
             -ms-overflow-style: none !important;
+          }
+          /* Passage scales with A+/A- like exam mode; input stays text-sm */
+          .typing-passage-font,
+          .typing-passage-font p,
+          .typing-passage-font span {
+            font-size: var(--typing-passage-size, 16px) !important;
+            line-height: 1.5 !important;
           }
         }
         /* iPhone SE and Samsung S8+ portrait view - enable vertical scrolling */
@@ -1929,18 +2047,21 @@ function TypingTutorForm() {
             padding: 1vh 1vw !important;
             margin: 0 !important;
           }
-          /* Text display area in landscape */
-          .landscape-mobile-typing-area .text-sm {
-            min-height: 20vh !important;
-            max-height: 25vh !important;
-            font-size: clamp(10px, 2vw, 14px) !important;
+          /* Passage font scales with A+/A- in landscape */
+          .landscape-mobile-typing-area .landscape-typing-passage,
+          .landscape-mobile-typing-area .landscape-typing-passage p,
+          .landscape-mobile-typing-area .landscape-typing-passage span {
+            font-size: var(--typing-passage-size, 16px) !important;
             line-height: 1.4 !important;
           }
-          /* Textarea in landscape */
-          .landscape-mobile-typing-area textarea {
+          .landscape-mobile-typing-area .landscape-typing-passage {
+            min-height: 20vh !important;
+            max-height: 25vh !important;
+          }
+          /* Textarea in landscape — fixed readable size; passage scales */
+          .landscape-mobile-typing-area textarea.landscape-typing-input-field {
             min-height: 12vh !important;
             max-height: 15vh !important;
-            font-size: clamp(10px, 2vw, 14px) !important;
             padding: 1vh 1vw !important;
             width: 100% !important;
           }
@@ -1996,12 +2117,11 @@ function TypingTutorForm() {
             font-size: clamp(9px, 1.8vw, 12px) !important;
             min-height: 4vh !important;
           }
-          /* Word line height in landscape */
-          .landscape-mobile-typing-area p {
+          /* Word line layout in landscape passage only */
+          .landscape-mobile-typing-area .landscape-typing-passage p {
             height: auto !important;
             min-height: 3vh !important;
             margin-bottom: 0.3vh !important;
-            font-size: clamp(10px, 2vw, 14px) !important;
           }
           /* Completed test message in landscape */
           .landscape-mobile-typing-area .bg-green-50 {

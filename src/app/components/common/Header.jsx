@@ -89,37 +89,38 @@ export default function Header() {
   return (
     <header className="border-b shadow-sm relative z-50">
       {/* Top Section - mobile: logo left, title centered in rest; desktop: unchanged */}
-      <div className="bg-white flex flex-row items-center justify-between px-4 py-4 relative min-h-[80px] md:min-h-[120px]">
-        <div className="z-10 flex-shrink-0">
-          <a href="/" className="block relative h-10 w-[120px] md:w-[180px] md:ml-35">
+      <div className="bg-white flex flex-row items-center justify-between px-2 py-3 relative min-h-[96px] md:min-h-[120px] md:px-4 md:py-4 overflow-visible">
+        <div className="z-10 flex-shrink-0 w-[72px] sm:w-[88px] md:w-auto">
+          <a href="/" className="block relative h-9 w-[72px] sm:h-10 sm:w-[88px] md:h-10 md:w-[180px] md:ml-35">
             <Image
               src="/logor.png"
               alt="MPC PCT — CPCT, CCC and typing exam practice"
               fill
               className="object-contain object-left"
-              sizes="(max-width: 768px) 120px, 180px"
+              sizes="(max-width: 640px) 72px, (max-width: 768px) 88px, 180px"
               priority
             />
           </a>
         </div>
 
-        <div className="flex-1 md:flex-none md:absolute inset-0 flex flex-col justify-center items-center text-center px-4 md:ml-0 min-w-0">
+        {/* Centered title — room for full MPCPCT on narrow phones */}
+        <div className="absolute inset-0 z-0 flex flex-col justify-center items-center text-center px-[4.75rem] sm:px-[5.5rem] md:px-4 pointer-events-none overflow-visible">
           <p
-            className="text-4xl md:text-7xl font-extrabold uppercase md:mt-0 leading-[1.2] text-transparent bg-clip-text bg-center bg-cover"
+            className="inline-block text-[1.75rem] sm:text-[2rem] md:text-7xl font-extrabold uppercase md:mt-0 leading-none whitespace-nowrap text-transparent bg-clip-text bg-center bg-cover px-0.5"
             style={{
               backgroundImage: "url('/bg.jpg')",
             }}
           >
             MPCPCT
           </p>
-          <p className="text-[11px] sm:text-sm md:text-2xl lg:text-3xl text-gray-600 font-semibold">
-            <span className="hidden md:inline"></span>
-            To Help in typing & computer proficiency
-            <span className="hidden md:inline"></span>
+          <p className="text-[10px] sm:text-sm md:text-2xl lg:text-3xl text-gray-600 font-semibold max-w-[12rem] sm:max-w-md mx-auto leading-tight mt-0.5">
+            <span className="block">To Help in typing &</span>
+            <span className="block">computer proficiency</span>
           </p>
         </div>
 
-        <div className="z-10 text-right text-sm hidden md:block"></div>
+        <div className="z-10 w-[72px] sm:w-[88px] flex-shrink-0 md:hidden" aria-hidden="true" />
+        <div className="z-10 text-right text-sm hidden md:block" />
       </div>
 
       {/* Mobile Nav Toggle */}
@@ -313,7 +314,7 @@ export default function Header() {
           onClick={() => setMobileNavOpen(false)}
           className="flex flex-col items-center pb-3 no-underline text-white hover:opacity-90"
         >
-          {isAuthenticated && (userProfile?.profileUrl) ? (
+          {isAuthenticated && userProfile?.profileUrl ? (
             <img
               src={userProfile.profileUrl}
               alt={userProfile?.name || "User"}
@@ -321,21 +322,25 @@ export default function Header() {
             />
           ) : (
             <img
-              src="/user.jpg"
+              src="/lo.jpg"
               alt="User"
               className="w-16 h-16 rounded-full border-2 border-white mb-2 object-cover"
             />
           )}
-          <p className="text-sm font-semibold">{isAuthenticated && (userProfile?.name) ? userProfile.name : "User"}</p>
+          <p className="text-sm font-semibold">{isAuthenticated && userProfile?.name ? userProfile.name : "User"}</p>
         </a>
         <ul className="mt-3 space-y-1 px-3">
-          <li className="border-b border-white/20 py-2"><a href="/" onClick={() => setMobileNavOpen(false)} className="text-sm">HOME</a></li>
+          <li className="border-b border-white/20 py-2">
+            <a href="/" onClick={() => setMobileNavOpen(false)} className="text-sm">
+              HOME <span className="text-gray-300">(होम)</span>
+            </a>
+          </li>
           <li>
             <button
               onClick={() => toggleDropdown("mobileCourse")}
               className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm"
             >
-              <span>COURSE</span> <span className="text-2xl">▾</span>
+              <span>COURSE <span className="text-gray-300">(कोर्स)</span></span> <span className="text-2xl">▾</span>
             </button>
             {openDropdown === "mobileCourse" && (
               <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-gray-300">
@@ -351,7 +356,7 @@ export default function Header() {
               onClick={() => toggleDropdown("mobileDownload")}
               className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm"
             >
-              <span>DOWNLOAD</span> <span className="text-2xl">▾</span>
+              <span>DOWNLOAD <span className="text-gray-300">(डाउनलोड)</span></span> <span className="text-2xl">▾</span>
             </button>
             {openDropdown === "mobileDownload" && (
               <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-gray-300">
@@ -366,20 +371,36 @@ export default function Header() {
               onClick={() => toggleDropdown("mobileOurApp")}
               className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm"
             >
-              <span>OUR APP</span> <span className="text-2xl">▾</span>
+              <span>OUR APP <span className="text-gray-300">(हमारा ऐप)</span></span> <span className="text-2xl">▾</span>
             </button>
             {openDropdown === "mobileOurApp" && (
               <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-gray-300">
-                <li><a href="android" onClick={() => setMobileNavOpen(false)}>Android App</a></li>
-                <li><a href="android" onClick={() => setMobileNavOpen(false)}>iOS App</a></li>
-                <li><a href="android" onClick={() => setMobileNavOpen(false)}>App Features</a></li>
+                <li><a href="/android" onClick={() => setMobileNavOpen(false)}>Android App</a></li>
+                <li><a href="/android" onClick={() => setMobileNavOpen(false)}>iOS App</a></li>
+                <li><a href="/android" onClick={() => setMobileNavOpen(false)}>App Features</a></li>
               </ul>
             )}
           </li>
-          <li className="border-b border-white/20 py-2"><a href="/about-us" onClick={() => setMobileNavOpen(false)} className="text-sm">ABOUT US</a></li>
-          <li className="border-b border-white/20 py-2"><a href="/payment-app" onClick={() => setMobileNavOpen(false)} className="text-sm">PAYMENT</a></li>
-          <li className="border-b border-white/20 py-2"><a href="/contact-us" onClick={() => setMobileNavOpen(false)} className="text-sm">CONTACT US</a></li>
-          <li className="border-b border-white/20 py-2"><a href="/faq" onClick={() => setMobileNavOpen(false)} className="text-sm">FAQ</a></li>
+          <li className="border-b border-white/20 py-2">
+            <a href="/about-us" onClick={() => setMobileNavOpen(false)} className="text-sm">
+              ABOUT US <span className="text-gray-300">(हमारे बारे में)</span>
+            </a>
+          </li>
+          <li className="border-b border-white/20 py-2">
+            <a href="/payment-app" onClick={() => setMobileNavOpen(false)} className="text-sm">
+              PAYMENT <span className="text-gray-300">(भुगतान)</span>
+            </a>
+          </li>
+          <li className="border-b border-white/20 py-2">
+            <a href="/contact-us" onClick={() => setMobileNavOpen(false)} className="text-sm">
+              CONTACT US <span className="text-gray-300">(संपर्क करें)</span>
+            </a>
+          </li>
+          <li className="border-b border-white/20 py-2">
+            <a href="/faq" onClick={() => setMobileNavOpen(false)} className="text-sm">
+              FAQ <span className="text-gray-300">(सामान्य प्रश्न)</span>
+            </a>
+          </li>
         </ul>
 
         <div className="flex justify-center items-center mt-4 px-3 space-x-2 py-3">

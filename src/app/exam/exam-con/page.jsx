@@ -9,9 +9,11 @@ export default function ExamInstructions() {
   const [isAgreed, setIsAgreed] = useState(true);
   const [showError, setShowError] = useState(false);
 
+  const isHindi = language === "हिन्दी" || language === "Hindi";
+  const brandName = "MPCPCT";
+
   useEffect(() => {
-    // Load user data from localStorage
-    const userDataStr = localStorage.getItem('examUserData');
+    const userDataStr = localStorage.getItem("examUserData");
     if (userDataStr) {
       try {
         const userData = JSON.parse(userDataStr);
@@ -19,53 +21,172 @@ export default function ExamInstructions() {
           setUserName(userData.name);
         }
       } catch (error) {
-        console.error('Error parsing user data:', error);
+        console.error("Error parsing user data:", error);
       }
     }
 
-    // Load question language preference, default to Hindi
-    const savedLang = localStorage.getItem('questionLanguage');
+    const savedLang = localStorage.getItem("questionLanguage");
     if (savedLang) {
       setQuestionLanguage(savedLang);
     } else {
-      // Default to Hindi if no preference is saved
       setQuestionLanguage("हिन्दी");
-      localStorage.setItem('questionLanguage', "हिन्दी");
+      localStorage.setItem("questionLanguage", "हिन्दी");
     }
 
-    // Load exam data from localStorage
-    const examId = localStorage.getItem('currentExamId');
-    const examType = localStorage.getItem('examType');
+    const examId = localStorage.getItem("currentExamId");
+    const examType = localStorage.getItem("examType");
     if (examId) {
-      // Fetch exam details
-      fetch(`/api/exams?key=${examType || ''}`)
-        .then(res => res.json())
-        .then(data => {
-          const exam = data.exams?.find(e => e._id === examId);
+      fetch(`/api/exams?key=${examType || ""}`)
+        .then((res) => res.json())
+        .then((data) => {
+          const exam = data.exams?.find((e) => e._id === examId);
           if (exam) {
             setExamData(exam);
           }
         })
-        .catch(error => console.error('Error fetching exam:', error));
+        .catch((error) => console.error("Error fetching exam:", error));
     }
   }, []);
 
+  const handleStartTest = () => {
+    if (!isAgreed) {
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      return;
+    }
+    setShowError(false);
+    localStorage.removeItem("examProgress");
+    localStorage.removeItem("examTimeLeft");
+    localStorage.setItem("questionLanguage", questionLanguage);
+    window.location.href = "/exam_mode";
+  };
+
+  const colorLegendHindi = (
+    <>
+      <p className="text-center text-sm font-medium leading-snug">
+        कृपया परीक्षा के निर्देशों को ध्यान से पढ़ें
+      </p>
+      <p className="mt-1.5 text-sm font-semibold">सामान्य निर्देश:</p>
+      <p className="mt-1.5 text-xs leading-snug">
+        <span className="text-white bg-gray-500 border py-0.5 px-2 inline-block mr-1">
+          1
+        </span>
+        आपने अभी तक यह प्रश्न नहीं देखा है।
+      </p>
+      <p className="mt-1.5 text-xs leading-snug">
+        <span className="text-white bg-orange-600 border py-0.5 px-2 inline-block mr-1">
+          2
+        </span>
+        आपने इस प्रश्न के लिए कोई उत्तर नहीं चुना है।
+      </p>
+      <p className="mt-1.5 text-xs leading-snug">
+        <span className="text-white bg-green-500 border py-0.5 px-2 inline-block mr-1">
+          3
+        </span>
+        आपने इस प्रश्न के लिए उत्तर चुन लिया है।
+      </p>
+      <p className="mt-1.5 text-xs leading-snug">
+        <span className="text-white bg-[#4c2483] border py-0.5 px-2 inline-block mr-1">
+          4
+        </span>
+        आपने इस प्रश्न का उत्तर नहीं दिया है, पर इसे समीक्षा के लिए रखा है।
+      </p>
+      <p className="mt-1.5 text-xs leading-snug">
+        <span className="text-white bg-[#4c2483] border py-0.5 px-2 inline-block mr-1">
+          5
+        </span>
+        &quot;उत्तर दिया गया और समीक्षा के लिए चिह्नित&quot; प्रश्नों पर मूल्यांकन
+        हेतु विचार किया जाएगा।
+      </p>
+    </>
+  );
+
+  const colorLegendEnglish = (
+    <>
+      <p className="text-center text-sm font-medium leading-snug">
+        Please read the exam instructions carefully
+      </p>
+      <p className="mt-1.5 text-sm font-semibold">General Instructions:</p>
+      <p className="mt-1.5 text-xs leading-snug">
+        <span className="text-white bg-gray-500 border py-0.5 px-2 inline-block mr-1">
+          1
+        </span>
+        You have not seen this question yet.
+      </p>
+      <p className="mt-1.5 text-xs leading-snug">
+        <span className="text-white bg-orange-600 border py-0.5 px-2 inline-block mr-1">
+          2
+        </span>
+        You have not chosen any answer for this question.
+      </p>
+      <p className="mt-1.5 text-xs leading-snug">
+        <span className="text-white bg-green-500 border py-0.5 px-2 inline-block mr-1">
+          3
+        </span>
+        You have chosen an answer for this question.
+      </p>
+      <p className="mt-1.5 text-xs leading-snug">
+        <span className="text-white bg-[#4c2483] border py-0.5 px-2 inline-block mr-1">
+          4
+        </span>
+        You have not answered this question, but have kept it for review.
+      </p>
+      <p className="mt-1.5 text-xs leading-snug">
+        <span className="text-white bg-[#4c2483] border py-0.5 px-2 inline-block mr-1">
+          5
+        </span>
+        Questions marked as &quot;Answered &amp; Marked for Review&quot; will be
+        considered for evaluation.
+      </p>
+    </>
+  );
+
+  const declarationHindi = (
+    <>
+      <strong className="whitespace-nowrap">घोषणा — {brandName}:</strong>{" "}
+      <span className="whitespace-nowrap font-semibold">{brandName}</span> केवल
+      सामान्य शैक्षिक उद्देश्यों के लिए अभ्यास परीक्षाएँ प्रदान करता है और यह
+      दावा नहीं करता कि ये वास्तविक परीक्षाओं की सामग्री या प्रारूप के समान
+      हैं; कोई भी समानता केवल संयोग है। हम प्रश्नों या उत्तरों में अशुद्धताओं के
+      लिए जिम्मेदार नहीं हैं, और इन परीक्षणों में प्रदर्शन वास्तविक परीक्षाओं
+      में समान परिणामों की गारंटी नहीं देता है। इन्हें अपनी विवेकाधिकार पर
+      उपयोग करें। अभ्यास परीक्षाओं का उपयोग करके, आप इन नियमों और शर्तों से
+      सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया हमारी सेवाओं का उपयोग न
+      करें। अधिक जानकारी के लिए, कृपया हमारी विस्तृत{" "}
+      <span className="text-blue-600">नियम और शर्तें</span> देखें।
+    </>
+  );
+
+  const declarationEnglish = (
+    <>
+      <strong className="whitespace-nowrap">Disclaimer — {brandName}:</strong>{" "}
+      <span className="whitespace-nowrap font-semibold">{brandName}</span>{" "}
+      provides practice tests only for general educational purposes and does not
+      claim that these are similar to the content or format of actual exams; any
+      similarity is purely coincidental. We are not responsible for inaccuracies
+      in questions or answers, and performance in these tests does not guarantee
+      similar results in actual exams. Use these at your discretion. By using our
+      practice tests, you agree to these terms and conditions. If you do not
+      agree, please do not use our services. For more information, please see our
+      detailed <span className="text-blue-600">Terms and Conditions</span>.
+    </>
+  );
+
   return (
-    <div className="min-h-screen bg-white-100 text-black flex flex-col">
+    <div className="h-[100dvh] w-full bg-white text-black flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="bg-[#290c52] text-white flex justify-between items-center px-6 py-4 w-full">
-        <h1 className="text-lg md:text-xl font-semibold">
-          T&C and Exam Instruction - MPCPCT
+      <div className="bg-[#290c52] text-white flex justify-between items-center gap-2 px-3 py-2.5 shrink-0">
+        <h1 className="text-xs sm:text-sm md:text-xl font-semibold leading-tight">
+          <span className="md:hidden">Exam Instructions — </span>
+          <span className="hidden md:inline">T&amp;C and Exam Instruction — </span>
+          <span className="whitespace-nowrap text-yellow-300">{brandName}</span>
         </h1>
-        <div className="flex items-center gap-2">
-          <span className="hidden sm:inline-block">View in :</span>
+        <div className="flex items-center gap-1 shrink-0">
+          <span className="hidden sm:inline text-xs">View in :</span>
           <select
-            className="bg-white text-black px-2 py-1 rounded text-sm"
+            className="bg-white text-black px-2 py-1 rounded text-xs sm:text-sm"
             value={language}
-            onChange={(e) => {
-              setLanguage(e.target.value);
-              console.log('Language changed to:', e.target.value);
-            }}
+            onChange={(e) => setLanguage(e.target.value)}
           >
             <option value="हिन्दी">हिन्दी</option>
             <option value="English">English</option>
@@ -73,178 +194,217 @@ export default function ExamInstructions() {
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex flex-1 flex-col lg:flex-row h-full">
-        {/* Main Content */}
-        <div className="w-full lg:w-[85%] px-6 py-4 overflow-y-auto h-[50%]">
-          <div className="max-h-[45vh] overflow-y-auto pr-2">
-            <div className="space-y-2 text-sm md:text-[13px] leading-relaxed">
-              {language === "हिन्दी" ? (
+      <div className="flex flex-1 flex-col lg:flex-row min-h-0 overflow-hidden">
+        {/* Main column — fixed footer (declaration + Start) on mobile */}
+        <div className="w-full lg:w-[85%] flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Instructions: mobile = color legend only; desktop = full text scroll */}
+          <div className="md:hidden shrink-0 px-3 pt-2 pb-1 overflow-y-auto max-h-[28vh] sm:max-h-[32vh]">
+            {isHindi ? colorLegendHindi : colorLegendEnglish}
+          </div>
+
+          <div className="hidden md:block flex-1 min-h-0 overflow-y-auto px-6 py-4 text-[13px] leading-relaxed">
+            <div className="space-y-2">
+              {isHindi ? (
                 <>
-                  <p className="text-center text-[20px]"> कृपया परीक्षा के निर्देशों को ध्यान से पढ़ें</p>
-                  <p className="mt-5 text-[15px] font-semibold"> सामान्य निर्देश:</p>
-                  <p className="mt-8"><span className="text-white bg-gray-500 border py-1 md:py-2 px-3 md:px-4">1</span>  आपने अभी तक यह प्रश्न नहीं देखा है।</p>
-                  <p className="mt-8"><span className="text-white bg-orange-600 border py-1 md:py-2 px-3 md:px-4">2</span>  आपने इस प्रश्न के लिए कोई उत्तर नहीं चुना है।</p>
-                  <p className="mt-8"><span className="text-white bg-green-500 border py-1 md:py-2 px-3 md:px-4">3</span>  आपने इस प्रश्न के लिए उत्तर चुन लिया है।</p>
-                  <p className="mt-8"><span className="text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">4</span>  आपने इस प्रश्न का उत्तर नहीं दिया है, पर इसे समीक्षा के लिए रखा है।</p>
-                  <p className="mt-8"><span className="text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">5</span>  "उत्तर दिया गया और समीक्षा के लिए चिह्नित" प्रश्नों पर मूल्यांकन हेतु विचार किया जाएगा।</p>
-                  <p className="mt-8 text-[12px] font-semibold">1. परीक्षा प्रश्नों की भाषा बदलने के लिए, अपने सेक्शन बार के ऊपरी दाएं कोने में "View in" ढूंढें और पूरी प्रश्न-पत्रिका की भाषा बदलने के लिए उस पर क्लिक करें।</p>
-                  <h2 className="font-bold mt-6 text-base md:text-lg">प्रश्न पर नेविगेट करना:</h2>
-                  <p className="mt-4 text-[12px]">2. किसी प्रश्न का उत्तर देने के लिए, निम्न कार्य करें:</p>
-                  <p className="mt-4 text-[12px]">a. किसी विशेष प्रश्न पर तुरंत पहुंचने के लिए, स्क्रीन के दाईं ओर प्रश्न पैलेट में उस प्रश्न की संख्या पर क्लिक करें। कृपया ध्यान दें कि ऐसा करने से आपके वर्तमान प्रश्न का उत्तर सुरक्षित नहीं होगा। <br/>
-                  b. यदि आप अपना वर्तमान उत्तर सहेजना और अगले प्रश्न पर जाना चाहते हैं, तो "Save & Next" पर क्लिक करें। <br/>
-                  c. यदि आप अपना वर्तमान उत्तर सहेजना चाहते हैं, इसे समीक्षा के लिए चिह्नित करना चाहते हैं, और अगले प्रश्न पर जाना चाहते हैं, तो "Mark for Review & Next" पर क्लिक करें।</p>
-                  <h2 className="font-bold mt-6 text-base md:text-lg">प्रश्न का उत्तर देना:</h2>
-                  <p className="text-[12px] mt-4">3. बहुविकल्पीय प्रश्न का उत्तर देने की प्रक्रिया:<br/></p>
-                  <p className="mt-4 text-[12px]">a. उत्तर चुनने के लिए, एक विकल्प का बटन दबाएं।<br/>
-                  b. यदि आप चुना हुआ उत्तर हटाना चाहते हैं, तो उसी बटन को फिर से दबाएं या "Clear Response" पर क्लिक करें।<br/>
-                  c. दूसरा उत्तर चुनने के लिए, किसी और विकल्प का बटन दबाएं।<br/>
-                  d. उत्तर सहेजने के लिए, "Save & Next" बटन पर क्लिक करना ज़रूरी है।<br/>
-                  e. प्रश्न को समीक्षा के लिए चिह्नित करने के लिए, "Mark for Review & Next" बटन दबाएं।<br/></p>
-                  <p className="text-[12px] mt-3">4. यदि आप पहले से दिए गए किसी उत्तर को बदलना चाहते हैं, तो पहले उस प्रश्न पर वापस जाएं और फिर सामान्य तरीके से उसका उत्तर दें।</p>
-                  <h2 className="font-bold mt-6 text-base md:text-lg">अनुभागों के माध्यम से नेविगेट करना:</h2>
-                  <p className="text-[12px] mt-4">5. स्क्रीन के शीर्ष बार पर इस प्रश्न पत्र के अनुभाग देखें। किसी अनुभाग के प्रश्न देखने के लिए उसके नाम पर क्लिक करें। आप जिस अनुभाग में हैं, वह हाइलाइट होगा।<br/>
-                  6. जब आप किसी अनुभाग के अंतिम प्रश्न पर "सहेजें और अगला" क्लिक करते हैं, तो आप अपने आप अगले अनुभाग के पहले प्रश्न पर चले जाएंगे।<br/>
-                  7. परीक्षा के समय में, आप अपनी इच्छानुसार अनुभागों और प्रश्नों के बीच घूम सकते हैं।</p>
-                  <h2 className="font-bold mt-6 text-center md:text-lg">कृपया आगे बढ़ने से पहले नीचे दी गई नियम और शर्तें अवश्य पढ़ें।</h2>
-                  <p className="text-[12px] mt-3"><span className="font-semibold">परीक्षा की प्रामाणिकता का अस्वीकरण</span><br/>
-                  cpctmaster.com द्वारा प्रदान किए गए मॉक टेस्ट केवल सामान्य शैक्षिक उद्देश्यों के लिए डिज़ाइन किए गए हैं। हम यह दावा नहीं करते कि ये मॉक टेस्ट वास्तविक परीक्षाओं या आधिकारिक मॉक टेस्ट के समान हैं। वास्तविक परीक्षा की सामग्री या संरचना से कोई भी समानता केवल संयोग है।<br/>
-                  <span className="font-semibold mt-3 block">जिम्मेदारी की सीमा</span>
-                  cpctmaster.com प्रदान किए गए प्रश्नों या उत्तरों में किसी भी अशुद्धता या त्रुटि के लिए जिम्मेदार नहीं है। उपयोगकर्ताओं को सलाह दी जाती है कि वे अपनी विवेकाधिकार का उपयोग करें और सटीक जानकारी के लिए आधिकारिक संसाधनों से परामर्श करें। हम हमारे मॉक टेस्ट के उपयोग से उत्पन्न किसी भी हानि या क्षति के लिए जिम्मेदार नहीं हैं।<br/>
-                  <span className="font-semibold mt-3 block">परिणामों की कोई गारंटी नहीं</span>
-                  हमारे मॉक टेस्ट पर प्रदर्शन वास्तविक परीक्षाओं में समान परिणामों की गारंटी नहीं देता है। ये टेस्ट उपयोगकर्ताओं को सामान्य कंप्यूटर परीक्षा पैटर्न से परिचित कराने के लिए हैं और केवल परीक्षा की तैयारी के लिए उन पर निर्भर नहीं किया जाना चाहिए।<br/>
-                  <span className="font-semibold mt-3 block">उपयोगकर्ता की जिम्मेदारी</span>
-                  उपयोगकर्ता हमारे मॉक टेस्ट से प्राप्त जानकारी की सटीकता और प्रासंगिकता सुनिश्चित करने के लिए जिम्मेदार हैं। cpctmaster.com प्रदान की गई सामग्री की गलतफहमी या गलत व्याख्या के लिए कोई जिम्मेदारी नहीं लेता है।<br/>
-                  <span className="font-semibold mt-3 block">नियमों और शर्तों की स्वीकृति</span>
-                  हमारे मॉक टेस्ट का उपयोग करके, आप इन नियमों और शर्तों से सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया हमारी सेवाओं का उपयोग न करें।<br/>
-                  <span className="font-semibold mt-3 block">अधिक जानकारी के लिए</span>
-                  अधिक विस्तृत नियमों और शर्तों के लिए, कृपया हमारी आधिकारिक वेबसाइट देखें।</p>
+                  <p className="text-center text-[20px]">
+                    कृपया परीक्षा के निर्देशों को ध्यान से पढ़ें
+                  </p>
+                  <p className="mt-2 text-[15px] font-semibold">सामान्य निर्देश:</p>
+                  <p className="mt-2">
+                    <span className="text-white bg-gray-500 border py-1 px-3">
+                      1
+                    </span>{" "}
+                    आपने अभी तक यह प्रश्न नहीं देखा है।
+                  </p>
+                  <p className="mt-2">
+                    <span className="text-white bg-orange-600 border py-1 px-3">
+                      2
+                    </span>{" "}
+                    आपने इस प्रश्न के लिए कोई उत्तर नहीं चुना है।
+                  </p>
+                  <p className="mt-2">
+                    <span className="text-white bg-green-500 border py-1 px-3">
+                      3
+                    </span>{" "}
+                    आपने इस प्रश्न के लिए उत्तर चुन लिया है।
+                  </p>
+                  <p className="mt-2">
+                    <span className="text-white bg-[#4c2483] border py-1 px-3">
+                      4
+                    </span>{" "}
+                    आपने इस प्रश्न का उत्तर नहीं दिया है, पर इसे समीक्षा के लिए
+                    रखा है।
+                  </p>
+                  <p className="mt-2">
+                    <span className="text-white bg-[#4c2483] border py-1 px-3">
+                      5
+                    </span>{" "}
+                    &quot;उत्तर दिया गया और समीक्षा के लिए चिह्नित&quot; प्रश्नों
+                    पर मूल्यांकन हेतु विचार किया जाएगा।
+                  </p>
+                  <p className="mt-2 text-[12px] font-semibold">
+                    1. परीक्षा प्रश्नों की भाषा बदलने के लिए, अपने सेक्शन बार के
+                    ऊपरी दाएं कोने में &quot;View in&quot; ढूंढें और पूरी
+                    प्रश्न-पत्रिका की भाषा बदलने के लिए उस पर क्लिक करें।
+                  </p>
+                  <h2 className="font-bold mt-3">प्रश्न पर नेविगेट करना:</h2>
+                  <p className="mt-1 text-[12px]">
+                    2. किसी प्रश्न का उत्तर देने के लिए, निम्न कार्य करें:
+                  </p>
+                  <p className="mt-1 text-[12px]">
+                    a. किसी विशेष प्रश्न पर तुरंत पहुंचने के लिए, स्क्रीन के दाईं
+                    ओर प्रश्न पैलेट में उस प्रश्न की संख्या पर क्लिक करें।
+                    <br />
+                    b. यदि आप अपना वर्तमान उत्तर सहेजना और अगले प्रश्न पर जाना
+                    चाहते हैं, तो &quot;Save &amp; Next&quot; पर क्लिक करें।
+                    <br />
+                    c. यदि आप अपना वर्तमान उत्तर सहेजना चाहते हैं, इसे समीक्षा
+                    के लिए चिह्नित करना चाहते हैं, और अगले प्रश्न पर जाना
+                    चाहते हैं, तो &quot;Mark for Review &amp; Next&quot; पर क्लिक
+                    करें।
+                  </p>
+                  <h2 className="font-bold mt-3">प्रश्न का उत्तर देना:</h2>
+                  <p className="text-[12px] mt-1">
+                    3. बहुविकल्पीय प्रश्न का उत्तर देने की प्रक्रिया:
+                  </p>
+                  <p className="mt-1 text-[12px]">
+                    a. उत्तर चुनने के लिए, एक विकल्प का बटन दबाएं।
+                    <br />
+                    b. यदि आप चुना हुआ उत्तर हटाना चाहते हैं, तो &quot;Clear
+                    Response&quot; पर क्लिक करें।
+                    <br />
+                    c. उत्तर सहेजने के लिए, &quot;Save &amp; Next&quot; बटन पर
+                    क्लिक करना ज़रूरी है।
+                  </p>
+                  <h2 className="font-bold mt-3">
+                    अनुभागों के माध्यम से नेविगेट करना:
+                  </h2>
+                  <p className="text-[12px] mt-1">
+                    5. स्क्रीन के शीर्ष बार पर अनुभाग देखें और नाम पर क्लिक करें।
+                    <br />
+                    6. अंतिम प्रश्न पर &quot;सहेजें और अगला&quot; से अगले अनुभाग
+                    पर जाएंगे।
+                    <br />
+                    7. परीक्षा के समय में, अनुभागों और प्रश्नों के बीच घूम सकते
+                    हैं।
+                  </p>
                 </>
               ) : (
                 <>
-                  <p className="text-center text-[20px]">Please read the exam instructions carefully</p>
-                  <p className="mt-5 text-[15px] font-semibold">General Instructions:</p>
-                  <p className="mt-8"><span className="text-white bg-gray-500 border py-1 md:py-2 px-3 md:px-4">1</span> You have not seen this question yet.</p>
-                  <p className="mt-8"><span className="text-white bg-orange-600 border py-1 md:py-2 px-3 md:px-4">2</span> You have not chosen any answer for this question.</p>
-                  <p className="mt-8"><span className="text-white bg-green-500 border py-1 md:py-2 px-3 md:px-4">3</span> You have chosen an answer for this question.</p>
-                  <p className="mt-8"><span className="text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">4</span> You have not answered this question, but have kept it for review.</p>
-                  <p className="mt-8"><span className="text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">5</span> Questions marked as "Answered & Marked for Review" will be considered for evaluation.</p>
-                  <p className="mt-8 text-[12px] font-semibold">1. To change the language of exam questions, find "View in" in the top right corner of your section bar and click on it to change the language of the entire question paper.</p>
-                  <h2 className="font-bold mt-6 text-base md:text-lg">Navigating Questions:</h2>
-                  <p className="mt-4 text-[12px]">2. To answer a question, do the following:</p>
-                  <p className="mt-4 text-[12px]">a. To reach a specific question immediately, click on its number in the question palette on the right side of the screen. Please note that doing so will not save your current question's answer. <br/>
-                  b. If you want to save your current answer and move to the next question, click "Save & Next". <br/>
-                  c. If you want to save your current answer, mark it for review, and move to the next question, click "Mark for Review & Next".</p>
-                  <h2 className="font-bold mt-6 text-base md:text-lg">Answering Questions:</h2>
-                  <p className="text-[12px] mt-4">3. Process for answering multiple choice questions:<br/></p>
-                  <p className="mt-4 text-[12px]">a. To select an answer, press a radio button for an option.<br/>
-                  b. If you want to remove the selected answer, press the same button again or click "Clear Response".<br/>
-                  c. To select another answer, press a radio button for another option.<br/>
-                  d. To save the answer, it is necessary to click the "Save & Next" button.<br/>
-                  e. To mark a question for review, press the "Mark for Review & Next" button.<br/></p>
-                  <p className="text-[12px] mt-3">4. If you want to change a previously given answer, first go back to that question and then answer it in the usual way.</p>
-                  <h2 className="font-bold mt-6 text-base md:text-lg">Navigating Through Sections:</h2>
-                  <p className="text-[12px] mt-4">5. See the sections of this question paper on the top bar of the screen. Click on the name of a section to view its questions. The section you are in will be highlighted.<br/>
-                  6. When you click "Save & Next" on the last question of a section, you will automatically move to the first question of the next section.<br/>
-                  7. During the exam time, you can navigate between sections and questions as you wish.</p>
-                  <h2 className="font-bold mt-6 text-center md:text-lg">Please read the rules and conditions given below before proceeding.</h2>
-                  <p className="text-[12px] mt-3"><span className="font-semibold">Disclaimer of Exam Authenticity</span><br/>
-                  The mock tests provided by cpctmaster.com are designed only for general educational purposes. We do not claim that these mock tests are similar to actual exams or official mock tests. Any similarity to the content or structure of the actual exam is purely coincidental.<br/>
-                  <span className="font-semibold mt-3 block">Limitation of Liability</span>
-                  cpctmaster.com is not responsible for any inaccuracies or errors in the questions or answers provided. Users are advised to use their discretion and consult official resources for accurate information. We are not responsible for any loss or damage arising from the use of our mock tests.<br/>
-                  <span className="font-semibold mt-3 block">No Guarantee of Results</span>
-                  Performance on our mock tests does not guarantee similar results in actual exams. These tests are to familiarize users with general computer exam patterns and should not be relied upon solely for exam preparation.<br/>
-                  <span className="font-semibold mt-3 block">User Responsibility</span>
-                  Users are responsible for ensuring the accuracy and relevance of information obtained from our mock tests. cpctmaster.com does not take any responsibility for misunderstanding or misinterpretation of the content provided.<br/>
-                  <span className="font-semibold mt-3 block">Acceptance of Terms and Conditions</span>
-                  By using our mock tests, you agree to these terms and conditions. If you do not agree, please do not use our services.<br/>
-                  <span className="font-semibold mt-3 block">For More Information</span>
-                  For more detailed rules and conditions, please visit our official website.</p>
+                  <p className="text-center text-[20px]">
+                    Please read the exam instructions carefully
+                  </p>
+                  <p className="mt-2 text-[15px] font-semibold">
+                    General Instructions:
+                  </p>
+                  <p className="mt-2">
+                    <span className="text-white bg-gray-500 border py-1 px-3">
+                      1
+                    </span>{" "}
+                    You have not seen this question yet.
+                  </p>
+                  <p className="mt-2">
+                    <span className="text-white bg-orange-600 border py-1 px-3">
+                      2
+                    </span>{" "}
+                    You have not chosen any answer for this question.
+                  </p>
+                  <p className="mt-2">
+                    <span className="text-white bg-green-500 border py-1 px-3">
+                      3
+                    </span>{" "}
+                    You have chosen an answer for this question.
+                  </p>
+                  <p className="mt-2">
+                    <span className="text-white bg-[#4c2483] border py-1 px-3">
+                      4
+                    </span>{" "}
+                    You have not answered this question, but have kept it for
+                    review.
+                  </p>
+                  <p className="mt-2">
+                    <span className="text-white bg-[#4c2483] border py-1 px-3">
+                      5
+                    </span>{" "}
+                    Questions marked as &quot;Answered &amp; Marked for
+                    Review&quot; will be considered for evaluation.
+                  </p>
+                  <p className="mt-2 text-[12px] font-semibold">
+                    1. To change the language of exam questions, find
+                    &quot;View in&quot; in the top right corner of your section
+                    bar.
+                  </p>
+                  <h2 className="font-bold mt-3">Navigating Questions:</h2>
+                  <p className="mt-1 text-[12px]">
+                    2. To answer a question, do the following:
+                  </p>
+                  <p className="mt-1 text-[12px]">
+                    a. Click question number in the palette on the right.
+                    <br />
+                    b. Click &quot;Save &amp; Next&quot; to save and continue.
+                    <br />
+                    c. Click &quot;Mark for Review &amp; Next&quot; to mark and
+                    continue.
+                  </p>
+                  <h2 className="font-bold mt-3">Answering Questions:</h2>
+                  <p className="text-[12px] mt-1">
+                    3. Process for answering multiple choice questions.
+                  </p>
+                  <h2 className="font-bold mt-3">Navigating Through Sections:</h2>
+                  <p className="text-[12px] mt-1">
+                    5–7. Use the top bar to move between sections and questions.
+                  </p>
                 </>
               )}
             </div>
           </div>
 
-          {/* Language Selection */}
-          {/* <div className="mt-4 mb-2 border-t border-gray-300 pt-4 ">
-            <label className="block mb-1 font-semibold text-sm">Choose Questions Language :-</label>
-            <select 
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-              value={questionLanguage}
-              onChange={(e) => setQuestionLanguage(e.target.value)}
-            >
-              <option value="English">English</option>
-              <option value="हिन्दी">हिन्दी</option>
-            </select>
-          </div> */}
-
-          {/* Checkbox Disclaimer */}
-          <div className="text-xs md:text-sm mt-4">
-            <label className="flex items-start gap-2">
-              <input 
-                type="checkbox" 
-                className="mt-1 w-4 h-4 md:w-5 md:h-5 flex-shrink-0" 
-                checked={isAgreed}
-                onChange={(e) => setIsAgreed(e.target.checked)}
-              />
-
-              <span className="text-[12px] md:text-[13px] leading-relaxed">
-                {language === "हिन्दी" || language === "Hindi" ? (
-                  <>
-                    <strong>घोषणा - mpcpctmaster.com :</strong> mpcpctmaster.com केवल सामान्य शैक्षिक उद्देश्यों के लिए मॉक टेस्ट प्रदान करता है और यह दावा नहीं करता कि ये वास्तविक परीक्षाओं की सामग्री या प्रारूप के समान हैं; कोई भी समानता केवल संयोग है। हम प्रश्नों या उत्तरों में अशुद्धताओं के लिए जिम्मेदार नहीं हैं, और इन परीक्षणों में प्रदर्शन वास्तविक परीक्षाओं में समान परिणामों की गारंटी नहीं देता है। इन्हें अपनी विवेकाधिकार पर उपयोग करें। हमारे मॉक टेस्ट का उपयोग करके, आप इन नियमों और शर्तों से सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया हमारी सेवाओं का उपयोग न करें। हमारे मॉक टेस्ट का उपयोग करके, आप हमारे नियमों और शर्तों से सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया हमारी सेवाओं का उपयोग न करें। अधिक जानकारी के लिए, कृपया हमारी विस्तृत <span className="text-blue-600">नियम और शर्तें </span>देखें।
-                  </>
-                ) : (
-                  <>
-                    <strong>Disclaimer - mpcpctmaster.com :</strong> mpcpctmaster.com provides mock tests only for general educational purposes and does not claim that these are similar to the content or format of actual exams; any similarity is purely coincidental. We are not responsible for inaccuracies in questions or answers, and performance in these tests does not guarantee similar results in actual exams. Use these at your discretion. By using our mock tests, you agree to these terms and conditions. If you do not agree, please do not use our services. By using our mock tests, you agree to our terms and conditions. If you do not agree, please do not use our services. For more information, please see our detailed <span className="text-blue-600">Terms and Conditions</span>.
-                  </>
-                )}
-              </span>
-            </label>
-          </div>
-
-          {/* Error Message */}
-          {showError && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-300 rounded text-red-700 text-sm text-center">
-              {language === "हिन्दी" || language === "Hindi" 
-                ? "कृपया नियम और शर्तों से सहमत होने के लिए चेकबॉक्स को चेक करें।" 
-                : "Please check the checkbox to agree to the terms and conditions."}
+          {/* Bottom panel: declaration scroll + Start (always visible on mobile) */}
+          <div
+            className="shrink-0 flex flex-col border-t border-gray-200 bg-white px-3 pt-2"
+            style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+          >
+            <div className="max-h-[20vh] sm:max-h-[22vh] overflow-y-auto rounded border border-gray-200 bg-gray-50 p-2">
+              <label className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 w-4 h-4 flex-shrink-0"
+                  checked={isAgreed}
+                  onChange={(e) => setIsAgreed(e.target.checked)}
+                />
+                <span className="text-[11px] sm:text-xs leading-relaxed">
+                  {isHindi ? declarationHindi : declarationEnglish}
+                </span>
+              </label>
             </div>
-          )}
 
-          {/* Start Test Button */}
-          <div className="mt-6 text-center">
-            <button 
+            {showError && (
+              <div className="mt-1.5 p-2 bg-red-50 border border-red-300 rounded text-red-700 text-xs text-center">
+                {isHindi
+                  ? "कृपया नियम और शर्तों से सहमत होने के लिए चेकबॉक्स को चेक करें।"
+                  : "Please check the checkbox to agree to the terms and conditions."}
+              </div>
+            )}
+
+            <button
               type="button"
-              onClick={() => {
-                if (!isAgreed) {
-                  setShowError(true);
-                  setTimeout(() => setShowError(false), 3000);
-                  return;
-                }
-                setShowError(false);
-                // Clear saved position so exam starts fresh from Q1
-                localStorage.removeItem('examProgress');
-                localStorage.removeItem('examTimeLeft');
-                // Store question language preference
-                localStorage.setItem('questionLanguage', questionLanguage);
-                window.location.href = "/exam_mode";
-              }}
-              className="font-semibold px-12 py-4 text-lg md:text-xl rounded shadow-lg bg-green-500 hover:bg-green-600 text-white cursor-pointer"
+              onClick={handleStartTest}
+              className="mt-2 w-full font-semibold py-3.5 text-base sm:text-lg rounded-lg shadow-lg bg-green-500 hover:bg-green-600 text-white cursor-pointer"
             >
               Start Test
             </button>
           </div>
         </div>
 
-        {/* Right Side Profile */}
-<div className="hidden lg:flex lg:w-[15%] border-l border-gray-300 flex-col items-center justify-start py-6 bg-white-100">
+        {/* Desktop sidebar */}
+        <div className="hidden lg:flex lg:w-[15%] border-l border-gray-300 flex-col items-center justify-start py-6 bg-white">
           <img
             src="/lo.jpg"
             alt="User"
             className="w-24 h-24 rounded-full border-2 border-gray-400"
           />
           <p className="mt-2 font-semibold text-blue-800">{userName}</p>
-          <span className="border w-full border-black mt-2"></span>
+          <span className="border w-full border-black mt-2" />
         </div>
       </div>
     </div>

@@ -125,7 +125,9 @@ function StartTestPageContent() {
     <div className="min-h-screen bg-white-50">
       {/* Top Header */}
       <div className="bg-[#290c52] text-white flex justify-between items-center px-6 py-4">
-        <div className="text-2xl font-bold text-yellow-300">MPCPCT</div>
+        <div className="text-2xl font-bold text-yellow-300 whitespace-nowrap">
+          MPCPCT
+        </div>
         {/* <div className="text-right text-sm space-y-1 ml-90">
           <p>
             Candidate Name : <span className="text-yellow-300">User</span>
@@ -146,7 +148,7 @@ function StartTestPageContent() {
       {/* Centered Card Form */}
       <div className="flex justify-center mt-20 px-4">
         <div className="bg-[#290c52] border rounded-md p-6 w-full max-w-md shadow">
-          <h2 className="text-center text-xl text-white font-semibold mb-6">Start Test</h2>
+          <h2 className="text-center text-xl text-yellow-300 font-semibold mb-6">Start Test</h2>
 
           {/* Access Check Message */}
           {accessChecked && !hasAccess && (
@@ -250,10 +252,10 @@ function StartTestPageContent() {
             <button
               onClick={handleStart}
               disabled={!accessChecked || !hasAccess}
-              className={`font-semibold px-6 py-2 rounded shadow ${
+              className={`px-6 py-2.5 rounded shadow ${
                 !accessChecked || !hasAccess
-                  ? 'bg-gray-400 cursor-not-allowed text-gray-200'
-                  : 'bg-pink-300 hover:bg-blue-700 text-white'
+                  ? 'bg-gray-400 cursor-not-allowed text-gray-200 font-semibold'
+                  : 'bg-pink-300 hover:bg-pink-400 text-black font-bold !text-black'
               }`}
             >
               {!accessChecked ? 'Checking...' : !hasAccess ? 'Access Denied' : 'Start'}

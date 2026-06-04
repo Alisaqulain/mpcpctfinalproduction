@@ -14,7 +14,7 @@ export default function BreakScreen() {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center mt-[-110]">
       <div className="w-full bg-[#290c52] text-yellow-400 text-left px-4 py-2 font-bold text-lg">
-        MPCPCTMASTER 2025
+        MPCPCT 2025
       </div>
 
       <div className="flex flex-col items-center py-10 space-y-2 w-full">
@@ -27,7 +27,7 @@ export default function BreakScreen() {
         <div className="mt-4 text-center">
         <p className="text-base font-semibold">
           <span className="italic">Test End -</span>{" "}
-          <span className="text-gray-600 italic">Cpctmaster.com</span>
+          <span className="text-gray-600 italic whitespace-nowrap">MPCPCT</span>
         </p>
 
         <p className="mt-4 text-sm text-gray-800">
@@ -37,11 +37,8 @@ export default function BreakScreen() {
         </p>
 
         <p className="text-sm mt-1 text-red-400 italic">
-          This mock test is provided by{" "}
-          <a href="https://cpctmaster.com" className="text-blue-600 underline" target="_blank" rel="noreferrer">
-            cpctmaster.com
-          </a>{" "}
-          and does not guarantee similar performance or outcomes in actual examinations.
+          This practice test is provided by MPCPCT and does not guarantee
+          similar performance or outcomes in actual examinations.
         </p>
       </div>
 

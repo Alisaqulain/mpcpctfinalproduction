@@ -94,18 +94,19 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-gray-600">
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-semibold text-[#290c52]">
-            Welcome to MPCPCT
+    <div className="bg-gray-50 max-md:h-[calc(100dvh-9rem)] max-md:overflow-hidden md:min-h-screen flex max-md:justify-start max-md:items-stretch md:items-center justify-center px-4 max-md:pt-2 max-md:pb-2 md:py-12">
+      <div className="w-full max-w-sm bg-white rounded-lg shadow-md p-6 sm:p-8 border border-gray-200 max-md:mx-auto">
+        <div className="text-center mb-5 sm:mb-6">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-[#290c52] leading-tight">
+            Welcome to
+            <span className="block mt-0.5 text-yellow-400 font-bold">MPCPCT</span>
           </h2>
           <p className="mt-2 text-gray-600 text-sm">
-            Login to your MPC account...
+            Login to your MPCPCT Account
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* Phone Input */}
           <div className="relative">
             <input

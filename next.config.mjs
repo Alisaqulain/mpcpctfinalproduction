@@ -119,13 +119,11 @@ const nextConfig = {
   // Redirects for SEO (if needed)
   async redirects() {
     return [
-      // Add any redirects here if needed
-      // Example:
-      // {
-      //   source: '/old-page',
-      //   destination: '/new-page',
-      //   permanent: true,
-      // },
+      {
+        source: '/exam/exam-com',
+        destination: '/exam/exam-con',
+        permanent: true,
+      },
     ];
   },
 };

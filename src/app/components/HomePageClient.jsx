@@ -581,7 +581,7 @@ export default function HomePageClient() {
                 </span> */}
 
                 <div className="w-full lg:w-48 border-2 border-[#290c52] bg-gray-50 shadow-lg p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:h-[620px] rounded-lg animate-fadeInUp lg:mt-[-147px]  home-login-box">
-                <span className="text-pink-300 font-semibold text-[20px] border-2 border-[#290c52] bg-[#290c52] pt-4 md:pt-7 pb-0 md:pb-4 text-center w-full lg:w-45 absolute right-0 lg:right-[0px] z-10 top-[0px] rounded-tl-lg rounded-tr-lg md:rounded-none lg:top-[-0px] hello">
+                <span className="text-pink-300 font-semibold text-[20px] border-2 border-[#290c52] bg-[#290c52] pt-4 md:pt-7 pb-0 md:pb-4 text-center w-full left-0 right-0 absolute z-10 top-0 rounded-tl-lg rounded-tr-lg md:rounded-none hello block">
                   Welcome Back
                 </span>
                   <div className="font-semibold text-pink-300 text-xl text-center mt-5 md:mt-16">

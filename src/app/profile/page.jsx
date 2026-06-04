@@ -6,6 +6,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState(null);
   const [subscription, setSubscription] = useState(null);
   const [results, setResults] = useState([]);
+  const [typingActivity, setTypingActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -65,6 +66,35 @@ export default function ProfilePage() {
         uniqueResults.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
         
         setResults(uniqueResults);
+
+        const typingUserIds = [
+          userData.mobile,
+          data.user.phoneNumber,
+          data.user.email,
+          data.user.mobile,
+        ].filter(Boolean);
+
+        const allTyping = [];
+        for (const uid of typingUserIds) {
+          try {
+            const typingRes = await fetch(`/api/typing-results?userId=${encodeURIComponent(uid)}`);
+            if (typingRes.ok) {
+              const typingData = await typingRes.json();
+              if (typingData.success && typingData.results) {
+                allTyping.push(...typingData.results);
+              }
+            }
+          } catch (err) {
+            console.error(`Error fetching typing activity for ${uid}:`, err);
+          }
+        }
+
+        const uniqueTyping = allTyping.filter(
+          (item, index, self) =>
+            index === self.findIndex((t) => String(t._id) === String(item._id))
+        );
+        uniqueTyping.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+        setTypingActivity(uniqueTyping.slice(0, 20));
       } else {
         setError(data.error || "Failed to load profile");
       }
@@ -556,6 +586,11 @@ export default function ProfilePage() {
           )}
         </div>
 
+        {/* Results + User Activity — scrollable on mobile */}
+        <div
+          className="overflow-y-auto overscroll-contain max-h-[52vh] sm:max-h-[58vh] md:max-h-none md:overflow-visible space-y-6 pr-1 -mr-1"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
         {/* Exam Results Section */}
         <div className="bg-white shadow-2xl rounded-3xl p-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Exam Results</h2>
@@ -676,6 +711,67 @@ export default function ProfilePage() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* User Activity Section */}
+        <div className="bg-white shadow-2xl rounded-3xl p-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">User Activity</h2>
+
+          {typingActivity.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No typing activity found.</p>
+              <a href="/typing" className="text-purple-600 hover:underline mt-2 inline-block">
+                Start Typing Practice
+              </a>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {typingActivity.map((item, index) => (
+                <div
+                  key={item._id || index}
+                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <h3 className="text-base font-semibold text-gray-800">
+                      {item.exerciseName || "Typing Test"}
+                    </h3>
+                    <span className="text-xs text-gray-500 shrink-0">
+                      {new Date(item.submittedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 mb-2">
+                    {item.language || "—"}
+                    {item.subLanguage ? ` · ${item.subLanguage}` : ""}
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-sm">
+                    <div>
+                      <p className="text-xs text-gray-500">Net Speed</p>
+                      <p className="font-semibold text-purple-600">{item.netSpeed ?? "—"} WPM</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Accuracy</p>
+                      <p className="font-semibold text-green-600">{item.accuracy ?? "—"}%</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Correct</p>
+                      <p className="font-semibold">{item.correctWords ?? "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Time</p>
+                      <p className="font-semibold">{item.timeTaken ?? "—"}</p>
+                    </div>
+                  </div>
+                  <a
+                    href={item._id ? `/result/skill-test?resultId=${item._id}` : "/result/skill-test"}
+                    className="mt-3 inline-block text-sm text-purple-600 hover:underline"
+                  >
+                    View details
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         </div>
       </div>
     </div>

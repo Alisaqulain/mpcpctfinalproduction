@@ -143,7 +143,7 @@ export default function ExamSummary() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-[#290c52] text-white px-4 py-3">
-        <h1 className="text-xl font-bold">CPCTMASTER 2025</h1>
+        <h1 className="text-xl font-bold">MPCPCT 2025</h1>
       </div>
 
       <div className="max-w-4xl mx-auto p-6">

@@ -69,7 +69,7 @@ export default function ExamSummary() {
     <div className="min-h-screen bg-white text-sm" id="exam-summary-root">
       {/* Header */}
       <div className="bg-[#290c52] text-yellow-400 p-2 text-lg font-bold">
-        CPCTMASTER 2025 - Exam Results
+        MPCPCT 2025 - Exam Results
       </div>
 
       {/* Title */}

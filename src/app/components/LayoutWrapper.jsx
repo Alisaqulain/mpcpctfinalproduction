@@ -22,6 +22,12 @@ export default function LayoutWrapper({ children }) {
     pathname?.startsWith("/skill_test") ||
     pathname?.startsWith("/result");
 
+  const hideFooter =
+    hideLayout ||
+    pathname === "/contact-us" ||
+    pathname === "/login" ||
+    pathname === "/payment-app";
+
   return (
     <>
       <a
@@ -34,7 +40,7 @@ export default function LayoutWrapper({ children }) {
       <main id="main-content" tabIndex={-1}>
         {children}
       </main>
-      {!hideLayout && <Footer />}
+      {!hideFooter && <Footer />}
       {!hideLayout && <FloatingGrowthWidgets />}
     </>
   );

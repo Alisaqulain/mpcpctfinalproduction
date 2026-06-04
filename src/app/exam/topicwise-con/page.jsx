@@ -98,15 +98,15 @@ function TopicWiseInstructionsContent() {
                   <p className="text-[12px] mt-3">4. यदि आप पहले से दिए गए किसी उत्तर को बदलना चाहते हैं, तो पहले उस प्रश्न पर वापस जाएं और फिर सामान्य तरीके से उसका उत्तर दें।</p>
                   <h2 className="font-bold mt-6 text-center md:text-lg">कृपया आगे बढ़ने से पहले नीचे दी गई नियम और शर्तें अवश्य पढ़ें।</h2>
                   <p className="text-[12px] mt-3"><span className="font-semibold">परीक्षा की प्रामाणिकता का अस्वीकरण</span><br/>
-                  mpcpctmaster.com द्वारा प्रदान किए गए मॉक टेस्ट केवल सामान्य शैक्षिक उद्देश्यों के लिए डिज़ाइन किए गए हैं। हम यह दावा नहीं करते कि ये मॉक टेस्ट वास्तविक परीक्षाओं या आधिकारिक मॉक टेस्ट के समान हैं। वास्तविक परीक्षा की सामग्री या संरचना से कोई भी समानता केवल संयोग है।<br/>
+                  MPCPCT द्वारा प्रदान किए गए अभ्यास परीक्षाएँ केवल सामान्य शैक्षिक उद्देश्यों के लिए डिज़ाइन किए गए हैं। हम यह दावा नहीं करते कि ये अभ्यास परीक्षाएँ वास्तविक परीक्षाओं या आधिकारिक अभ्यास परीक्षाएँ के समान हैं। वास्तविक परीक्षा की सामग्री या संरचना से कोई भी समानता केवल संयोग है।<br/>
                   <span className="font-semibold mt-3 block">जिम्मेदारी की सीमा</span>
-                  mpcpctmaster.com प्रदान किए गए प्रश्नों या उत्तरों में किसी भी अशुद्धता या त्रुटि के लिए जिम्मेदार नहीं है। उपयोगकर्ताओं को सलाह दी जाती है कि वे अपनी विवेकाधिकार का उपयोग करें और सटीक जानकारी के लिए आधिकारिक संसाधनों से परामर्श करें। हम हमारे मॉक टेस्ट के उपयोग से उत्पन्न किसी भी हानि या क्षति के लिए जिम्मेदार नहीं हैं।<br/>
+                  MPCPCT प्रदान किए गए प्रश्नों या उत्तरों में किसी भी अशुद्धता या त्रुटि के लिए जिम्मेदार नहीं है। उपयोगकर्ताओं को सलाह दी जाती है कि वे अपनी विवेकाधिकार का उपयोग करें और सटीक जानकारी के लिए आधिकारिक संसाधनों से परामर्श करें। हम हमारे अभ्यास परीक्षाएँ के उपयोग से उत्पन्न किसी भी हानि या क्षति के लिए जिम्मेदार नहीं हैं।<br/>
                   <span className="font-semibold mt-3 block">परिणामों की कोई गारंटी नहीं</span>
-                  हमारे मॉक टेस्ट पर प्रदर्शन वास्तविक परीक्षाओं में समान परिणामों की गारंटी नहीं देता है। ये टेस्ट उपयोगकर्ताओं को सामान्य कंप्यूटर परीक्षा पैटर्न से परिचित कराने के लिए हैं और केवल परीक्षा की तैयारी के लिए उन पर निर्भर नहीं किया जाना चाहिए।<br/>
+                  हमारे अभ्यास परीक्षाएँ पर प्रदर्शन वास्तविक परीक्षाओं में समान परिणामों की गारंटी नहीं देता है। ये टेस्ट उपयोगकर्ताओं को सामान्य कंप्यूटर परीक्षा पैटर्न से परिचित कराने के लिए हैं और केवल परीक्षा की तैयारी के लिए उन पर निर्भर नहीं किया जाना चाहिए।<br/>
                   <span className="font-semibold mt-3 block">उपयोगकर्ता की जिम्मेदारी</span>
-                  उपयोगकर्ता हमारे मॉक टेस्ट से प्राप्त जानकारी की सटीकता और प्रासंगिकता सुनिश्चित करने के लिए जिम्मेदार हैं। mpcpctmaster.com प्रदान की गई सामग्री की गलतफहमी या गलत व्याख्या के लिए कोई जिम्मेदारी नहीं लेता है।<br/>
+                  उपयोगकर्ता हमारे अभ्यास परीक्षाएँ से प्राप्त जानकारी की सटीकता और प्रासंगिकता सुनिश्चित करने के लिए जिम्मेदार हैं। MPCPCT प्रदान की गई सामग्री की गलतफहमी या गलत व्याख्या के लिए कोई जिम्मेदारी नहीं लेता है।<br/>
                   <span className="font-semibold mt-3 block">नियमों और शर्तों की स्वीकृति</span>
-                  हमारे मॉक टेस्ट का उपयोग करके, आप इन नियमों और शर्तों से सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया हमारी सेवाओं का उपयोग न करें।<br/>
+                  हमारे अभ्यास परीक्षाएँ का उपयोग करके, आप इन नियमों और शर्तों से सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया हमारी सेवाओं का उपयोग न करें।<br/>
                   <span className="font-semibold mt-3 block">अधिक जानकारी के लिए</span>
                   अधिक विस्तृत नियमों और शर्तों के लिए, कृपया हमारी आधिकारिक वेबसाइट देखें।</p>
                 </>
@@ -139,15 +139,15 @@ function TopicWiseInstructionsContent() {
                   7. During the exam time, you can navigate between sections and questions as you wish.</p>
                   <h2 className="font-bold mt-6 text-center md:text-lg">Please read the rules and conditions given below before proceeding.</h2>
                   <p className="text-[12px] mt-3"><span className="font-semibold">Disclaimer of Exam Authenticity</span><br/>
-                  The mock tests provided by mpcpctmaster.com are designed only for general educational purposes. We do not claim that these mock tests are similar to actual exams or official mock tests. Any similarity to the content or structure of the actual exam is purely coincidental.<br/>
+                  The practice tests provided by MPCPCT are designed only for general educational purposes. We do not claim that these practice tests are similar to actual exams or official practice tests. Any similarity to the content or structure of the actual exam is purely coincidental.<br/>
                   <span className="font-semibold mt-3 block">Limitation of Liability</span>
-                  mpcpctmaster.com is not responsible for any inaccuracies or errors in the questions or answers provided. Users are advised to use their discretion and consult official resources for accurate information. We are not responsible for any loss or damage arising from the use of our mock tests.<br/>
+                  MPCPCT is not responsible for any inaccuracies or errors in the questions or answers provided. Users are advised to use their discretion and consult official resources for accurate information. We are not responsible for any loss or damage arising from the use of our practice tests.<br/>
                   <span className="font-semibold mt-3 block">No Guarantee of Results</span>
-                  Performance on our mock tests does not guarantee similar results in actual exams. These tests are to familiarize users with general computer exam patterns and should not be relied upon solely for exam preparation.<br/>
+                  Performance on our practice tests does not guarantee similar results in actual exams. These tests are to familiarize users with general computer exam patterns and should not be relied upon solely for exam preparation.<br/>
                   <span className="font-semibold mt-3 block">User Responsibility</span>
-                  Users are responsible for ensuring the accuracy and relevance of information obtained from our mock tests. mpcpctmaster.com does not take any responsibility for misunderstanding or misinterpretation of the content provided.<br/>
+                  Users are responsible for ensuring the accuracy and relevance of information obtained from our practice tests. MPCPCT does not take any responsibility for misunderstanding or misinterpretation of the content provided.<br/>
                   <span className="font-semibold mt-3 block">Acceptance of Terms and Conditions</span>
-                  By using our mock tests, you agree to these terms and conditions. If you do not agree, please do not use our services.<br/>
+                  By using our practice tests, you agree to these terms and conditions. If you do not agree, please do not use our services.<br/>
                   <span className="font-semibold mt-3 block">For More Information</span>
                   For more detailed rules and conditions, please visit our official website.</p>
                 </>
@@ -168,11 +168,11 @@ function TopicWiseInstructionsContent() {
               <span className="text-[13px]">
                 {language === "हिन्दी" || language === "Hindi" ? (
                   <>
-                    <strong>घोषणा - mpcpctmaster.com :</strong> mpcpctmaster.com केवल सामान्य शैक्षिक उद्देश्यों के लिए मॉक टेस्ट प्रदान करता है और यह दावा नहीं करता कि ये वास्तविक परीक्षाओं की सामग्री या प्रारूप के समान हैं; कोई भी समानता केवल संयोग है। हम प्रश्नों या उत्तरों में अशुद्धताओं के लिए जिम्मेदार नहीं हैं, और इन परीक्षणों में प्रदर्शन वास्तविक परीक्षाओं में समान परिणामों की गारंटी नहीं देता है। इन्हें अपनी विवेकाधिकार पर उपयोग करें। हमारे मॉक टेस्ट का उपयोग करके, आप इन नियमों और शर्तों से सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया हमारी सेवाओं का उपयोग न करें। हमारे मॉक टेस्ट का उपयोग करके, आप हमारे नियमों और शर्तों से सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया हमारी सेवाओं का उपयोग न करें। अधिक जानकारी के लिए, कृपया हमारी विस्तृत <span className="text-blue-600">नियम और शर्तें </span>देखें।
+                    <strong className="whitespace-nowrap">घोषणा — MPCPCT:</strong> MPCPCT केवल सामान्य शैक्षिक उद्देश्यों के लिए अभ्यास परीक्षाएँ प्रदान करता है और यह दावा नहीं करता कि ये वास्तविक परीक्षाओं की सामग्री या प्रारूप के समान हैं; कोई भी समानता केवल संयोग है। हम प्रश्नों या उत्तरों में अशुद्धताओं के लिए जिम्मेदार नहीं हैं, और इन परीक्षणों में प्रदर्शन वास्तविक परीक्षाओं में समान परिणामों की गारंटी नहीं देता है। इन्हें अपनी विवेकाधिकार पर उपयोग करें। अभ्यास परीक्षाओं का उपयोग करके, आप इन नियमों और शर्तों से सहमत होते हैं। यदि आप सहमत नहीं हैं, तो कृपया हमारी सेवाओं का उपयोग न करें। अधिक जानकारी के लिए, कृपया हमारी विस्तृत <span className="text-blue-600">नियम और शर्तें</span> देखें।
                   </>
                 ) : (
                   <>
-                    <strong>Disclaimer - mpcpctmaster.com :</strong> mpcpctmaster.com provides mock tests only for general educational purposes and does not claim that these are similar to the content or format of actual exams; any similarity is purely coincidental. We are not responsible for inaccuracies in questions or answers, and performance in these tests does not guarantee similar results in actual exams. Use these at your discretion. By using our mock tests, you agree to these terms and conditions. If you do not agree, please do not use our services. By using our mock tests, you agree to our terms and conditions. If you do not agree, please do not use our services. For more information, please see our detailed <span className="text-blue-600">Terms and Conditions</span>.
+                    <strong className="whitespace-nowrap">Disclaimer — MPCPCT:</strong> MPCPCT provides practice tests only for general educational purposes and does not claim that these are similar to the content or format of actual exams; any similarity is purely coincidental. We are not responsible for inaccuracies in questions or answers, and performance in these tests does not guarantee similar results in actual exams. Use these at your discretion. By using our practice tests, you agree to these terms and conditions. If you do not agree, please do not use our services. For more information, please see our detailed <span className="text-blue-600">Terms and Conditions</span>.
                   </>
                 )}
               </span>

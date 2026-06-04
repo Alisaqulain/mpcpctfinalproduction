@@ -119,7 +119,7 @@ export default function EnglishTypingPage() {
 
   return (
     <div className="min-h-screen bg-white p-2">
-      <div className="bg-[#290c52] text-yellow-400 p-2 text-lg font-bold">CPCTMASTER 2025</div>
+      <div className="bg-[#290c52] text-yellow-400 p-2 text-lg font-bold">MPCPCT 2025</div>
 
       <div className="bg-white flex flex-col sm:flex-row items-center justify-between p-2 border-b">
         <div className="bg-white-50 border-gray-300 px-4 py-4 flex gap-2 text-xs flex-wrap justify-center sm:justify-start">

@@ -14,7 +14,7 @@ export default function BreakScreen() {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center mt-[-110]">
       <div className="w-full bg-[#290c52] text-yellow-400 text-left px-4 py-2 font-bold text-lg">
-        MPCPCTMASTER 2025
+        MPCPCT 2025
       </div>
 
       <div className="flex flex-col items-center py-10 space-y-2 w-full">
