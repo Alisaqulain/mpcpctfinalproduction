@@ -35,12 +35,11 @@ export default function TypingTutor() {
         const res = await fetch('/api/check-access', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'learning', isFree: false }),
+          body: JSON.stringify({ type: 'learning', isFree: false, allowGuest: true }),
           credentials: 'include'
         });
         const data = await res.json();
-        // Grant access if hasAccess is true (covers subscription, admin, etc.)
-        if (data.hasAccess === true) {
+        if (data.hasAccess === true && data.reason !== 'guest_browse') {
           setUserSubscription(data.subscription || { type: 'all' });
         }
       } catch (error) {
@@ -215,9 +214,10 @@ export default function TypingTutor() {
     const hasAccess = userSubscription || await checkLessonAccess(lesson);
     
     if (!hasAccess) {
-      // Show message and redirect to pricing
-      alert('Please purchase subscription to access this content');
-      window.location.href = '/price?type=learning';
+      const login = `/login?redirect=${encodeURIComponent('/learning')}`;
+      if (confirm('Login or subscribe to access this lesson. Go to login now?')) {
+        window.location.href = login;
+      }
       return;
     }
     

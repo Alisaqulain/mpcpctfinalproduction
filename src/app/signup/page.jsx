@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
 
 function SignupForm() {
   const router = useRouter();
@@ -234,6 +235,21 @@ function SignupForm() {
             {error}
           </div>
         )}
+
+        <GoogleAuthButton
+          returnTo={redirectUrl}
+          label="Sign up with Google"
+          className="mb-4 bg-white"
+        />
+
+        <div className="relative mb-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-white px-2 text-gray-500">or register with email</span>
+          </div>
+        </div>
 
         <form
           onSubmit={handleSubmit}

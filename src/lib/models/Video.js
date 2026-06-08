@@ -4,31 +4,66 @@ const VideoSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
     description: { type: String, default: "" },
-    /** Absolute path on server filesystem, e.g. /var/www/videos/abc.mp4 */
-    filePath: { type: String, required: true },
-    /** Stable id used by stream API (and hides real path) */
-    publicId: { type: String, required: true, unique: true, index: true },
+    courseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "VideoCourse",
+      index: true,
+    },
+    moduleId: { type: String, default: "", trim: true },
+    /** Directory on VPS — never expose to client */
+    storagePath: { type: String, select: false },
+    /** Unique filename within storagePath — never expose */
+    filename: { type: String, select: false },
+    mimeType: { type: String, default: "video/mp4" },
+    size: { type: Number },
+    duration: { type: Number },
+    thumbnail: { type: String, default: "" },
+    order: { type: Number, default: 0, index: true },
+    type: {
+      type: String,
+      enum: ["lecture", "solution"],
+      default: "lecture",
+      index: true,
+    },
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active",
+      index: true,
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    /** Legacy filesystem fields (migrated uploads) */
+    filePath: { type: String, select: false },
+    publicId: { type: String, unique: true, sparse: true, index: true },
     originalName: { type: String },
-    mimeType: { type: String },
     sizeBytes: { type: Number },
     durationSeconds: { type: Number },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    thumbnailUrl: { type: String, default: "" },
+    courseLabel: { type: String, default: "" },
+    sortOrder: { type: Number, default: 0 },
     accessType: {
       type: String,
       enum: ["single", "bulk", "subscription"],
-      default: "single",
+      default: "subscription",
       index: true,
     },
-    /** For accessType single/bulk */
     assignedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", index: true }],
-    /** For accessType subscription */
-    subscriptionType: { type: String, enum: ["learning", "exam", "all"], default: "learning" },
+    subscriptionType: {
+      type: String,
+      enum: ["learning", "exam", "all"],
+      default: "learning",
+    },
     isActive: { type: Boolean, default: true, index: true },
   },
   { timestamps: true }
 );
 
+VideoSchema.index({ courseId: 1, order: 1 });
 VideoSchema.index({ createdAt: -1 });
 
 export default mongoose.models.Video || mongoose.model("Video", VideoSchema);
-

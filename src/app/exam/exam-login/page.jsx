@@ -60,7 +60,7 @@ function StartTestPageContent() {
         } else {
           setHasAccess(false);
           if (data.reason === 'no_token' || data.reason === 'invalid_token') {
-            setAccessError('Please login to access this exam');
+            setAccessError('Login to access this exam, or try a free mock test from Exam Mode.');
           } else if (data.reason === 'no_subscription') {
             setAccessError('This exam requires a membership. Please subscribe to access.');
           } else {
@@ -156,22 +156,33 @@ function StartTestPageContent() {
               <p className="text-yellow-800 text-sm mb-3">
                 {accessError || 'You do not have access to this exam'}
               </p>
-              {accessError && accessError.includes('membership') && (
-                <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                {(accessError?.includes('Login') ||
+                  accessError?.includes('login')) && (
+                  <a
+                    href={`/login?redirect=${encodeURIComponent(
+                      typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/exam'
+                    )}`}
+                    className="bg-[#290c52] hover:opacity-90 text-white px-4 py-2 rounded text-sm font-semibold"
+                  >
+                    Login
+                  </a>
+                )}
+                {accessError && accessError.includes('membership') && (
                   <a
                     href="/payment-app?type=exam"
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-semibold"
                   >
                     Subscribe Now
                   </a>
-                  <a
-                    href="/exam"
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-semibold"
-                  >
-                    Back to Exams
-                  </a>
-                </div>
-              )}
+                )}
+                <a
+                  href="/exam"
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-semibold"
+                >
+                  Back to Exams
+                </a>
+              </div>
             </div>
           )}
 

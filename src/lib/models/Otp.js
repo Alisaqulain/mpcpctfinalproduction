@@ -2,15 +2,26 @@ import mongoose from "mongoose";
 
 const OtpSchema = new mongoose.Schema(
   {
-    mobile: { type: String, required: true, index: true },
-    code: { type: String, required: true },
+    mobile: { type: String, index: true, sparse: true },
+    email: { type: String, index: true, sparse: true },
+    codeHash: { type: String, required: true },
+    /** Legacy plain code — do not write new records */
+    code: { type: String },
     purpose: {
       type: String,
-      enum: ["verify_mobile", "forgot_password", "signup"],
+      enum: [
+        "verify_mobile",
+        "forgot_password",
+        "signup",
+        "reset_email",
+        "reset_phone",
+      ],
       default: "verify_mobile",
+      index: true,
     },
     expiresAt: { type: Date, required: true, index: true },
     consumed: { type: Boolean, default: false },
+    attempts: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

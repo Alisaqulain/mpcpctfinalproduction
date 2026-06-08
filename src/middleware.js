@@ -19,7 +19,8 @@ export function middleware(request) {
   if (
     path.startsWith("/api/newsletter") ||
     path.startsWith("/api/seo/ai-assist") ||
-    path.startsWith("/api/contact-lead")
+    path.startsWith("/api/contact-lead") ||
+    (path === "/api/doubts" && request.method === "POST")
   ) {
     const ip =
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -33,5 +34,10 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/api/newsletter/:path*", "/api/seo/ai-assist/:path*", "/api/contact-lead/:path*"],
+  matcher: [
+    "/api/newsletter/:path*",
+    "/api/seo/ai-assist/:path*",
+    "/api/contact-lead/:path*",
+    "/api/doubts",
+  ],
 };

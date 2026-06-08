@@ -26,7 +26,8 @@ export default function LayoutWrapper({ children }) {
     hideLayout ||
     pathname === "/contact-us" ||
     pathname === "/login" ||
-    pathname === "/payment-app";
+    pathname === "/payment-app" ||
+    pathname === "/verify-phone";
 
   return (
     <>

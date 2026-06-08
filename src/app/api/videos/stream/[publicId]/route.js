@@ -1,82 +1,36 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Video from "@/lib/models/Video";
-import { getAuth } from "@/lib/apiAuth";
+import { requirePhoneVerified } from "@/lib/apiAuth";
 import { userCanAccessVideo } from "@/lib/videoAccess";
-import { statSync, createReadStream } from "fs";
-import { lookup as lookupMime } from "mime-types";
+import { streamVideoFile } from "@/lib/videoStream";
 
 export const runtime = "nodejs";
 
-function parseRange(rangeHeader, size) {
-  // "bytes=start-end"
-  const m = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader || "");
-  if (!m) return null;
-  const startStr = m[1];
-  const endStr = m[2];
-  let start = startStr ? parseInt(startStr, 10) : 0;
-  let end = endStr ? parseInt(endStr, 10) : size - 1;
-  if (Number.isNaN(start) || Number.isNaN(end)) return null;
-  if (start < 0) start = 0;
-  if (end >= size) end = size - 1;
-  if (start > end) return null;
-  return { start, end };
-}
-
+/** Legacy stream by publicId — redirects clients to use /api/videos/:id/stream */
 export async function GET(req, { params }) {
-  const { user, error } = await getAuth(req);
-  if (error || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await requirePhoneVerified(req);
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.message }, { status: auth.status });
+  }
 
   try {
     await dbConnect();
     const { publicId } = await params;
-    const video = await Video.findOne({ publicId }).lean();
+    const video = await Video.findOne({ publicId }).select("+storagePath +filename +filePath").lean();
     if (!video) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    const access = await userCanAccessVideo({ userId: user.userId, videoId: video._id });
+    const access = await userCanAccessVideo({ userId: auth.user.userId, videoId: video._id });
     if (!access.ok) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const s = statSync(video.filePath);
-    const size = s.size;
     const rangeHeader = req.headers.get("range");
-    const contentType = video.mimeType || lookupMime(video.filePath) || "video/mp4";
-
-    if (!rangeHeader) {
-      const stream = createReadStream(video.filePath);
-      return new Response(stream, {
-        status: 200,
-        headers: {
-          "Content-Type": contentType,
-          "Content-Length": String(size),
-          "Accept-Ranges": "bytes",
-          "Cache-Control": "private, max-age=0, no-store",
-        },
-      });
+    const result = streamVideoFile(video, rangeHeader);
+    if (result.error) {
+      return NextResponse.json({ error: "Video file unavailable" }, { status: 404 });
     }
-
-    const r = parseRange(rangeHeader, size);
-    if (!r) {
-      return new Response(null, {
-        status: 416,
-        headers: { "Content-Range": `bytes */${size}` },
-      });
-    }
-
-    const chunkSize = r.end - r.start + 1;
-    const stream = createReadStream(video.filePath, { start: r.start, end: r.end });
-    return new Response(stream, {
-      status: 206,
-      headers: {
-        "Content-Type": contentType,
-        "Content-Length": String(chunkSize),
-        "Content-Range": `bytes ${r.start}-${r.end}/${size}`,
-        "Accept-Ranges": "bytes",
-        "Cache-Control": "private, max-age=0, no-store",
-      },
-    });
+    return result.response;
   } catch (e) {
     console.error("stream error:", e);
     return NextResponse.json({ error: "Stream failed" }, { status: 500 });
   }
 }
-

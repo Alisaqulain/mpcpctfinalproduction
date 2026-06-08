@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
 
 function LoginForm() {
   const router = useRouter();
@@ -82,10 +83,8 @@ function LoginForm() {
         setIsLoading(false);
       } else {
         setSuccess("Login successful!");
-        // Dispatch custom event to notify other components about login
-        window.dispatchEvent(new CustomEvent('authStateChanged', { detail: { isAuthenticated: true } }));
-        // Redirect to the intended page or profile
-        router.push(redirectUrl);
+        window.dispatchEvent(new CustomEvent("authStateChanged", { detail: { isAuthenticated: true } }));
+        router.push(data.redirectTo || redirectUrl);
       }
     } catch (err) {
       setError("Something went wrong. Please try again.");
@@ -97,13 +96,24 @@ function LoginForm() {
     <div className="bg-gray-50 max-md:h-[calc(100dvh-9rem)] max-md:overflow-hidden md:min-h-screen flex max-md:justify-start max-md:items-stretch md:items-center justify-center px-4 max-md:pt-2 max-md:pb-2 md:py-12">
       <div className="w-full max-w-sm bg-white rounded-lg shadow-md p-6 sm:p-8 border border-gray-200 max-md:mx-auto">
         <div className="text-center mb-5 sm:mb-6">
-          <h2 className="text-2xl sm:text-3xl font-semibold text-[#290c52] leading-tight">
-            Welcome to
+          <h2 className="text-2xl sm:text-3xl font-semibold leading-tight">
+            <span className="text-yellow-400">Welcome to</span>
             <span className="block mt-0.5 text-yellow-400 font-bold">MPCPCT</span>
           </h2>
           <p className="mt-2 text-gray-600 text-sm">
             Login to your MPCPCT Account
           </p>
+        </div>
+
+        <GoogleAuthButton returnTo={redirectUrl} label="Continue with Google" className="mb-4" />
+
+        <div className="relative mb-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-white px-2 text-gray-500">or</span>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">

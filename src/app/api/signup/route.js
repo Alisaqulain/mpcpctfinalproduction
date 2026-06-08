@@ -107,6 +107,11 @@ export async function POST(req) {
       states,
       city,
       profileUrl: imageUrl,
+      avatar: imageUrl,
+      authProvider: "credentials",
+      isEmailVerified: false,
+      isPhoneVerified: false,
+      isMobileVerified: false,
     });
 
     await newUser.save();
@@ -114,12 +119,14 @@ export async function POST(req) {
     // Return success response without setting cookie
     // The login API will handle setting the JWT token
     return NextResponse.json({
-      message: "Signup successful",
+      message: "Signup successful. Please verify your phone with OTP.",
       user: {
         id: newUser._id,
         name: newUser.name,
         phone: newUser.phoneNumber,
       },
+      requiresPhoneVerification: true,
+      redirectTo: "/verify-phone",
     });
 
   } catch (err) {

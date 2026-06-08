@@ -662,13 +662,21 @@ export default function AdminPanel() {
           <Link href="/admin/questions" className="underline hover:text-yellow-200">
             Bulk questions
           </Link>
+          <span className="opacity-50">|</span>
+          <Link href="/admin/videos" className="underline hover:text-yellow-200 font-semibold">
+            Videos (upload)
+          </Link>
+          <span className="opacity-50">|</span>
+          <Link href="/admin/doubts" className="underline hover:text-yellow-200 font-semibold">
+            Student doubts &amp; chat
+          </Link>
         </div>
       </div>
 
       {/* Navigation Tabs */}
       <div className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex gap-2 pt-4">
+          <div className="flex flex-wrap gap-2 pt-4 pb-1 overflow-x-auto">
             <button 
               onClick={() => setActiveTab('exams')} 
               className={`px-6 py-3 rounded-t-lg font-medium transition-colors ${
@@ -709,6 +717,18 @@ export default function AdminPanel() {
             >
               Skill Test
             </button>
+            <Link
+              href="/admin/videos"
+              className="px-6 py-3 rounded-t-lg font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 whitespace-nowrap"
+            >
+              Videos
+            </Link>
+            <Link
+              href="/admin/doubts"
+              className="px-6 py-3 rounded-t-lg font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 whitespace-nowrap"
+            >
+              Student Doubts
+            </Link>
             <button 
               onClick={() => setActiveTab('subscriptions')} 
               className={`px-6 py-3 rounded-t-lg font-medium transition-colors ${

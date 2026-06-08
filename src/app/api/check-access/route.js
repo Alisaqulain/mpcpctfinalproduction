@@ -7,98 +7,134 @@ import Topic from "@/lib/models/Topic";
 import { jwtVerify } from "jose";
 import { getJwtSecretBytes } from "@/lib/jwtSecret";
 
+/** Map client type to subscription bucket */
+function subscriptionTypeFor(type) {
+  if (type === "exam" || type === "topic") return "exam";
+  if (type === "skill" || type === "skill_test") return "learning";
+  if (type === "learning") return "learning";
+  return type || "learning";
+}
+
+async function checkFreeContent({ topicId, examId, isFree }) {
+  if (isFree === true) {
+    return { hasAccess: true, reason: "free" };
+  }
+  if (topicId) {
+    const topic = await Topic.findOne({ topicId });
+    if (!topic) return { hasAccess: false, reason: "topic_not_found", status: 404 };
+    if (topic.isFree === true) return { hasAccess: true, reason: "free" };
+  }
+  if (examId) {
+    const exam = await Exam.findById(examId);
+    if (!exam) return { hasAccess: false, reason: "exam_not_found", status: 404 };
+    if (exam.isFree === true) return { hasAccess: true, reason: "free" };
+  }
+  return null;
+}
+
 export async function POST(request) {
   try {
+    const body = await request.json();
+    const { type, isFree, itemId, examId, topicId, allowGuest } = body;
+    const subType = subscriptionTypeFor(type);
+
+    await dbConnect();
+
+    // Free exams/topics — no login required
+    const freeResult = await checkFreeContent({ topicId, examId, isFree });
+    if (freeResult) {
+      const status = freeResult.status || 200;
+      const { status: _s, ...payload } = freeResult;
+      return NextResponse.json(payload, { status });
+    }
+
+    // Browse Learning / Skill Test / Exam sections without an account
+    if (allowGuest === true) {
+      return NextResponse.json({
+        hasAccess: true,
+        reason: "guest_browse",
+        guest: true,
+      });
+    }
+
     const token = request.cookies.get("token")?.value;
     if (!token) {
-      return NextResponse.json({ hasAccess: false, reason: "no_token", redirectTo: "/signup" }, { status: 401 });
+      return NextResponse.json({
+        hasAccess: false,
+        reason: "no_token",
+        requiresAuth: true,
+        redirectTo: `/login?redirect=${encodeURIComponent(
+          examId
+            ? `/exam/exam-login?examId=${examId}${topicId ? `&topicId=${topicId}` : ""}`
+            : type === "skill" || type === "skill_test"
+              ? "/skill_test"
+              : type === "learning"
+                ? "/learning"
+                : "/exam"
+        )}`,
+      });
     }
 
     let decoded;
     try {
       const { payload } = await jwtVerify(token, getJwtSecretBytes());
       decoded = payload;
-    } catch (err) {
-      return NextResponse.json({ hasAccess: false, reason: "invalid_token", redirectTo: "/signup" }, { status: 401 });
+    } catch {
+      return NextResponse.json({
+        hasAccess: false,
+        reason: "invalid_token",
+        requiresAuth: true,
+        redirectTo: "/login",
+      });
     }
 
-    const { type, examType, isFree, itemId, examId, topicId } = await request.json();
-
-    await dbConnect();
-    
-    // Get user to check if they're admin
     const user = await User.findById(decoded.userId);
     if (user?.role === "admin") {
       return NextResponse.json({ hasAccess: true, reason: "admin" });
     }
 
-    // If topicId is provided, check topic's isFree status
-    if (topicId) {
-      const topic = await Topic.findOne({ topicId });
-      if (!topic) {
-        return NextResponse.json({ hasAccess: false, reason: "topic_not_found" }, { status: 404 });
-      }
-      
-      // If topic is free, allow access
-      if (topic.isFree === true) {
-        return NextResponse.json({ hasAccess: true, reason: "free" });
-      }
-      
-      // Topic is paid, check for subscription below
-    } else if (examId) {
-    // If examId is provided, check exam's isFree status
-      const exam = await Exam.findById(examId);
-      if (!exam) {
-        return NextResponse.json({ hasAccess: false, reason: "exam_not_found" }, { status: 404 });
-      }
-      
-      // If exam is free, allow access
-      if (exam.isFree === true) {
-        return NextResponse.json({ hasAccess: true, reason: "free" });
-      }
-      
-      // Exam is paid, check for subscription below
-    } else if (isFree === true) {
-      // Legacy support: Check if content is marked as free (for non-exam content)
-      return NextResponse.json({ hasAccess: true, reason: "free" });
-    }
-
-    // Check if user has active subscription
-    // First check for "all" type subscription (unified subscription)
     let subscription = await Subscription.findOne({
       userId: decoded.userId,
       type: "all",
       status: "active",
-      endDate: { $gt: new Date() }
+      endDate: { $gt: new Date() },
     });
 
-    // If no unified subscription, check for specific type subscription
     if (!subscription) {
       subscription = await Subscription.findOne({
         userId: decoded.userId,
-        type,
+        type: subType,
         status: "active",
-        endDate: { $gt: new Date() }
+        endDate: { $gt: new Date() },
+      });
+    }
+
+    // Learning subscription also unlocks skill test in many plans
+    if (!subscription && (subType === "skill_test" || type === "skill")) {
+      subscription = await Subscription.findOne({
+        userId: decoded.userId,
+        type: "learning",
+        status: "active",
+        endDate: { $gt: new Date() },
       });
     }
 
     if (subscription) {
-      return NextResponse.json({ 
-        hasAccess: true, 
+      return NextResponse.json({
+        hasAccess: true,
         reason: "subscription",
         subscription: {
           plan: subscription.plan,
           endDate: subscription.endDate,
-          type: subscription.type
-        }
+          type: subscription.type,
+        },
       });
     }
 
-    // No subscription and not free - redirect to payment
-    return NextResponse.json({ 
-      hasAccess: false, 
+    return NextResponse.json({
+      hasAccess: false,
       reason: "no_subscription",
-      redirectTo: `/payment-app?type=${type || 'exam'}&itemId=${itemId || examId || topicId || ''}`
+      redirectTo: `/payment-app?type=${subType}&itemId=${itemId || examId || topicId || ""}`,
     });
   } catch (error) {
     console.error("Access check error:", error);

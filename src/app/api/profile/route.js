@@ -59,7 +59,12 @@ export async function GET(request) {
         city: user.city,
         role: user.role || "user",
         referralCode: user.referralCode || null,
-        referralRewards: user.referralRewards || 0
+        referralRewards: user.referralRewards || 0,
+        authProvider: user.authProvider || "credentials",
+        isEmailVerified: !!user.isEmailVerified,
+        isPhoneVerified: !!(user.isPhoneVerified || user.isMobileVerified),
+        isMobileVerified: !!(user.isMobileVerified || user.isPhoneVerified),
+        avatar: user.avatar || user.profileUrl,
       },
       subscription: activeSubscription ? {
         _id: activeSubscription._id,

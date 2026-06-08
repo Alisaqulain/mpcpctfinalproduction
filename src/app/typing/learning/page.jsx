@@ -34,11 +34,10 @@ export default function CharacterTypingPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ type: "learning", isFree: false })
+        body: JSON.stringify({ type: "learning", isFree: false, allowGuest: true })
       });
       const data = await res.json();
-      // Grant access if hasAccess is true (covers subscription, admin, etc.)
-      setUserIsPremium(data.hasAccess === true);
+      setUserIsPremium(data.hasAccess === true && data.reason !== "guest_browse");
     } catch (error) {
       console.error("Failed to check premium status:", error);
     }

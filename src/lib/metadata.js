@@ -194,6 +194,13 @@ export const pageMetadata = {
     description: 'Create a free MPCPCT account and start your journey to master typing and computer proficiency skills for government job exams.',
     keywords: 'MPCPCT signup, create account, free registration',
     path: '/signup',
+    noindex: true,
+  }),
+  contact: generatePageMetadata({
+    title: 'Contact Us - MPCPCT Support',
+    description: 'Contact MPCPCT support for questions, feedback, and technical help.',
+    keywords: 'contact MPCPCT, support',
+    path: '/contact-us',
   }),
   profile: generatePageMetadata({
     title: 'Profile - Your MPCPCT Dashboard',

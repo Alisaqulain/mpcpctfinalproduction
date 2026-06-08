@@ -25,7 +25,7 @@ Disallow: /forget
 Disallow: /debug
 
 # Host
-Host: https://www.mpcpct.com
+Host: https://mpcpct.com
 
 # Sitemaps
-Sitemap: https://www.mpcpct.com/sitemap.xml
+Sitemap: https://mpcpct.com/sitemap.xml

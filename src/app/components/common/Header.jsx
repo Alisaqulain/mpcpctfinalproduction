@@ -89,22 +89,22 @@ export default function Header() {
   return (
     <header className="border-b shadow-sm relative z-50">
       {/* Top Section - mobile: logo left, title centered in rest; desktop: unchanged */}
-      <div className="bg-white flex flex-row items-center justify-between px-2 py-3 relative min-h-[96px] md:min-h-[120px] md:px-4 md:py-4 overflow-visible">
-        <div className="z-10 flex-shrink-0 w-[72px] sm:w-[88px] md:w-auto">
-          <a href="/" className="block relative h-9 w-[72px] sm:h-10 sm:w-[88px] md:h-10 md:w-[180px] md:ml-35">
+      <div className="bg-white flex flex-row items-center justify-between px-2 py-3 pb-4 sm:pb-5 relative min-h-[128px] sm:min-h-[148px] md:min-h-[168px] md:px-4 md:py-4 overflow-visible">
+        <div className="z-10 flex-shrink-0 w-[130px] sm:w-[150px] md:w-auto">
+          <a href="/" className="block relative h-16 w-[130px] sm:h-[4.5rem] sm:w-[150px] md:h-20 md:w-[300px] lg:h-24 lg:w-[340px] md:ml-35">
             <Image
               src="/logor.png"
               alt="MPC PCT — CPCT, CCC and typing exam practice"
               fill
               className="object-contain object-left"
-              sizes="(max-width: 640px) 72px, (max-width: 768px) 88px, 180px"
+              sizes="(max-width: 640px) 130px, (max-width: 768px) 150px, 340px"
               priority
             />
           </a>
         </div>
 
         {/* Centered title — room for full MPCPCT on narrow phones */}
-        <div className="absolute inset-0 z-0 flex flex-col justify-center items-center text-center px-[4.75rem] sm:px-[5.5rem] md:px-4 pointer-events-none overflow-visible">
+        <div className="absolute inset-0 z-0 flex flex-col justify-center items-center text-center px-[6.75rem] sm:px-[8rem] md:px-4 pointer-events-none overflow-visible pb-1">
           <p
             className="inline-block text-[1.75rem] sm:text-[2rem] md:text-7xl font-extrabold uppercase md:mt-0 leading-none whitespace-nowrap text-transparent bg-clip-text bg-center bg-cover px-0.5"
             style={{
@@ -113,13 +113,13 @@ export default function Header() {
           >
             MPCPCT
           </p>
-          <p className="text-[10px] sm:text-sm md:text-2xl lg:text-3xl text-gray-600 font-semibold max-w-[12rem] sm:max-w-md mx-auto leading-tight mt-0.5">
+          <p className="text-[10px] sm:text-sm md:text-2xl lg:text-3xl text-gray-600 font-semibold max-w-[12rem] sm:max-w-md mx-auto leading-snug mt-1 sm:mt-1.5">
             <span className="block">To Help in typing &</span>
             <span className="block">computer proficiency</span>
           </p>
         </div>
 
-        <div className="z-10 w-[72px] sm:w-[88px] flex-shrink-0 md:hidden" aria-hidden="true" />
+        <div className="z-10 w-[130px] sm:w-[150px] flex-shrink-0 md:hidden" aria-hidden="true" />
         <div className="z-10 text-right text-sm hidden md:block" />
       </div>
 

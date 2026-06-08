@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/lib/models/User";
 import bcrypt from "bcryptjs";
-import { SignJWT } from "jose";
-import { getJwtSecretBytes } from "@/lib/jwtSecret";
 export async function POST(req) {
   try {
     await dbConnect();
@@ -22,23 +20,26 @@ export async function POST(req) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // ✅ Compare passwords
+    if (!user.password) {
+      return NextResponse.json(
+        {
+          error:
+            user.authProvider === "google"
+              ? "This account uses Google sign-in. Please continue with Google."
+              : "Password not set. Use forgot password.",
+        },
+        { status: 401 }
+      );
+    }
+
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // ✅ Generate JWT token using jose
-    const token = await new SignJWT({ 
-      userId: user._id.toString(),
-      phoneNumber: user.phoneNumber,
-      role: user.role || "user"
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('7d')
-      .sign(getJwtSecretBytes());
+    const { createUserToken, attachAuthCookie } = await import("@/lib/auth/jwtCookie");
+    const token = await createUserToken(user);
 
-    // ✅ Create response with user data
     const response = NextResponse.json({
       message: "Login successful",
       user: {
@@ -46,26 +47,15 @@ export async function POST(req) {
         name: user.name,
         email: user.email,
         phoneNumber: user.phoneNumber,
-        profileUrl: user.profileUrl,
+        profileUrl: user.profileUrl || user.avatar,
         role: user.role || "user",
-      }
+        isPhoneVerified: !!(user.isPhoneVerified || user.isMobileVerified),
+      },
+      redirectTo:
+        user.isPhoneVerified || user.isMobileVerified ? null : "/verify-phone",
     });
 
-    // ✅ Set JWT token as HTTP-only cookie
-    // Check if request is over HTTPS (for secure cookie)
-    const isHttps = req.headers.get('x-forwarded-proto') === 'https' || 
-                    req.url?.startsWith('https://') ||
-                    process.env.NEXT_PUBLIC_FORCE_SECURE_COOKIE === 'true';
-    
-    response.cookies.set("token", token, {
-      httpOnly: true,
-      secure: isHttps, // Only set secure if actually using HTTPS
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: "/"
-    });
-
-    return response;
+    return attachAuthCookie(response, token, req);
   } catch (err) {
     console.error("Login error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

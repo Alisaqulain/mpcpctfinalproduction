@@ -23,18 +23,27 @@ export async function POST(req) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    const text = String(message || "").trim();
     const msg = await ChatMessage.create({
       doubtId,
       senderId: user.userId,
       senderRole: user.role === "admin" ? "admin" : "user",
       type: type === "video" ? "video" : "text",
-      message: String(message || "").trim(),
+      message: text,
     });
 
+    if (!doubt.messages) doubt.messages = [];
+    doubt.messages.push({
+      senderId: user.userId,
+      senderRole: user.role === "admin" ? "admin" : "user",
+      message: text,
+      attachment: "",
+      createdAt: new Date(),
+    });
     doubt.lastMessageAt = new Date();
-    if (user.role === "admin" && body.resolve === true) {
-      doubt.status = "resolved";
-      doubt.resolvedAt = new Date();
+    if (user.role === "admin") {
+      doubt.status = body.resolve === true ? "closed" : "replied";
+      if (body.resolve === true) doubt.resolvedAt = new Date();
     }
     await doubt.save();
 

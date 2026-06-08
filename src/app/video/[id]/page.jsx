@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
+import SecureVideoPlayer from "@/components/video/SecureVideoPlayer";
 
 function formatTs(sec) {
   const s = Math.max(0, Math.floor(sec || 0));
@@ -11,21 +12,34 @@ function formatTs(sec) {
   return `${mm}:${ss}`;
 }
 
+function statusLabel(st) {
+  if (st === "replied" || st === "resolved") return "Replied";
+  if (st === "closed") return "Closed";
+  return "Pending";
+}
+
 export default function VideoWatchPage() {
   const params = useParams();
-  const router = useRouter();
   const id = params?.id;
-  const videoRef = useRef(null);
+  const currentTimeRef = useRef(0);
 
   const [video, setVideo] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [doubts, setDoubts] = useState([]);
   const [showDoubt, setShowDoubt] = useState(false);
   const [doubtMessage, setDoubtMessage] = useState("");
   const [doubtTs, setDoubtTs] = useState(0);
+  const [attachmentFile, setAttachmentFile] = useState(null);
   const [posting, setPosting] = useState(false);
-  const [createdDoubtId, setCreatedDoubtId] = useState(null);
+  const [replyId, setReplyId] = useState(null);
+  const [replyText, setReplyText] = useState("");
+
+  const loadDoubts = async () => {
+    const r = await fetch(`/api/doubts?videoId=${id}`, { credentials: "include" });
+    const j = await r.json();
+    if (r.ok) setDoubts(j.doubts || []);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -34,8 +48,16 @@ export default function VideoWatchPage() {
       try {
         const r = await fetch(`/api/videos/${id}`, { credentials: "include" });
         const j = await r.json();
-        if (!r.ok) throw new Error(j.error || "Failed");
-        if (!cancelled) setVideo(j.video);
+        if (!r.ok) {
+          if (j.reason === "phone_not_verified") {
+            throw new Error("Please verify your phone to watch videos.");
+          }
+          throw new Error(j.error || "Failed");
+        }
+        if (!cancelled) {
+          setVideo(j.video);
+          await loadDoubts();
+        }
       } catch (e) {
         if (!cancelled) setError(e.message || "Error");
       } finally {
@@ -47,37 +69,47 @@ export default function VideoWatchPage() {
     };
   }, [id]);
 
-  const streamUrl = useMemo(() => {
-    if (!video?.publicId) return null;
-    return `/api/videos/stream/${video.publicId}`;
-  }, [video?.publicId]);
-
   const openDoubt = () => {
-    const t = videoRef.current?.currentTime || 0;
-    setDoubtTs(t);
+    setDoubtTs(currentTimeRef.current || 0);
     setShowDoubt(true);
+  };
+
+  const uploadAttachment = async () => {
+    if (!attachmentFile) return "";
+    const fd = new FormData();
+    fd.append("file", attachmentFile);
+    const r = await fetch("/api/doubts/attachment", {
+      method: "POST",
+      credentials: "include",
+      body: fd,
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || "Attachment failed");
+    return j.attachment || j.attachmentUrl || "";
   };
 
   const submitDoubt = async () => {
     if (!doubtMessage.trim()) return;
     setPosting(true);
-    setCreatedDoubtId(null);
     try {
+      const attachment = await uploadAttachment();
       const r = await fetch("/api/doubts", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           videoId: id,
-          timestampSeconds: Math.floor(doubtTs || 0),
+          timestamp: Math.floor(doubtTs || 0),
           message: doubtMessage.trim(),
+          attachment,
         }),
       });
       const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Failed to post doubt");
-      setCreatedDoubtId(j.doubt?._id || null);
+      if (!r.ok) throw new Error(j.error || "Failed");
       setDoubtMessage("");
+      setAttachmentFile(null);
       setShowDoubt(false);
+      await loadDoubts();
     } catch (e) {
       alert(e.message || "Failed");
     } finally {
@@ -85,8 +117,37 @@ export default function VideoWatchPage() {
     }
   };
 
+  const submitReply = async (doubtId) => {
+    if (!replyText.trim()) return;
+    const r = await fetch(`/api/doubts/${doubtId}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: replyText.trim() }),
+    });
+    const j = await r.json();
+    if (!r.ok) {
+      alert(j.error || "Failed");
+      return;
+    }
+    setReplyId(null);
+    setReplyText("");
+    await loadDoubts();
+  };
+
   if (loading) return <div className="min-h-screen p-6 text-gray-600">Loading…</div>;
-  if (error) return <div className="min-h-screen p-6 text-red-600">{error}</div>;
+  if (error) {
+    return (
+      <div className="min-h-screen p-6 space-y-3">
+        <p className="text-red-600">{error}</p>
+        {error.includes("verify") ? (
+          <Link href="/verify-phone" className="underline text-[#290c52]">
+            Verify phone →
+          </Link>
+        ) : null}
+      </div>
+    );
+  }
   if (!video) return <div className="min-h-screen p-6 text-gray-600">Not found</div>;
 
   return (
@@ -109,17 +170,19 @@ export default function VideoWatchPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-        <div className="border rounded-xl overflow-hidden bg-black">
-          {streamUrl ? (
-            <video
-              ref={videoRef}
-              src={streamUrl}
-              controls
-              playsInline
-              className="w-full h-auto"
+        <div className="border rounded-xl overflow-hidden">
+          {video.hasFile ? (
+            <SecureVideoPlayer
+              videoId={id}
+              streamPath={video.streamPath}
+              watermark={video.watermark}
+              courseId={video.courseId}
+              onTimeUpdate={(t) => {
+                currentTimeRef.current = t;
+              }}
             />
           ) : (
-            <div className="p-6 text-white">Stream not ready</div>
+            <div className="p-6 text-center text-gray-600">Video file not available.</div>
           )}
         </div>
 
@@ -130,14 +193,78 @@ export default function VideoWatchPage() {
           </div>
         ) : null}
 
-        {createdDoubtId ? (
-          <div className="border rounded-xl p-4 bg-green-50">
-            <div className="font-semibold text-green-800">Doubt submitted</div>
-            <Link className="underline text-sm text-green-900" href={`/doubts/${createdDoubtId}`}>
-              Open chat →
-            </Link>
-          </div>
-        ) : null}
+        <div className="border rounded-xl p-4 space-y-4">
+          <div className="font-semibold text-[#290c52]">Your doubts for this video</div>
+          {doubts.length === 0 && (
+            <p className="text-sm text-gray-600">No doubts yet. Use Ask Doubt while watching.</p>
+          )}
+          {doubts.map((d) => (
+            <div key={d._id} className="border rounded-lg p-3 space-y-2">
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>t={formatTs(d.timestamp ?? d.timestampSeconds)}</span>
+                <span className="font-medium">{statusLabel(d.status)}</span>
+              </div>
+              <p className="text-sm">{d.message}</p>
+              {d.attachment || d.attachmentUrl ? (
+                <a
+                  className="text-xs underline text-[#290c52]"
+                  href={
+                    String(d.attachment || d.attachmentUrl).startsWith("/")
+                      ? d.attachment || d.attachmentUrl
+                      : `/api/doubts/attachment/${d.attachment || d.attachmentUrl}`
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View attachment
+                </a>
+              ) : null}
+              {(d.messages || []).map((m, i) => (
+                <div
+                  key={i}
+                  className={`text-sm rounded p-2 ${
+                    m.senderRole === "admin" ? "bg-purple-50" : "bg-gray-50"
+                  }`}
+                >
+                  <span className="text-xs font-medium">
+                    {m.senderRole === "admin" ? "Admin" : "You"}:
+                  </span>{" "}
+                  {m.message}
+                </div>
+              ))}
+              {d.status !== "closed" && (
+                <div className="space-y-2">
+                  {replyId === d._id ? (
+                    <>
+                      <textarea
+                        className="w-full border rounded p-2 text-sm"
+                        rows={2}
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                      />
+                      <button
+                        className="text-sm bg-[#290c52] text-white px-3 py-1 rounded"
+                        onClick={() => submitReply(d._id)}
+                      >
+                        Send reply
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      className="text-xs underline"
+                      onClick={() => {
+                        setReplyId(d._id);
+                        setReplyText("");
+                      }}
+                    >
+                      Reply
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {showDoubt && (
@@ -149,17 +276,15 @@ export default function VideoWatchPage() {
                 Close
               </button>
             </div>
-
             <div className="text-sm text-gray-700">
               Timestamp: <b>{formatTs(doubtTs)}</b>
               <button
                 className="ml-3 text-xs underline text-[#290c52]"
-                onClick={() => setDoubtTs(videoRef.current?.currentTime || 0)}
+                onClick={() => setDoubtTs(currentTimeRef.current || 0)}
               >
                 Use current time
               </button>
             </div>
-
             <textarea
               rows={4}
               className="w-full border rounded p-3 text-sm"
@@ -167,7 +292,11 @@ export default function VideoWatchPage() {
               value={doubtMessage}
               onChange={(e) => setDoubtMessage(e.target.value)}
             />
-
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              onChange={(e) => setAttachmentFile(e.target.files?.[0] || null)}
+            />
             <div className="flex justify-end gap-3">
               <button className="px-4 py-2 rounded border" onClick={() => setShowDoubt(false)}>
                 Cancel
@@ -186,4 +315,3 @@ export default function VideoWatchPage() {
     </div>
   );
 }
-

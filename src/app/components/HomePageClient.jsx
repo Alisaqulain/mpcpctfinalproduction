@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
 
 const items = [
   { label: "Learning", img: "/lp.jpg" },
@@ -138,9 +139,13 @@ export default function HomePageClient() {
             margin: 0 auto;
           }
           
+          .home-hero {
+            padding-right: 0 !important;
+          }
+
           .home-title {
-            font-size: 3rem !important;
-            line-height: 1.2 !important;
+            font-size: 2.25rem !important;
+            line-height: 1.25 !important;
           }
           
           .home-subtitle {
@@ -169,12 +174,21 @@ export default function HomePageClient() {
           }
           
           .home-login-box {
-            width: 12rem !important;
-            height: 38.75rem !important;
+            width: 13rem !important;
+            height: auto !important;
+            min-height: 0 !important;
             padding: 1rem !important;
             right: -15px !important;
             top: 0 !important;
-            margin-top: -9.1875rem !important;
+            margin-top: -7.5rem !important;
+            z-index: 20 !important;
+          }
+
+          .home-hero {
+            padding-right: 15rem !important;
+            max-width: 100% !important;
+            position: relative !important;
+            z-index: 10 !important;
           }
           
           // .home-welcome-text {
@@ -212,7 +226,11 @@ export default function HomePageClient() {
         /* Large desktop screens (1400px+) */
         @media (min-width: 1400px) {
           .home-title {
-            font-size: 3.5rem !important;
+            font-size: 2.75rem !important;
+          }
+
+          .home-hero {
+            padding-right: 15rem !important;
           }
           
           .home-subtitle {
@@ -251,8 +269,8 @@ export default function HomePageClient() {
           }
           
           .home-login-box {
-            width: 13rem !important;
-            height: 40rem !important;
+            width: 14rem !important;
+            height: auto !important;
           }
           
           .home-info-title {
@@ -272,7 +290,11 @@ export default function HomePageClient() {
         /* Extra large desktop screens (1920px+) */
         @media (min-width: 1920px) {
           .home-title {
-            font-size: 4rem !important;
+            font-size: 3.25rem !important;
+          }
+
+          .home-hero {
+            padding-right: 16rem !important;
           }
           
           .home-subtitle {
@@ -310,8 +332,8 @@ export default function HomePageClient() {
           }
           
           .home-login-box {
-            width: 14rem !important;
-            height: 42rem !important;
+            width: 15rem !important;
+            height: auto !important;
           }
           
           .home-info-title {
@@ -331,7 +353,11 @@ export default function HomePageClient() {
         /* Medium desktop screens (1200px - 1399px) */
         @media (width >= 1200px) and (width <= 1399px) {
           .home-title {
-            font-size: 2.75rem !important;
+            font-size: 2.125rem !important;
+          }
+
+          .home-hero {
+            padding-right: 13rem !important;
           }
           
           .home-subtitle {
@@ -342,16 +368,6 @@ export default function HomePageClient() {
             gap: 1.75rem !important;
             margin-left: 9rem !important;
           }
-
-          //  .home-welcome-text {
-          //   font-size: 1.25rem !important;
-          //   padding-top: 1.75rem !important;
-          //   padding-bottom: 1.5rem !important;
-          //   top: -9.25rem !important;
-          //   width: 14% !important;
-          //   border-top-left-radius: 0.75rem !important;
-          //   border-top-right-radius: 0.75rem !important;
-          // }
           
           .home-card {
             width: 17rem !important;
@@ -367,8 +383,8 @@ export default function HomePageClient() {
           }
           
           .home-login-box {
-            width: 11.5rem !important;
-            height: 37.5rem !important;
+            width: 12.5rem !important;
+            height: auto !important;
           }
           
           .home-info-title {
@@ -388,7 +404,11 @@ export default function HomePageClient() {
         /* Small desktop screens (1024px - 1199px) */
         @media (min-width: 1024px) and (max-width: 1199px) {
           .home-title {
-            font-size: 2.5rem !important;
+            font-size: 1.875rem !important;
+          }
+
+          .home-hero {
+            padding-right: 12.5rem !important;
           }
           
           .home-subtitle {
@@ -404,16 +424,6 @@ export default function HomePageClient() {
             width: 16rem !important;
             height: 14rem !important;
           }
-
-          //  .home-welcome-text {
-          //   font-size: 1.25rem !important;
-          //   padding-top: 1.75rem !important;
-          //   padding-bottom: 1.5rem !important;
-          //   top: -9.25rem !important;
-          //   width: 19% !important;
-          //   border-top-left-radius: 0.75rem !important;
-          //   border-top-right-radius: 0.75rem !important;
-          // }
           
           .home-card-image {
             height: 10rem !important;
@@ -425,7 +435,7 @@ export default function HomePageClient() {
           
           .home-login-box {
             width: 11rem !important;
-            height: 36rem !important;
+            height: auto !important;
           }
           
           .home-info-title {
@@ -486,9 +496,10 @@ export default function HomePageClient() {
       >
       <div className="min-h-screen bg-opacity-60 home-container">
         <div className="p-4">
-          <div className="text-center md:text-left ml-0 md:ml-47 md:justify-center mt-4 md:mt-10">
-            <h1 className="text-2xl md:text-5xl font-bold home-title">
-              Empower Your Future with MPC PCT — CCC, CPCT &amp; Typing Practice
+          <div className="text-center md:text-left ml-0 md:ml-47 md:justify-center mt-4 md:mt-10 home-hero">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold home-title leading-snug">
+              <span className="block md:whitespace-nowrap">Empower Your Future with MPCPCT,</span>
+              <span className="block md:whitespace-nowrap">CCC, CPCT &amp; Typing Practice</span>
             </h1>
             <p className="text-sm md:text-lg ml-0 md:ml-28 md:justify-center mt-2 md:mt-4 home-subtitle">
               Learn typing and computer skills interactively to prepare for
@@ -561,7 +572,7 @@ export default function HomePageClient() {
 
             {/* RIGHT SIDE LOGIN / LOGGED IN BOX */}
             {isAuthenticated ? (
-              <div className="w-full lg:w-48 border border-[#290c52] bg-gray-50 shadow-md p-4 py-4 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto rounded animate-fadeInUp lg:mt-[-147px] flex flex-col items-center justify-start self-start home-login-box">
+              <div className="w-full lg:w-52 border border-[#290c52] bg-gray-50 shadow-md p-4 py-4 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto rounded animate-fadeInUp lg:mt-[-120px] flex flex-col items-center justify-start self-start home-login-box">
                 <div className="text-center">
                   <div className="text-green-700 text-xl font-semibold">
                     You are logged in
@@ -580,14 +591,25 @@ export default function HomePageClient() {
                   Welcome Back
                 </span> */}
 
-                <div className="w-full lg:w-48 border-2 border-[#290c52] bg-gray-50 shadow-lg p-4 space-y-4 py-10 md:py-20 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:h-[620px] rounded-lg animate-fadeInUp lg:mt-[-147px]  home-login-box">
-                <span className="text-pink-300 font-semibold text-[20px] border-2 border-[#290c52] bg-[#290c52] pt-4 md:pt-7 pb-0 md:pb-4 text-center w-full left-0 right-0 absolute z-10 top-0 rounded-tl-lg rounded-tr-lg md:rounded-none hello block">
+                <div className="w-full lg:w-52 border-2 border-[#290c52] bg-gray-50 shadow-lg p-4 space-y-3 py-8 md:py-10 relative lg:absolute lg:right-[-15px] lg:top-0 h-auto md:min-h-0 md:h-auto rounded-lg animate-fadeInUp lg:mt-[-120px] home-login-box">
+                <span className="text-pink-300 font-semibold text-[20px] border-2 border-[#290c52] bg-[#290c52] pt-4 md:pt-5 pb-3 md:pb-4 text-center w-full left-0 right-0 absolute z-10 top-0 rounded-tl-lg rounded-tr-lg md:rounded-none hello block">
                   Welcome Back
                 </span>
-                  <div className="font-semibold text-pink-300 text-xl text-center mt-5 md:mt-16">
-                    <span className="font-normal text-black text-sm md:text-[14px] block md:inline md:ml-2 ">
+                  <div className="font-semibold text-pink-300 text-xl text-center mt-12 md:mt-14">
+                    <span className="font-normal text-black text-sm md:text-[14px] block">
                       Login to your MPCPCT Account
                     </span>
+                  </div>
+
+                  <GoogleAuthButton returnTo="/profile" label="Continue with Google" compact />
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300" />
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="bg-gray-50 px-2 text-gray-500">or</span>
+                    </div>
                   </div>
 
                   <form onSubmit={handleSubmit}>
@@ -639,7 +661,7 @@ export default function HomePageClient() {
 
                     <button
                       type="submit"
-                      className="w-full bg-red-600 text-white py-2 cursor-pointer rounded transition-transform duration-300 hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mt-3 md:mt-5"
+                      className="w-full bg-red-600 text-white py-2 cursor-pointer rounded transition-transform duration-300 hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mt-3"
                       disabled={
                         !!error ||
                         mobile.length === 0 ||
@@ -675,30 +697,37 @@ export default function HomePageClient() {
                         "Login"
                       )}
                     </button>
+
+                    <p className="text-center text-xs sm:text-sm mt-3 text-gray-700">
+                      No account?{" "}
+                      <a href="/signup" className="text-[#290c52] font-semibold underline">
+                        Sign Up
+                      </a>
+                    </p>
                   </form>
 
-                  <div className="border-t pt-2 mt-3 md:mt-5">
-                    <div className="text-gray-700 mt-3 md:mt-5 text-center">
+                  <div className="border-t pt-2 mt-2">
+                    <div className="text-gray-700 text-center text-xs sm:text-sm">
                       NEW USER
                     </div>
                     <a
                       href={isAuthenticated ? "/profile" : "/signup"}
-                      className="block w-full mt-2 md:mt-3 bg-pink-200 text-red-700 font-semibold py-2 cursor-pointer rounded transition-transform duration-300 hover:scale-105 hover:shadow-lg text-center"
+                      className="block w-full mt-2 bg-pink-200 text-red-700 font-semibold py-2 cursor-pointer rounded transition-transform duration-300 hover:scale-105 hover:shadow-lg text-center text-sm"
                     >
                       {isAuthenticated ? "Go to Profile" : "Register for a free MPC PCT account"}
                     </a>
                   </div>
 
-                  <div className="mt-auto">
+                  <div className="pt-2">
                     <Image
                       src="/mpc.png"
                       alt="MPC PCT logo — online exam and typing practice platform"
-                      width={80}
-                      height={80}
-                      className="w-16 h-16 md:w-20 md:h-20 mx-auto"
-                      sizes="80px"
+                      width={64}
+                      height={64}
+                      className="w-14 h-14 md:w-16 md:h-16 mx-auto"
+                      sizes="64px"
                     />
-                    <p className="text-center text-xs md:text-[13px] text-gray-600 mt-1">
+                    <p className="text-center text-xs text-gray-600 mt-1">
                       MPCPCT - Empowering Education
                     </p>
                   </div>
