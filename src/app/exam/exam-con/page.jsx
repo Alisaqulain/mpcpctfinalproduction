@@ -63,80 +63,152 @@ export default function ExamInstructions() {
 
   const colorLegendHindi = (
     <>
-      <p className="text-center text-sm font-medium leading-snug">
+      <p className="text-center text-base font-semibold leading-snug">
         कृपया परीक्षा के निर्देशों को ध्यान से पढ़ें
       </p>
-      <p className="mt-1.5 text-sm font-semibold">सामान्य निर्देश:</p>
-      <p className="mt-1.5 text-xs leading-snug">
-        <span className="text-white bg-gray-500 border py-0.5 px-2 inline-block mr-1">
+      <p className="mt-3 text-base font-bold">सामान्य निर्देश:</p>
+      <p className="mt-2.5 text-sm leading-relaxed">
+        <span className="text-white bg-gray-500 border py-1 px-2.5 inline-block mr-1.5 text-sm font-semibold">
           1
         </span>
         आपने अभी तक यह प्रश्न नहीं देखा है।
       </p>
-      <p className="mt-1.5 text-xs leading-snug">
-        <span className="text-white bg-orange-600 border py-0.5 px-2 inline-block mr-1">
+      <p className="mt-2.5 text-sm leading-relaxed">
+        <span className="text-white bg-orange-600 border py-1 px-2.5 inline-block mr-1.5 text-sm font-semibold">
           2
         </span>
         आपने इस प्रश्न के लिए कोई उत्तर नहीं चुना है।
       </p>
-      <p className="mt-1.5 text-xs leading-snug">
-        <span className="text-white bg-green-500 border py-0.5 px-2 inline-block mr-1">
+      <p className="mt-2.5 text-sm leading-relaxed">
+        <span className="text-white bg-green-500 border py-1 px-2.5 inline-block mr-1.5 text-sm font-semibold">
           3
         </span>
         आपने इस प्रश्न के लिए उत्तर चुन लिया है।
       </p>
-      <p className="mt-1.5 text-xs leading-snug">
-        <span className="text-white bg-[#4c2483] border py-0.5 px-2 inline-block mr-1">
+      <p className="mt-2.5 text-sm leading-relaxed">
+        <span className="text-white bg-[#4c2483] border py-1 px-2.5 inline-block mr-1.5 text-sm font-semibold">
           4
         </span>
         आपने इस प्रश्न का उत्तर नहीं दिया है, पर इसे समीक्षा के लिए रखा है।
       </p>
-      <p className="mt-1.5 text-xs leading-snug">
-        <span className="text-white bg-[#4c2483] border py-0.5 px-2 inline-block mr-1">
+      <p className="mt-2.5 text-sm leading-relaxed">
+        <span className="text-white bg-[#4c2483] border py-1 px-2.5 inline-block mr-1.5 text-sm font-semibold">
           5
         </span>
         &quot;उत्तर दिया गया और समीक्षा के लिए चिह्नित&quot; प्रश्नों पर मूल्यांकन
         हेतु विचार किया जाएगा।
+      </p>
+      <p className="mt-4 text-sm font-semibold leading-relaxed">
+        1. परीक्षा प्रश्नों की भाषा बदलने के लिए, अपने सेक्शन बार के ऊपरी दाएं
+        कोने में &quot;View in&quot; ढूंढें और पूरी प्रश्न-पत्रिका की भाषा बदलने
+        के लिए उस पर क्लिक करें।
+      </p>
+      <h2 className="font-bold mt-4 text-base">प्रश्न पर नेविगेट करना:</h2>
+      <p className="mt-2 text-sm leading-relaxed">
+        2. किसी प्रश्न का उत्तर देने के लिए, निम्न कार्य करें:
+        <br />
+        a. किसी विशेष प्रश्न पर तुरंत पहुंचने के लिए, स्क्रीन के दाईं ओर प्रश्न
+        पैलेट में उस प्रश्न की संख्या पर क्लिक करें।
+        <br />
+        b. यदि आप अपना वर्तमान उत्तर सहेजना और अगले प्रश्न पर जाना चाहते हैं, तो
+        &quot;Save &amp; Next&quot; पर क्लिक करें।
+        <br />
+        c. यदि आप अपना वर्तमान उत्तर सहेजना चाहते हैं, इसे समीक्षा के लिए
+        चिह्नित करना चाहते हैं, और अगले प्रश्न पर जाना चाहते हैं, तो &quot;Mark
+        for Review &amp; Next&quot; पर क्लिक करें।
+      </p>
+      <h2 className="font-bold mt-4 text-base">प्रश्न का उत्तर देना:</h2>
+      <p className="mt-2 text-sm leading-relaxed">
+        3. बहुविकल्पीय प्रश्न का उत्तर देने की प्रक्रिया:
+        <br />
+        a. उत्तर चुनने के लिए, एक विकल्प का बटन दबाएं।
+        <br />
+        b. यदि आप चुना हुआ उत्तर हटाना चाहते हैं, तो &quot;Clear Response&quot;
+        पर क्लिक करें।
+        <br />
+        c. उत्तर सहेजने के लिए, &quot;Save &amp; Next&quot; बटन पर क्लिक करना
+        ज़रूरी है।
+      </p>
+      <h2 className="font-bold mt-4 text-base">अनुभागों के माध्यम से नेविगेट करना:</h2>
+      <p className="mt-2 text-sm leading-relaxed pb-2">
+        5. स्क्रीन के शीर्ष बार पर अनुभाग देखें और नाम पर क्लिक करें।
+        <br />
+        6. अंतिम प्रश्न पर &quot;सहेजें और अगला&quot; से अगले अनुभाग पर जाएंगे।
+        <br />
+        7. परीक्षा के समय में, अनुभागों और प्रश्नों के बीच घूम सकते हैं।
       </p>
     </>
   );
 
   const colorLegendEnglish = (
     <>
-      <p className="text-center text-sm font-medium leading-snug">
+      <p className="text-center text-base font-semibold leading-snug">
         Please read the exam instructions carefully
       </p>
-      <p className="mt-1.5 text-sm font-semibold">General Instructions:</p>
-      <p className="mt-1.5 text-xs leading-snug">
-        <span className="text-white bg-gray-500 border py-0.5 px-2 inline-block mr-1">
+      <p className="mt-3 text-base font-bold">General Instructions:</p>
+      <p className="mt-2.5 text-sm leading-relaxed">
+        <span className="text-white bg-gray-500 border py-1 px-2.5 inline-block mr-1.5 text-sm font-semibold">
           1
         </span>
         You have not seen this question yet.
       </p>
-      <p className="mt-1.5 text-xs leading-snug">
-        <span className="text-white bg-orange-600 border py-0.5 px-2 inline-block mr-1">
+      <p className="mt-2.5 text-sm leading-relaxed">
+        <span className="text-white bg-orange-600 border py-1 px-2.5 inline-block mr-1.5 text-sm font-semibold">
           2
         </span>
         You have not chosen any answer for this question.
       </p>
-      <p className="mt-1.5 text-xs leading-snug">
-        <span className="text-white bg-green-500 border py-0.5 px-2 inline-block mr-1">
+      <p className="mt-2.5 text-sm leading-relaxed">
+        <span className="text-white bg-green-500 border py-1 px-2.5 inline-block mr-1.5 text-sm font-semibold">
           3
         </span>
         You have chosen an answer for this question.
       </p>
-      <p className="mt-1.5 text-xs leading-snug">
-        <span className="text-white bg-[#4c2483] border py-0.5 px-2 inline-block mr-1">
+      <p className="mt-2.5 text-sm leading-relaxed">
+        <span className="text-white bg-[#4c2483] border py-1 px-2.5 inline-block mr-1.5 text-sm font-semibold">
           4
         </span>
         You have not answered this question, but have kept it for review.
       </p>
-      <p className="mt-1.5 text-xs leading-snug">
-        <span className="text-white bg-[#4c2483] border py-0.5 px-2 inline-block mr-1">
+      <p className="mt-2.5 text-sm leading-relaxed">
+        <span className="text-white bg-[#4c2483] border py-1 px-2.5 inline-block mr-1.5 text-sm font-semibold">
           5
         </span>
         Questions marked as &quot;Answered &amp; Marked for Review&quot; will be
         considered for evaluation.
+      </p>
+      <p className="mt-4 text-sm font-semibold leading-relaxed">
+        1. To change the language of exam questions, find &quot;View in&quot; in
+        the top right corner of your section bar.
+      </p>
+      <h2 className="font-bold mt-4 text-base">Navigating Questions:</h2>
+      <p className="mt-2 text-sm leading-relaxed">
+        2. To answer a question, do the following:
+        <br />
+        a. Click question number in the palette on the right.
+        <br />
+        b. Click &quot;Save &amp; Next&quot; to save and continue.
+        <br />
+        c. Click &quot;Mark for Review &amp; Next&quot; to mark and continue.
+      </p>
+      <h2 className="font-bold mt-4 text-base">Answering Questions:</h2>
+      <p className="mt-2 text-sm leading-relaxed">
+        3. Process for answering multiple choice questions:
+        <br />
+        a. Press the button of one of the options to choose your answer.
+        <br />
+        b. To deselect, click &quot;Clear Response&quot;.
+        <br />
+        c. To save, click &quot;Save &amp; Next&quot;.
+      </p>
+      <h2 className="font-bold mt-4 text-base">Navigating Through Sections:</h2>
+      <p className="mt-2 text-sm leading-relaxed pb-2">
+        5. View sections on the top bar and click the section name.
+        <br />
+        6. On the last question, &quot;Save &amp; Next&quot; moves to the next
+        section.
+        <br />
+        7. You can move between sections and questions during the exam.
       </p>
     </>
   );
@@ -176,7 +248,7 @@ export default function ExamInstructions() {
     <div className="h-[100dvh] w-full bg-white text-black flex flex-col overflow-hidden">
       {/* Header */}
       <div className="bg-[#290c52] text-white flex justify-between items-center gap-2 px-3 py-2.5 shrink-0">
-        <h1 className="text-xs sm:text-sm md:text-xl font-semibold leading-tight">
+        <h1 className="text-sm sm:text-base md:text-xl font-semibold leading-tight">
           <span className="md:hidden">Exam Instructions — </span>
           <span className="hidden md:inline">T&amp;C and Exam Instruction — </span>
           <span className="whitespace-nowrap text-yellow-300">{brandName}</span>
@@ -198,7 +270,7 @@ export default function ExamInstructions() {
         {/* Main column — fixed footer (declaration + Start) on mobile */}
         <div className="w-full lg:w-[85%] flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Instructions: mobile = color legend only; desktop = full text scroll */}
-          <div className="md:hidden shrink-0 px-3 pt-2 pb-1 overflow-y-auto max-h-[28vh] sm:max-h-[32vh]">
+          <div className="md:hidden flex-1 min-h-0 overflow-y-auto px-4 pt-3 pb-2">
             {isHindi ? colorLegendHindi : colorLegendEnglish}
           </div>
 
@@ -364,22 +436,22 @@ export default function ExamInstructions() {
             className="shrink-0 flex flex-col border-t border-gray-200 bg-white px-3 pt-2"
             style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
           >
-            <div className="max-h-[20vh] sm:max-h-[22vh] overflow-y-auto rounded border border-gray-200 bg-gray-50 p-2">
+            <div className="max-h-[22vh] sm:max-h-[24vh] overflow-y-auto rounded border border-gray-200 bg-gray-50 p-2.5">
               <label className="flex items-start gap-2">
                 <input
                   type="checkbox"
-                  className="mt-0.5 w-4 h-4 flex-shrink-0"
+                  className="mt-1 w-4 h-4 flex-shrink-0"
                   checked={isAgreed}
                   onChange={(e) => setIsAgreed(e.target.checked)}
                 />
-                <span className="text-[11px] sm:text-xs leading-relaxed">
+                <span className="text-sm leading-relaxed">
                   {isHindi ? declarationHindi : declarationEnglish}
                 </span>
               </label>
             </div>
 
             {showError && (
-              <div className="mt-1.5 p-2 bg-red-50 border border-red-300 rounded text-red-700 text-xs text-center">
+              <div className="mt-1.5 p-2 bg-red-50 border border-red-300 rounded text-red-700 text-sm text-center">
                 {isHindi
                   ? "कृपया नियम और शर्तों से सहमत होने के लिए चेकबॉक्स को चेक करें।"
                   : "Please check the checkbox to agree to the terms and conditions."}

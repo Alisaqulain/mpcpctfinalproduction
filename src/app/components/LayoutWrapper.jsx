@@ -42,7 +42,7 @@ export default function LayoutWrapper({ children }) {
         {children}
       </main>
       {!hideFooter && <Footer />}
-      {!hideLayout && <FloatingGrowthWidgets />}
+      <FloatingGrowthWidgets minimal={hideLayout} />
     </>
   );
 }

@@ -2,12 +2,20 @@ import dbConnect from "@/lib/db";
 import MainCategory from "@/lib/models/MainCategory";
 import ExamSubCategory from "@/lib/models/ExamSubCategory";
 
-const DEFAULT_CATEGORY = {
-  name: "Computer Exams",
-  slug: "computer-exams",
-  description: "CPCT, RSCIT, CCC, and topic-wise practice",
-  order: 0,
-};
+const DEFAULT_CATEGORIES = [
+  {
+    name: "Computer Exams",
+    slug: "computer-exams",
+    description: "CPCT, RSCIT, CCC, and topic-wise practice",
+    order: 0,
+  },
+  {
+    name: "Competitive Exams",
+    slug: "competitive-exams",
+    description: "SSC, banking, and other competitive exam practice",
+    order: 1,
+  },
+];
 
 const DEFAULT_SUBS = [
   { name: "CPCT", slug: "cpct", legacyExamTypeKey: "CPCT", isTopicWise: false, order: 0 },
@@ -27,21 +35,27 @@ const DEFAULT_SUBS = [
  */
 export async function ensureDefaultExamHierarchy() {
   await dbConnect();
-  let main = await MainCategory.findOne({ slug: DEFAULT_CATEGORY.slug });
-  if (!main) {
-    main = await MainCategory.create(DEFAULT_CATEGORY);
-  }
-  for (const sub of DEFAULT_SUBS) {
-    const exists = await ExamSubCategory.findOne({
-      categoryId: main._id,
-      slug: sub.slug,
-    });
+  let computerMain = await MainCategory.findOne({ slug: "computer-exams" });
+  for (const cat of DEFAULT_CATEGORIES) {
+    const exists = await MainCategory.findOne({ slug: cat.slug });
     if (!exists) {
-      await ExamSubCategory.create({
-        ...sub,
-        categoryId: main._id,
-      });
+      await MainCategory.create(cat);
     }
   }
-  return main;
+  computerMain = await MainCategory.findOne({ slug: "computer-exams" });
+  if (computerMain) {
+    for (const sub of DEFAULT_SUBS) {
+      const exists = await ExamSubCategory.findOne({
+        categoryId: computerMain._id,
+        slug: sub.slug,
+      });
+      if (!exists) {
+        await ExamSubCategory.create({
+          ...sub,
+          categoryId: computerMain._id,
+        });
+      }
+    }
+  }
+  return computerMain;
 }

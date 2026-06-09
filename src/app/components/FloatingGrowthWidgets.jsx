@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { MessageCircle, Share2 } from "lucide-react";
 
-const wa =
-  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ||
-  process.env.NEXT_PUBLIC_WHATSAPP ||
-  "918989966753";
+const WHATSAPP_NUMBER = "918989966753";
 
-export default function FloatingGrowthWidgets() {
+export default function FloatingGrowthWidgets({ minimal = false }) {
+  const wa =
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ||
+    process.env.NEXT_PUBLIC_WHATSAPP ||
+    WHATSAPP_NUMBER;
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
@@ -55,33 +56,38 @@ export default function FloatingGrowthWidgets() {
   return (
     <>
       <div className="fixed bottom-6 right-4 z-[60] flex flex-col gap-3 items-end">
-        <button
-          type="button"
-          onClick={share}
-          className="rounded-full bg-slate-900 text-white p-3 shadow-lg hover:bg-slate-800"
-          aria-label="Share page"
-        >
-          <Share2 size={22} />
-        </button>
+        {!minimal && (
+          <button
+            type="button"
+            onClick={share}
+            className="rounded-full bg-slate-900 text-white p-3 shadow-lg hover:bg-slate-800"
+            aria-label="Share page"
+          >
+            <Share2 size={22} />
+          </button>
+        )}
         <a
           href={waHref}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-full bg-green-600 text-white p-3 shadow-lg hover:bg-green-500"
-          aria-label="WhatsApp MPC PCT"
+          aria-label="WhatsApp MPC PCT — 8989966753"
+          title="WhatsApp: 8989966753"
         >
           <MessageCircle size={24} />
         </a>
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold shadow-lg hover:bg-indigo-500"
-        >
-          Updates
-        </button>
+        {!minimal && (
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            className="rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold shadow-lg hover:bg-indigo-500"
+          >
+            Updates
+          </button>
+        )}
       </div>
 
-      {open && (
+      {!minimal && open && (
         <div className="fixed bottom-24 right-4 z-[70] w-[min(100vw-2rem,320px)] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl">
           <p className="text-sm font-semibold text-slate-900">Exam tips & offers</p>
           <p className="text-xs text-slate-500 mt-1">
