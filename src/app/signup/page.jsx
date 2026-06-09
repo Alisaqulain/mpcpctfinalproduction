@@ -72,7 +72,13 @@ function SignupForm() {
       try {
         const res = await fetch("/api/profile");
         if (res.ok) {
-          router.push("/profile");
+          const data = await res.json();
+          const returnTo = searchParams.get("redirect") || "/profile";
+          if (!data.user?.isPhoneVerified) {
+            router.push(`/verify-phone?returnTo=${encodeURIComponent(returnTo)}`);
+          } else {
+            router.push(returnTo);
+          }
           return;
         }
       } catch (err) {
@@ -82,7 +88,7 @@ function SignupForm() {
       }
     };
     checkAuth();
-  }, [router]);
+  }, [router, searchParams]);
 
   if (isCheckingAuth) {
     return (
@@ -199,20 +205,24 @@ function SignupForm() {
       });
 
       if (!loginRes.ok) {
-        setSuccess("Account created! Please login.");
+        setSuccess("Account created! Please verify your phone to continue.");
         setTimeout(() => {
-          router.push(`/login?redirect=${encodeURIComponent(redirectUrl)}`);
+          router.push(`/verify-phone?returnTo=${encodeURIComponent(redirectUrl)}`);
         }, 1200);
         setIsLoading(false);
         return;
       }
 
-      setSuccess("Account created! Logging you in...");
+      const loginData = await loginRes.json();
+      setSuccess("Account created! Verify your phone with OTP to continue.");
       window.dispatchEvent(
         new CustomEvent("authStateChanged", { detail: { isAuthenticated: true } })
       );
       setTimeout(() => {
-        router.push(redirectUrl);
+        router.push(
+          loginData.redirectTo ||
+            `/verify-phone?returnTo=${encodeURIComponent(redirectUrl)}`
+        );
       }, 800);
     } catch (err) {
       setError("Something went wrong. Please try again.");

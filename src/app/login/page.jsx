@@ -22,8 +22,13 @@ function LoginForm() {
       try {
         const res = await fetch("/api/profile");
         if (res.ok) {
-          // User is logged in, redirect to profile
-          router.push("/profile");
+          const data = await res.json();
+          const returnTo = searchParams.get("redirect") || "/profile";
+          if (!data.user?.isPhoneVerified) {
+            router.push(`/verify-phone?returnTo=${encodeURIComponent(returnTo)}`);
+          } else {
+            router.push(returnTo);
+          }
           return;
         }
       } catch (err) {
@@ -33,7 +38,7 @@ function LoginForm() {
       }
     };
     checkAuth();
-  }, [router]);
+  }, [router, searchParams]);
 
   // Show loading while checking auth
   if (isCheckingAuth) {

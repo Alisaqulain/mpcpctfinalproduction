@@ -1,8 +1,10 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import jsPDF from "jspdf";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [subscription, setSubscription] = useState(null);
   const [results, setResults] = useState([]);
@@ -26,6 +28,10 @@ export default function ProfilePage() {
       console.log("Subscription data:", data.subscription);
       
       if (response.ok && data.user) {
+        if (!data.user.isPhoneVerified && data.user.role !== "admin") {
+          router.replace(`/verify-phone?returnTo=${encodeURIComponent("/profile")}`);
+          return;
+        }
         setUser(data.user);
         setSubscription(data.subscription || null);
           
@@ -104,7 +110,7 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     fetchProfile();

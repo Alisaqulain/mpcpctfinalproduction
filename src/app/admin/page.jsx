@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import HindiTextarea from "@/components/typing/HindiTextarea";
@@ -16,6 +16,10 @@ export default function AdminPanel() {
   const [selectedSection, setSelectedSection] = useState(null);
   const [selectedPart, setSelectedPart] = useState(null);
   const [activeTab, setActiveTab] = useState('exams');
+  const [mainCategories, setMainCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState("");
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [showExamForm, setShowExamForm] = useState(false);
   const [showSectionForm, setShowSectionForm] = useState(false);
@@ -97,13 +101,85 @@ export default function AdminPanel() {
     checkAdminAuth();
   }, [router]);
 
+  const loadSubCategories = useCallback(async (categoryId) => {
+    if (!categoryId) {
+      setSubCategories([]);
+      setSelectedSubCategoryId("");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/subcategories?categoryId=${encodeURIComponent(categoryId)}`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      const subs = data.subcategories || [];
+      setSubCategories(subs);
+      setSelectedSubCategoryId(subs[0] ? String(subs[0]._id) : "");
+    } catch (e) {
+      console.error("Error loading subcategories:", e);
+      setSubCategories([]);
+      setSelectedSubCategoryId("");
+    }
+  }, []);
+
+  const fetchHierarchy = useCallback(async () => {
+    try {
+      const res = await fetch("/api/categories", { credentials: "include" });
+      const data = await res.json();
+      const cats = data.categories || [];
+      setMainCategories(cats);
+      if (cats[0]) {
+        const id = String(cats[0]._id);
+        setSelectedCategoryId(id);
+        await loadSubCategories(id);
+      }
+    } catch (e) {
+      console.error("Error loading categories:", e);
+    }
+  }, [loadSubCategories]);
+
   useEffect(() => { 
     if (!isCheckingAuth) {
       fetchExams();
       fetchCpctPartNames();
       fetchExamTypes();
+      fetchHierarchy();
     }
-  }, [isCheckingAuth]);
+  }, [isCheckingAuth, fetchHierarchy]);
+
+  const selectedCategory = useMemo(
+    () => mainCategories.find((c) => String(c._id) === selectedCategoryId),
+    [mainCategories, selectedCategoryId]
+  );
+
+  const selectedSubCategory = useMemo(
+    () => subCategories.find((s) => String(s._id) === selectedSubCategoryId),
+    [subCategories, selectedSubCategoryId]
+  );
+
+  const sortExamsList = (list) =>
+    [...list].sort((a, b) => {
+      const getExamNumber = (title) => {
+        const match = (title || "").match(/(\d+)$/);
+        return match ? parseInt(match[1], 10) : 0;
+      };
+      const numA = getExamNumber(a.title);
+      const numB = getExamNumber(b.title);
+      if (numA === numB) return (a.title || "").localeCompare(b.title || "");
+      return numA - numB;
+    });
+
+  const displayExams = useMemo(() => {
+    if (!selectedSubCategoryId || !selectedSubCategory) return [];
+    const subId = selectedSubCategoryId;
+    const legacyKey = selectedSubCategory.legacyExamTypeKey;
+    const filtered = exams.filter((exam) => {
+      if (exam.subCategoryId && String(exam.subCategoryId) === subId) return true;
+      if (legacyKey && exam.key === legacyKey) return true;
+      return false;
+    });
+    return sortExamsList(filtered);
+  }, [exams, selectedSubCategoryId, selectedSubCategory]);
 
   const fetchExamTypes = async () => {
     setExamTypesLoading(true);
@@ -266,6 +342,16 @@ export default function AdminPanel() {
       };
       if (editingExam) {
         body._id = editingExam._id;
+      } else {
+        if (!selectedSubCategoryId) {
+          alert("Please select a category and exam type (CPCT, RSCIT, etc.) above first.");
+          setSaving(false);
+          return;
+        }
+        body.subCategoryId = selectedSubCategoryId;
+        if (selectedSubCategory?.legacyExamTypeKey) {
+          body.key = selectedSubCategory.legacyExamTypeKey;
+        }
       }
       
       const res = await fetch('/api/admin/exams', { 
@@ -3180,6 +3266,86 @@ What has enabled cashless transactions? A. Barter B. Digital payments C. Physica
             </div>
           </div>
 
+          {/* Exam Mode hierarchy — matches public: Category → Type tab → Exams */}
+          <div className="bg-white border-2 border-[#290c52]/20 rounded-lg p-4 mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <h3 className="text-base font-bold text-[#290c52]">Exam Mode hierarchy</h3>
+              <div className="flex flex-wrap gap-2 text-xs">
+                <Link href="/admin/categories" className="text-blue-700 underline">Categories</Link>
+                <span className="text-gray-400">|</span>
+                <Link href="/admin/subcategories" className="text-blue-700 underline">Subcategories</Link>
+                <span className="text-gray-400">|</span>
+                <Link href="/admin/exams" className="text-blue-700 underline">Exams (full)</Link>
+              </div>
+            </div>
+            <p className="text-xs text-gray-600 mb-3">
+              Same as site: <strong>Exam Mode</strong> → category (Computer / Competitive) → tab (CPCT, RSCIT, CCC, Topic-wise) → mock tests below.
+            </p>
+            <div className="flex flex-col sm:flex-row flex-wrap gap-4">
+              <label className="flex flex-col gap-1 min-w-[200px] flex-1">
+                <span className="text-sm font-medium text-gray-700">1. Category</span>
+                <select
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  value={selectedCategoryId}
+                  onChange={async (e) => {
+                    const id = e.target.value;
+                    setSelectedCategoryId(id);
+                    setSelectedExam(null);
+                    setSections([]);
+                    setParts([]);
+                    setQuestions([]);
+                    await loadSubCategories(id);
+                  }}
+                >
+                  <option value="">Select category…</option>
+                  {mainCategories.map((c) => (
+                    <option key={c._id} value={String(c._id)}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1 min-w-[200px] flex-1">
+                <span className="text-sm font-medium text-gray-700">2. Exam type (tab)</span>
+                <select
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  value={selectedSubCategoryId}
+                  disabled={!selectedCategoryId}
+                  onChange={(e) => {
+                    setSelectedSubCategoryId(e.target.value);
+                    setSelectedExam(null);
+                    setSections([]);
+                    setParts([]);
+                    setQuestions([]);
+                  }}
+                >
+                  <option value="">Select type…</option>
+                  {subCategories.map((s) => (
+                    <option key={s._id} value={String(s._id)}>
+                      {s.name}
+                      {s.legacyExamTypeKey ? ` (${s.legacyExamTypeKey})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {selectedCategory && selectedSubCategory && (
+              <p className="mt-3 text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2">
+                Managing: <strong>{selectedCategory.name}</strong> → <strong>{selectedSubCategory.name}</strong>
+                <span className="text-gray-500 ml-2">({displayExams.length} exam{displayExams.length !== 1 ? "s" : ""})</span>
+                <span className="block mt-1 text-xs text-gray-600">
+                  To add exam {displayExams.length + 1} or more: click <strong>+ Add Exam</strong> below, set title (e.g. CPCT Exam {displayExams.length + 1}), time &amp; questions — it appears on the site under this tab.
+                </span>
+              </p>
+            )}
+            {selectedCategoryId && subCategories.length === 0 && (
+              <p className="mt-3 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                No exam types in this category. Add subcategories in{" "}
+                <Link href="/admin/subcategories" className="underline font-medium">Subcategories</Link>.
+              </p>
+            )}
+          </div>
+
           {/* Four Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Exams Column */}
@@ -3187,18 +3353,32 @@ What has enabled cashless transactions? A. Barter B. Digital payments C. Physica
               <div className="bg-gray-50 border-b px-4 py-3 flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-800">Exams</h3>
                 <button 
-                  onClick={() => setShowExamForm(true)} 
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  onClick={() => {
+                    if (!selectedSubCategoryId) {
+                      alert("Select a category and exam type above first.");
+                      return;
+                    }
+                    setEditingExam(null);
+                    setShowExamForm(true);
+                  }} 
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-400"
+                  disabled={!selectedSubCategoryId}
                 >
                   + Add Exam
                 </button>
               </div>
               <div className="p-4">
-                {exams.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">No exams yet. Click "+ Add Exam" to create one.</p>
+                {!selectedSubCategoryId ? (
+                  <p className="text-gray-500 text-center py-8 text-sm">
+                    Select a category and exam type above to view exams.
+                  </p>
+                ) : displayExams.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8 text-sm">
+                    No exams for {selectedSubCategory?.name || "this type"}. Click &quot;+ Add Exam&quot; to create one.
+                  </p>
                 ) : (
                   <ul className="space-y-2">
-            {exams.map(exam => (
+            {displayExams.map(exam => (
               <li key={exam._id}>
                         <div className={`w-full rounded-lg border transition-colors ${
                             selectedExam === exam._id 
@@ -3612,6 +3792,12 @@ What has enabled cashless transactions? A. Barter B. Digital payments C. Physica
             <ExamFormModal 
               exam={editingExam}
               examTypes={examTypes}
+              hierarchyLabel={
+                selectedCategory && selectedSubCategory
+                  ? `${selectedCategory.name} → ${selectedSubCategory.name}`
+                  : ""
+              }
+              defaultExamKey={selectedSubCategory?.legacyExamTypeKey || "CPCT"}
               onSave={handleSaveExam} 
               onClose={() => { setShowExamForm(false); setEditingExam(null); }} 
               saving={saving}
@@ -4907,8 +5093,8 @@ function UsersAdmin() {
 }
 
 // Form Modal Components
-function ExamFormModal({ exam, examTypes = [], onSave, onClose, saving, onOpenAddExamType }) {
-  const defaultKey = examTypes.length > 0 ? (examTypes.find((t) => !t.isTopicWise)?.key || examTypes[0].key) : 'CPCT';
+function ExamFormModal({ exam, examTypes = [], hierarchyLabel = "", defaultExamKey = "CPCT", onSave, onClose, saving, onOpenAddExamType }) {
+  const defaultKey = examTypes.length > 0 ? (examTypes.find((t) => !t.isTopicWise)?.key || examTypes[0].key) : defaultExamKey;
   const [formData, setFormData] = useState({
     title: exam?.title || '',
     key: exam?.key || defaultKey,
@@ -4918,7 +5104,7 @@ function ExamFormModal({ exam, examTypes = [], onSave, onClose, saving, onOpenAd
   });
 
   useEffect(() => {
-    const keyDefault = examTypes.length > 0 ? (examTypes.find((t) => !t.isTopicWise)?.key || examTypes[0].key) : 'CPCT';
+    const keyDefault = examTypes.length > 0 ? (examTypes.find((t) => !t.isTopicWise)?.key || examTypes[0].key) : defaultExamKey;
     if (exam) {
       setFormData({
         title: exam.title || '',
@@ -4930,13 +5116,13 @@ function ExamFormModal({ exam, examTypes = [], onSave, onClose, saving, onOpenAd
     } else {
       setFormData({
         title: '',
-        key: keyDefault,
+        key: defaultExamKey || keyDefault,
         totalTime: 75,
         totalQuestions: 75,
         isFree: false
       });
     }
-  }, [exam, examTypes]);
+  }, [exam, examTypes, defaultExamKey]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -4951,6 +5137,11 @@ function ExamFormModal({ exam, examTypes = [], onSave, onClose, saving, onOpenAd
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {hierarchyLabel && !exam && (
+            <p className="text-sm bg-[#290c52]/10 text-[#290c52] rounded-lg px-3 py-2">
+              Appears under: <strong>{hierarchyLabel}</strong>
+            </p>
+          )}
           <div>
             <label className="block text-sm font-medium mb-2">Exam Title *</label>
             <input

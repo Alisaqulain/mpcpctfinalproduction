@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 
 function VerifyPhoneContent() {
   const router = useRouter();
@@ -85,7 +84,7 @@ function VerifyPhoneContent() {
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6 border border-gray-200">
         <h1 className="text-xl font-bold text-[#290c52] text-center">Verify Phone Number</h1>
         <p className="text-sm text-gray-600 text-center mt-2">
-          Phone verification is required to access courses and videos.
+          Phone OTP is required for all accounts — Google sign-in and normal signup. Enter your mobile number to continue.
         </p>
 
         {step === 1 ? (
@@ -139,9 +138,7 @@ function VerifyPhoneContent() {
         {error && <p className="mt-3 text-sm text-red-600 text-center">{error}</p>}
 
         <p className="mt-6 text-center text-xs text-gray-500">
-          <Link href="/profile" className="underline">
-            Back to profile
-          </Link>
+          OTP verification is mandatory before using exams, courses, and your profile.
         </p>
       </div>
     </div>

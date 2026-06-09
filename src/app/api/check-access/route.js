@@ -89,8 +89,34 @@ export async function POST(request) {
     }
 
     const user = await User.findById(decoded.userId);
-    if (user?.role === "admin") {
+    if (!user) {
+      return NextResponse.json({
+        hasAccess: false,
+        reason: "user_not_found",
+        requiresAuth: true,
+        redirectTo: "/login",
+      });
+    }
+
+    if (user.role === "admin") {
       return NextResponse.json({ hasAccess: true, reason: "admin" });
+    }
+
+    if (!user.isPhoneVerified && !user.isMobileVerified) {
+      const returnPath =
+        examId
+          ? `/exam/exam-login?examId=${examId}${topicId ? `&topicId=${topicId}` : ""}`
+          : type === "skill" || type === "skill_test"
+            ? "/skill_test"
+            : type === "learning"
+              ? "/learning"
+              : "/exam";
+      return NextResponse.json({
+        hasAccess: false,
+        reason: "phone_not_verified",
+        requiresPhoneVerification: true,
+        redirectTo: `/verify-phone?returnTo=${encodeURIComponent(returnPath)}`,
+      });
     }
 
     let subscription = await Subscription.findOne({
