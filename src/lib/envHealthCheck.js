@@ -25,10 +25,13 @@ const ENV_KEYS = [
   "SMTP_USER",
   "SMTP_PASS",
   "MAIL_FROM",
-  "TWILIO_ACCOUNT_SID",
-  "TWILIO_AUTH_TOKEN",
-  "TWILIO_PHONE_NUMBER",
-  "FAST2SMS_API_KEY",
+  "NEXT_PUBLIC_FIREBASE_API_KEY",
+  "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+  "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+  "NEXT_PUBLIC_FIREBASE_APP_ID",
+  "FIREBASE_PROJECT_ID",
+  "FIREBASE_CLIENT_EMAIL",
+  "FIREBASE_PRIVATE_KEY",
   "VIDEO_STORAGE_PATH",
   "SOLUTION_VIDEO_STORAGE_PATH",
   "VIDEO_MAX_BYTES",
@@ -129,8 +132,16 @@ function checkVariable(name) {
     case "MAIL_FROM":
       if (!isEmail(raw)) return "invalid format";
       break;
-    case "TWILIO_PHONE_NUMBER":
-      if (isSet(raw) && !/^\+?\d{10,15}$/.test(String(raw).replace(/\s/g, ""))) {
+    case "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN":
+      if (isSet(raw) && !/\.firebaseapp\.com$/i.test(String(raw).trim())) {
+        return "invalid format";
+      }
+      break;
+    case "FIREBASE_CLIENT_EMAIL":
+      if (isSet(raw) && !String(raw).includes("@")) return "invalid format";
+      break;
+    case "FIREBASE_PRIVATE_KEY":
+      if (isSet(raw) && !String(raw).includes("BEGIN PRIVATE KEY")) {
         return "invalid format";
       }
       break;

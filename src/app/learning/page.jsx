@@ -35,7 +35,7 @@ export default function TypingTutor() {
         const res = await fetch('/api/check-access', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'learning', isFree: false, allowGuest: true }),
+          body: JSON.stringify({ type: 'learning', isFree: false }),
           credentials: 'include'
         });
         const data = await res.json();

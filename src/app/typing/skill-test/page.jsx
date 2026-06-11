@@ -33,7 +33,7 @@ export default function SkillTestPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ type: "skill", isFree: false, allowGuest: true })
+        body: JSON.stringify({ type: "skill", isFree: false })
       });
       const data = await res.json();
       // Grant access if hasAccess is true (covers subscription, admin, etc.)

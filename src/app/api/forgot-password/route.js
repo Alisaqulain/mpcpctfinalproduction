@@ -8,49 +8,33 @@ export async function POST(req) {
   try {
     await dbConnect();
     const data = await req.json();
-    const { step, channel, email, phone, mobile, otp, newPassword } = data;
+    const { step, channel, email, otp, newPassword } = data;
 
-    const phoneNorm = String(phone || mobile || "").replace(/\D/g, "").slice(-10);
     const emailNorm = String(email || "").trim().toLowerCase();
 
     if (step === 1 || step === "send") {
-      if (channel === "email") {
-        if (!emailNorm) {
-          return NextResponse.json({ success: false, message: "Email required" }, { status: 400 });
-        }
-        const user = await User.findOne({ email: emailNorm });
-        if (!user) {
-          return NextResponse.json({ success: false, message: "No account found" }, { status: 404 });
-        }
-        const result = await createAndSendOtp({
-          email: emailNorm,
-          purpose: "reset_email",
-        });
-        if (!result.ok) {
-          return NextResponse.json({ success: false, message: result.error }, { status: result.status });
-        }
-        return NextResponse.json({ success: true, message: "OTP sent to email" });
+      if (channel !== "email") {
+        return NextResponse.json(
+          { success: false, message: "Phone reset uses Firebase OTP on the forgot-password page" },
+          { status: 400 }
+        );
       }
 
-      if (channel === "phone" || !channel) {
-        if (phoneNorm.length < 10) {
-          return NextResponse.json({ success: false, message: "Valid phone required" }, { status: 400 });
-        }
-        const user = await User.findOne({ phoneNumber: new RegExp(`${phoneNorm}$`) });
-        if (!user) {
-          return NextResponse.json({ success: false, message: "No account found" }, { status: 404 });
-        }
-        const result = await createAndSendOtp({
-          mobile: phoneNorm,
-          purpose: "reset_phone",
-        });
-        if (!result.ok) {
-          return NextResponse.json({ success: false, message: result.error }, { status: result.status });
-        }
-        return NextResponse.json({ success: true, message: "OTP sent to phone" });
+      if (!emailNorm) {
+        return NextResponse.json({ success: false, message: "Email required" }, { status: 400 });
       }
-
-      return NextResponse.json({ success: false, message: "Invalid channel" }, { status: 400 });
+      const user = await User.findOne({ email: emailNorm });
+      if (!user) {
+        return NextResponse.json({ success: false, message: "No account found" }, { status: 404 });
+      }
+      const result = await createAndSendOtp({
+        email: emailNorm,
+        purpose: "reset_email",
+      });
+      if (!result.ok) {
+        return NextResponse.json({ success: false, message: result.error }, { status: result.status });
+      }
+      return NextResponse.json({ success: true, message: "OTP sent to email" });
     }
 
     if (step === 2 || step === "reset") {
@@ -67,25 +51,17 @@ export async function POST(req) {
         );
       }
 
-      const purpose = channel === "email" ? "reset_email" : "reset_phone";
       const verified = await verifyOtp({
-        email: channel === "email" ? emailNorm : undefined,
-        mobile: channel !== "email" ? phoneNorm : undefined,
+        email: emailNorm,
         code: otp,
-        purpose,
+        purpose: "reset_email",
       });
 
       if (!verified.ok) {
         return NextResponse.json({ success: false, message: verified.error }, { status: verified.status });
       }
 
-      let user;
-      if (channel === "email") {
-        user = await User.findOne({ email: emailNorm });
-      } else {
-        user = await User.findOne({ phoneNumber: new RegExp(`${phoneNorm}$`) });
-      }
-
+      const user = await User.findOne({ email: emailNorm });
       if (!user) {
         return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
       }

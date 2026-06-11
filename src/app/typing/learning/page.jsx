@@ -34,7 +34,7 @@ export default function CharacterTypingPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ type: "learning", isFree: false, allowGuest: true })
+        body: JSON.stringify({ type: "learning", isFree: false })
       });
       const data = await res.json();
       setUserIsPremium(data.hasAccess === true && data.reason !== "guest_browse");

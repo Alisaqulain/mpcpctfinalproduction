@@ -1,151 +1,118 @@
 import bcrypt from "bcryptjs";
 import Otp from "@/lib/models/Otp";
-import { sendOtpSms } from "@/lib/sms";
 import { sendOtpEmail } from "@/lib/emailService";
 
-const PURPOSES = new Set([
-  "verify_mobile",
-  "forgot_password",
-  "signup",
-  "reset_email",
-  "reset_phone",
-]);
+const PURPOSES = new Set(["reset_email", "forgot_password"]);
 
-const COOLDOWN_MS = 60_000;
-const OTP_TTL_MS = 10 * 60_000;
+const RESEND_COOLDOWN_MS = 30_000;
 const MAX_PER_HOUR = 5;
-const MAX_VERIFY_ATTEMPTS = 5;
+const OTP_TTL_MS = 10 * 60_000;
 
 function randomOtp() {
   return String(Math.floor(100000 + Math.random() * 900000));
-}
-
-function normalizeMobile(mobile) {
-  return String(mobile || "").replace(/\D/g, "").slice(-10);
 }
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
 }
 
-async function rateLimitQuery({ mobile, email }) {
-  const since = new Date(Date.now() - COOLDOWN_MS);
-  const q = { createdAt: { $gte: since }, consumed: false };
-  if (mobile) q.mobile = mobile;
-  if (email) q.email = email;
-  const recent = await Otp.findOne(q).sort({ createdAt: -1 });
+async function rateLimitQuery({ email }) {
+  const since = new Date(Date.now() - RESEND_COOLDOWN_MS);
+  const recent = await Otp.findOne({ email, createdAt: { $gte: since } }).sort({ createdAt: -1 });
   if (recent) {
-    return { ok: false, error: "Please wait before requesting another OTP", status: 429 };
+    const waitSec = Math.ceil(
+      (recent.createdAt.getTime() + RESEND_COOLDOWN_MS - Date.now()) / 1000
+    );
+    return {
+      ok: false,
+      error: `Please wait ${Math.max(waitSec, 1)} seconds before requesting another OTP`,
+      status: 429,
+      retryAfter: Math.max(waitSec, 1),
+    };
   }
 
-  const hourAgo = new Date(Date.now() - 3600_000);
-  const hourQ = { createdAt: { $gte: hourAgo } };
-  if (mobile) hourQ.mobile = mobile;
-  else if (email) hourQ.email = email;
-
-  const hourCount = await Otp.countDocuments(hourQ);
+  const hourCount = await Otp.countDocuments({
+    email,
+    createdAt: { $gte: new Date(Date.now() - 3600_000) },
+  });
   if (hourCount >= MAX_PER_HOUR) {
     return { ok: false, error: "Too many OTP requests. Try again later.", status: 429 };
   }
   return { ok: true };
 }
 
-/**
- * Create hashed OTP and send via SMS and/or email.
- */
-export async function createAndSendOtp({ mobile, email, purpose }) {
-  const p = PURPOSES.has(purpose) ? purpose : "verify_mobile";
-  const m = mobile ? normalizeMobile(mobile) : "";
+/** Email OTP only — phone OTP uses Firebase client + /api/auth/firebase-phone */
+export async function createAndSendOtp({ email, purpose }) {
+  const p = PURPOSES.has(purpose) ? purpose : "reset_email";
   const e = email ? normalizeEmail(email) : "";
 
-  if (!m && !e) {
-    return { ok: false, error: "Mobile or email required", status: 400 };
-  }
-  if (m && m.length < 10) {
-    return { ok: false, error: "Valid mobile required", status: 400 };
+  if (!e) {
+    return { ok: false, error: "Email required", status: 400 };
   }
 
-  const rl = await rateLimitQuery({ mobile: m || undefined, email: e || undefined });
+  const rl = await rateLimitQuery({ email: e });
   if (!rl.ok) return rl;
 
-  const code = randomOtp();
-  const codeHash = await bcrypt.hash(code, 10);
   const expiresAt = new Date(Date.now() + OTP_TTL_MS);
-
-  await Otp.create({
-    mobile: m || undefined,
-    email: e || undefined,
-    codeHash,
-    purpose: p,
-    expiresAt,
-    attempts: 0,
-    consumed: false,
-  });
-
-  const sent = { providers: [] };
   let devCode;
 
   try {
-    if (m) {
-      const r = await sendOtpSms(m, code);
-      sent.providers.push(r.provider);
-      if (r.devCode) devCode = r.devCode;
-    }
-    if (e) {
-      const r = await sendOtpEmail(e, code);
-      sent.providers.push(r.provider);
-      if (r.devCode) devCode = r.devCode;
-    }
+    const code = randomOtp();
+    const codeHash = await bcrypt.hash(code, 10);
+    const r = await sendOtpEmail(e, code);
+    if (r.devCode) devCode = r.devCode;
+
+    await Otp.create({
+      email: e,
+      codeHash,
+      provider: "local",
+      purpose: p,
+      expiresAt,
+      consumed: false,
+      attempts: 0,
+    });
   } catch (err) {
-    await Otp.deleteMany({ mobile: m || null, email: e || null, codeHash, consumed: false });
     return { ok: false, error: err.message || "Failed to send OTP", status: 503 };
   }
 
   return {
     ok: true,
-    message: "OTP sent",
-    providers: sent.providers,
+    message: "OTP sent successfully",
+    providers: ["email"],
+    retryAfter: RESEND_COOLDOWN_MS / 1000,
+    expiresIn: OTP_TTL_MS / 1000,
     ...(devCode ? { devCode } : {}),
   };
 }
 
-/**
- * Verify OTP (hashed). Increments attempts on failure.
- */
-export async function verifyOtp({ mobile, email, code, purpose }) {
-  const p = PURPOSES.has(purpose) ? purpose : "verify_mobile";
-  const m = mobile ? normalizeMobile(mobile) : "";
+export async function verifyOtp({ email, code, purpose }) {
+  const p = PURPOSES.has(purpose) ? purpose : "reset_email";
   const e = email ? normalizeEmail(email) : "";
   const raw = String(code || "").trim();
 
+  if (!e) {
+    return { ok: false, error: "Email required", status: 400 };
+  }
   if (raw.length < 4) {
     return { ok: false, error: "OTP required", status: 400 };
   }
 
-  const q = {
+  const doc = await Otp.findOne({
+    email: e,
     purpose: p,
     consumed: false,
     expiresAt: { $gt: new Date() },
-  };
-  if (m) q.mobile = m;
-  if (e) q.email = e;
+  }).sort({ createdAt: -1 });
 
-  const doc = await Otp.findOne(q).sort({ createdAt: -1 });
   if (!doc) {
     return { ok: false, error: "Invalid or expired OTP", status: 400 };
   }
 
-  if (doc.attempts >= MAX_VERIFY_ATTEMPTS) {
+  if ((doc.attempts || 0) >= 5) {
     return { ok: false, error: "Too many attempts. Request a new OTP.", status: 429 };
   }
 
-  let match = false;
-  if (doc.codeHash) {
-    match = await bcrypt.compare(raw, doc.codeHash);
-  } else if (doc.code) {
-    match = doc.code === raw;
-  }
-
+  const match = await bcrypt.compare(raw, doc.codeHash);
   if (!match) {
     doc.attempts = (doc.attempts || 0) + 1;
     await doc.save();

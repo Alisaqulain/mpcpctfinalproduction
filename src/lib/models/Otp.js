@@ -4,15 +4,17 @@ const OtpSchema = new mongoose.Schema(
   {
     mobile: { type: String, index: true, sparse: true },
     email: { type: String, index: true, sparse: true },
-    codeHash: { type: String, required: true },
+    codeHash: { type: String, default: "" },
     /** Legacy plain code — do not write new records */
     code: { type: String },
+    provider: { type: String, enum: ["local", "none"], default: "local" },
     purpose: {
       type: String,
       enum: [
         "verify_mobile",
         "forgot_password",
         "signup",
+        "login",
         "reset_email",
         "reset_phone",
       ],

@@ -219,9 +219,9 @@ function SignupForm() {
         new CustomEvent("authStateChanged", { detail: { isAuthenticated: true } })
       );
       setTimeout(() => {
+        const verifyUrl = `/verify-phone?returnTo=${encodeURIComponent(redirectUrl)}`;
         router.push(
-          loginData.redirectTo ||
-            `/verify-phone?returnTo=${encodeURIComponent(redirectUrl)}`
+          loginData.redirectTo === "/verify-phone" ? verifyUrl : loginData.redirectTo || verifyUrl
         );
       }, 800);
     } catch (err) {

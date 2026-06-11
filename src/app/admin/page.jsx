@@ -4509,6 +4509,8 @@ function TipForm({ tip, lessons, onSave, onCancel, saving, error }) {
 function UsersAdmin() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showMembershipOnly, setShowMembershipOnly] = useState(false);
@@ -4716,6 +4718,107 @@ function UsersAdmin() {
     return matchesSearch;
   });
 
+  const deletableFilteredIds = filteredUsers
+    .filter((u) => u.role !== "admin")
+    .map((u) => u._id);
+
+  const allFilteredSelected =
+    deletableFilteredIds.length > 0 &&
+    deletableFilteredIds.every((id) => selectedUserIds.includes(id));
+
+  const toggleUserSelection = (userId, isAdmin) => {
+    if (isAdmin) return;
+    setSelectedUserIds((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    );
+  };
+
+  const toggleSelectAllFiltered = () => {
+    if (allFilteredSelected) {
+      setSelectedUserIds((prev) => prev.filter((id) => !deletableFilteredIds.includes(id)));
+    } else {
+      setSelectedUserIds((prev) => [...new Set([...prev, ...deletableFilteredIds])]);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedUserIds.length) return;
+    const count = selectedUserIds.length;
+    if (
+      !confirm(
+        `Delete ${count} user${count > 1 ? "s" : ""}? This permanently removes accounts, subscriptions, and related data. Admin accounts are skipped.`
+      )
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ userIds: selectedUserIds }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Failed to delete users");
+        return;
+      }
+
+      let msg = `Deleted ${data.deleted} user(s).`;
+      if (data.skipped?.length) {
+        msg += ` Skipped ${data.skipped.length} (admin or protected).`;
+      }
+      if (data.notFound?.length) {
+        msg += ` ${data.notFound.length} not found.`;
+      }
+      alert(msg);
+
+      if (selectedUser && selectedUserIds.includes(selectedUser._id)) {
+        setSelectedUser(null);
+      }
+      setSelectedUserIds([]);
+      await fetchUsers();
+    } catch (error) {
+      console.error("Bulk delete error:", error);
+      alert("Failed to delete users: " + error.message);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteSingleUser = async (user) => {
+    if (user.role === "admin") {
+      alert("Admin accounts cannot be deleted.");
+      return;
+    }
+    if (!confirm(`Delete user "${user.name}" (${user.email})? This cannot be undone.`)) return;
+
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ userIds: [user._id] }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Failed to delete user");
+        return;
+      }
+      alert("User deleted successfully.");
+      if (selectedUser?._id === user._id) setSelectedUser(null);
+      setSelectedUserIds((prev) => prev.filter((id) => id !== user._id));
+      await fetchUsers();
+    } catch (error) {
+      alert("Failed to delete user: " + error.message);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const formatDate = (date) => {
     if (!date) return 'N/A';
     return new Date(date).toLocaleDateString('en-IN', {
@@ -4729,7 +4832,7 @@ function UsersAdmin() {
     <div className="max-w-7xl mx-auto p-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-4">All Users</h2>
-        <div className="mb-4 flex gap-4 items-center">
+        <div className="mb-4 flex flex-wrap gap-4 items-center">
           <input
             type="text"
             placeholder="Search by name, email, phone, or referral code..."
@@ -4746,6 +4849,16 @@ function UsersAdmin() {
             />
             <span className="text-sm font-medium">Show Membership Users Only</span>
           </label>
+          {selectedUserIds.length > 0 && (
+            <button
+              type="button"
+              onClick={handleBulkDelete}
+              disabled={deleting}
+              className="ml-auto px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50"
+            >
+              {deleting ? "Deleting…" : `Delete selected (${selectedUserIds.length})`}
+            </button>
+          )}
         </div>
       </div>
 
@@ -4757,6 +4870,16 @@ function UsersAdmin() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
+                  <th className="px-4 py-3 text-left w-10">
+                    <input
+                      type="checkbox"
+                      checked={allFilteredSelected}
+                      onChange={toggleSelectAllFiltered}
+                      disabled={deletableFilteredIds.length === 0}
+                      className="w-4 h-4"
+                      title="Select all (non-admin users in current list)"
+                    />
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date joined</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
@@ -4770,7 +4893,7 @@ function UsersAdmin() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan="9" className="px-6 py-8 text-center text-gray-500">
                       No users found
                     </td>
                   </tr>
@@ -4778,9 +4901,22 @@ function UsersAdmin() {
                   filteredUsers.map((user) => (
                     <tr
                       key={user._id}
-                      className="hover:bg-gray-50 cursor-pointer"
+                      className={`hover:bg-gray-50 cursor-pointer ${selectedUserIds.includes(user._id) ? "bg-red-50" : ""}`}
                       onClick={() => setSelectedUser(selectedUser?._id === user._id ? null : user)}
                     >
+                      <td
+                        className="px-4 py-4 whitespace-nowrap"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedUserIds.includes(user._id)}
+                          disabled={user.role === "admin"}
+                          onChange={() => toggleUserSelection(user._id, user.role === "admin")}
+                          className="w-4 h-4"
+                          title={user.role === "admin" ? "Admin accounts cannot be deleted" : "Select user"}
+                        />
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{user.name}</div>
                         {user.role === 'admin' && (
@@ -4831,14 +4967,26 @@ function UsersAdmin() {
 
           {selectedUser && (
             <div className="border-t bg-gray-50 p-6">
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start mb-4 gap-4">
                 <h3 className="text-lg font-semibold">User Details: {selectedUser.name}</h3>
-                <button
-                  onClick={() => setSelectedUser(null)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  ✕
-                </button>
+                <div className="flex items-center gap-2">
+                  {selectedUser.role !== "admin" && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSingleUser(selectedUser)}
+                      disabled={deleting}
+                      className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                    >
+                      Delete user
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setSelectedUser(null)}
+                    className="text-gray-500 hover:text-gray-700 px-2"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
               
               <div className="mb-4">

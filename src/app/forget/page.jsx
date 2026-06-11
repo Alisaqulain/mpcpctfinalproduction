@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
+import FirebasePhoneAuth from "@/components/auth/FirebasePhoneAuth";
 
 export default function ForgotPassword() {
   const [channel, setChannel] = useState("phone");
@@ -10,6 +11,7 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
+  const [resetToken, setResetToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -34,23 +36,26 @@ export default function ForgotPassword() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateReset = () => {
+  const validateOtp = () => {
     const newErrors = {};
     if (!otp.trim()) newErrors.otp = "OTP is required";
     else if (!/^\d{4,8}$/.test(otp.trim())) newErrors.otp = "Enter the OTP you received";
-
-    if (!newPassword) newErrors.newPassword = "New password is required";
-    else if (newPassword.length < 8) newErrors.newPassword = "At least 8 characters";
-
-    if (!confirmPassword) newErrors.confirmPassword = "Please confirm your password";
-    else if (newPassword !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const sendOtp = async (e) => {
-    e.preventDefault();
+  const validateReset = () => {
+    const newErrors = {};
+    if (!newPassword) newErrors.newPassword = "New password is required";
+    else if (newPassword.length < 8) newErrors.newPassword = "At least 8 characters";
+    if (!confirmPassword) newErrors.confirmPassword = "Please confirm your password";
+    else if (newPassword !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const sendEmailOtp = async (e) => {
+    if (e?.preventDefault) e.preventDefault();
     if (!validateIdentifier()) return;
 
     setLoading(true);
@@ -63,9 +68,8 @@ export default function ForgotPassword() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           step: "send",
-          channel,
-          email: channel === "email" ? email.trim() : undefined,
-          phone: channel === "phone" ? phone.replace(/\D/g, "") : undefined,
+          channel: "email",
+          email: email.trim(),
         }),
       });
       const data = await res.json();
@@ -74,14 +78,39 @@ export default function ForgotPassword() {
         return;
       }
       setStep(2);
-      setMessage(
-        channel === "email"
-          ? "OTP sent to your email. Check inbox and spam folder."
-          : "OTP sent to your phone."
-      );
+      setMessage("OTP sent to your email. Check inbox and spam folder.");
     } catch {
       setMessage("Something went wrong. Please try again.");
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePhoneVerified = async (idToken) => {
+    setLoading(true);
+    setMessage("");
+    setErrors({});
+    try {
+      const res = await fetch("/api/auth/firebase-phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          idToken,
+          purpose: "forgot_password",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessage(data.error || "Verification failed");
+        setLoading(false);
+        return;
+      }
+      setResetToken(data.resetToken);
+      setPhone(data.mobile || phone);
+      setStep(3);
+      setMessage("Phone verified. Set your new password.");
+    } catch {
+      setMessage("Something went wrong. Please try again.");
       setLoading(false);
     }
   };
@@ -95,14 +124,38 @@ export default function ForgotPassword() {
     setErrors({});
 
     try {
+      if (channel === "phone") {
+        const res = await fetch("/api/auth/reset-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mobile: phone.replace(/\D/g, ""),
+            resetToken,
+            newPassword,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setMessage(data.error || "Failed to reset password");
+          return;
+        }
+        setDone(true);
+        setMessage("Password changed successfully! You can login now.");
+        return;
+      }
+
+      if (!validateOtp()) {
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch("/api/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           step: "reset",
-          channel,
-          email: channel === "email" ? email.trim() : undefined,
-          phone: channel === "phone" ? phone.replace(/\D/g, "") : undefined,
+          channel: "email",
+          email: email.trim(),
           otp: otp.trim(),
           newPassword,
         }),
@@ -125,6 +178,7 @@ export default function ForgotPassword() {
     setChannel(next);
     setStep(1);
     setOtp("");
+    setResetToken("");
     setNewPassword("");
     setConfirmPassword("");
     setErrors({});
@@ -132,17 +186,23 @@ export default function ForgotPassword() {
     setDone(false);
   };
 
+  const stepTitle =
+    done ? "Password Updated" : step === 1 ? "Forgot Password" : step === 2 ? "Verify OTP" : "Reset Password";
+
+  const stepSubtitle =
+    step === 1
+      ? "Choose how you want to receive your OTP"
+      : step === 2
+        ? channel === "phone"
+          ? "Verify OTP sent to your phone"
+          : "Enter the OTP sent to your email"
+        : "Choose a strong new password";
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-50">
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6 sm:p-8 border border-gray-200">
-        <h2 className="text-2xl font-bold text-[#290c52] mb-2 text-center">
-          {done ? "Password Updated" : step === 1 ? "Forgot Password" : "Reset Password"}
-        </h2>
-        <p className="text-sm text-gray-600 text-center mb-5">
-          {step === 1
-            ? "Choose how you want to receive your OTP"
-            : "Enter OTP and your new password"}
-        </p>
+        <h2 className="text-2xl font-bold text-[#290c52] mb-2 text-center">{stepTitle}</h2>
+        <p className="text-sm text-gray-600 text-center mb-5">{stepSubtitle}</p>
 
         {!done && step === 1 && (
           <div className="flex rounded-lg border border-gray-200 overflow-hidden mb-6">
@@ -150,9 +210,7 @@ export default function ForgotPassword() {
               type="button"
               onClick={() => switchChannel("phone")}
               className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
-                channel === "phone"
-                  ? "bg-[#290c52] text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-50"
+                channel === "phone" ? "bg-[#290c52] text-white" : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
             >
               Phone OTP
@@ -161,9 +219,7 @@ export default function ForgotPassword() {
               type="button"
               onClick={() => switchChannel("email")}
               className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
-                channel === "email"
-                  ? "bg-[#290c52] text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-50"
+                channel === "email" ? "bg-[#290c52] text-white" : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
             >
               Email OTP
@@ -174,7 +230,9 @@ export default function ForgotPassword() {
         {message && (
           <p
             className={`text-sm text-center mb-4 font-medium ${
-              done ? "text-green-700" : message.includes("sent") ? "text-green-700" : "text-red-600"
+              done || message.includes("sent") || message.includes("verified")
+                ? "text-green-700"
+                : "text-red-600"
             }`}
           >
             {message}
@@ -191,21 +249,8 @@ export default function ForgotPassword() {
             </Link>
           </div>
         ) : step === 1 ? (
-          <form className="space-y-5" onSubmit={sendOtp}>
-            {channel === "email" ? (
-              <Field
-                label="Registered email"
-                name="email"
-                type="email"
-                value={email}
-                error={errors.email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setErrors((p) => ({ ...p, email: "" }));
-                }}
-                placeholder="you@example.com"
-              />
-            ) : (
+          channel === "phone" ? (
+            <div className="space-y-4">
               <Field
                 label="Registered phone number"
                 name="phone"
@@ -219,25 +264,67 @@ export default function ForgotPassword() {
                 placeholder="10-digit mobile"
                 maxLength={10}
               />
-            )}
-
-            <button
-              type="submit"
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => {
+                  if (validateIdentifier()) setStep(2);
+                }}
+                className="w-full bg-[#290c52] text-white rounded-lg py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-50"
+              >
+                Continue
+              </button>
+            </div>
+          ) : (
+            <form className="space-y-5" onSubmit={sendEmailOtp}>
+              <Field
+                label="Registered email"
+                name="email"
+                type="email"
+                value={email}
+                error={errors.email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrors((p) => ({ ...p, email: "" }));
+                }}
+                placeholder="you@example.com"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#290c52] text-white rounded-lg py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-50"
+              >
+                {loading ? "Sending…" : "Send OTP"}
+              </button>
+            </form>
+          )
+        ) : step === 2 && channel === "phone" ? (
+          <div className="space-y-4">
+            <FirebasePhoneAuth
+              phone={phone}
+              onPhoneChange={setPhone}
+              onVerified={handlePhoneVerified}
+              purpose="forgot_password"
               disabled={loading}
-              className="w-full bg-[#290c52] text-white rounded-lg py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-50"
+              showPhoneInput={false}
+              submitLabel="Verify OTP"
+            />
+            <button
+              type="button"
+              className="w-full text-sm text-[#290c52] underline"
+              onClick={() => {
+                setStep(1);
+                setMessage("");
+              }}
             >
-              {loading ? "Sending…" : "Send OTP"}
+              Change phone number
             </button>
-          </form>
-        ) : (
+          </div>
+        ) : step === 2 && channel === "email" ? (
           <form className="space-y-5" onSubmit={resetPassword}>
             <p className="text-xs text-gray-500 text-center">
-              OTP sent to{" "}
-              <span className="font-medium text-gray-800">
-                {channel === "email" ? email : phone}
-              </span>
+              OTP sent to <span className="font-medium text-gray-800">{email}</span>
             </p>
-
             <Field
               label="OTP"
               name="otp"
@@ -252,7 +339,6 @@ export default function ForgotPassword() {
               placeholder="Enter OTP"
               maxLength={8}
             />
-
             <PasswordField
               label="New password"
               name="newPassword"
@@ -265,7 +351,6 @@ export default function ForgotPassword() {
               show={showNewPassword}
               toggle={() => setShowNewPassword((p) => !p)}
             />
-
             <PasswordField
               label="Confirm password"
               name="confirmPassword"
@@ -278,7 +363,6 @@ export default function ForgotPassword() {
               show={showConfirmPassword}
               toggle={() => setShowConfirmPassword((p) => !p)}
             />
-
             <button
               type="submit"
               disabled={loading}
@@ -286,28 +370,51 @@ export default function ForgotPassword() {
             >
               {loading ? "Updating…" : "Reset Password"}
             </button>
-
-            <div className="flex justify-between text-sm">
-              <button
-                type="button"
-                className="text-[#290c52] underline"
-                onClick={() => {
-                  setStep(1);
-                  setOtp("");
-                  setMessage("");
-                }}
-              >
-                Change {channel === "email" ? "email" : "phone"}
-              </button>
-              <button
-                type="button"
-                className="text-[#290c52] underline disabled:opacity-50"
-                disabled={loading}
-                onClick={sendOtp}
-              >
-                Resend OTP
-              </button>
-            </div>
+            <button
+              type="button"
+              className="text-sm text-[#290c52] underline"
+              onClick={() => {
+                setStep(1);
+                setOtp("");
+                setMessage("");
+              }}
+            >
+              Change email
+            </button>
+          </form>
+        ) : (
+          <form className="space-y-5" onSubmit={resetPassword}>
+            <PasswordField
+              label="New password"
+              name="newPassword"
+              value={newPassword}
+              error={errors.newPassword}
+              onChange={(e) => {
+                setNewPassword(e.target.value);
+                setErrors((p) => ({ ...p, newPassword: "" }));
+              }}
+              show={showNewPassword}
+              toggle={() => setShowNewPassword((p) => !p)}
+            />
+            <PasswordField
+              label="Confirm password"
+              name="confirmPassword"
+              value={confirmPassword}
+              error={errors.confirmPassword}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                setErrors((p) => ({ ...p, confirmPassword: "" }));
+              }}
+              show={showConfirmPassword}
+              toggle={() => setShowConfirmPassword((p) => !p)}
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#290c52] text-white rounded-lg py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-50"
+            >
+              {loading ? "Updating…" : "Reset Password"}
+            </button>
           </form>
         )}
 

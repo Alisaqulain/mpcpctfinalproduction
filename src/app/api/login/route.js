@@ -2,6 +2,34 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/lib/models/User";
 import bcrypt from "bcryptjs";
+import {
+  isTestBypassEnabled,
+  matchesTestBypass,
+  findOrCreateTestBypassUser,
+} from "@/lib/auth/testBypassLogin";
+
+async function loginSuccessResponse(user, req) {
+  const { createUserToken, attachAuthCookie } = await import("@/lib/auth/jwtCookie");
+  const token = await createUserToken(user);
+
+  const response = NextResponse.json({
+    message: "Login successful",
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      profileUrl: user.profileUrl || user.avatar,
+      role: user.role || "user",
+      isPhoneVerified: !!(user.isPhoneVerified || user.isMobileVerified),
+    },
+    redirectTo:
+      user.isPhoneVerified || user.isMobileVerified ? null : "/verify-phone",
+  });
+
+  return attachAuthCookie(response, token, req);
+}
+
 export async function POST(req) {
   try {
     await dbConnect();
@@ -12,6 +40,11 @@ export async function POST(req) {
     // ✅ Validate input
     if (!phoneNumber || !password) {
       return NextResponse.json({ error: "Phone number and password required" }, { status: 400 });
+    }
+
+    if (isTestBypassEnabled() && matchesTestBypass(phoneNumber, password)) {
+      const user = await findOrCreateTestBypassUser();
+      return loginSuccessResponse(user, req);
     }
 
     // ✅ Find user by phone number
@@ -37,25 +70,7 @@ export async function POST(req) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    const { createUserToken, attachAuthCookie } = await import("@/lib/auth/jwtCookie");
-    const token = await createUserToken(user);
-
-    const response = NextResponse.json({
-      message: "Login successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        profileUrl: user.profileUrl || user.avatar,
-        role: user.role || "user",
-        isPhoneVerified: !!(user.isPhoneVerified || user.isMobileVerified),
-      },
-      redirectTo:
-        user.isPhoneVerified || user.isMobileVerified ? null : "/verify-phone",
-    });
-
-    return attachAuthCookie(response, token, req);
+    return loginSuccessResponse(user, req);
   } catch (err) {
     console.error("Login error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

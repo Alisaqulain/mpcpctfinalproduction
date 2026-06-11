@@ -6,7 +6,7 @@ export async function createUserToken(user) {
     userId: user._id.toString(),
     phoneNumber: user.phoneNumber || "",
     role: user.role || "user",
-    isPhoneVerified: !!user.isPhoneVerified,
+    isPhoneVerified: !!(user.isPhoneVerified || user.isMobileVerified),
   })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("7d")
