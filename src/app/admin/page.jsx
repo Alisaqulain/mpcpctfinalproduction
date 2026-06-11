@@ -333,12 +333,20 @@ export default function AdminPanel() {
     setSaving(true);
     try {
       const method = editingExam ? 'PUT' : 'POST';
+      const { buildPassingRulesPayload } = await import("@/lib/examPassingCriteria");
+      const passingRules = buildPassingRulesPayload(formData);
       const body = {
         title: formData.title, 
         key: formData.key, 
         totalTime: parseInt(formData.totalTime) || 75, 
         totalQuestions: parseInt(formData.totalQuestions) || 75,
-        isFree: formData.isFree === true || formData.isFree === 'true'
+        isFree: formData.isFree === true || formData.isFree === 'true',
+        passingMarks: formData.overallPassingMarks !== "" && formData.overallPassingMarks != null
+          ? Number(formData.overallPassingMarks)
+          : formData.mcqPassingMarks !== "" && formData.mcqPassingMarks != null
+          ? Number(formData.mcqPassingMarks)
+          : undefined,
+        passingRules,
       };
       if (editingExam) {
         body._id = editingExam._id;
@@ -5095,23 +5103,49 @@ function UsersAdmin() {
 // Form Modal Components
 function ExamFormModal({ exam, examTypes = [], hierarchyLabel = "", defaultExamKey = "CPCT", onSave, onClose, saving, onOpenAddExamType }) {
   const defaultKey = examTypes.length > 0 ? (examTypes.find((t) => !t.isTopicWise)?.key || examTypes[0].key) : defaultExamKey;
+  const rules = exam?.passingRules && typeof exam.passingRules === "object" ? exam.passingRules : {};
   const [formData, setFormData] = useState({
     title: exam?.title || '',
     key: exam?.key || defaultKey,
     totalTime: exam?.totalTime || 75,
     totalQuestions: exam?.totalQuestions || 75,
-    isFree: exam?.isFree !== undefined ? exam.isFree : false
+    isFree: exam?.isFree !== undefined ? exam.isFree : false,
+    mcqPassingMarks: rules.mcqPassingMarks ?? rules.mcqMin ?? exam?.passingMarks ?? 38,
+    englishTypingPassingNWPM: rules.englishTypingPassingNWPM ?? rules.englishNwpm ?? 30,
+    hindiTypingPassingNWPM: rules.hindiTypingPassingNWPM ?? rules.hindiNwpm ?? 20,
+    englishTypingPassingPercent: rules.englishTypingPassingPercent ?? 50,
+    hindiTypingPassingPercent: rules.hindiTypingPassingPercent ?? 50,
+    overallPassingMarks: rules.overallPassingMarks ?? exam?.passingMarks ?? "",
+    overallPassRule: rules.overallPassRule || "all_sections",
+    resultPublicationDate: rules.resultPublicationDate || "",
+    customCriteriaText: rules.customCriteriaText || "",
+    sectionAMinMarks: rules.sectionAMinMarks ?? 12,
+    sectionBMinMarks: rules.sectionBMinMarks ?? 28,
+    passingPercent: rules.passingPercent ?? 50,
   });
 
   useEffect(() => {
     const keyDefault = examTypes.length > 0 ? (examTypes.find((t) => !t.isTopicWise)?.key || examTypes[0].key) : defaultExamKey;
+    const r = exam?.passingRules && typeof exam.passingRules === "object" ? exam.passingRules : {};
     if (exam) {
       setFormData({
         title: exam.title || '',
         key: exam.key || keyDefault,
         totalTime: exam.totalTime || 75,
         totalQuestions: exam.totalQuestions || 75,
-        isFree: exam.isFree !== undefined ? exam.isFree : false
+        isFree: exam.isFree !== undefined ? exam.isFree : false,
+        mcqPassingMarks: r.mcqPassingMarks ?? r.mcqMin ?? exam.passingMarks ?? 38,
+        englishTypingPassingNWPM: r.englishTypingPassingNWPM ?? r.englishNwpm ?? 30,
+        hindiTypingPassingNWPM: r.hindiTypingPassingNWPM ?? r.hindiNwpm ?? 20,
+        englishTypingPassingPercent: r.englishTypingPassingPercent ?? 50,
+        hindiTypingPassingPercent: r.hindiTypingPassingPercent ?? 50,
+        overallPassingMarks: r.overallPassingMarks ?? exam.passingMarks ?? "",
+        overallPassRule: r.overallPassRule || "all_sections",
+        resultPublicationDate: r.resultPublicationDate || "",
+        customCriteriaText: r.customCriteriaText || "",
+        sectionAMinMarks: r.sectionAMinMarks ?? 12,
+        sectionBMinMarks: r.sectionBMinMarks ?? 28,
+        passingPercent: r.passingPercent ?? 50,
       });
     } else {
       setFormData({
@@ -5119,7 +5153,19 @@ function ExamFormModal({ exam, examTypes = [], hierarchyLabel = "", defaultExamK
         key: defaultExamKey || keyDefault,
         totalTime: 75,
         totalQuestions: 75,
-        isFree: false
+        isFree: false,
+        mcqPassingMarks: 38,
+        englishTypingPassingNWPM: 30,
+        hindiTypingPassingNWPM: 20,
+        englishTypingPassingPercent: 50,
+        hindiTypingPassingPercent: 50,
+        overallPassingMarks: "",
+        overallPassRule: "all_sections",
+        resultPublicationDate: "",
+        customCriteriaText: "",
+        sectionAMinMarks: 12,
+        sectionBMinMarks: 28,
+        passingPercent: 50,
       });
     }
   }, [exam, examTypes, defaultExamKey]);
@@ -5227,6 +5273,65 @@ function ExamFormModal({ exam, examTypes = [], hierarchyLabel = "", defaultExamK
                 ? '✓ This exam is free - all users can access it' 
                 : 'This exam requires a membership/subscription to access'}
             </p>
+          </div>
+          <div className="border-t pt-3 space-y-3">
+            <p className="text-sm font-semibold text-[#290c52]">Pass / Fail Criteria</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium mb-1">MCQ passing marks</label>
+                <input type="number" className="w-full border rounded px-2 py-1.5 text-sm" value={formData.mcqPassingMarks}
+                  onChange={(e) => setFormData({ ...formData, mcqPassingMarks: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Overall passing marks</label>
+                <input type="number" className="w-full border rounded px-2 py-1.5 text-sm" value={formData.overallPassingMarks}
+                  onChange={(e) => setFormData({ ...formData, overallPassingMarks: e.target.value })} placeholder="Optional" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">English typing NWPM</label>
+                <input type="number" className="w-full border rounded px-2 py-1.5 text-sm" value={formData.englishTypingPassingNWPM}
+                  onChange={(e) => setFormData({ ...formData, englishTypingPassingNWPM: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Hindi typing NWPM</label>
+                <input type="number" className="w-full border rounded px-2 py-1.5 text-sm" value={formData.hindiTypingPassingNWPM}
+                  onChange={(e) => setFormData({ ...formData, hindiTypingPassingNWPM: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">RSCIT Section A min</label>
+                <input type="number" className="w-full border rounded px-2 py-1.5 text-sm" value={formData.sectionAMinMarks}
+                  onChange={(e) => setFormData({ ...formData, sectionAMinMarks: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">RSCIT Section B min</label>
+                <input type="number" className="w-full border rounded px-2 py-1.5 text-sm" value={formData.sectionBMinMarks}
+                  onChange={(e) => setFormData({ ...formData, sectionBMinMarks: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">CCC / Topic % pass</label>
+                <input type="number" className="w-full border rounded px-2 py-1.5 text-sm" value={formData.passingPercent}
+                  onChange={(e) => setFormData({ ...formData, passingPercent: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Overall pass rule</label>
+                <select className="w-full border rounded px-2 py-1.5 text-sm" value={formData.overallPassRule}
+                  onChange={(e) => setFormData({ ...formData, overallPassRule: e.target.value })}>
+                  <option value="all_sections">All sections required</option>
+                  <option value="total_marks">Total marks only</option>
+                  <option value="both">All sections + total marks</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Result publication date</label>
+              <input type="date" className="w-full border rounded px-2 py-1.5 text-sm" value={formData.resultPublicationDate}
+                onChange={(e) => setFormData({ ...formData, resultPublicationDate: e.target.value })} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Custom criteria text (shown in View Criteria)</label>
+              <textarea className="w-full border rounded px-2 py-1.5 text-sm" rows={2} value={formData.customCriteriaText}
+                onChange={(e) => setFormData({ ...formData, customCriteriaText: e.target.value })} />
+            </div>
           </div>
           <div className="flex gap-3 pt-4">
             <button

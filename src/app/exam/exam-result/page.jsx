@@ -2,6 +2,11 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import jsPDF from "jspdf";
+import {
+  evaluateExamPassing,
+  buildCriteriaLines,
+  normalizePassingConfig,
+} from "@/lib/examPassingCriteria";
 
 function ExamResultContent() {
   const [userName, setUserName] = useState("User");
@@ -19,115 +24,20 @@ function ExamResultContent() {
   const [passingMarks, setPassingMarks] = useState(0);
   const [isPassed, setIsPassed] = useState(false);
   const [typingResults, setTypingResults] = useState([]);
+  const [showCriteriaModal, setShowCriteriaModal] = useState(false);
+  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+  const [criteriaLines, setCriteriaLines] = useState([]);
   const searchParams = useSearchParams();
   const router = useRouter();
   const currentSection = searchParams?.get("section") || null;
   
-  // Set default language to Hindi on mount
-  // For result page, always default to Hindi (user can change it if needed)
+  // Use the same language the user selected during the exam
   useEffect(() => {
-    // Check if viewLanguage was already set from exam mode
-    const savedViewLang = localStorage.getItem('viewLanguage');
-    if (savedViewLang === "हिन्दी") {
-      setViewLanguage("हिन्दी");
-    } else {
-      // Default to Hindi for result page
-      setViewLanguage("हिन्दी");
-      // Don't overwrite localStorage here - let user's choice persist if they change it
+    const savedViewLang = localStorage.getItem("viewLanguage");
+    if (savedViewLang === "English" || savedViewLang === "हिन्दी") {
+      setViewLanguage(savedViewLang);
     }
   }, []);
-  
-  // Function to calculate passing marks and pass/fail status
-  const calculatePassingStatus = (examKey, totalScore, totalMaxMarks, sectionStatsData) => {
-    let passingMarksValue = 0;
-    let isPassedValue = false;
-    const typingResultsData = [];
-    
-    if (examKey === 'RSCIT') {
-      // RSCIT: Section A: 15 questions × 2 marks = 30 marks (minimum 12 marks to proceed)
-      // Section B: 35 questions × 2 marks = 70 marks (minimum 28 marks to pass)
-      // Total: 50 questions × 2 marks = 100 marks
-      // Passing Criteria: Minimum 12 marks in Section A AND minimum 28 marks in Section B
-      const sectionA = sectionStatsData.find(s => s.sectionName === 'Section A');
-      const sectionB = sectionStatsData.find(s => s.sectionName === 'Section B');
-      const sectionAScore = sectionA ? (sectionA.score || 0) : 0;
-      const sectionBScore = sectionB ? (sectionB.score || 0) : 0;
-      
-      // Check both conditions
-      const sectionAPassed = sectionAScore >= 12;
-      const sectionBPassed = sectionBScore >= 28;
-      isPassedValue = sectionAPassed && sectionBPassed;
-      passingMarksValue = 40; // Display value (but actual criteria is 12+28)
-    } else if (examKey === 'CCC') {
-      // CCC: 50% of total marks
-      passingMarksValue = Math.ceil(totalMaxMarks * 0.5);
-      isPassedValue = totalScore >= passingMarksValue;
-    } else if (examKey === 'CPCT') {
-      // CPCT Passing Criteria:
-      // 1. MCQ Section: Minimum 38 marks out of 75 (50%)
-      // 2. English Typing: Minimum 30 NWPM (50% score)
-      // 3. Hindi Typing: Minimum 20 NWPM (50% score)
-      // ALL THREE must be passed - if any one fails, CPCT is NOT qualified
-      const mcqPassingMarks = 38; // 50% of 75 marks
-      const mcqSection = sectionStatsData.find(s => s.sectionName === 'Section A');
-      const mcqScore = mcqSection ? (mcqSection.score || 0) : 0;
-      const mcqPassed = mcqScore >= mcqPassingMarks;
-      
-      // Check typing sections - get from localStorage
-      const englishTypingResult = localStorage.getItem('englishTypingResult');
-      const hindiTypingResult = localStorage.getItem('hindiTypingResult');
-      
-      let englishPassed = false;
-      let hindiPassed = false;
-      
-      if (englishTypingResult) {
-        try {
-          const result = JSON.parse(englishTypingResult);
-          const netSpeed = result.netSpeed || 0;
-          englishPassed = netSpeed >= 30; // 30 NWPM required (50% score)
-          typingResultsData.push({
-            sectionName: 'Section B',
-            language: 'English',
-            netSpeed: netSpeed,
-            passingSpeed: 30,
-            isPassed: englishPassed
-          });
-        } catch (e) {
-          console.error('Error parsing English typing result:', e);
-        }
-      }
-      
-      if (hindiTypingResult) {
-        try {
-          const result = JSON.parse(hindiTypingResult);
-          const netSpeed = result.netSpeed || 0;
-          hindiPassed = netSpeed >= 20; // 20 NWPM required (50% score)
-          typingResultsData.push({
-            sectionName: 'Section C',
-            language: 'Hindi',
-            netSpeed: netSpeed,
-            passingSpeed: 20,
-            isPassed: hindiPassed
-          });
-        } catch (e) {
-          console.error('Error parsing Hindi typing result:', e);
-        }
-      }
-      
-      // CPCT overall pass: MCQ passed AND both typing sections passed
-      // If any one fails, CPCT is NOT qualified
-      // Both typing results must exist (length === 2) AND both must pass
-      const allTypingPassed = typingResultsData.length === 2 && typingResultsData.every(tr => tr.isPassed);
-      isPassedValue = mcqPassed && allTypingPassed;
-      passingMarksValue = mcqPassingMarks;
-    } else {
-      // Default: 50% passing
-      passingMarksValue = Math.ceil(totalMaxMarks * 0.5);
-      isPassedValue = totalScore >= passingMarksValue;
-    }
-    
-    return { passingMarksValue, isPassedValue, typingResultsData };
-  };
 
   useEffect(() => {
     const loadResultData = async () => {
@@ -167,6 +77,17 @@ function ExamResultContent() {
             if (userData.name) {
               setUserName(userData.name);
             }
+            const profile =
+              userData.profileImage ||
+              userData.avatar ||
+              userData.uploadedProfileImage ||
+              userData.photoURL ||
+              userData.profileUrl ||
+              userData.profilePicture ||
+              userData.image;
+            if (profile && String(profile).trim()) {
+              setUserProfileUrl(String(profile).trim());
+            }
           } catch (error) {
             console.error('Error parsing user data:', error);
           }
@@ -204,14 +125,6 @@ function ExamResultContent() {
           }
         }
 
-        // View language is already set in the separate useEffect above
-        // Just ensure it's saved if not already set
-        const savedViewLang = localStorage.getItem('viewLanguage');
-        if (!savedViewLang) {
-          setViewLanguage("हिन्दी");
-          localStorage.setItem('viewLanguage', "हिन्दी");
-        }
-
         // Fetch exam data
         const apiUrl = topicId 
           ? `/api/exam-questions?topicId=${topicId}`
@@ -221,6 +134,7 @@ function ExamResultContent() {
           const data = await res.json();
           if (data.success && data.data) {
             setExamData(data.data.exam);
+            setCriteriaLines(buildCriteriaLines(data.data.exam));
             setSections(data.data.sections || []);
             
             // Organize questions by section
@@ -386,28 +300,16 @@ function ExamResultContent() {
                 
                 // Get section's minimum marks requirement
                 const currentSectionData = data.data.sections.find(s => s.name === currentSection);
-                const examKey = data.data.exam?.key || '';
+                const cfg = normalizePassingConfig(data.data.exam);
                 let sectionPassingMarks = 0;
-                
-                // RSCIT has specific passing criteria per section
-                if (examKey === 'RSCIT') {
-                  if (currentSection === 'Section A') {
-                    sectionPassingMarks = 12; // Section A requires minimum 12 marks
-                  } else if (currentSection === 'Section B') {
-                    sectionPassingMarks = 28; // Section B requires minimum 28 marks
-                  } else {
-                    // Fallback to section data or default
-                    sectionPassingMarks = currentSectionData?.minimumMarks || Math.ceil(sectionMaxMarks * 0.5);
-                  }
+                if (cfg.examKey === "RSCIT") {
+                  if (currentSection === "Section A") sectionPassingMarks = cfg.sectionAMinMarks;
+                  else if (currentSection === "Section B") sectionPassingMarks = cfg.sectionBMinMarks;
+                  else sectionPassingMarks = currentSectionData?.minimumMarks || Math.ceil(sectionMaxMarks * (cfg.passingPercent / 100));
                 } else if (currentSectionData?.minimumMarks) {
                   sectionPassingMarks = currentSectionData.minimumMarks;
                 } else {
-                  // Default: 50% for topic-wise exams, or use exam-specific logic
-                  if (examKey === 'TOPICWISE') {
-                    sectionPassingMarks = Math.ceil(sectionMaxMarks * 0.5); // 50% for topic-wise
-                  } else {
-                    sectionPassingMarks = Math.ceil(sectionMaxMarks * 0.5); // Default 50%
-                  }
+                  sectionPassingMarks = cfg.overallPassingMarks ?? Math.ceil(sectionMaxMarks * (cfg.passingPercent / 100));
                 }
                 
                 setPassingMarks(sectionPassingMarks);
@@ -420,10 +322,10 @@ function ExamResultContent() {
                 const sectionQuestions = questionsBySection[s.sectionName] || [];
                 return sum + sectionQuestions.reduce((qSum, q) => qSum + (q.marks || 1), 0);
               }, 0);
-              const examKey = data.data.exam?.key || '';
-              const { passingMarksValue, isPassedValue } = calculatePassingStatus(examKey, totalScore, totalMaxMarks, stats);
-              setPassingMarks(passingMarksValue);
-              setIsPassed(isPassedValue);
+              const evalResult = evaluateExamPassing(data.data.exam, stats, totalMaxMarks);
+              setPassingMarks(evalResult.passingMarksValue);
+              setIsPassed(evalResult.isPassedValue);
+              setTypingResults(evalResult.typingResults);
             }
           }
         }
@@ -468,102 +370,10 @@ function ExamResultContent() {
       const totalQuestions = sectionStats.reduce((sum, stat) => sum + stat.totalQuestions, 0);
       const percentage = totalMaxMarks > 0 ? Math.round((totalScore / totalMaxMarks) * 100) : 0;
       
-      // Calculate passing marks and pass/fail status based on exam type
-      const examKey = examData?.key || '';
-      let passingMarks = 0;
-      let isPassed = false;
-      const typingResults = [];
-      
-      if (examKey === 'RSCIT') {
-        // RSCIT: Section A: minimum 12 marks AND Section B: minimum 28 marks
-        // Both conditions must be met to pass
-        const sectionA = sectionStats.find(s => s.sectionName === 'Section A');
-        const sectionB = sectionStats.find(s => s.sectionName === 'Section B');
-        const sectionAScore = sectionA ? (sectionA.score || 0) : 0;
-        const sectionBScore = sectionB ? (sectionB.score || 0) : 0;
-        
-        const sectionAPassed = sectionAScore >= 12;
-        const sectionBPassed = sectionBScore >= 28;
-        isPassed = sectionAPassed && sectionBPassed;
-        passingMarks = 40; // Display value (but actual criteria is 12+28)
-      } else if (examKey === 'CCC') {
-        // CCC: 50% of total marks
-        passingMarks = Math.ceil(totalMaxMarks * 0.5);
-        isPassed = totalScore >= passingMarks;
-      } else if (examKey === 'CPCT') {
-        // CPCT Passing Criteria:
-        // 1. MCQ Section: Minimum 38 marks out of 75 (50%)
-        // 2. English Typing: Minimum 30 NWPM (50% score)
-        // 3. Hindi Typing: Minimum 20 NWPM (50% score)
-        // ALL THREE must be passed - if any one fails, CPCT is NOT qualified
-        const mcqPassingMarks = 38; // 50% of 75 marks
-        const mcqSection = sectionStats.find(s => s.sectionName === 'Section A');
-        const mcqScore = mcqSection ? mcqSection.score : 0;
-        const mcqPassed = mcqScore >= mcqPassingMarks;
-        
-        // Check typing sections
-        const englishTypingSection = sectionStats.find(s => s.sectionName === 'Section B' || s.sectionName === 'English Typing');
-        const hindiTypingSection = sectionStats.find(s => s.sectionName === 'Section C' || s.sectionName === 'Hindi Typing');
-        
-        // Get typing results from localStorage
-        if (englishTypingSection) {
-          const englishTypingResult = localStorage.getItem('englishTypingResult');
-          let englishNetSpeed = 0;
-          let englishPassed = false;
-          
-          if (englishTypingResult) {
-            try {
-              const result = JSON.parse(englishTypingResult);
-              englishNetSpeed = result.netSpeed || 0;
-              englishPassed = englishNetSpeed >= 30; // 30 NWPM required (50% score)
-            } catch (e) {
-              console.error('Error parsing English typing result:', e);
-            }
-          }
-          
-          typingResults.push({
-            sectionName: 'Section B',
-            language: 'English',
-            netSpeed: englishNetSpeed,
-            passingSpeed: 30,
-            isPassed: englishPassed
-          });
-        }
-        
-        if (hindiTypingSection) {
-          const hindiTypingResult = localStorage.getItem('hindiTypingResult');
-          let hindiNetSpeed = 0;
-          let hindiPassed = false;
-          
-          if (hindiTypingResult) {
-            try {
-              const result = JSON.parse(hindiTypingResult);
-              hindiNetSpeed = result.netSpeed || 0;
-              hindiPassed = hindiNetSpeed >= 20; // 20 NWPM required (50% score)
-            } catch (e) {
-              console.error('Error parsing Hindi typing result:', e);
-            }
-          }
-          
-          typingResults.push({
-            sectionName: 'Section C',
-            language: 'Hindi',
-            netSpeed: hindiNetSpeed,
-            passingSpeed: 20,
-            isPassed: hindiPassed
-          });
-        }
-        
-        // CPCT overall pass: MCQ passed AND both typing sections passed
-        // If any one fails, CPCT is NOT qualified
-        const allTypingPassed = typingResults.length === 2 && typingResults.every(tr => tr.isPassed);
-        isPassed = mcqPassed && allTypingPassed;
-        passingMarks = mcqPassingMarks; // Store MCQ passing marks
-      } else {
-        // Default: 50% passing
-        passingMarks = Math.ceil(totalMaxMarks * 0.5);
-        isPassed = totalScore >= passingMarks;
-      }
+      const evalResult = evaluateExamPassing(examData, sectionStats, totalMaxMarks);
+      const passingMarks = evalResult.passingMarksValue;
+      const isPassed = evalResult.isPassedValue;
+      const typingResults = evalResult.typingResults;
       
       // Save result to database
       const resultData = {
@@ -703,25 +513,38 @@ function ExamResultContent() {
     );
   }
 
+  const displayScore = currentSection
+    ? (sectionStats.find((s) => s.sectionName === currentSection)?.score || 0)
+    : sectionStats.reduce((sum, s) => sum + (s.score || 0), 0);
+  const displayMaxMarks = currentSection
+    ? (questions[currentSection] || []).reduce((sum, q) => sum + (q.marks || 1), 0)
+    : sectionStats.reduce((sum, s) => {
+        const sectionQuestions = questions[s.sectionName] || [];
+        return sum + sectionQuestions.reduce((qSum, q) => qSum + (q.marks || 1), 0);
+      }, 0);
+  const displayPercentage =
+    displayMaxMarks > 0 ? ((displayScore / displayMaxMarks) * 100).toFixed(2) : "0.00";
   return (
     <div className="min-h-screen bg-white text-sm">
-      {/* Header */}
-      <div className="bg-[#290c52] text-yellow-400 p-2 text-lg font-bold">
-        MPCPCT 2025
+      {/* Header with profile */}
+      <div className="bg-[#290c52] text-white px-3 py-2 flex items-center justify-between gap-2 border-b border-[#1a0835]">
+        <span className="text-yellow-400 text-base sm:text-lg font-bold whitespace-nowrap">MPCPCT 2025</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <img
+            src={userProfileUrl}
+            alt={userName}
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/80 object-cover flex-shrink-0"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = "/lo.jpg";
+            }}
+          />
+          <span className="text-sm font-semibold truncate max-w-[10rem] sm:max-w-none">{userName}</span>
+        </div>
       </div>
 
-      {/* Title */}
-      <div className="text-center font-semibold py-4 text-gray-800 text-base border-b border-gray-300">
-        <img
-          src="/lo.jpg"
-          alt="avatar"
-          className="w-20 h-20 rounded-full mx-auto"
-        />
-        <p className="mt-2">{userName}</p>
-      </div>
-
-      <h1 className="text-center text-2xl font-semibold my-5">
-        {currentSection ? `Section Summary: ${currentSection}` : 'Exam Summary'}
+      <h1 className="text-center text-xl sm:text-2xl font-semibold my-3 px-2">
+        {currentSection ? `Section Summary: ${currentSection}` : "Exam Summary"}
       </h1>
       
       {/* Download PDF Button and View Official Result - Only show for full exam summary */}
@@ -808,176 +631,81 @@ function ExamResultContent() {
                 </tr>
               )}
               {sectionStats.length > 0 && !currentSection && (
-                <>
-                  <tr className="bg-gray-100 font-bold">
-                    <td className="border p-2 text-left">Total</td>
-                    <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.totalQuestions, 0)}</td>
-                    <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.answered, 0)}</td>
-                    <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.notAnswered, 0)}</td>
-                    <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.markedForReview, 0)}</td>
-                    <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.answeredAndMarked, 0)}</td>
-                    <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.notVisited, 0)}</td>
-                    <td className="border p-2 text-green-600">{sectionStats.reduce((sum, s) => sum + s.correct, 0)}</td>
-                    <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.score, 0)}</td>
-                  </tr>
-                  <tr className={`font-bold ${isPassed ? 'bg-green-50 border-2 border-green-500' : 'bg-red-50 border-2 border-red-500'}`}>
-                    <td colSpan="8" className="border p-2 text-left">
-                      <span className="font-semibold">Passing Marks: {passingMarks}</span>
-                    </td>
-                    <td className={`border p-2 font-bold text-2xl ${isPassed ? 'text-green-700' : 'text-red-700'}`}>
-                      {isPassed ? '✅ PASSED' : '❌ FAILED'}
-                    </td>
-                  </tr>
-                </>
+                <tr className="bg-gray-100 font-bold">
+                  <td className="border p-2 text-left">Total</td>
+                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.totalQuestions, 0)}</td>
+                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.answered, 0)}</td>
+                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.notAnswered, 0)}</td>
+                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.markedForReview, 0)}</td>
+                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.answeredAndMarked, 0)}</td>
+                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.notVisited, 0)}</td>
+                  <td className="border p-2 text-green-600">{sectionStats.reduce((sum, s) => sum + s.correct, 0)}</td>
+                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.score, 0)}</td>
+                </tr>
               )}
             </tbody>
           </table>
         </div>
         
-        {/* Passing Marks and Result Status - Show for both section-specific and full exam views */}
+        {/* Score summary box */}
         {sectionStats.length > 0 && (
-          <div className="mt-6">
-            {/* Prominent Pass/Fail Display - Similar to Topic-Wise MCQ */}
-            {(() => {
-              // Calculate score and max marks based on view type
-              let displayScore = 0;
-              let displayMaxMarks = 0;
-              
-              if (currentSection) {
-                // Section-specific view
-                const currentSectionStat = sectionStats.find(s => s.sectionName === currentSection);
-                if (currentSectionStat) {
-                  displayScore = currentSectionStat.score || 0;
-                  const sectionQuestions = questions[currentSection] || [];
-                  displayMaxMarks = sectionQuestions.reduce((sum, q) => sum + (q.marks || 1), 0);
-                }
-              } else {
-                // Full exam view
-                displayScore = sectionStats.reduce((sum, s) => sum + (s.score || 0), 0);
-                displayMaxMarks = sectionStats.reduce((sum, s) => {
-                  const sectionQuestions = questions[s.sectionName] || [];
-                  return sum + sectionQuestions.reduce((qSum, q) => qSum + (q.marks || 1), 0);
-                }, 0);
-              }
-              
-              const percentage = displayMaxMarks > 0 ? ((displayScore / displayMaxMarks) * 100).toFixed(2) : 0;
-              
-              return (
-                <>
-                  <div className={`p-6 rounded-lg mb-6 ${isPassed ? 'bg-green-50 border-2 border-green-500' : 'bg-red-50 border-2 border-red-500'}`}>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold mb-2">
-                        Score: {displayScore} / {displayMaxMarks}
-                      </p>
-                      <p className="text-xl mb-2">
-                        Percentage: {percentage}%
-                      </p>
-                      <p className="text-lg font-semibold mb-2">
-                        Passing Marks: {passingMarks}
-                      </p>
-                      <p className={`text-3xl font-bold mt-4 ${isPassed ? 'text-green-700' : 'text-red-700'}`}>
-                        {isPassed ? "✅ PASSED" : "❌ FAILED"}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg border-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className={`p-4 rounded-lg ${isPassed ? 'bg-green-50 border-green-300 border-2' : 'bg-red-50 border-red-300 border-2'}`}>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-gray-600">Passing Marks</p>
-                            <p className="text-2xl font-bold">{passingMarks}</p>
-                          </div>
-                          <div className="text-4xl">
-                            {isPassed ? '✅' : '❌'}
-                          </div>
-                        </div>
-                        <p className={`text-lg font-semibold mt-2 ${isPassed ? 'text-green-700' : 'text-red-700'}`}>
-                          {isPassed ? 'PASSED' : 'FAILED'}
-                        </p>
-                      </div>
-                      
-                      <div className="p-4 rounded-lg bg-blue-50 border-blue-300 border-2">
-                        <div>
-                          <p className="text-sm text-gray-600">Your Score</p>
-                          <p className="text-2xl font-bold">
-                            {displayScore} / {displayMaxMarks}
-                          </p>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-2">
-                          {displayScore >= passingMarks 
-                            ? 'You have passed!' 
-                            : `You need ${passingMarks - displayScore} more marks to pass.`}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              );
-            })()}
-            
-            {/* CPCT Typing Results */}
-            {examData?.key === 'CPCT' && (
-              <div className="mt-4 p-4 rounded-lg bg-gray-50 border border-gray-300">
-                <h3 className="font-semibold mb-3">CPCT Passing Criteria:</h3>
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-                  <p className="text-sm font-semibold mb-2">⚠️ Important:</p>
-                  <p className="text-sm text-gray-700">
-                    MCQ + English Typing + Hindi Typing → all must be passed. If you fail in any one, CPCT is considered NOT qualified.
-                  </p>
-                </div>
-                
-                {/* MCQ Section Result */}
-                {(() => {
-                  const mcqSection = sectionStats.find(s => s.sectionName === 'Section A');
-                  const mcqScore = mcqSection ? (mcqSection.score || 0) : 0;
-                  const mcqPassed = mcqScore >= 38;
-                  return (
-                    <div className={`p-3 rounded mb-2 ${mcqPassed ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border`}>
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">✅ MCQ (Computer Proficiency Test)</span>
-                        <span className={mcqPassed ? 'text-green-700 font-bold' : 'text-red-700 font-bold'}>
-                          {mcqPassed ? 'PASSED' : 'FAILED'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Score: {mcqScore} / 75 marks (Total MCQ marks: 75, Each MCQ: 1 mark, Required: 38 marks minimum - 50%)
-                      </p>
-                    </div>
-                  );
-                })()}
-                
-                {/* Typing Results */}
-                {typingResults.length > 0 && (
-                  <div className="space-y-2">
-                    {typingResults.map((tr, idx) => {
-                      // Get full typing result from localStorage to access errors
-                      const typingResultKey = tr.language === 'English' ? 'englishTypingResult' : 'hindiTypingResult';
+          <div className="mt-4">
+            <div
+              className={`p-4 sm:p-5 rounded-lg mb-3 ${
+                isPassed ? "bg-green-50 border-2 border-green-500" : "bg-red-50 border-2 border-red-500"
+              }`}
+            >
+              <div className="text-center space-y-1">
+                <p className="text-lg sm:text-xl font-bold">
+                  Score: {displayScore} / {displayMaxMarks}
+                </p>
+                <p className="text-base sm:text-lg">Percentage: {displayPercentage}%</p>
+                <p className="text-sm sm:text-base font-semibold">
+                  Passing Marks: {passingMarks}
+                </p>
+                <p className={`text-2xl sm:text-3xl font-bold pt-1 ${isPassed ? "text-green-700" : "text-red-700"}`}>
+                  {isPassed ? "PASSED" : "FAILED"}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowCriteriaModal(true)}
+              className="w-full sm:w-auto bg-[#290c52] hover:bg-[#3d1570] text-white px-5 py-2 rounded-lg font-semibold text-sm mb-4"
+            >
+              View Criteria
+            </button>
+
+            {/* CPCT typing results (compact) */}
+            {examData?.key === "CPCT" && typingResults.length > 0 && (
+              <div className="space-y-2 mb-2">
+                {typingResults.map((tr, idx) => {
+                      const typingResultKey = tr.language === "English" ? "englishTypingResult" : "hindiTypingResult";
                       const fullTypingResult = localStorage.getItem(typingResultKey);
-                      let errors = [];
-                      let remarks = '';
+                      let errors = tr.errors || [];
+                      let remarks = tr.remarks || "";
                       
-                      if (fullTypingResult) {
+                      if (fullTypingResult && errors.length === 0) {
                         try {
                           const result = JSON.parse(fullTypingResult);
                           errors = result.errors || [];
-                          remarks = result.remarks || '';
+                          remarks = result.remarks || remarks;
                         } catch (e) {
-                          console.error('Error parsing typing result:', e);
+                          console.error("Error parsing typing result:", e);
                         }
                       }
                       
                       return (
-                        <div key={idx} className={`p-3 rounded ${tr.isPassed ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium">⌨️ {tr.sectionName} ({tr.language} Typing)</span>
-                            <span className={tr.isPassed ? 'text-green-700 font-bold' : 'text-red-700 font-bold'}>
-                              {tr.isPassed ? 'PASSED' : 'FAILED'}
+                        <div key={idx} className={`p-3 rounded ${tr.isPassed ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"} border`}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-sm">{tr.sectionName} ({tr.language})</span>
+                            <span className={tr.isPassed ? "text-green-700 font-bold" : "text-red-700 font-bold"}>
+                              {tr.isPassed ? "PASSED" : "FAILED"}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">
-                            Speed: {tr.netSpeed} NWPM (Required: {tr.passingSpeed} NWPM minimum - 50% score)
+                          <p className="text-xs text-gray-600">
+                            Speed: {tr.netSpeed} NWPM (Required: {tr.passingSpeed} NWPM)
                           </p>
                           {remarks && (
                             <p className="text-sm mb-2">
@@ -1024,22 +752,58 @@ function ExamResultContent() {
                           )}
                         </div>
                       );
-                    })}
-                  </div>
-                )}
-                
-                {typingResults.length === 0 && (
-                  <div className="p-3 rounded bg-yellow-50 border border-yellow-200">
-                    <p className="text-sm text-gray-600">
-                      Typing sections not yet completed. Complete all sections to see final result.
-                    </p>
-                  </div>
-                )}
+                })}
               </div>
             )}
           </div>
         )}
       </div>
+
+      {/* View Criteria modal */}
+      {showCriteriaModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setShowCriteriaModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-lg font-bold text-[#290c52]">Qualifying Criteria</h3>
+              <button
+                type="button"
+                onClick={() => setShowCriteriaModal(false)}
+                className="text-gray-500 hover:text-gray-800 text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <ul className="list-disc pl-5 space-y-2 text-sm text-gray-800">
+              {criteriaLines.map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
+            {examData?.key === "CPCT" && typingResults.length > 0 && (
+              <div className="mt-4 space-y-2 border-t pt-3">
+                <p className="font-semibold text-sm">Your section results:</p>
+                {typingResults.map((tr, idx) => (
+                  <p key={idx} className={`text-sm ${tr.isPassed ? "text-green-700" : "text-red-700"}`}>
+                    {tr.language} Typing: {tr.netSpeed} NWPM — {tr.isPassed ? "Passed" : "Failed"} (min {tr.passingSpeed} NWPM)
+                  </p>
+                ))}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowCriteriaModal(false)}
+              className="mt-4 w-full bg-[#290c52] text-white py-2 rounded-lg font-semibold"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Dialog - Show if section is specified (no answers shown for section results) */}
       {currentSection ? (

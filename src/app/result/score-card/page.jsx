@@ -1,6 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import jsPDF from "jspdf";
+import Link from "next/link";
+import {
+  normalizePassingConfig,
+  formatPublicationDate,
+} from "@/lib/examPassingCriteria";
 
 export default function CpctScoreCard() {
   const [userName, setUserName] = useState("User");
@@ -14,6 +19,9 @@ export default function CpctScoreCard() {
   const [hindiPassed, setHindiPassed] = useState(false);
   const [mcqPassed, setMcqPassed] = useState(false);
   const [isPassed, setIsPassed] = useState(false);
+  const [passConfig, setPassConfig] = useState(null);
+  const [publicationDate, setPublicationDate] = useState("");
+  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
 
   useEffect(() => {
     const loadResultData = async () => {
@@ -33,7 +41,9 @@ export default function CpctScoreCard() {
               if (mcqSection) {
                 setMcqScore(mcqSection.score || 0);
                 setMcqMax(mcqSection.totalQuestions * 1 || 75);
-                setMcqPassed((mcqSection.score || 0) >= 38);
+                const cfg = normalizePassingConfig({ key: "CPCT" });
+                setPassConfig(cfg);
+                setMcqPassed((mcqSection.score || 0) >= cfg.mcqPassingMarks);
               }
             }
             
@@ -47,17 +57,26 @@ export default function CpctScoreCard() {
         }
 
         // Load user data
-        const userDataStr = localStorage.getItem('examUserData');
+        const userDataStr = localStorage.getItem("examUserData");
         if (userDataStr) {
           try {
             const userData = JSON.parse(userDataStr);
-            if (userData.name) {
-              setUserName(userData.name);
-            }
+            if (userData.name) setUserName(userData.name);
+            const profile =
+              userData.profileImage ||
+              userData.avatar ||
+              userData.uploadedProfileImage ||
+              userData.photoURL ||
+              userData.profileUrl ||
+              userData.profilePicture ||
+              userData.image;
+            if (profile && String(profile).trim()) setUserProfileUrl(String(profile).trim());
           } catch (error) {
-            console.error('Error parsing user data:', error);
+            console.error("Error parsing user data:", error);
           }
         }
+
+        let config = normalizePassingConfig({ key: "CPCT" });
 
         // Load MCQ exam data
         const examId = localStorage.getItem('currentExamId');
@@ -65,8 +84,11 @@ export default function CpctScoreCard() {
           const res = await fetch(`/api/exam-questions?examId=${examId}`);
           if (res.ok) {
             const data = await res.json();
-            if (data.success && data.data && data.data.exam?.key === 'CPCT') {
+            if (data.success && data.data && data.data.exam?.key === "CPCT") {
               setExamData(data.data.exam);
+              config = normalizePassingConfig(data.data.exam);
+              setPassConfig(config);
+              setPublicationDate(formatPublicationDate(config.resultPublicationDate));
               
               // Load answers
               const answersStr = localStorage.getItem('examAnswers');
@@ -108,40 +130,35 @@ export default function CpctScoreCard() {
 
                 setMcqMax(mcqMaximum || 75);
                 setMcqScore(mcqObtained);
-                setMcqPassed(mcqObtained >= 38);
+                setMcqPassed(mcqObtained >= config.mcqPassingMarks);
               }
             }
           }
         }
 
-        // Load English Typing Result
-        const englishTypingResultStr = localStorage.getItem('englishTypingResult');
+        const englishTypingResultStr = localStorage.getItem("englishTypingResult");
         if (englishTypingResultStr) {
           try {
             const englishResult = JSON.parse(englishTypingResultStr);
             const netSpeed = englishResult.netSpeed || 0;
             setEnglishNetSpeed(netSpeed);
-            setEnglishPassed(netSpeed >= 30);
+            setEnglishPassed(netSpeed >= config.englishTypingPassingNWPM);
           } catch (error) {
-            console.error('Error parsing English typing result:', error);
+            console.error("Error parsing English typing result:", error);
           }
         }
 
-        // Load Hindi Typing Result
-        const hindiTypingResultStr = localStorage.getItem('hindiTypingResult');
+        const hindiTypingResultStr = localStorage.getItem("hindiTypingResult");
         if (hindiTypingResultStr) {
           try {
             const hindiResult = JSON.parse(hindiTypingResultStr);
             const netSpeed = hindiResult.netSpeed || 0;
             setHindiNetSpeed(netSpeed);
-            setHindiPassed(netSpeed >= 20);
+            setHindiPassed(netSpeed >= config.hindiTypingPassingNWPM);
           } catch (error) {
-            console.error('Error parsing Hindi typing result:', error);
+            console.error("Error parsing Hindi typing result:", error);
           }
         }
-
-        // CPCT overall pass: MCQ passed AND both typing sections passed
-        setIsPassed(mcqPassed && englishPassed && hindiPassed);
       } catch (error) {
         console.error('Error loading result data:', error);
       } finally {
@@ -177,22 +194,23 @@ export default function CpctScoreCard() {
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     
-    // Header with background
+    const pubDate = publicationDate || formatPublicationDate(null);
     pdf.setFillColor(41, 12, 82);
-    pdf.rect(0, 0, pageWidth, 25, 'F');
+    pdf.rect(0, 0, pageWidth, 16, 'F');
     pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(24);
+    pdf.setFontSize(16);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('MPCPCT', pageWidth / 2, 12, { align: 'center' });
-    pdf.setFontSize(12);
+    pdf.text('MPCPCT', 12, 8);
+    pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
-    pdf.text('(To Help in typing & computer proficiency)', pageWidth / 2, 20, { align: 'center' });
+    pdf.text('To Help in typing & computer proficiency', 12, 13);
+    pdf.text('Examination 2025-26', pageWidth - 12, 10, { align: 'right' });
     
     // Title
     pdf.setTextColor(0, 0, 0);
     pdf.setFontSize(16);
     pdf.setFont('helvetica', 'bold');
-    let yPos = 35;
+    let yPos = 28;
     pdf.text('SCORE CARD', pageWidth / 2, yPos, { align: 'center' });
     yPos += 8;
     pdf.setFontSize(14);
@@ -346,99 +364,53 @@ export default function CpctScoreCard() {
     pdf.rect(resultStartX + resultColWidths[0], yPos, resultColWidths[1] + resultColWidths[2] + resultColWidths[3], rowHeight);
     pdf.text('Final Result', resultStartX + resultColWidths[0]/2, yPos + 5, { align: 'center' });
     pdf.setTextColor(isPassed ? 0 : 255, isPassed ? 128 : 0, 0);
-    const passText = isPassed ? 'Pass' : 'Fail';
-    const qualifiedText = mcqPassed && englishPassed ? '(Qualified Computer Proficiency & English Typing)' : 
-                         mcqPassed && hindiPassed ? '(Qualified Computer Proficiency & Hindi Typing)' :
-                         mcqPassed ? '(Qualified only Computer Proficiency)' :
-                         englishPassed && hindiPassed ? '(Qualified only Typing)' : '(Not Qualified)';
-    pdf.text(`${passText} ${qualifiedText}`, resultStartX + resultColWidths[0] + (resultColWidths[1] + resultColWidths[2] + resultColWidths[3])/2, yPos + 5, { align: 'center' });
-    yPos += 15;
+    pdf.text(isPassed ? 'Pass' : 'Fail', resultStartX + resultColWidths[0] + (resultColWidths[1] + resultColWidths[2] + resultColWidths[3])/2, yPos + 5, { align: 'center' });
+    yPos += 12;
     
-    // Footer
     pdf.setTextColor(0, 0, 0);
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`Date of Publication of Result: ${new Date().toLocaleDateString()}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+    pdf.text(`Date of Publication of Result: ${pubDate}`, 12, pageHeight - 10);
+    pdf.text('Head of Examinations', pageWidth - 12, pageHeight - 10, { align: 'right' });
     
     // Save PDF
     pdf.save(`CPCT-ScoreCard-${userName}-${Date.now()}.pdf`);
   };
 
-  const qualifiedText = mcqPassed && englishPassed ? '(Qualified Computer Proficiency & English Typing)' : 
-                         mcqPassed && hindiPassed ? '(Qualified Computer Proficiency & Hindi Typing)' :
-                         mcqPassed ? '(Qualified only Computer Proficiency)' :
-                         englishPassed && hindiPassed ? '(Qualified only Typing)' : '(Not Qualified)';
-
   return (
-    <div>
-      <div className="max-w-4xl mx-auto shadow-xl text-sm font-sans bg-white my-5">
-        {/* Download PDF Button */}
-        <div className="text-right mb-2 pt-4 pr-4">
-          <button
-            onClick={handleDownloadPDF}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold border-0 focus:outline-none"
-          >
-            Download PDF
-          </button>
-        </div>
-        <div className="border border-[#290c52]">
+    <div className="px-2 sm:px-0">
+      <div className="max-w-4xl mx-auto shadow-xl text-sm font-sans bg-white my-3 sm:my-5 border-2 border-[#290c52]">
+        <div className="border-x-2 border-[#290c52]">
 
-        {/* Full-Width Header */}
+        {/* Compact header row */}
         <div
-          className="w-full px-2 sm:px-4 py-2 border"
-          style={{
-            backgroundColor: "#290c52",
-            backgroundImage: "url('/bg.jpg')",
-            backgroundRepeat: "repeat",
-            backgroundSize: "cover",
-          }}
+          className="w-full px-3 py-2 border-b border-[#290c52] flex flex-wrap items-center justify-between gap-2 min-h-[3rem]"
+          style={{ backgroundColor: "#290c52" }}
         >
-          <div className="flex flex-col sm:flex-row items-center justify-between w-full">
-            {/* Left Logo - shown on top on mobile, left on desktop */}
-            <img
-              src="/logor.png"
-              alt="MP Logo"
-              className="h-16 sm:h-24 w-auto mt-1 sm:mt-0 order-1 sm:order-none"
-            />
-
-            {/* Center Title */}
-            <div className="text-center flex-1 sm:-ml-12 order-3 sm:order-none mt-2 sm:mt-0">
-              <h1
-                className="text-2xl sm:text-3xl md:text-5xl font-extrabold uppercase leading-[1.2] text-white"
-                style={{
-                  textShadow: `
-                    0 0 10px black,
-                    1px 1px 0 #39245f,
-                    2px 2px 0 #341f57,
-                    3px 3px 0 #2d1a4e,
-                    4px 4px 0 #241244,
-                    5px 5px 6px rgba(0, 0, 0, 0.4)
-                  `,
-                  letterSpacing: '2px',
-                }}
-              >
-                MPCPCT
-              </h1>
-              <p className="text-sm sm:text-lg md:text-2xl text-pink-300 font-semibold">
-                (To Help in typing & computer proficiency)
-              </p>
-            </div>
-
-            {/* Empty div to balance flex on mobile */}
-            <div className="order-2 sm:order-none sm:h-24 w-0 sm:w-auto"></div>
-          </div>
+          <h1 className="text-lg sm:text-2xl font-extrabold uppercase text-white tracking-wide">
+            MPCPCT
+          </h1>
+          <p className="text-[10px] sm:text-xs text-pink-200 font-medium text-center flex-1">
+            To Help in typing &amp; computer proficiency
+          </p>
+          <p className="text-[10px] sm:text-xs text-white/90 whitespace-nowrap">Examination 2025-26</p>
         </div>
 
-        {/* Title */}
-        <div className="text-center mb-4 font-semibold text-lg mt-2 py-4 relative">
-          {/* Student Photo */}
+        {/* Title + profile touching header bottom */}
+        <div className="relative border-b border-gray-300 pb-2 pt-1 px-2 sm:px-3 min-h-[4.5rem]">
           <img
-            src="/lo.jpg"
+            src={userProfileUrl}
             alt="Student"
-            className="w-16 sm:w-24 h-12 sm:h-20 border ml-2 absolute left-0 top-[19] md:top-1/2 transform -translate-y-1/2"
+            className="absolute left-2 sm:left-3 bottom-0 w-[4.5rem] sm:w-[5.5rem] h-[3.5rem] sm:h-[4.25rem] border-2 border-[#290c52] object-cover bg-white"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = "/lo.jpg";
+            }}
           />
-          <p className="uppercase font-semibold text-xl sm:text-2xl">Score Card </p>
-          <p className="text-xl sm:text-2xl">MPCPCT Examination 2025-26</p>
+          <div className="text-center pl-[5rem] sm:pl-[6.5rem] pr-2">
+            <p className="uppercase font-semibold text-base sm:text-xl leading-tight">Score Card</p>
+            <p className="text-sm sm:text-lg leading-tight">{examData?.title || "MPCPCT Examination 2025-26"}</p>
+          </div>
         </div>
 
         {/* Details Table */}
@@ -481,8 +453,13 @@ export default function CpctScoreCard() {
                 <th className="border-l p-1" colSpan={2}>Maximum Marks</th>
               </tr>
               <tr className="bg-gray-200">
-                <th className="p-1" colSpan={2}>Computer Proficiency</th>
-                <th className="border-l p-1" colSpan={2}>Net Typing Speed (Word Per Minute)</th>
+                <th className="p-1" colSpan={2}>Section 1 — Computer Proficiency</th>
+                <th className="border-l p-1">Section 2 — English Typing</th>
+                <th className="border-l p-1">Section 3 — Hindi Typing</th>
+              </tr>
+              <tr className="bg-gray-100 text-[10px] sm:text-xs">
+                <th className="p-0.5" colSpan={2}>Maximum Marks</th>
+                <th className="border-l p-0.5" colSpan={2}>Net Typing Speed (WPM)</th>
               </tr>
             </thead>
             <tbody>
@@ -522,74 +499,55 @@ export default function CpctScoreCard() {
               </tr>
               <tr className="font-bold">
                 <td className="border p-1 text-center">Total</td>
-                <td colSpan="3" className="border p-1 text-center">{mcqScore}/{mcqMax}</td>
+                <td colSpan="3" className={`border p-1 text-center font-bold ${isPassed ? "text-green-600" : "text-red-600"}`}>
+                  {mcqScore}/{mcqMax}
+                </td>
               </tr>
               <tr className="font-bold">
                 <td className="border p-1 text-center">Final Result</td>
-                <td colSpan="3" className="border p-1 text-left pl-1 sm:pl-4">
-                  <span className={isPassed ? 'text-green-600' : 'text-red-600'}>Pass  </span> 
-                  <span className="pl-1 sm:pl-3">{qualifiedText}</span>
+                <td colSpan="3" className="border p-1 text-center">
+                  <span className={isPassed ? "text-green-600" : "text-red-600"}>
+                    {isPassed ? "Pass" : "Fail"}
+                  </span>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        {/* Contact Info */}
-        <div className="text-xs border-t">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse font-semibold">
-              <tbody>
-                <tr className="text-sm sm:text-lg">
-                  <td className="border p-1 text-center px-2 sm:px-10" colSpan={2}>For Queries about Cpct Result</td>
-                  <td className="border p-1 text-center" colSpan={2}> CPCT Qualifying Criteria</td>
-                </tr>
-                <tr className="">
-                  <td className="p-1 text-left text-xs sm:text-[15px] pl-1 sm:pl-2" colSpan={2}>INCHARGE Cpct Examination</td>
-                  <td className="border p-1">MCQ (Objective Computer Proficiency) </td>
-                  <td className="border p-1">Minimum 38 marks (which equals 50%)</td>
-                </tr>
-                <tr>
-                  <td className="p-1 text-left text-xs sm:text-[15px] pl-1 sm:pl-2" colSpan={2}>Website MPCPCT.Com</td>
-                  <td className="border p-1">English Typing Test  </td>
-                  <td className="border p-1">Minimum 30 NWPM (Net Words Per Minute) — equivalent to 50% scaled</td>
-                </tr>
-                <tr>
-                  <td className="border-b p-1 text-left text-xs sm:text-[15px] pl-1 sm:pl-2" colSpan={2}>
-                    Add:A.B Road SJR 465001(M.P.)<br/>Email:mpcpct111@gmail.com
-                  </td>
-                  <td className="border p-1">Hindi Typing Test  </td>
-                  <td className="border p-1">Minimum 20 NWPM — equivalent to 50% scaled</td>
-                </tr>
-              </tbody>
-            </table>
+        {/* Compact footer: date left, seal center, signature right */}
+        <div className="grid grid-cols-3 items-end gap-1 text-[10px] sm:text-xs border-t border-[#290c52] py-2 px-2 sm:px-3 font-semibold min-h-[5rem]">
+          <p className="text-left self-end pb-1">
+            Date of Publication of Result:<br />
+            <span>{publicationDate || formatPublicationDate(null)}</span>
+          </p>
+          <div className="flex justify-center self-end">
+            <img src="/seal.png" alt="Seal" className="h-12 sm:h-16 md:h-20 object-contain" />
+          </div>
+          <div className="text-right self-end">
+            <img src="/sing.png" alt="Controller" className="h-12 sm:h-16 md:h-20 ml-auto object-contain" />
+            <p className="italic text-gray-600 text-[9px] sm:text-xs mt-0.5">Head of Examinations</p>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm border-t pt-2 sm:pt-4 px-2 sm:px-4 font-semibold">
-          <p className="mb-2 sm:mb-0">Date of Publication of Result : <span>{new Date().toLocaleDateString()}</span></p>
-          <img
-            src="/seal.png"
-            alt="Seal"
-            className="h-16 sm:h-20 md:h-24 mx-auto pb-1 sm:pb-2 md:pb-5"
-          />
-          <div className="relative mt-1 sm:mt-0">
-            <img 
-              src="/sing.png" 
-              alt="Controller" 
-              className="h-16 sm:h-20 md:h-24 ml-auto mb-[-20px] sm:mb-[-35px]" 
-            />
-            <p className="italic text-gray-500 text-xs sm:text-sm">
-              Head of Examinations
-            </p>
-          </div>
+        {/* Bottom actions */}
+        <div className="flex flex-row justify-between items-center gap-2 px-3 py-3 border-t border-[#290c52] bg-gray-50">
+          <Link
+            href="/"
+            className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded text-xs sm:text-sm"
+          >
+            Go To Home
+          </Link>
+          <button
+            type="button"
+            onClick={handleDownloadPDF}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded text-xs sm:text-sm"
+          >
+            Download PDF
+          </button>
         </div>
         </div>
       </div>
-      <button className="bg-red-600 hover:bg-blue-700 text-white font-medium px-4 py-2 mb-2 ml-35 sm:ml-40 md:ml-70 lg:ml-80 xl:ml-156">
-        <a href="/">Go To Home</a>
-      </button>
     </div>
   );
 }
