@@ -133,7 +133,7 @@ function BreakScreenContent() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center mt-[-110]">
-      <div className="w-full bg-[#290c52] text-yellow-400 text-left px-4 py-2 font-bold text-lg">
+      <div className="w-full bg-[#290c52] text-yellow-400 text-left px-4 max-md:pl-12 py-2 font-bold text-lg">
         MPCPCT 2025
       </div>
 
@@ -168,9 +168,10 @@ function BreakScreenContent() {
           </p>
         </div>
 
-        <button 
+        <button
+          type="button"
           onClick={() => window.location.href = nextSection}
-          className="mt-6 px-5 py-2 rounded text-white bg-[#290c52] cursor-pointer hover:bg-blue-700"
+          className="mt-6 px-6 py-3 rounded-lg font-semibold cursor-pointer w-full max-w-xs bg-green-500 text-black hover:bg-green-600"
         >
           Start Next Section
         </button>

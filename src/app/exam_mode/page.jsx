@@ -712,6 +712,304 @@ function ExamModeContent() {
         }
         }
       }
+
+      /* CPCT exam mobile UI only — phones ≤768px; tablet/desktop unchanged */
+      @media screen and (max-width: 768px) {
+        .exam-mobile-section-nav {
+          top: 40px !important;
+        }
+        .exam-mobile-timer-row {
+          order: -1 !important;
+          padding: 0.2rem 0.75rem !important;
+          min-height: auto !important;
+          border-bottom: 1px solid #e5e7eb !important;
+          border-top: none !important;
+        }
+        .exam-mobile-tabs-row {
+          order: 0 !important;
+          padding-top: 0.15rem !important;
+          padding-bottom: 0.15rem !important;
+        }
+        .exam-mobile-exam-title {
+          display: none !important;
+        }
+        .exam-mobile-question-grid {
+          margin-top: 0 !important;
+          margin-bottom: 0 !important;
+          padding-top: 0 !important;
+          padding-bottom: 0 !important;
+          height: 2rem !important;
+          min-height: 2rem !important;
+          gap: 0.125rem !important;
+        }
+        .exam-mobile-question-meta {
+          flex-direction: row !important;
+          align-items: center !important;
+          justify-content: space-between !important;
+          padding-top: 0.2rem !important;
+          padding-bottom: 0.2rem !important;
+          gap: 0.25rem !important;
+        }
+        .exam-mobile-question-meta .exam-mobile-marks {
+          margin-top: 0 !important;
+          text-align: right !important;
+          white-space: nowrap !important;
+          flex-shrink: 0 !important;
+        }
+        .exam-mobile-top-bar {
+          padding-top: 0.2rem !important;
+          padding-bottom: 0.2rem !important;
+          border-radius: 0 !important;
+        }
+        .exam-mobile-question-content {
+          padding-top: 0 !important;
+          padding-bottom: 0 !important;
+          flex: 0 1 auto !important;
+          flex-grow: 0 !important;
+          min-height: 0 !important;
+          max-height: calc(100dvh - 16.75rem) !important;
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch !important;
+        }
+        .exam-mobile-passage-layout {
+          padding: 0.2rem 0.35rem !important;
+          gap: 0.25rem !important;
+        }
+        .exam-mobile-question-content > .exam-mobile-question-meta {
+          margin-top: 0 !important;
+        }
+        .exam-mobile-passage {
+          max-height: 11vh !important;
+          min-height: 0 !important;
+          padding: 0.15rem !important;
+          font-size: 0.7rem !important;
+          line-height: 1.2 !important;
+        }
+        .exam-mobile-passage h3 {
+          font-size: 0.7rem !important;
+          margin-bottom: 0.15rem !important;
+        }
+        .exam-mobile-question-text {
+          font-size: 0.8rem !important;
+          line-height: 1.25 !important;
+          margin-bottom: 0.2rem !important;
+        }
+        .exam-mobile-options label {
+          margin-bottom: 0.15rem !important;
+          padding: 0 !important;
+          gap: 0.3rem !important;
+        }
+        .exam-mobile-options label span {
+          font-size: 0.8rem !important;
+          line-height: 1.2 !important;
+        }
+        .exam-mobile-options label input[type="radio"] {
+          width: 0.8rem !important;
+          height: 0.8rem !important;
+          margin-top: 0.1rem !important;
+        }
+        .exam-mobile-question-body {
+          padding: 0.25rem 0.35rem 0 !important;
+          margin-bottom: 0 !important;
+          padding-bottom: 0 !important;
+        }
+        .exam-mobile-question-body .exam-mobile-options:last-child,
+        .exam-mobile-options-col .exam-mobile-options:last-of-type {
+          margin-bottom: 0 !important;
+        }
+        .exam-mobile-question-panel {
+          min-height: 0 !important;
+          flex: 0 0 auto !important;
+          flex-grow: 0 !important;
+          overflow: visible !important;
+        }
+        .exam-mobile-mcq-column {
+          display: flex !important;
+          flex-direction: column !important;
+          min-height: 0 !important;
+          padding-bottom: 4.25rem !important;
+        }
+        .exam-mobile-profile-img {
+          object-fit: cover !important;
+        }
+        .exam-mobile-parts-row {
+          padding-top: 0.15rem !important;
+          padding-bottom: 0.15rem !important;
+          margin-bottom: 8px !important;
+        }
+        .exam-mobile-top-bar {
+          margin-top: 8px !important;
+        }
+        .exam-mobile-question-grid {
+          margin-bottom: 0 !important;
+        }
+        .exam-mobile-btn-footer {
+          padding: 0.35rem 0.5rem !important;
+          padding-bottom: max(0.35rem, env(safe-area-inset-bottom)) !important;
+          flex-shrink: 0 !important;
+          position: fixed !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          z-index: 30 !important;
+          background: #fafafa !important;
+          border-top: 1px solid #d1d5db !important;
+          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08) !important;
+        }
+        [data-exam-mode="mcq"] {
+          min-height: 0 !important;
+        }
+        .exam-mobile-btn-grid {
+          gap: 0.2rem !important;
+        }
+        .exam-mobile-action-btn {
+          padding: 0.3rem 0.2rem !important;
+          font-size: 0.625rem !important;
+          line-height: 1.1 !important;
+        }
+        .exam-mobile-options-col {
+          font-size: 0.8rem !important;
+        }
+        [data-exam-mode="typing"].exam-mobile-mcq-column {
+          padding-bottom: 0 !important;
+          height: 100dvh !important;
+          max-height: 100dvh !important;
+          overflow: hidden !important;
+        }
+        [data-exam-mode="typing"] .landscape-typing-container {
+          padding-top: 2.5rem !important;
+          min-height: 0 !important;
+          flex: 1 1 0 !important;
+          height: calc(100dvh - 2.5rem) !important;
+          max-height: calc(100dvh - 2.5rem) !important;
+          overflow: hidden !important;
+        }
+        [data-exam-mode="typing"] .exam-mobile-question-content {
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        [data-exam-mode="typing"] .exam-mobile-question-panel {
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          overflow: hidden !important;
+        }
+        .exam-typing-passage-mobile {
+          flex: 0 0 auto !important;
+          min-height: 0 !important;
+          overflow-y: auto !important;
+        }
+        .exam-typing-portrait {
+          display: flex !important;
+          flex-direction: column !important;
+          height: 100% !important;
+          max-height: 100% !important;
+          min-height: 0 !important;
+          overflow: hidden !important;
+        }
+        .exam-typing-input-mobile {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          display: flex !important;
+          flex-direction: column !important;
+          overflow: hidden !important;
+        }
+        .exam-typing-input-mobile textarea {
+          flex: 1 1 0 !important;
+          min-height: 4.25rem !important;
+          max-height: 100% !important;
+          height: auto !important;
+        }
+        .exam-typing-stats-mobile {
+          padding: 0.3rem !important;
+        }
+        .exam-typing-profile-col {
+          min-height: 7.5rem !important;
+        }
+        .exam-typing-submit-mobile {
+          padding: 0.25rem !important;
+          padding-bottom: max(0.25rem, env(safe-area-inset-bottom)) !important;
+          flex-shrink: 0 !important;
+        }
+      }
+
+      /* Typing on phones in landscape (769px–1023px): fill screen, use portrait typing UI */
+      @media screen and (min-width: 769px) and (max-width: 1023px) {
+        [data-exam-mode="typing"] .landscape-typing-container {
+          padding-top: 2.5rem !important;
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          height: calc(100dvh - 2.5rem) !important;
+        }
+        [data-exam-mode="typing"] .exam-mobile-question-panel,
+        [data-exam-mode="typing"] .exam-mobile-question-content {
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          overflow: hidden !important;
+          max-height: none !important;
+        }
+        [data-exam-mode="typing"].exam-mobile-mcq-column {
+          padding-bottom: 0 !important;
+          min-height: 0 !important;
+          height: calc(100dvh - 2.5rem) !important;
+        }
+        .landscape-keyboard-dropdown {
+          display: flex !important;
+        }
+        .exam-typing-passage-mobile {
+          flex: 0 0 auto !important;
+          overflow-y: auto !important;
+        }
+        .exam-typing-portrait {
+          height: 100% !important;
+          max-height: 100% !important;
+          min-height: 0 !important;
+          overflow: hidden !important;
+        }
+        .exam-typing-input-mobile {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          display: flex !important;
+          flex-direction: column !important;
+          overflow: hidden !important;
+        }
+        .exam-typing-input-mobile textarea {
+          flex: 1 1 0 !important;
+          min-height: 4.25rem !important;
+          max-height: 100% !important;
+          height: auto !important;
+        }
+        .exam-typing-profile-col {
+          min-height: 7.5rem !important;
+        }
+      }
+
+      /* Desktop MCQ: keep action buttons visible; scroll question body only */
+      @media screen and (min-width: 1024px) {
+        [data-exam-mode="mcq"] .exam-mobile-mcq-column {
+          min-height: 0 !important;
+          overflow: hidden !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-question-panel {
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-question-content {
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          overflow-y: auto !important;
+          max-height: none !important;
+        }
+        .exam-desktop-section-nav {
+          flex-shrink: 0 !important;
+        }
+      }
     `;
     document.head.appendChild(style);
     
@@ -726,6 +1024,7 @@ function ExamModeContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showSectionDropdown, setShowSectionDropdown] = useState(false);
   const [isMobile, setIsMobile] = useState(false); // Mobile = width <= 1024px (regardless of orientation)
+  const [isMobileExam, setIsMobileExam] = useState(false); // Narrow mobile exam UI = width <= 768px
   const [userName, setUserName] = useState("User");
   const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
   const [examData, setExamData] = useState(null);
@@ -750,6 +1049,8 @@ function ExamModeContent() {
   const [isMainTimerPaused, setIsMainTimerPaused] = useState(false);
   const [pausedMainTime, setPausedMainTime] = useState(null);
   const [showNotEligibleModal, setShowNotEligibleModal] = useState(false);
+  const [showSectionSubmitModal, setShowSectionSubmitModal] = useState(false);
+  const [pendingSectionNav, setPendingSectionNav] = useState(null);
   const [sectionAScore, setSectionAScore] = useState(0);
   const [selectedKeyboardType, setSelectedKeyboardType] = useState(null);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
@@ -769,6 +1070,7 @@ function ExamModeContent() {
   useEffect(() => {
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth <= 1024);
+      setIsMobileExam(window.innerWidth <= 768);
     };
     
     // Check on mount
@@ -781,6 +1083,26 @@ function ExamModeContent() {
       window.removeEventListener('resize', checkIsMobile);
     };
   }, []);
+
+  const isTypingSectionName = useCallback((name) => {
+    if (!name) return false;
+    return (
+      name === "English Typing" ||
+      name === "Hindi Typing" ||
+      name === "हिंदी टाइपिंग" ||
+      name.includes("Typing") ||
+      name.includes("typing")
+    );
+  }, []);
+
+  const formatMobileQuestionText = useCallback(
+    (text) => {
+      if (!text) return text;
+      const cleaned = String(text).replace(/\s*\(Question\s+\d+\)/gi, "").trim();
+      return isMobileExam ? `Q.${currentQuestionIndex + 1} ${cleaned}` : cleaned;
+    },
+    [isMobileExam, currentQuestionIndex]
+  );
 
   // Save answers to localStorage whenever they change
   useEffect(() => {
@@ -829,6 +1151,18 @@ function ExamModeContent() {
           } catch (error) {
             console.error('Error parsing user data:', error);
           }
+        }
+
+        try {
+          const profRes = await fetch("/api/profile", { credentials: "include" });
+          if (profRes.ok) {
+            const profData = await profRes.json();
+            if (profData.user?.name) setUserName(profData.user.name);
+            const pic = profData.user?.profileUrl || profData.user?.avatar;
+            if (pic) setUserProfileUrl(pic);
+          }
+        } catch {
+          /* keep localStorage profile if API unavailable */
         }
 
         // Load question language preference
@@ -2104,8 +2438,144 @@ function ExamModeContent() {
     }
   }, [completedSections]);
 
+  const navigateToSection = useCallback(
+    (sec) => {
+      const currentTime = timeLeft;
+      localStorage.setItem("examTimeLeft", currentTime.toString());
+      setSection(sec.name);
+      setCurrentQuestionIndex(0);
+      const sectionParts = parts
+        .filter((p) => {
+          const pSectionId = String(p.sectionId).trim();
+          const secIdStr = String(sec.id).trim();
+          const secIdObj = String(sec._id).trim();
+          return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
+        })
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+      if (sectionParts.length > 0) {
+        setSelectedPart(sectionParts[0].name);
+      } else {
+        setSelectedPart(null);
+      }
+      const firstQuestion = questions[sec.name]?.[0];
+      if (firstQuestion?._id) {
+        setVisitedQuestions((prev) => {
+          const newSet = new Set([...prev, firstQuestion._id]);
+          localStorage.setItem("visitedQuestions", JSON.stringify([...newSet]));
+          return newSet;
+        });
+      }
+    },
+    [timeLeft, parts, questions]
+  );
+
+  const canProceedToRscitSectionB = useCallback(() => {
+    if (examData?.key !== "RSCIT") return true;
+    if (!completedSections.has("Section A")) {
+      alert("Please complete Section A first before attempting Section B.");
+      return false;
+    }
+    const sectionAAnswers = JSON.parse(localStorage.getItem("examAnswers") || "{}");
+    const sectionAQuestions = questions["Section A"] || [];
+    let sectionAScoreVal = 0;
+    sectionAQuestions.forEach((q) => {
+      const answer = sectionAAnswers[q._id];
+      if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
+        sectionAScoreVal += q.marks || 2;
+      }
+    });
+    if (sectionAScoreVal < 12) {
+      alert(
+        `You need minimum 12 marks in Section A to proceed to Section B. Your Section A score: ${sectionAScoreVal} marks.`
+      );
+      return false;
+    }
+    return true;
+  }, [examData, completedSections, questions]);
+
+  const handleSectionTabClick = useCallback(
+    (sec, isLocked, isCompleted) => {
+      if (isCompleted) {
+        alert("This section is already completed and locked.");
+        return;
+      }
+
+      if (examData?.key === "RSCIT" && sec.name === "Section B") {
+        if (!canProceedToRscitSectionB()) return;
+      }
+
+      const switchingSection = sec.name !== section;
+      const typingTarget = isTypingSectionName(sec.name);
+
+      if (typingTarget && switchingSection && !completedSections.has(section)) {
+        setPendingSectionNav(sec);
+        setShowSectionSubmitModal(true);
+        return;
+      }
+
+      if (isLocked && !typingTarget) {
+        alert("Please complete the current section before moving to the next section.");
+        return;
+      }
+
+      navigateToSection(sec);
+    },
+    [
+      section,
+      isTypingSectionName,
+      completedSections,
+      examData,
+      canProceedToRscitSectionB,
+      navigateToSection,
+    ]
+  );
+
+  const redirectAfterSectionSubmit = useCallback(
+    (submittedSection, targetSectionName = null) => {
+      localStorage.removeItem("currentSection");
+
+      const sortedSections = [...sections].sort((a, b) => {
+        const orderA = a.order || 0;
+        const orderB = b.order || 0;
+        if (orderA !== orderB) return orderA - orderB;
+        return (a.lessonNumber || 0) - (b.lessonNumber || 0);
+      });
+
+      const currentSectionIndex = sortedSections.findIndex((s) => s.name === submittedSection);
+      if (currentSectionIndex === -1) return;
+
+      let nextSection = null;
+      if (targetSectionName) {
+        nextSection = sortedSections.find((s) => s.name === targetSectionName) || null;
+      } else if (currentSectionIndex < sortedSections.length - 1) {
+        nextSection = sortedSections[currentSectionIndex + 1];
+      }
+
+      if (nextSection) {
+        const encodedSection = encodeURIComponent(nextSection.name);
+        const isTypingSection =
+          nextSection.name === "English Typing" ||
+          nextSection.name === "हिंदी टाइपिंग" ||
+          nextSection.name.includes("Typing") ||
+          nextSection.name.includes("typing");
+        const isAfterFiveSections = currentSectionIndex === 4;
+        const breakDuration = isTypingSection && isAfterFiveSections ? 10 : 1;
+        const breakPageUrl = `/exam/break?next=${encodeURIComponent("/exam_mode")}&section=${encodedSection}&duration=${breakDuration}`;
+        if (typeof window !== "undefined") {
+          window.location.href = breakPageUrl;
+        }
+      } else {
+        localStorage.removeItem("examTimeLeft");
+        if (typeof window !== "undefined") {
+          window.location.replace("/exam/exam-result");
+        }
+      }
+    },
+    [sections]
+  );
+
   // Handle section submission
-  const handleSubmitSection = () => {
+  const handleSubmitSection = (targetSectionName = null) => {
     if (!section) {
       console.error('handleSubmitSection: No section selected');
       return;
@@ -2153,28 +2623,7 @@ function ExamModeContent() {
         return;
       }
       
-      if (currentSectionIndex < sortedSections.length - 1) {
-        const nextSection = sortedSections[currentSectionIndex + 1];
-        console.log('✅ Section already completed, moving to next section:', nextSection.name);
-        localStorage.removeItem('currentSection');
-        const encodedSection = encodeURIComponent(nextSection.name);
-        const redirectUrl = `/exam/break?next=${encodeURIComponent('/exam_mode')}&section=${encodedSection}`;
-        console.log('🚀 ========== REDIRECT (already completed section) ==========');
-        console.log('🚀 Next section name:', nextSection.name);
-        console.log('🚀 Encoded section:', encodedSection);
-        console.log('🚀 Full redirect URL:', redirectUrl);
-        setTimeout(() => {
-          console.log('🚀 Executing redirect to:', redirectUrl);
-          if (typeof window !== 'undefined') {
-            window.location.href = redirectUrl;
-          }
-        }, 100);
-      } else {
-        // Last section, go to final result
-        console.log('✅ Last section already completed, going to result page');
-        localStorage.removeItem('examTimeLeft'); // Clear timer when exam is complete
-        window.location.replace('/exam/exam-result');
-      }
+      redirectAfterSectionSubmit(section, targetSectionName);
       return;
     }
     
@@ -2191,69 +2640,9 @@ function ExamModeContent() {
     // NO VALIDATION - User can submit even if not all questions are answered
     // User can submit with empty answers and still move to next section
     setTimeout(() => {
-      // Ensure the section is saved before redirect
       const finalCompletedSections = new Set([...completedSections, section]);
       localStorage.setItem('completedSections', JSON.stringify([...finalCompletedSections]));
-
-      console.log('📊 ========== SECTION SUBMISSION ==========');
-      console.log('📊 Current section being submitted:', section);
-      console.log('📊 Redirecting directly to break page');
-      
-      // Clear any section-related state from localStorage to ensure fresh load
-      localStorage.removeItem('currentSection');
-      
-      // Find next section
-      const sortedSections = [...sections].sort((a, b) => {
-        const orderA = a.order || 0;
-        const orderB = b.order || 0;
-        if (orderA !== orderB) return orderA - orderB;
-        const lessonA = a.lessonNumber || 0;
-        const lessonB = b.lessonNumber || 0;
-        return lessonA - lessonB;
-      });
-      
-      const currentSectionIndex = sortedSections.findIndex(s => s.name === section);
-      if (currentSectionIndex === -1) {
-        console.error('❌ Current section not found in sorted sections');
-        return;
-      }
-      
-      if (currentSectionIndex < sortedSections.length - 1) {
-        // Not the last section - go to break page then next section
-        const nextSection = sortedSections[currentSectionIndex + 1];
-        const encodedSection = encodeURIComponent(nextSection.name);
-        
-        // Check if next section is a typing section
-        const isTypingSection = nextSection.name === "English Typing" || 
-                               nextSection.name === "हिंदी टाइपिंग" ||
-                               nextSection.name.includes("Typing") || 
-                               nextSection.name.includes("typing");
-        
-        // Check if we're moving from 5th section to typing (6th section) - 10 min break
-        const isAfterFiveSections = currentSectionIndex === 4; // 0-indexed, so 4 = 5th section
-        const breakDuration = (isTypingSection && isAfterFiveSections) ? 10 : 1;
-        
-        const breakPageUrl = `/exam/break?next=${encodeURIComponent('/exam_mode')}&section=${encodedSection}&duration=${breakDuration}`;
-        
-        console.log('🚀 ========== REDIRECTING TO BREAK PAGE ==========');
-        console.log('🚀 Next section name:', nextSection.name);
-        console.log('🚀 Encoded section:', encodedSection);
-        console.log('🚀 Break page URL:', breakPageUrl);
-        
-        if (typeof window !== 'undefined') {
-          console.log('🚀 Setting window.location.href to break page:', breakPageUrl);
-          window.location.href = breakPageUrl;
-        } else {
-          console.error('❌ window is undefined, cannot redirect!');
-        }
-      } else {
-        // Last section - go directly to final result page (with answers)
-        console.log('✅ Last section completed, going to final result page');
-        localStorage.removeItem('examTimeLeft'); // Clear timer when exam is complete
-        if (typeof window !== 'undefined') {
-          window.location.replace('/exam/exam-result');
-        }
-      }
+      redirectAfterSectionSubmit(section, targetSectionName);
     }, 100);
   };
 
@@ -2261,20 +2650,53 @@ function ExamModeContent() {
     <div className="h-screen flex flex-col lg:flex-row bg-white relative">
       {/* Mobile Menu Button */}
       <button
-        className="lg:hidden fixed top-1 left-2 z-50 bg-[#290c52] text-white p-2 rounded"
+        type="button"
+        className={`lg:hidden fixed top-1 left-2 z-[60] p-2 rounded font-bold text-lg leading-none ${
+          isMobileMenuOpen ? "bg-red-600 text-white shadow-md" : "bg-[#290c52] text-white"
+        }`}
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
       >
         {isMobileMenuOpen ? "✕" : "☰"}
       </button>
 
       {/* Sidebar - Mobile */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-white w-64 overflow-y-auto">
+        <>
+        <button
+          type="button"
+          className="lg:hidden fixed inset-0 z-40 bg-black/40"
+          aria-label="Close menu"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+        <div className="lg:hidden fixed inset-y-0 left-0 z-50 bg-white w-64 overflow-y-auto shadow-xl">
           <div className="p-4 text-sm h-full">
             <div className="flex flex-col items-center py-6">
               <img src="/lo.jpg" className="w-24 h-24 rounded-full border-2" />
               <p className="mt-2 font-semibold text-blue-800">{userName}</p>
               <Link href="/" className="mt-2 text-[#290c52] font-medium underline">Home</Link>
+              <div className="w-full mt-3 flex flex-col gap-2 items-center">
+                <button
+                  type="button"
+                  className="text-[#290c52] underline text-sm font-medium"
+                  onClick={() => {
+                    setShowInstructionsModal(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  View Instructions
+                </button>
+                <button
+                  type="button"
+                  className="text-[#290c52] underline text-sm font-medium"
+                  onClick={() => {
+                    setShowQuestionPaperModal(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Question Paper
+                </button>
+              </div>
               <hr className="border w-full mt-2" />
             </div>
             <div className="text-xs grid grid-cols-2 gap-2 mb-4">
@@ -2315,6 +2737,7 @@ function ExamModeContent() {
                         onClick={() => {
                           setSelectedPart(part.name);
                           setCurrentQuestionIndex(0);
+                          setIsMobileMenuOpen(false);
                         }}
                         className={`${
                           selectedPart === part.name
@@ -2343,6 +2766,7 @@ function ExamModeContent() {
                           }`}
                           onClick={() => {
                             setCurrentQuestionIndex(i);
+                            setIsMobileMenuOpen(false);
                             // Mark question as visited when clicked
                             if (q._id) {
                               setVisitedQuestions(prev => {
@@ -2377,13 +2801,20 @@ function ExamModeContent() {
             </button>
           </div>
         </div>
+        </>
       )}
 
-      <div className="flex-1 flex flex-col h-full overflow-hidden" data-exam-mode={currentQuestion?.questionType !== "TYPING" ? "mcq" : "typing"}>
+      <div className="flex-1 flex flex-col h-full overflow-hidden exam-mobile-mcq-column" data-exam-mode={currentQuestion?.questionType !== "TYPING" ? "mcq" : "typing"}>
         {/* Header with User Info */}
         <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30 landscape-reduce-header">
-          <div className="flex items-center gap-3">
-            <span className="font-semibold">MPCPCT 2025</span>
+          <div className="flex items-center gap-3 max-md:pl-9">
+            <span
+              className={`font-semibold whitespace-nowrap ${
+                currentQuestion?.questionType === "TYPING" ? "max-md:text-yellow-400" : ""
+              }`}
+            >
+              MPCPCT 2025
+            </span>
             <Link href="/" className="cursor-pointer inline-flex items-center justify-center text-[12px] font-medium px-3 py-1.5 rounded bg-white/20 hover:bg-white/30 text-white border border-white/40">
               Home
             </Link>
@@ -2434,8 +2865,20 @@ function ExamModeContent() {
                 )}
               </div>
             )}
-            <div className="flex items-center gap-2 pr-4">
-              <img src="/lo.jpg" className="w-8 h-8 rounded-full border" />
+            <div
+              className={`flex items-center gap-2 pr-4 ${
+                currentQuestion?.questionType === "TYPING" ? "max-md:hidden" : ""
+              }`}
+            >
+              <img
+                src={userProfileUrl || "/lo.jpg"}
+                alt="Profile"
+                className="w-8 h-8 rounded-full border exam-mobile-profile-img object-cover bg-white"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "/lo.jpg";
+                }}
+              />
             </div>
             <span 
               className="cursor-pointer underline hidden sm:inline text-[12px] p-2"
@@ -2454,7 +2897,7 @@ function ExamModeContent() {
 
         {/* Exam Title (Mobile & Desktop) - Hidden in landscape for typing */}
         {examData && (
-          <div className={`bg-white-50 border-b border-gray-300 px-2 md:px-4 py-2 md:py-4 mt-10 flex-shrink-0 landscape-reduce-title ${currentQuestion?.questionType === "TYPING" ? "landscape-hide" : ""}`}>
+          <div className={`bg-white-50 border-b border-gray-300 px-2 md:px-4 py-2 md:py-4 mt-10 flex-shrink-0 landscape-reduce-title exam-mobile-exam-title ${currentQuestion?.questionType === "TYPING" ? "landscape-hide" : ""}`}>
             <h2 className="text-sm md:text-lg lg:text-xl font-semibold text-[#290c52] text-center">
               {examData.title || 'Exam'}
             </h2>
@@ -2462,10 +2905,10 @@ function ExamModeContent() {
         )}
 
         {/* Section Nav (Mobile) - Horizontal tabs like desktop - Hidden in mobile for typing */}
-        <div className={`lg:hidden flex flex-col border-b border-y-gray-200 bg-[#fff] sticky top-[40px] z-20 shadow-sm landscape-reduce-section-nav landscape-hide-sections ${currentQuestion?.questionType === "TYPING" ? "hidden" : ""}`}>
+        <div className={`lg:hidden flex flex-col border-b border-y-gray-200 bg-[#fff] sticky top-[40px] z-20 shadow-sm landscape-reduce-section-nav landscape-hide-sections exam-mobile-section-nav ${currentQuestion?.questionType === "TYPING" ? "hidden" : ""}`}>
           <div 
             ref={sectionScrollContainerRef}
-            className="flex text-xs overflow-x-auto px-2 py-2 scroll-smooth landscape-reduce-section-nav"
+            className="exam-mobile-tabs-row flex text-xs overflow-x-auto px-2 py-2 scroll-smooth landscape-reduce-section-nav"
             style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
           >
                 {sections.map((sec, index) => {
@@ -2481,103 +2924,38 @@ function ExamModeContent() {
                     (isNextSection && completedSections.has(section)) ||
                     (isPreviousSection && !isCompleted);
                   const isLocked = !canAccess;
+                  const isTypingSec = isTypingSectionName(sec.name);
+                  const effectiveLocked = isTypingSec ? false : isLocked;
                   
                   return (
                     <button
                       key={sec._id}
                       data-section-index={index}
-                      onClick={() => {
-                        // Prevent navigation to locked sections
-                        if (isLocked || isCompleted) {
-                          if (isCompleted) {
-                            alert('This section is already completed and locked.');
-                          } else {
-                            alert('Please complete the current section before moving to the next section.');
-                          }
-                          return;
-                        }
-
-                        // Check RSCIT eligibility: Section B requires Section A with minimum 12 marks
-                        if (examData?.key === 'RSCIT' && sec.name === 'Section B' && !completedSections.has('Section A')) {
-                          alert('Please complete Section A first before attempting Section B.');
-                          return;
-                        }
-
-                        // Check if Section A score >= 12 marks for RSCIT Section B
-                        if (examData?.key === 'RSCIT' && sec.name === 'Section B') {
-                          const sectionACompleted = completedSections.has('Section A');
-                          if (!sectionACompleted) {
-                            alert('Please complete Section A first before attempting Section B.');
-                            return;
-                          }
-                          
-                          // Check Section A score
-                          const sectionAAnswers = JSON.parse(localStorage.getItem('examAnswers') || '{}');
-                          const sectionAQuestions = questions['Section A'] || [];
-                          let sectionAScore = 0;
-                          sectionAQuestions.forEach(q => {
-                            const answer = sectionAAnswers[q._id];
-                            if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
-                              sectionAScore += (q.marks || 2);
-                            }
-                          });
-                          
-                          if (sectionAScore < 12) {
-                            alert(`You need minimum 12 marks in Section A to proceed to Section B. Your Section A score: ${sectionAScore} marks.`);
-                            return;
-                          }
-                        }
-                        // Save current timer state before switching sections
-                        const currentTime = timeLeft;
-                        localStorage.setItem('examTimeLeft', currentTime.toString());
-                        setSection(sec.name);
-                        setCurrentQuestionIndex(0);
-                        // Reset selected part and set first part if available
-                        const sectionParts = parts.filter(p => {
-                          const pSectionId = String(p.sectionId).trim();
-                          const secIdStr = String(sec.id).trim();
-                          const secIdObj = String(sec._id).trim();
-                          return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
-                        }).sort((a, b) => (a.order || 0) - (b.order || 0));
-                        if (sectionParts.length > 0) {
-                          setSelectedPart(sectionParts[0].name);
-                        } else {
-                          setSelectedPart(null);
-                        }
-                        // Mark first question of selected section as visited
-                        const firstQuestion = questions[sec.name]?.[0];
-                        if (firstQuestion?._id) {
-                          setVisitedQuestions(prev => {
-                            const newSet = new Set([...prev, firstQuestion._id]);
-                            localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                            return newSet;
-                          });
-                        }
-                      }}
+                      onClick={() => handleSectionTabClick(sec, isLocked, isCompleted)}
                   className={`${
                     isCompleted
                       ? "bg-green-600 text-white border-green-700 cursor-not-allowed opacity-75"
-                      : isLocked
+                      : effectiveLocked
                       ? "bg-gray-300 text-gray-500 border-gray-400 cursor-not-allowed opacity-50"
                       : section === sec.name
                       ? "bg-[#290c52] text-white border-[#290c52]"
                       : "bg-white text-[#290c52] border border-gray-300 hover:bg-gray-50"
                   } px-3 py-2 whitespace-nowrap relative border-r text-sm md:text-base font-medium min-w-[100px] flex items-center justify-center gap-1`}
-                      disabled={isLocked || isCompleted}
-                  title={isCompleted ? "Section completed and locked" : isLocked ? "Complete current section first" : ""}
+                      disabled={isCompleted || (effectiveLocked && !isTypingSec)}
+                  title={isCompleted ? "Section completed and locked" : effectiveLocked ? "Complete current section first" : ""}
                     >
                       <span>{sec.name}</span>
                       {isCompleted && (
                     <span className="text-xs">✓</span>
                       )}
-                      {isLocked && !isCompleted && (
+                      {effectiveLocked && !isCompleted && !isTypingSec && (
                     <span className="text-xs">🔒</span>
                       )}
                     </button>
                   );
                 })}
               </div>
-          <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200 landscape-hide-status-bar">
+          <div className="exam-mobile-timer-row flex items-center justify-between px-4 py-2 border-t border-gray-200 landscape-hide-status-bar">
             <div className="flex items-center gap-2">
             <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
               {isSoundOn ? "🔊" : "🔇"}
@@ -2602,7 +2980,7 @@ function ExamModeContent() {
           {section && currentSectionParts.length > 0 && (
             <div 
               ref={partsScrollContainerRef}
-              className="lg:hidden flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2 scroll-smooth landscape-reduce-subject-tabs landscape-hide-parts"
+              className="lg:hidden flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2 scroll-smooth landscape-reduce-subject-tabs landscape-hide-parts exam-mobile-parts-row"
               style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
             >
               <span className="px-2 py-1 font-semibold text-gray-700 whitespace-nowrap text-xs">Section:</span>
@@ -2651,18 +3029,12 @@ function ExamModeContent() {
         </div>
 
         {/* Section Nav (Desktop) - Always show on desktop, never hide */}
-        <div className="hidden lg:flex flex-col border-b border-y-gray-200 bg-[#fff]">
-          <div className="flex text-xs overflow-x-auto pl-8 pb-2 landscape-reduce-subject-tabs landscape-hide-subject-tabs">
+        <div className="hidden lg:flex flex-col border-b border-y-gray-200 bg-[#fff] exam-desktop-section-nav">
+          <div className="flex text-xs overflow-x-auto pl-8 pb-1 landscape-reduce-subject-tabs landscape-hide-subject-tabs">
             {sections.map((sec, index) => {
               const isCompleted = completedSections.has(sec.name);
               const isCurrentSection = section === sec.name;
               
-              // Check if this section can be accessed
-              // Rules:
-              // 1. Current section - always accessible
-              // 2. Completed sections - locked, cannot access
-              // 3. Previous sections that are not completed - cannot access
-              // 4. Next section - only accessible if current section is completed
               const currentSectionIndex = sections.findIndex(s => s.name === section);
               const thisSectionIndex = index;
               const isPreviousSection = thisSectionIndex < currentSectionIndex;
@@ -2671,93 +3043,31 @@ function ExamModeContent() {
                 (isNextSection && completedSections.has(section)) ||
                 (isPreviousSection && !isCompleted);
               const isLocked = !canAccess;
+              const isTypingSec = isTypingSectionName(sec.name);
+              const effectiveLocked = isTypingSec ? false : isLocked;
               
               return (
                 <button
                   key={sec._id}
-                  onClick={() => {
-                    // Prevent navigation to locked sections
-                    if (isLocked || isCompleted) {
-                      if (isCompleted) {
-                        alert('This section is already completed and locked.');
-                      } else {
-                        alert('Please complete the current section before moving to the next section.');
-                      }
-                      return;
-                    }
-
-                    // Check RSCIT eligibility: Section B requires Section A with minimum 12 marks
-                    if (examData?.key === 'RSCIT' && sec.name === 'Section B' && !completedSections.has('Section A')) {
-                      alert('Please complete Section A first before attempting Section B.');
-                      return;
-                    }
-
-                    // Check if Section A score >= 12 marks for RSCIT Section B
-                    if (examData?.key === 'RSCIT' && sec.name === 'Section B') {
-                      const sectionACompleted = completedSections.has('Section A');
-                      if (!sectionACompleted) {
-                        alert('Please complete Section A first before attempting Section B.');
-                        return;
-                      }
-                      
-                      // Check Section A score
-                      const sectionAAnswers = JSON.parse(localStorage.getItem('examAnswers') || '{}');
-                      const sectionAQuestions = questions['Section A'] || [];
-                      let sectionAScore = 0;
-                      sectionAQuestions.forEach(q => {
-                        const answer = sectionAAnswers[q._id];
-                        if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
-                          sectionAScore += (q.marks || 2);
-                        }
-                      });
-                      
-                      if (sectionAScore < 12) {
-                        alert(`You need minimum 12 marks in Section A to proceed to Section B. Your Section A score: ${sectionAScore} marks.`);
-                        return;
-                      }
-                    }
-                    setSection(sec.name);
-                    setCurrentQuestionIndex(0);
-                    // Reset selected part and set first part if available
-                    const sectionParts = parts.filter(p => {
-                      const pSectionId = String(p.sectionId).trim();
-                      const secIdStr = String(sec.id).trim();
-                      const secIdObj = String(sec._id).trim();
-                      return pSectionId === secIdObj || pSectionId === secIdStr || pSectionId === sec._id.toString();
-                    }).sort((a, b) => (a.order || 0) - (b.order || 0));
-                    if (sectionParts.length > 0) {
-                      setSelectedPart(sectionParts[0].name);
-                    } else {
-                      setSelectedPart(null);
-                    }
-                    // Mark first question of selected section as visited
-                    const firstQuestion = questions[sec.name]?.[0];
-                    if (firstQuestion?._id) {
-                      setVisitedQuestions(prev => {
-                        const newSet = new Set([...prev, firstQuestion._id]);
-                        localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                        return newSet;
-                      });
-                    }
-                  }}
+                  onClick={() => handleSectionTabClick(sec, isLocked, isCompleted)}
                   className={`${
                     isCompleted
                       ? "bg-green-600 text-white border-green-700 cursor-not-allowed opacity-75"
-                      : isLocked
+                      : effectiveLocked
                       ? "bg-gray-300 text-gray-500 border-gray-400 cursor-not-allowed opacity-50"
                       : section === sec.name
                       ? "bg-[#290c52] text-white border-[#290c52]"
                       : "bg-white text-[#290c52] border border-gray-300 hover:bg-gray-50"
-                  } px-4 py-3 whitespace-nowrap relative border-r text-sm md:text-base font-medium`}
-                  disabled={isLocked || isCompleted}
-                  title={isCompleted ? "Section completed and locked" : isLocked ? "Complete current section first" : ""}
+                  } px-4 py-2 whitespace-nowrap relative border-r text-sm md:text-base font-medium flex items-center gap-1`}
+                  disabled={isCompleted || (effectiveLocked && !isTypingSec)}
+                  title={isCompleted ? "Section completed and locked" : effectiveLocked ? "Complete current section first" : ""}
                 >
                   {sec.name}
                   {isCompleted && (
-                    <span className="ml-2 text-xs">✓</span>
+                    <span className="text-xs">✓</span>
                   )}
-                  {isLocked && !isCompleted && (
-                    <span className="ml-2 text-xs">🔒</span>
+                  {effectiveLocked && !isCompleted && !isTypingSec && (
+                    <span className="text-xs">🔒</span>
                   )}
                 </button>
               );
@@ -2770,17 +3080,17 @@ function ExamModeContent() {
               {examData?.key === 'RSCIT' && section === 'Section A' && typingTimeLeft !== null ? (
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-pink-300 landscape-reduce-timer">⏱️ Section Timer:</span>
-                  <b className="bg-pink-300 text-black px-3 py-1 rounded text-lg font-bold landscape-reduce-timer">{formatTime(typingTimeLeft)}</b>
+                  <b className="bg-pink-300 text-black px-2 py-0.5 rounded text-base font-bold landscape-reduce-timer">{formatTime(typingTimeLeft)}</b>
                 </div>
               ) : isTypingSection && typingTimeLeft !== null ? (
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-pink-300">⏱️ Section Timer:</span>
-                  <b className="bg-pink-300 text-black px-3 py-1 rounded text-lg font-bold landscape-reduce-timer">{formatTime(typingTimeLeft)}</b>
+                  <b className="bg-pink-300 text-black px-2 py-0.5 rounded text-base font-bold landscape-reduce-timer">{formatTime(typingTimeLeft)}</b>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-blue-600 landscape-reduce-timer">⏱️ Time Left:</span>
-                  <b className="bg-blue-400 text-black px-3 py-1 rounded text-lg font-bold landscape-reduce-timer">{formatTime(timeLeft)}</b>
+                  <b className="bg-blue-400 text-black px-2 py-0.5 rounded text-base font-bold landscape-reduce-timer">{formatTime(timeLeft)}</b>
                 </div>
               )}
             </div>
@@ -2837,7 +3147,7 @@ function ExamModeContent() {
         {isMobile && section && currentQuestions && currentQuestions.length > 0 && currentQuestion?.questionType !== "TYPING" && (
           <div 
             ref={questionScrollContainerRef}
-            className="flex gap-2 h-16 md:h-20 overflow-x-auto px-2 md:px-4 py-1 md:py-2 scroll-smooth bg-white border-b border-gray-200 flex-shrink-0 landscape-reduce-question-grid flex"
+            className="flex gap-2 h-16 md:h-20 overflow-x-auto px-2 md:px-4 py-1 md:py-2 scroll-smooth bg-white border-b border-gray-200 flex-shrink-0 landscape-reduce-question-grid exam-mobile-question-grid flex"
             style={{ scrollBehavior: 'smooth' }}
           >
             {currentQuestions.map((q, i) => {
@@ -2875,10 +3185,10 @@ function ExamModeContent() {
 
 
         {/* Question Panel */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-white-50 mt-0 md:mt-0 lg:overflow-auto lg:px-4 lg:pt-4 lg:pb-0">
+      <div className="flex-1 flex flex-col overflow-hidden bg-white-50 mt-0 md:mt-0 lg:overflow-hidden lg:px-4 lg:pt-2 lg:pb-0 exam-mobile-question-panel min-h-0">
   {/* Fixed Top Bar - Hidden for typing questions */}
   {currentQuestion?.questionType !== "TYPING" && (
-    <div className="bg-[#290c52] text-white text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 rounded-t flex justify-between flex-wrap gap-2 flex-shrink-0 landscape-reduce-top-bar">
+    <div className="bg-[#290c52] text-white text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 rounded-t flex justify-between flex-wrap gap-2 flex-shrink-0 landscape-reduce-top-bar exam-mobile-top-bar">
       <span>Question Type: {currentQuestion?.questionType === "TYPING" ? "TYPING" : "MCQ"}</span>
       <div className="flex items-center gap-1 md:gap-2">
         <p className="text-xs">View in:</p>
@@ -2899,11 +3209,11 @@ function ExamModeContent() {
   )}
 
   {/* Scrollable Content */}
-  <div className="border-t border-gray-300 flex-1 flex flex-col min-h-0 overflow-y-auto lg:flex-initial landscape-question-content">
+  <div className="border-t border-gray-300 flex-1 flex flex-col min-h-0 overflow-y-auto landscape-question-content exam-mobile-question-content">
     {currentQuestion?.questionType !== "TYPING" && (
-      <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-b text-xs md:text-sm font-semibold flex flex-col sm:flex-row justify-between flex-shrink-0 landscape-reduce-question-bar">
+      <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-b text-xs md:text-sm font-semibold flex flex-col sm:flex-row justify-between flex-shrink-0 landscape-reduce-question-bar exam-mobile-question-meta">
         <span>Question No. {currentQuestionIndex + 1} {currentQuestions && `of ${currentQuestions.length}`}</span>
-        <span className="mt-1 sm:mt-0 text-xs">
+        <span className="mt-1 sm:mt-0 text-xs exam-mobile-marks">
           Marks: <span className="text-green-600 font-semibold">{currentQuestion?.marks || 1}</span> | Negative: <span className="text-red-500">{currentQuestion?.negativeMarks || 0}</span>
         </span>
       </div>
@@ -2923,10 +3233,10 @@ function ExamModeContent() {
       </div>
     ) : currentQuestion?.questionType === "TYPING" ? (
       // Typing Section UI - New Design
-      <div className="h-full flex flex-col overflow-hidden min-h-0 landscape-typing-container">
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0 h-full landscape-typing-container">
         {/* Keyboard Dropdown (Mobile and Landscape) - Show at top right for Hindi typing */}
         {currentQuestion && currentQuestion.questionType === "TYPING" && currentQuestion.typingLanguage === "Hindi" && (
-          <div className="flex lg:hidden items-center justify-end gap-2 bg-gray-50 border-b border-gray-200 px-2 md:px-3 py-1 md:py-1.5 landscape-keyboard-dropdown">
+          <div className="flex lg:hidden items-center justify-end gap-2 bg-gray-50 border-b border-gray-200 px-2 py-1.5 flex-shrink-0 landscape-keyboard-dropdown">
             <label className="bg-blue-600 text-white px-2 md:px-2.5 py-0.5 md:py-1 rounded text-[10px] md:text-xs font-semibold whitespace-nowrap">
               Keyboard:
             </label>
@@ -3049,8 +3359,8 @@ function ExamModeContent() {
       <>
 
         {currentQuestion.passage_en || currentQuestion.passage_hi ? (
-          <div className="flex flex-col lg:flex-row p-2 md:p-4 gap-x-6 gap-y-4 md:gap-y-10 landscape-reduce-padding">
-            <div className="lg:w-2/3 text-xs md:text-sm border-r pr-2 md:pr-4 max-h-32 md:max-h-72 overflow-y-auto landscape-reduce-passage">
+          <div className="flex flex-col lg:flex-row p-2 md:p-4 gap-x-6 gap-y-4 md:gap-y-10 landscape-reduce-padding exam-mobile-passage-layout">
+            <div className="lg:w-2/3 text-xs md:text-sm border-r pr-2 md:pr-4 max-h-32 md:max-h-72 overflow-y-auto landscape-reduce-passage exam-mobile-passage">
               {/* Show title if available */}
               {(currentQuestion.title_en || currentQuestion.title_hi) && (
                 <h3 className="font-bold mb-2 text-purple-700">
@@ -3064,7 +3374,7 @@ function ExamModeContent() {
                 ? currentQuestion.passage_hi 
                 : currentQuestion.passage_en || currentQuestion.passage_hi}</p>
             </div>
-            <div className="lg:w-1/3 text-sm md:text-xl">
+            <div className="lg:w-1/3 text-sm md:text-xl exam-mobile-options-col">
             {/* Show image if question has imageUrl, otherwise show text */}
             {(() => {
               const isImageQuestion = currentQuestion?.question_en === '[Image Question]';
@@ -3093,13 +3403,12 @@ function ExamModeContent() {
               
               // For non-image questions without imageUrl, just show text
               if (!hasImageUrl) {
-                let questionText = viewLanguage === "हिन्दी" && currentQuestion?.question_hi 
+                const rawQuestionText = viewLanguage === "हिन्दी" && currentQuestion?.question_hi 
                   ? currentQuestion.question_hi 
                   : currentQuestion?.question_en || currentQuestion?.question_hi || 'No question text available';
-                // Remove patterns like "(Question 57)", "(Question X)" from question text
-                questionText = questionText.replace(/\s*\(Question\s+\d+\)/gi, '').trim();
+                const questionText = formatMobileQuestionText(rawQuestionText);
                 return (
-                  <p className="mb-4 md:mb-6 text-base md:text-lg landscape-reduce-question-text">
+                  <p className="mb-4 md:mb-6 text-base md:text-lg landscape-reduce-question-text exam-mobile-question-text">
                     {questionText}
                   </p>
                 );
@@ -3172,7 +3481,7 @@ function ExamModeContent() {
               {(viewLanguage === "हिन्दी" && currentQuestion.options_hi && currentQuestion.options_hi.length > 0
                 ? currentQuestion.options_hi 
                 : currentQuestion.options_en || currentQuestion.options_hi || []).map((opt, i) => (
-                <label key={i} className="flex items-start gap-x-3 gap-y-3 mb-4 md:mb-5 landscape-reduce-options">
+                <label key={i} className="flex items-start gap-x-3 gap-y-3 mb-4 md:mb-5 max-md:mb-1 landscape-reduce-options exam-mobile-options">
                   <input 
                     type="radio" 
                     name={`q-${currentQuestion._id}`}
@@ -3190,7 +3499,7 @@ function ExamModeContent() {
             </div>
           </div>
         ) : (
-          <div className="p-4 text-md md:text-xl mb-28">
+          <div className="p-4 text-md md:text-xl mb-28 max-md:mb-0 exam-mobile-question-body">
             {/* Show image if question has imageUrl, otherwise show text */}
             {(() => {
               const isImageQuestion = currentQuestion?.question_en === '[Image Question]';
@@ -3219,13 +3528,12 @@ function ExamModeContent() {
               
               // For non-image questions without imageUrl, just show text
               if (!hasImageUrl) {
-                let questionText = viewLanguage === "हिन्दी" && currentQuestion?.question_hi 
+                const rawQuestionText = viewLanguage === "हिन्दी" && currentQuestion?.question_hi 
                   ? currentQuestion.question_hi 
                   : currentQuestion?.question_en || currentQuestion?.question_hi || 'No question text available';
-                // Remove patterns like "(Question 57)", "(Question X)" from question text
-                questionText = questionText.replace(/\s*\(Question\s+\d+\)/gi, '').trim();
+                const questionText = formatMobileQuestionText(rawQuestionText);
                 return (
-                  <p className="mb-4 md:mb-6 text-base md:text-lg landscape-reduce-question-text">
+                  <p className="mb-4 md:mb-6 text-base md:text-lg landscape-reduce-question-text exam-mobile-question-text">
                     {questionText}
                   </p>
                 );
@@ -3298,7 +3606,7 @@ function ExamModeContent() {
             {(viewLanguage === "हिन्दी" && currentQuestion.options_hi && currentQuestion.options_hi.length > 0
               ? currentQuestion.options_hi 
               : currentQuestion.options_en || currentQuestion.options_hi || []).map((opt, i) => (
-              <label key={i} className="flex items-start gap-3 mb-4 md:mb-5">
+              <label key={i} className="flex items-start gap-3 mb-4 md:mb-5 max-md:mb-1 exam-mobile-options">
                 <input 
                   type="radio" 
                   name={`q-${currentQuestion._id}`}
@@ -3319,12 +3627,12 @@ function ExamModeContent() {
 
         {/* Footer - Hidden for typing questions */}
         {currentQuestion?.questionType !== "TYPING" && (
-          <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-t border-gray-300 flex-shrink-0">
+          <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-t border-gray-300 flex-shrink-0 exam-mobile-btn-footer">
             {/* Mobile: 2x2 Grid Layout, but 1 row in landscape */}
-            <div className="lg:hidden grid grid-cols-2 gap-2 landscape-buttons-container">
+            <div className="lg:hidden grid grid-cols-2 gap-2 landscape-buttons-container exam-mobile-btn-grid">
             {/* Top Left: Mark for Review & Next */}
             <button 
-              className="px-2 py-2 bg-purple-600 text-white rounded text-xs whitespace-nowrap landscape-reduce-buttons"
+              className="px-2 py-2 bg-purple-600 text-white rounded text-xs whitespace-nowrap landscape-reduce-buttons exam-mobile-action-btn"
               onClick={() => {
                 // Mark current question for review
                 if (currentQuestion && currentQuestion._id) {
@@ -3368,7 +3676,7 @@ function ExamModeContent() {
             </button>
             {/* Top Right: Clear Response */}
             <button 
-              className="px-2 py-2 bg-orange-500 text-white rounded text-xs whitespace-nowrap landscape-reduce-buttons"
+              className="px-2 py-2 bg-orange-500 text-white rounded text-xs whitespace-nowrap landscape-reduce-buttons exam-mobile-action-btn"
               onClick={() => {
                 if (currentQuestion) {
                   const newAnswers = {...selectedAnswers};
@@ -3382,7 +3690,7 @@ function ExamModeContent() {
             {/* Bottom Left: Previous - Hidden for typing questions */}
             {currentQuestion?.questionType !== "TYPING" && (
               <button 
-                className="bg-blue-900 hover:bg-blue-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 landscape-reduce-buttons"
+                className="bg-blue-900 hover:bg-blue-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 landscape-reduce-buttons exam-mobile-action-btn"
                 disabled={currentQuestionIndex === 0 && section === sections[0]?.name}
                 onClick={() => {
                   if (currentQuestionIndex > 0) {
@@ -3411,7 +3719,7 @@ function ExamModeContent() {
             )}
             {/* Bottom Right: Save & Next */}
             <button 
-              className={`bg-green-600 hover:bg-cyan-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed landscape-reduce-buttons ${isLastQuestion() ? 'bg-green-600' : ''}`}
+              className={`bg-green-600 hover:bg-cyan-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed landscape-reduce-buttons exam-mobile-action-btn ${isLastQuestion() ? 'bg-green-600' : ''}`}
               disabled={currentQuestion && currentQuestion.questionType !== "TYPING" && (selectedAnswers[currentQuestion._id] === undefined || selectedAnswers[currentQuestion._id] === null)}
               onClick={() => {
                 // Check if answer is selected (skip check for TYPING questions)
@@ -3717,6 +4025,46 @@ function ExamModeContent() {
             Submit Section
           </button>
         </div>
+        </div>
+      )}
+
+      {/* Mobile: section submit confirm before switching to typing tab */}
+      {showSectionSubmitModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-lg p-5 max-w-sm w-full shadow-2xl border border-gray-200">
+            <p className="text-sm text-gray-800 leading-relaxed mb-2">
+              क्या आप वाकई इस सेक्शन को सबमिट करना चाहते हैं? आगे बढ़ने के लिए &apos;Yes&apos; पर क्लिक करें; वापस जाने के लिए &apos;No&apos; पर क्लिक करें।
+            </p>
+            <p className="text-xs text-gray-600 leading-relaxed mb-5">
+              प्रतिभागी, एक बार सेक्शन सबमिट करने के बाद, आप अपने उत्तरों में कोई संशोधन नहीं कर पाएंगे।
+            </p>
+            <div className="flex gap-3 justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSectionSubmitModal(false);
+                  setPendingSectionNav(null);
+                }}
+                className="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium text-sm"
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const target = pendingSectionNav?.name || null;
+                  setShowSectionSubmitModal(false);
+                  setPendingSectionNav(null);
+                  if (target) {
+                    handleSubmitSection(target);
+                  }
+                }}
+                className="px-5 py-2 rounded-lg bg-[#290c52] text-white font-medium text-sm"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

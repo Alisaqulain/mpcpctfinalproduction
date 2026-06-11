@@ -29,6 +29,11 @@ export default function LayoutWrapper({ children }) {
     pathname === "/payment-app" ||
     pathname === "/verify-phone";
 
+  const showWhatsApp =
+    pathname === "/" ||
+    pathname === "/contact-us" ||
+    pathname === "/about-us";
+
   return (
     <>
       <a
@@ -42,7 +47,9 @@ export default function LayoutWrapper({ children }) {
         {children}
       </main>
       {!hideFooter && <Footer />}
-      <FloatingGrowthWidgets minimal={hideLayout} />
+      {(showWhatsApp || !hideLayout) && (
+        <FloatingGrowthWidgets minimal={hideLayout} showWhatsApp={showWhatsApp} />
+      )}
     </>
   );
 }

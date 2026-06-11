@@ -5,7 +5,7 @@ import { MessageCircle, Share2 } from "lucide-react";
 
 const WHATSAPP_NUMBER = "918989966753";
 
-export default function FloatingGrowthWidgets({ minimal = false }) {
+export default function FloatingGrowthWidgets({ minimal = false, showWhatsApp = false }) {
   const wa =
     process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ||
     process.env.NEXT_PUBLIC_WHATSAPP ||
@@ -66,16 +66,18 @@ export default function FloatingGrowthWidgets({ minimal = false }) {
             <Share2 size={22} />
           </button>
         )}
-        <a
-          href={waHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-full bg-green-600 text-white p-3 shadow-lg hover:bg-green-500"
-          aria-label="WhatsApp MPC PCT — 8989966753"
-          title="WhatsApp: 8989966753"
-        >
-          <MessageCircle size={24} />
-        </a>
+        {showWhatsApp && (
+          <a
+            href={waHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full bg-green-600 text-white p-3 shadow-lg hover:bg-green-500"
+            aria-label="WhatsApp MPC PCT — 8989966753"
+            title="WhatsApp: 8989966753"
+          >
+            <MessageCircle size={24} />
+          </a>
+        )}
         {!minimal && (
           <button
             type="button"
