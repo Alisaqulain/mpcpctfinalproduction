@@ -13,7 +13,9 @@ export default function ExamTypingInterface({
   allowBackspace = true,
   duration = null,
   timeRemaining = null,
-  onTimerUpdate = null
+  onTimerUpdate = null,
+  hindiKeyboardType = "Remington Gail",
+  onHindiKeyboardTypeChange = null,
 }) {
   const [typedText, setTypedText] = useState("");
   const [keystrokesCount, setKeystrokesCount] = useState(0);
@@ -25,9 +27,44 @@ export default function ExamTypingInterface({
   const [internalTimeRemaining, setInternalTimeRemaining] = useState(duration ? duration * 60 : null);
   const [wpm, setWpm] = useState(0);
   const [fontSize, setFontSize] = useState(16);
+  const [typingLayout, setTypingLayout] = useState(() => {
+    if (typeof window === "undefined") return "portrait";
+    if (window.innerWidth >= 1024) return "desktop";
+    if (window.matchMedia("(max-width: 900px) and (orientation: landscape)").matches) return "landscape";
+    return "portrait";
+  });
   const inputRef = useRef(null);
   const containerRef = useRef(null);
   const wordRefs = useRef([]);
+
+  useEffect(() => {
+    const resolveTypingLayout = () => {
+      if (window.innerWidth >= 1024) {
+        setTypingLayout("desktop");
+      } else if (window.matchMedia("(max-width: 900px) and (orientation: landscape)").matches) {
+        setTypingLayout("landscape");
+      } else {
+        setTypingLayout("portrait");
+      }
+    };
+
+    const syncViewport = () => {
+      resolveTypingLayout();
+      if (typeof document !== "undefined") {
+        document.documentElement.style.setProperty("--exam-landscape-vh", `${window.innerHeight}px`);
+      }
+    };
+
+    syncViewport();
+    window.addEventListener("resize", syncViewport);
+    window.addEventListener("orientationchange", syncViewport);
+    window.visualViewport?.addEventListener("resize", syncViewport);
+    return () => {
+      window.removeEventListener("resize", syncViewport);
+      window.removeEventListener("orientationchange", syncViewport);
+      window.visualViewport?.removeEventListener("resize", syncViewport);
+    };
+  }, []);
   
   // Detect if Hindi typing is required
   const isHindiTyping = language === "Hindi";
@@ -402,7 +439,6 @@ export default function ExamTypingInterface({
 
     return (
       <div className={gaugeClass}>
-        <div className="absolute left-1 text-red-500 text-[6px] font-bold tracking-widest speedometer-label">SPEED</div>
         <svg
           width={svgPx}
           height={svgPx}
@@ -438,8 +474,9 @@ export default function ExamTypingInterface({
 
   return (
     <div className="flex flex-col flex-1 h-full min-h-0">
-      {/* Portrait View - phones/tablets below desktop (lg); keeps layout in mobile landscape */}
-      <div className="flex flex-col flex-1 min-h-0 h-full lg:hidden exam-typing-portrait">
+      {/* Portrait View — mobile/tablet portrait only */}
+      {typingLayout === "portrait" && (
+      <div className="flex flex-col flex-1 min-h-0 h-full exam-typing-portrait-view exam-typing-portrait">
         {/* Top Section: User Profile, Stats, Speedometer */}
         <div className="flex items-start justify-between p-2 bg-white border-b border-gray-200 flex-shrink-0 exam-typing-stats-mobile">
           {/* Left: User Profile with A- below */}
@@ -457,7 +494,7 @@ export default function ExamTypingInterface({
             <button
               type="button"
               onClick={() => setFontSize(prev => Math.max(12, prev - 2))}
-              className="bg-white text-red-600 border-2 border-black rounded-md px-2 py-1 mt-auto translate-y-4 hover:bg-gray-100 transition-colors text-xs font-semibold w-full min-h-[1.75rem] flex items-center justify-center exam-typing-font-btn exam-typing-a-minus-btn"
+              className="bg-white text-red-600 border-2 border-black rounded-md px-2 py-1 mt-auto translate-y-1 hover:bg-gray-100 transition-colors text-xs font-semibold w-full min-h-[1.75rem] flex items-center justify-center exam-typing-font-btn exam-typing-a-minus-btn"
             >
               A -
             </button>
@@ -551,9 +588,120 @@ export default function ExamTypingInterface({
           </button>
         </div>
       </div>
+      )}
+
+      {/* Mobile landscape typing (≤900px landscape) — side-by-side like desktop */}
+      {typingLayout === "landscape" && (
+      <div className="flex flex-col min-h-0 overflow-hidden exam-typing-landscape-mobile-view">
+        {/* Stats row below header */}
+        <div className="flex-shrink-0 bg-white border-b border-gray-200 exam-typing-landscape-stats">
+          <div className="flex gap-0.5 items-stretch justify-center h-full">
+            <div className="flex-1 min-w-0 rounded overflow-hidden text-center exam-typing-landscape-stat-card">
+              <div className="bg-black text-white text-[8px] font-semibold">Correct</div>
+              <div className="bg-white text-green-600 text-[10px] font-bold">{correctWords}</div>
+            </div>
+            <div className="flex-1 min-w-0 rounded overflow-hidden text-center exam-typing-landscape-stat-card">
+              <div className="bg-black text-white text-[8px] font-semibold">Wrong</div>
+              <div className="bg-white text-red-500 text-[10px] font-bold">{wrongWords}</div>
+            </div>
+            <div className="flex-1 min-w-0 rounded overflow-hidden text-center exam-typing-landscape-stat-card">
+              <div className="bg-black text-white text-[8px] font-semibold">Total</div>
+              <div className="bg-white text-[#290c52] text-[10px] font-bold">{totalTyped}</div>
+            </div>
+            <div className="flex-1 min-w-0 rounded overflow-hidden text-center exam-typing-landscape-stat-card">
+              <div className="bg-black text-white text-[8px] font-semibold">Backspace</div>
+              <div className="bg-white text-blue-500 text-[10px] font-bold">{backspaceCount}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-row min-h-0 overflow-hidden exam-typing-landscape-body typing-landscape-main">
+          {/* Left: passage + typing — 68% */}
+          <div className="w-[68%] flex flex-col min-h-0 overflow-hidden exam-typing-landscape-left typing-left-panel">
+            <div
+              ref={containerRef}
+              className="bg-white border-2 border-gray-300 rounded-lg p-1.5 overflow-y-auto scrollbar-hide exam-typing-landscape-passage typing-passage-box"
+            >
+              {renderTextContent()}
+            </div>
+            <div className="exam-typing-landscape-input-wrap typing-textarea-wrap min-h-0 flex-1">
+              <textarea
+                ref={inputRef}
+                value={typedText}
+                onInput={handleInputChange}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
+                placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
+                lang={isHindiTyping ? "hi" : undefined}
+                inputMode={isHindiTyping ? "text" : undefined}
+                className="w-full h-full p-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs font-mono resize-none exam-typing-landscape-input typing-textarea"
+                spellCheck={false}
+                autoFocus
+              />
+            </div>
+          </div>
+
+          {/* Right: profile+meter, font buttons, submit — 32% */}
+          <div className="w-[32%] flex-shrink-0 flex flex-col border-l border-gray-200 bg-white overflow-hidden exam-typing-landscape-sidebar typing-right-panel">
+            <div className="w-full flex-1 min-h-0 exam-typing-landscape-sidebar-main typing-right-panel-main">
+              <div className="flex flex-row items-center justify-between gap-1 w-full exam-typing-landscape-sidebar-top profile-meter-row">
+                <div className="flex flex-col items-center min-w-0 flex-1 exam-typing-landscape-sidebar-profile">
+                  <img
+                    src={userProfileUrl}
+                    alt={userName}
+                    className="w-10 h-10 rounded-full border-2 border-gray-300 flex-shrink-0 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = "/lo.jpg";
+                    }}
+                  />
+                  <p className="text-[9px] text-center font-semibold text-gray-700 whitespace-nowrap max-w-full truncate exam-typing-landscape-username">{userName}</p>
+                </div>
+                <div className="flex-shrink-0 exam-typing-landscape-sidebar-meter speed-meter">
+                  {renderSpeedometer("portrait")}
+                </div>
+              </div>
+
+              <div className="w-full flex-shrink-0 flex flex-col gap-1 exam-typing-landscape-controls font-controls">
+                <div className="w-full flex-shrink-0 exam-typing-landscape-font-block">
+                  <p className="text-black text-[10px] font-semibold text-center exam-typing-landscape-font-label">Font size</p>
+                  <div className="flex flex-row gap-1 w-full exam-typing-landscape-font-row">
+                    <button
+                      type="button"
+                      onClick={() => setFontSize(prev => Math.max(12, prev - 2))}
+                      className="flex-1 bg-white text-red-600 border border-black rounded px-1 py-0.5 hover:bg-gray-100 transition-colors text-[9px] font-semibold exam-typing-font-btn exam-typing-font-btn-minus"
+                    >
+                      A -
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFontSize(prev => Math.min(24, prev + 2))}
+                      className="flex-1 bg-white text-green-600 border border-black rounded px-1 py-0.5 hover:bg-gray-100 transition-colors text-[9px] font-semibold exam-typing-font-btn exam-typing-font-btn-plus"
+                    >
+                      A +
+                    </button>
+                  </div>
+                </div>
+                <div className="w-full flex-shrink-0 exam-typing-landscape-submit-wrap submit-section">
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    className="w-full bg-blue-600 text-white rounded-md text-[10px] font-semibold hover:bg-blue-700 transition-colors exam-typing-landscape-submit"
+                  >
+                    Submit Section
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      )}
 
       {/* Desktop View (lg+) — side-by-side layout */}
-      <div className="hidden lg:flex flex-1 flex-col lg:flex-row overflow-hidden min-h-0">
+      {typingLayout === "desktop" && (
+      <div className="flex flex-1 flex-col lg:flex-row overflow-hidden min-h-0 h-full exam-typing-side-by-side">
         {/* Left: Text Display and Input */}
         <div className="flex-1 flex flex-col p-2 md:p-3 lg:p-4 overflow-hidden min-h-0">
           {/* Text to Type Box */}
@@ -660,6 +808,7 @@ export default function ExamTypingInterface({
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

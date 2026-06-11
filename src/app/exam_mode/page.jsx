@@ -5,6 +5,21 @@ import Link from "next/link";
 import TypingArea from "@/components/typing/TypingArea";
 import ExamTypingInterface from "@/components/typing/ExamTypingInterface";
 
+const DEFAULT_EXAM_AVATAR = "/lo.jpg";
+
+function resolveExamProfileSrc(user) {
+  if (!user || typeof user !== "object") return DEFAULT_EXAM_AVATAR;
+  const src =
+    user.profileImage ||
+    user.avatar ||
+    user.uploadedProfileImage ||
+    user.photoURL ||
+    user.profileUrl ||
+    user.profilePicture ||
+    user.image;
+  return src && String(src).trim() ? String(src).trim() : DEFAULT_EXAM_AVATAR;
+}
+
 function ExamModeContent() {
   // Add landscape-specific styles to reduce sizes
   useEffect(() => {
@@ -733,6 +748,15 @@ function ExamModeContent() {
         .exam-mobile-exam-title {
           display: none !important;
         }
+        [data-exam-mode="mcq"] .exam-mobile-mcq-column > .exam-mobile-question-grid {
+          display: none !important;
+          height: 0 !important;
+          min-height: 0 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+          border: none !important;
+        }
         .exam-mobile-question-grid {
           margin-top: 0 !important;
           margin-bottom: 0 !important;
@@ -761,7 +785,7 @@ function ExamModeContent() {
           padding-bottom: 0.2rem !important;
           border-radius: 0 !important;
         }
-        .exam-mobile-question-content {
+        [data-exam-mode="mcq"] .exam-mobile-question-content {
           padding-top: 0 !important;
           padding-bottom: 0 !important;
           flex: 0 1 auto !important;
@@ -817,7 +841,7 @@ function ExamModeContent() {
         .exam-mobile-options-col .exam-mobile-options:last-of-type {
           margin-bottom: 0 !important;
         }
-        .exam-mobile-question-panel {
+        [data-exam-mode="mcq"] .exam-mobile-question-panel {
           min-height: 0 !important;
           flex: 0 0 auto !important;
           flex-grow: 0 !important;
@@ -870,6 +894,10 @@ function ExamModeContent() {
         .exam-mobile-options-col {
           font-size: 0.8rem !important;
         }
+      }
+
+      /* Typing portrait mobile only — must not affect landscape */
+      @media screen and (max-width: 768px) and (orientation: portrait) {
         [data-exam-mode="typing"].exam-mobile-mcq-column {
           padding-bottom: 0 !important;
           height: 100dvh !important;
@@ -902,7 +930,7 @@ function ExamModeContent() {
           min-height: 0 !important;
           overflow-y: auto !important;
         }
-        .exam-typing-portrait {
+        .exam-typing-portrait-view {
           display: flex !important;
           flex-direction: column !important;
           height: 100% !important;
@@ -933,6 +961,28 @@ function ExamModeContent() {
           padding: 0.25rem !important;
           padding-bottom: max(0.25rem, env(safe-area-inset-bottom)) !important;
           flex-shrink: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-portrait-view .speedometer-gauge,
+        [data-exam-mode="typing"] .speedometer-container .speedometer-gauge {
+          width: 3.25rem !important;
+          height: 3.25rem !important;
+          min-width: 3.25rem !important;
+          min-height: 3.25rem !important;
+          max-width: 3.25rem !important;
+          max-height: 3.25rem !important;
+          border-width: 2px !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-portrait-view .speedometer-svg,
+        [data-exam-mode="typing"] .speedometer-container .speedometer-svg {
+          width: 2.85rem !important;
+          height: 2.85rem !important;
+          max-width: 2.85rem !important;
+          max-height: 2.85rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-portrait-view .speedometer-value,
+        [data-exam-mode="typing"] .speedometer-container .speedometer-value {
+          font-size: 9px !important;
+          bottom: 0.45rem !important;
         }
       }
 
@@ -1010,6 +1060,778 @@ function ExamModeContent() {
           flex-shrink: 0 !important;
         }
       }
+
+      /* Mobile landscape typing only (≤900px landscape) — fixed dvh layout for real phones */
+      @media screen and (max-width: 900px) and (orientation: landscape) {
+        [data-exam-mode="typing"] {
+          --exam-landscape-header-h: 2.75rem;
+          --exam-landscape-stats-h: 1.75rem;
+          --exam-landscape-sidebar-w: 32%;
+          --exam-landscape-left-w: 68%;
+        }
+        [data-exam-mode="mcq"] {
+          --mcq-landscape-header-h: 2.75rem;
+          --mcq-landscape-question-grid-h: 1.75rem;
+        }
+        html:has([data-exam-mode="typing"]),
+        html:has([data-exam-mode="mcq"]),
+        body:has([data-exam-mode="typing"]),
+        body:has([data-exam-mode="mcq"]) {
+          overflow: hidden !important;
+          height: 100dvh !important;
+          height: 100svh !important;
+          max-height: 100dvh !important;
+          max-height: 100svh !important;
+        }
+        body:has([data-exam-mode="typing"]) > div,
+        body:has([data-exam-mode="typing"]) .h-screen,
+        body:has([data-exam-mode="mcq"]) > div,
+        body:has([data-exam-mode="mcq"]) .h-screen {
+          overflow: hidden !important;
+          max-height: 100dvh !important;
+          max-height: 100svh !important;
+        }
+        body:has([data-exam-mode="typing"]) .exam-mobile-menu-btn {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          top: 0.35rem !important;
+          left: 0.35rem !important;
+          padding: 0.25rem 0.45rem !important;
+          font-size: 1rem !important;
+          line-height: 1 !important;
+          min-width: 2rem !important;
+          min-height: 1.75rem !important;
+          z-index: 110 !important;
+        }
+        body:has([data-exam-mode="typing"]) .exam-mobile-drawer-backdrop {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          z-index: 100 !important;
+        }
+        body:has([data-exam-mode="typing"]) .exam-mobile-drawer-panel {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          z-index: 105 !important;
+          max-height: 100dvh !important;
+          max-height: 100svh !important;
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch !important;
+        }
+        [data-exam-mode="typing"].exam-mobile-mcq-column {
+          padding: 0 !important;
+          margin: 0 !important;
+          height: 100dvh !important;
+          height: 100svh !important;
+          max-height: 100dvh !important;
+          max-height: 100svh !important;
+          overflow: hidden !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header.fixed {
+          padding: 0.3rem 0.5rem !important;
+          min-height: var(--exam-landscape-header-h) !important;
+          max-height: var(--exam-landscape-header-h) !important;
+          font-size: 0.75rem !important;
+          line-height: 1.2 !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header .max-md\\:pl-9 {
+          padding-left: 2rem !important;
+          gap: 0.25rem !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header > div:first-child {
+          gap: 0.25rem !important;
+          min-width: 0 !important;
+          flex-wrap: nowrap !important;
+          overflow: hidden !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-title {
+          font-size: 0.8rem !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header a[href="/"] {
+          padding: 0.15rem 0.45rem !important;
+          font-size: 0.65rem !important;
+          line-height: 1.2 !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer {
+          gap: 0.25rem !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer span,
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer b {
+          font-size: 0.65rem !important;
+          padding: 0.1rem 0.35rem !important;
+          line-height: 1.2 !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-links {
+          font-size: 0.6rem !important;
+          padding: 0.1rem 0.25rem !important;
+          line-height: 1.2 !important;
+          white-space: nowrap !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header > div:last-child {
+          gap: 0.35rem !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header button[title] {
+          font-size: 0.85rem !important;
+          padding: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-mobile-question-panel,
+        [data-exam-mode="typing"] .exam-mobile-question-content {
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          height: auto !important;
+          max-height: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        [data-exam-mode="typing"] .landscape-typing-container,
+        [data-exam-mode="typing"] .typing-landscape-wrapper {
+          margin: 0 !important;
+          padding-top: var(--exam-landscape-header-h) !important;
+          min-height: 0 !important;
+          flex: 1 1 auto !important;
+          height: calc(var(--exam-landscape-vh, 100dvh) - var(--exam-landscape-header-h)) !important;
+          max-height: calc(var(--exam-landscape-vh, 100dvh) - var(--exam-landscape-header-h)) !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-keyboard {
+          display: flex !important;
+          align-items: center !important;
+          gap: 0.15rem !important;
+          flex-shrink: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-keyboard label {
+          font-size: 0.5rem !important;
+          padding: 0.05rem 0.2rem !important;
+          line-height: 1 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-keyboard select {
+          font-size: 0.5rem !important;
+          padding: 0.05rem 0.15rem !important;
+          min-width: 4.5rem !important;
+          max-width: 5.25rem !important;
+          height: 1.1rem !important;
+          line-height: 1 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-portrait-view {
+          display: none !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-root-wrapper,
+        [data-exam-mode="typing"] .exam-typing-root-wrapper > div {
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          height: 100% !important;
+          max-height: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+          overflow: hidden !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+          transform: none !important;
+          position: relative !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-mobile-view {
+          display: flex !important;
+          flex-direction: column !important;
+          height: 100% !important;
+          max-height: 100% !important;
+          min-height: 0 !important;
+          overflow: hidden !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+          transform: none !important;
+          position: relative !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-stats {
+          flex: 0 0 auto !important;
+          height: var(--exam-landscape-stats-h) !important;
+          min-height: var(--exam-landscape-stats-h) !important;
+          max-height: var(--exam-landscape-stats-h) !important;
+          padding: 0.15rem 0.35rem !important;
+          overflow: hidden !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-stat-card {
+          height: 100% !important;
+          min-height: 0 !important;
+          max-height: 100% !important;
+          border-radius: 0.25rem !important;
+          box-shadow: none !important;
+          border: 1px solid #d1d5db !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-stat-card > div:first-child {
+          font-size: 9px !important;
+          padding: 0 !important;
+          line-height: 1.1 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-stat-card > div:last-child {
+          font-size: 11px !important;
+          line-height: 1.1 !important;
+          padding: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-body,
+        [data-exam-mode="typing"] .typing-landscape-main {
+          display: flex !important;
+          flex-direction: row !important;
+          flex: 1 1 auto !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          height: calc(var(--exam-landscape-vh, 100dvh) - var(--exam-landscape-header-h) - var(--exam-landscape-stats-h)) !important;
+          max-height: calc(var(--exam-landscape-vh, 100dvh) - var(--exam-landscape-header-h) - var(--exam-landscape-stats-h)) !important;
+          min-height: 0 !important;
+          overflow: hidden !important;
+          overflow-x: hidden !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+          transform: none !important;
+          position: relative !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-left,
+        [data-exam-mode="typing"] .typing-left-panel {
+          width: var(--exam-landscape-left-w) !important;
+          flex: 0 0 var(--exam-landscape-left-w) !important;
+          max-width: var(--exam-landscape-left-w) !important;
+          height: 100% !important;
+          min-height: 0 !important;
+          display: flex !important;
+          flex-direction: column !important;
+          overflow: hidden !important;
+          padding: 0.15rem !important;
+          gap: 0.15rem !important;
+          box-sizing: border-box !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-passage,
+        [data-exam-mode="typing"] .typing-passage-box {
+          flex: 0 0 40% !important;
+          height: 40% !important;
+          max-height: 40% !important;
+          min-height: 0 !important;
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
+          -webkit-overflow-scrolling: touch !important;
+          padding: 0.25rem !important;
+          margin: 0 !important;
+          box-sizing: border-box !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-input-wrap,
+        [data-exam-mode="typing"] .typing-textarea-wrap {
+          flex: 1 1 auto !important;
+          height: auto !important;
+          max-height: none !important;
+          min-height: 0 !important;
+          display: flex !important;
+          flex-direction: column !important;
+          overflow: hidden !important;
+          margin: 0 !important;
+     .    padding: 0 !important;
+          box-sizing: border-box !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-input,
+        [data-exam-mode="typing"] .typing-textarea {
+          flex: 1 1 auto !important;
+          width: 100% !important;
+          height: 100% !important;
+          min-height: 0 !important;
+          margin: 0 !important;
+          padding: 0.25rem !important;
+          box-sizing: border-box !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+          resize: none !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar,
+        [data-exam-mode="typing"] .typing-right-panel {
+          width: var(--exam-landscape-sidebar-w) !important;
+          flex: 0 0 var(--exam-landscape-sidebar-w) !important;
+          max-width: var(--exam-landscape-sidebar-w) !important;
+          height: 100% !important;
+          min-height: 0 !important;
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: space-between !important;
+          overflow: hidden !important;
+          padding: 0.25rem !important;
+          gap: 0.2rem !important;
+          box-sizing: border-box !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main,
+        [data-exam-mode="typing"] .typing-right-panel-main {
+          flex: 1 1 auto !important;
+          width: 100% !important;
+          min-height: 0 !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: space-between !important;
+          gap: 0.2rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-top,
+        [data-exam-mode="typing"] .profile-meter-row {
+          flex: 0 0 auto !important;
+          max-height: none !important;
+          align-items: center !important;
+          justify-content: space-around !important;
+          width: 100% !important;
+          overflow: visible !important;
+          display: flex !important;
+          flex-direction: row !important;
+          padding: 0.1rem 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-profile {
+          flex: 1 1 auto !important;
+          min-width: 0 !important;
+          max-width: 46% !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-profile img {
+          width: clamp(2rem, 8vw, 2.75rem) !important;
+          height: clamp(2rem, 8vw, 2.75rem) !important;
+          object-fit: cover !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-landscape-username {
+          font-size: 9px !important;
+          margin-top: 0.15rem !important;
+          line-height: 1.1 !important;
+          max-width: 100% !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-meter,
+        [data-exam-mode="typing"] .speed-meter {
+          flex: 0 0 auto !important;
+          max-width: 48% !important;
+          overflow: visible !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 0.1rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-meter .speedometer-gauge,
+        [data-exam-mode="typing"] .speed-meter .speedometer-gauge {
+          width: clamp(3rem, 10vw, 3.75rem) !important;
+          height: clamp(3rem, 10vw, 3.75rem) !important;
+          min-width: 3rem !important;
+          min-height: 3rem !important;
+          max-width: 3.75rem !important;
+          max-height: 3.75rem !important;
+          border-width: 2px !important;
+          overflow: hidden !important;
+          position: relative !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-meter .speedometer-svg,
+        [data-exam-mode="typing"] .speed-meter .speedometer-svg {
+          width: clamp(2.65rem, 8.5vw, 3.35rem) !important;
+          height: clamp(2.65rem, 8.5vw, 3.35rem) !important;
+          max-width: clamp(2.65rem, 8.5vw, 3.35rem) !important;
+          max-height: clamp(2.65rem, 8.5vw, 3.35rem) !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-meter .speedometer-value,
+        [data-exam-mode="typing"] .speed-meter .speedometer-value {
+          font-size: clamp(7px, 1.6vw, 9px) !important;
+          bottom: clamp(0.2rem, 1vw, 0.4rem) !important;
+          line-height: 1 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-controls,
+        [data-exam-mode="typing"] .font-controls {
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 0.25rem !important;
+          width: 100% !important;
+          flex-shrink: 0 !important;
+          position: relative !important;
+          z-index: 3 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-font-block {
+          flex: 0 0 auto !important;
+          width: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 0.2rem !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          overflow: visible !important;
+          position: relative !important;
+          z-index: 1 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-submit-wrap,
+        [data-exam-mode="typing"] .submit-section {
+          display: block !important;
+          width: 100% !important;
+          flex: 0 0 auto !important;
+          flex-shrink: 0 !important;
+          margin-top: 0.15rem !important;
+          padding-top: 0.15rem !important;
+          position: relative !important;
+          z-index: 2 !important;
+          clear: both !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-font-label {
+          font-size: 9px !important;
+          margin-bottom: 0.1rem !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-font-row {
+          display: flex !important;
+          flex-direction: row !important;
+          gap: 0.25rem !important;
+          width: 100% !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          overflow: visible !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-font-btn {
+          flex: 1 1 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 0.15rem 0.25rem !important;
+          font-size: 9px !important;
+          min-height: 1.35rem !important;
+          max-height: 1.35rem !important;
+          cursor: pointer !important;
+          touch-action: manipulation !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          background-color: #ffffff !important;
+          border: 1px solid #000000 !important;
+          box-sizing: border-box !important;
+          position: relative !important;
+          margin-top: 0 !important;
+          transform: none !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-font-btn-minus {
+          color: #dc2626 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-font-btn-plus {
+          color: #16a34a !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-submit {
+          width: 100% !important;
+          flex: 0 0 auto !important;
+          padding: 0.35rem 0.2rem !important;
+          font-size: 9px !important;
+          line-height: 1.2 !important;
+          min-height: 1.65rem !important;
+          margin-top: 0 !important;
+          display: block !important;
+          align-items: center !important;
+          justify-content: center !important;
+          text-align: center !important;
+          cursor: pointer !important;
+          touch-action: manipulation !important;
+          box-sizing: border-box !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          background-color: #2563eb !important;
+          color: #ffffff !important;
+          border: none !important;
+          -webkit-appearance: none !important;
+          appearance: none !important;
+          position: static !important;
+          z-index: auto !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-title {
+          color: #facc15 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-profile {
+          display: none !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-timer {
+          display: flex !important;
+          align-items: center !important;
+          flex-shrink: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-links {
+          display: inline !important;
+        }
+
+        /* MCQ landscape layout fix (≤900px) — separate from typing */
+        [data-exam-mode="mcq"].exam-mobile-mcq-column {
+          height: 100dvh !important;
+          max-height: 100dvh !important;
+          overflow: hidden !important;
+          padding-bottom: 0 !important;
+          padding-top: var(--mcq-landscape-header-h) !important;
+          display: flex !important;
+          flex-direction: column !important;
+          min-height: 0 !important;
+        }
+        [data-exam-mode="mcq"] div.flex-1.flex.flex-col.h-full.overflow-hidden {
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          overflow: hidden !important;
+        }
+        [data-exam-mode="mcq"] div.flex-1.flex.flex-col.overflow-hidden.bg-white-50 {
+          max-height: none !important;
+          overflow-y: hidden !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-mcq-column > .exam-mobile-question-grid,
+        [data-exam-mode="mcq"] .exam-mobile-mcq-column > .landscape-reduce-question-grid {
+          display: none !important;
+          visibility: hidden !important;
+          height: 0 !important;
+          min-height: 0 !important;
+          max-height: 0 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+          border: none !important;
+        }
+        body:has([data-exam-mode="mcq"]) .exam-mobile-drawer-panel .landscape-reduce-question-grid {
+          display: grid !important;
+          visibility: visible !important;
+          height: auto !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          overflow: visible !important;
+        }
+        body:has([data-exam-mode="mcq"]) .exam-mobile-menu-btn {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          top: 0.35rem !important;
+          left: 0.35rem !important;
+          padding: 0.25rem 0.45rem !important;
+          font-size: 1rem !important;
+          line-height: 1 !important;
+          min-width: 2rem !important;
+          min-height: 1.75rem !important;
+          z-index: 110 !important;
+        }
+        [data-exam-mode="mcq"] .exam-mcq-header-sound {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-shrink: 0 !important;
+          font-size: 1rem !important;
+          padding: 0 0.15rem !important;
+        }
+        [data-exam-mode="mcq"] .exam-mcq-header-timer {
+          display: flex !important;
+          align-items: center !important;
+          flex-shrink: 0 !important;
+          gap: 0.25rem !important;
+        }
+        [data-exam-mode="mcq"] .exam-mcq-header-timer span {
+          font-size: 0.65rem !important;
+          line-height: 1.2 !important;
+        }
+        [data-exam-mode="mcq"] .exam-mcq-header-timer b {
+          font-size: 0.65rem !important;
+          padding: 0.1rem 0.35rem !important;
+          line-height: 1.2 !important;
+        }
+        [data-exam-mode="mcq"] div.flex-1.flex.flex-col.overflow-hidden.bg-white-50,
+        [data-exam-mode="mcq"] .exam-mobile-question-panel,
+        [data-exam-mode="mcq"] .mcq-exam-landscape-main {
+          flex: 1 1 auto !important;
+          flex-grow: 1 !important;
+          min-height: 0 !important;
+          height: auto !important;
+          max-height: none !important;
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-question-content,
+        [data-exam-mode="mcq"] .landscape-question-content,
+        [data-exam-mode="mcq"] .mcq-question-body {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          height: auto !important;
+          overflow: hidden !important;
+          overflow-x: hidden !important;
+          padding-top: 0 !important;
+          padding-bottom: 0 !important;
+          margin-top: 0 !important;
+          transform: none !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          position: relative !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        [data-exam-mode="mcq"] .landscape-question-content > .exam-mobile-question-meta,
+        [data-exam-mode="mcq"] .mcq-question-body > .exam-mobile-question-meta,
+        [data-exam-mode="mcq"] .mcq-question-body > .landscape-reduce-question-bar {
+          flex-shrink: 0 !important;
+        }
+        [data-exam-mode="mcq"] .landscape-question-content > *,
+        [data-exam-mode="mcq"] .mcq-question-body > * {
+          flex-shrink: 1 !important;
+          min-height: 0 !important;
+        }
+        [data-exam-mode="mcq"] .landscape-question-content > .exam-mobile-question-meta,
+        [data-exam-mode="mcq"] .mcq-question-body > .exam-mobile-question-meta {
+          flex-shrink: 0 !important;
+          min-height: auto !important;
+        }
+        [data-exam-mode="mcq"] .mcq-landscape-scroll-box {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          max-height: 100% !important;
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
+          -webkit-overflow-scrolling: touch !important;
+          overscroll-behavior: contain !important;
+          padding: 0.35rem 0.5rem 1rem !important;
+          scrollbar-width: thin !important;
+        }
+        [data-exam-mode="mcq"] .mcq-landscape-scroll-box .exam-mobile-question-body,
+        [data-exam-mode="mcq"] .mcq-landscape-scroll-box .exam-mobile-passage-layout,
+        [data-exam-mode="mcq"] .mcq-landscape-scroll-box .exam-mobile-options-col {
+          overflow: visible !important;
+          max-height: none !important;
+        }
+        [data-exam-mode="mcq"] .landscape-question-content > div.mb-28,
+        [data-exam-mode="mcq"] .mcq-question-body .exam-mobile-question-body {
+          margin-bottom: 0 !important;
+          padding-bottom: 0.5rem !important;
+          max-height: none !important;
+          overflow: visible !important;
+        }
+        [data-exam-mode="mcq"] .landscape-question-content.landscape-question-content,
+        [data-exam-mode="mcq"] .mcq-question-body.mcq-question-body {
+          padding-bottom: 0.75rem !important;
+          margin-top: 0 !important;
+        }
+        [data-exam-mode="mcq"] .landscape-question-content p,
+        [data-exam-mode="mcq"] .landscape-question-content label,
+        [data-exam-mode="mcq"] .landscape-question-content span,
+        [data-exam-mode="mcq"] .landscape-reduce-question-text,
+        [data-exam-mode="mcq"] .landscape-reduce-options {
+          font-size: inherit !important;
+          line-height: inherit !important;
+        }
+        [data-exam-mode="mcq"] .mcq-question-body .exam-mobile-question-text,
+        [data-exam-mode="mcq"] .mcq-question-body .landscape-reduce-question-text,
+        [data-exam-mode="mcq"] .mcq-question-body p.landscape-reduce-question-text,
+        [data-exam-mode="mcq"] .landscape-question-content p.landscape-reduce-question-text,
+        [data-exam-mode="mcq"] .landscape-question-content p.exam-mobile-question-text {
+          font-size: 0.8rem !important;
+          line-height: 1.35 !important;
+          margin-bottom: 0.5rem !important;
+        }
+        [data-exam-mode="mcq"] .mcq-question-body .exam-mobile-options,
+        [data-exam-mode="mcq"] .mcq-question-body label.landscape-reduce-options,
+        [data-exam-mode="mcq"] .mcq-question-body label.exam-mobile-options {
+          margin-bottom: 0.35rem !important;
+          padding: 0.15rem 0 !important;
+          display: flex !important;
+          align-items: flex-start !important;
+        }
+        [data-exam-mode="mcq"] .mcq-question-body .exam-mobile-options span,
+        [data-exam-mode="mcq"] .mcq-question-body label.landscape-reduce-options span,
+        [data-exam-mode="mcq"] .landscape-question-content label.landscape-reduce-options span,
+        [data-exam-mode="mcq"] .landscape-question-content label.exam-mobile-options span {
+          font-size: 0.75rem !important;
+          line-height: 1.3 !important;
+        }
+        [data-exam-mode="mcq"] .landscape-question-content label.landscape-reduce-options,
+        [data-exam-mode="mcq"] .landscape-question-content label.exam-mobile-options {
+          font-size: 0.75rem !important;
+          line-height: 1.3 !important;
+          padding: 0.15rem 0 !important;
+          margin-bottom: 0.35rem !important;
+        }
+        [data-exam-mode="mcq"] .mcq-question-body .exam-mobile-options input[type="radio"],
+        [data-exam-mode="mcq"] .mcq-question-body label input[type="radio"] {
+          width: 0.85rem !important;
+          height: 0.85rem !important;
+          min-width: 0.85rem !important;
+          min-height: 0.85rem !important;
+          margin-top: 0.15rem !important;
+          flex-shrink: 0 !important;
+        }
+        [data-exam-mode="mcq"] .mcq-question-body .exam-mobile-options:last-of-type,
+        [data-exam-mode="mcq"] .mcq-question-body label.exam-mobile-options:last-of-type,
+        [data-exam-mode="mcq"] .mcq-landscape-scroll-box .exam-mobile-options:last-of-type,
+        [data-exam-mode="mcq"] .mcq-landscape-scroll-box label.exam-mobile-options:last-of-type,
+        [data-exam-mode="mcq"] .mcq-landscape-scroll-box label.landscape-reduce-options:last-of-type {
+          margin-bottom: 1rem !important;
+          padding-bottom: 0.5rem !important;
+        }
+        [data-exam-mode="mcq"] .mcq-question-body .exam-mobile-passage-layout {
+          padding: 0.25rem 0.35rem !important;
+          gap: 0.35rem !important;
+          margin-bottom: 0 !important;
+          overflow: visible !important;
+        }
+        [data-exam-mode="mcq"] .mcq-question-body .exam-mobile-passage {
+          max-height: 28vh !important;
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch !important;
+          font-size: 0.7rem !important;
+          line-height: 1.3 !important;
+        }
+        [data-exam-mode="mcq"] .mcq-question-body .exam-mobile-options-col {
+          overflow: visible !important;
+          max-height: none !important;
+          font-size: 0.75rem !important;
+        }
+        [data-exam-mode="mcq"] .landscape-buttons-container {
+          position: relative !important;
+          bottom: auto !important;
+          left: auto !important;
+          right: auto !important;
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-btn-footer,
+        [data-exam-mode="mcq"] .mcq-bottom-buttons {
+          flex-shrink: 0 !important;
+          position: relative !important;
+          bottom: auto !important;
+          left: auto !important;
+          right: auto !important;
+          z-index: 5 !important;
+          background: #fafafa !important;
+          border-top: 1px solid #d1d5db !important;
+          box-shadow: none !important;
+          padding: 0.35rem 0.5rem !important;
+          padding-bottom: max(0.35rem, env(safe-area-inset-bottom)) !important;
+        }
+        [data-exam-mode="mcq"] .mcq-bottom-buttons .exam-mobile-btn-grid,
+        [data-exam-mode="mcq"] .mcq-bottom-buttons .landscape-buttons-container {
+          display: grid !important;
+          grid-template-columns: repeat(4, 1fr) !important;
+          gap: 0.35rem !important;
+        }
+        @media screen and (max-width: 740px) and (orientation: landscape) {
+          [data-exam-mode="mcq"] .mcq-bottom-buttons .exam-mobile-btn-grid,
+          [data-exam-mode="mcq"] .mcq-bottom-buttons .landscape-buttons-container {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+        [data-exam-mode="mcq"] .landscape-reduce-top-bar,
+        [data-exam-mode="mcq"] .exam-mobile-top-bar {
+          flex-shrink: 0 !important;
+          min-height: 1.5rem !important;
+          padding-top: 0.2rem !important;
+          padding-bottom: 0.2rem !important;
+        }
+        [data-exam-mode="mcq"] .landscape-reduce-question-bar,
+        [data-exam-mode="mcq"] .exam-mobile-question-meta {
+          flex-shrink: 0 !important;
+          min-height: 1.4rem !important;
+          padding-top: 0.15rem !important;
+          padding-bottom: 0.15rem !important;
+        }
+      }
     `;
     document.head.appendChild(style);
     
@@ -1026,7 +1848,12 @@ function ExamModeContent() {
   const [isMobile, setIsMobile] = useState(false); // Mobile = width <= 1024px (regardless of orientation)
   const [isMobileExam, setIsMobileExam] = useState(false); // Narrow mobile exam UI = width <= 768px
   const [userName, setUserName] = useState("User");
-  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+  const [examUserRecord, setExamUserRecord] = useState(null);
+  const profileSrc = useMemo(() => resolveExamProfileSrc(examUserRecord), [examUserRecord]);
+  const handleProfileImgError = useCallback((e) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = DEFAULT_EXAM_AVATAR;
+  }, []);
   const [examData, setExamData] = useState(null);
   const [sections, setSections] = useState([]);
   const [parts, setParts] = useState([]);
@@ -1104,6 +1931,13 @@ function ExamModeContent() {
     [isMobileExam, currentQuestionIndex]
   );
 
+  const nextSectionInDrawer = useMemo(() => {
+    if (!section || sections.length < 2) return null;
+    const currentSectionIndex = sections.findIndex((s) => s.name === section);
+    if (currentSectionIndex < 0 || currentSectionIndex >= sections.length - 1) return null;
+    return sections[currentSectionIndex + 1];
+  }, [section, sections]);
+
   // Save answers to localStorage whenever they change
   useEffect(() => {
     if (Object.keys(selectedAnswers).length > 0) {
@@ -1142,11 +1976,9 @@ function ExamModeContent() {
         if (userDataStr) {
           try {
             const userData = JSON.parse(userDataStr);
+            setExamUserRecord((prev) => ({ ...(prev || {}), ...userData }));
             if (userData.name) {
               setUserName(userData.name);
-            }
-            if (userData.profileUrl || userData.profilePicture || userData.image) {
-              setUserProfileUrl(userData.profileUrl || userData.profilePicture || userData.image);
             }
           } catch (error) {
             console.error('Error parsing user data:', error);
@@ -1157,9 +1989,10 @@ function ExamModeContent() {
           const profRes = await fetch("/api/profile", { credentials: "include" });
           if (profRes.ok) {
             const profData = await profRes.json();
-            if (profData.user?.name) setUserName(profData.user.name);
-            const pic = profData.user?.profileUrl || profData.user?.avatar;
-            if (pic) setUserProfileUrl(pic);
+            if (profData.user) {
+              setExamUserRecord((prev) => ({ ...(prev || {}), ...profData.user }));
+              if (profData.user.name) setUserName(profData.user.name);
+            }
           }
         } catch {
           /* keep localStorage profile if API unavailable */
@@ -2651,7 +3484,7 @@ function ExamModeContent() {
       {/* Mobile Menu Button */}
       <button
         type="button"
-        className={`lg:hidden fixed top-1 left-2 z-[60] p-2 rounded font-bold text-lg leading-none ${
+        className={`lg:hidden fixed top-1 left-2 z-[60] p-2 rounded font-bold text-lg leading-none exam-mobile-menu-btn ${
           isMobileMenuOpen ? "bg-red-600 text-white shadow-md" : "bg-[#290c52] text-white"
         }`}
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -2665,14 +3498,14 @@ function ExamModeContent() {
         <>
         <button
           type="button"
-          className="lg:hidden fixed inset-0 z-40 bg-black/40"
+          className="lg:hidden fixed inset-0 z-40 bg-black/40 exam-mobile-drawer-backdrop"
           aria-label="Close menu"
           onClick={() => setIsMobileMenuOpen(false)}
         />
-        <div className="lg:hidden fixed inset-y-0 left-0 z-50 bg-white w-64 overflow-y-auto shadow-xl">
+        <div className="lg:hidden fixed inset-y-0 left-0 z-50 bg-white w-64 overflow-y-auto shadow-xl exam-mobile-drawer-panel">
           <div className="p-4 text-sm h-full">
             <div className="flex flex-col items-center py-6">
-              <img src="/lo.jpg" className="w-24 h-24 rounded-full border-2" />
+              <img src={profileSrc} alt={userName} className="w-24 h-24 rounded-full border-2 object-cover" onError={handleProfileImgError} />
               <p className="mt-2 font-semibold text-blue-800">{userName}</p>
               <Link href="/" className="mt-2 text-[#290c52] font-medium underline">Home</Link>
               <div className="w-full mt-3 flex flex-col gap-2 items-center">
@@ -2699,6 +3532,62 @@ function ExamModeContent() {
               </div>
               <hr className="border w-full mt-2" />
             </div>
+
+            {sections.length > 0 && (
+              <div className="exam-mobile-drawer-sections w-full mb-4">
+                <h2 className="font-bold mb-2 text-center bg-[#290c52] text-white text-[12px] py-2 rounded">Sections</h2>
+                {nextSectionInDrawer && (
+                  <p className="text-[11px] text-center text-gray-600 mb-2 px-1">
+                    Next Section:{" "}
+                    <span className="font-semibold text-[#290c52]">{nextSectionInDrawer.name}</span>
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-1.5">
+                  {sections.map((sec, index) => {
+                    const isCompleted = completedSections.has(sec.name);
+                    const isCurrentSection = section === sec.name;
+                    const currentSectionIndex = sections.findIndex(s => s.name === section);
+                    const thisSectionIndex = index;
+                    const isPreviousSection = thisSectionIndex < currentSectionIndex;
+                    const isNextSection = thisSectionIndex > currentSectionIndex;
+                    const canAccess = isCurrentSection ||
+                      (isNextSection && completedSections.has(section)) ||
+                      (isPreviousSection && !isCompleted);
+                    const isLocked = !canAccess;
+                    const isTypingSec = isTypingSectionName(sec.name);
+                    const effectiveLocked = isTypingSec ? false : isLocked;
+
+                    return (
+                      <button
+                        key={sec._id}
+                        type="button"
+                        onClick={() => {
+                          handleSectionTabClick(sec, isLocked, isCompleted);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        disabled={isCompleted || (effectiveLocked && !isTypingSec)}
+                        className={`${
+                          isCompleted
+                            ? "bg-green-600 text-white border-green-700 cursor-not-allowed opacity-75"
+                            : effectiveLocked
+                            ? "bg-gray-300 text-gray-500 border-gray-400 cursor-not-allowed opacity-50"
+                            : isCurrentSection
+                            ? "bg-[#290c52] text-white border-[#290c52]"
+                            : "bg-white text-[#290c52] border border-gray-300 hover:bg-gray-50"
+                        } px-2 py-1.5 text-xs rounded whitespace-nowrap flex items-center gap-1`}
+                        title={isCompleted ? "Section completed and locked" : effectiveLocked ? "Complete current section first" : ""}
+                      >
+                        <span>{sec.name}</span>
+                        {isCompleted && <span className="text-[10px]">✓</span>}
+                        {effectiveLocked && !isCompleted && !isTypingSec && <span className="text-[10px]">🔒</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+                <hr className="border w-full mt-3 mb-2" />
+              </div>
+            )}
+
             <div className="text-xs grid grid-cols-2 gap-2 mb-4">
               <div className="flex items-center">
                 <span className="inline-block w-8 h-8 bg-green-400 mr-2 rounded-sm text-center items-center justify-center pt-1 text-white text-[20px]">{stats.totalAnswered}</span>
@@ -2722,7 +3611,7 @@ function ExamModeContent() {
               </div>
             </div>
 
-            {section && (
+            {section && currentQuestion?.questionType !== "TYPING" && (
               <>
                 <h2 className="font-bold mb-2 text-white-50 text-center bg-[#290c52] text-[12px] text-white py-2">{section}</h2>
                 <h2 className="font-bold mb-2 text-white-50">Choose a Question</h2>
@@ -2809,7 +3698,7 @@ function ExamModeContent() {
         <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30 landscape-reduce-header">
           <div className="flex items-center gap-3 max-md:pl-9">
             <span
-              className={`font-semibold whitespace-nowrap ${
+              className={`font-semibold whitespace-nowrap exam-typing-header-title ${
                 currentQuestion?.questionType === "TYPING" ? "max-md:text-yellow-400" : ""
               }`}
             >
@@ -2818,6 +3707,21 @@ function ExamModeContent() {
             <Link href="/" className="cursor-pointer inline-flex items-center justify-center text-[12px] font-medium px-3 py-1.5 rounded bg-white/20 hover:bg-white/30 text-white border border-white/40">
               Home
             </Link>
+            {currentQuestion?.questionType === "TYPING" && currentQuestion?.typingLanguage === "Hindi" && (
+              <div className="flex items-center gap-1 flex-shrink-0 exam-typing-header-keyboard lg:hidden">
+                <label className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[9px] font-semibold whitespace-nowrap">
+                  Keyboard
+                </label>
+                <select
+                  value={selectedKeyboardType || (currentQuestion.typingScriptType && (currentQuestion.typingScriptType.toLowerCase().includes("inscript") || currentQuestion.typingScriptType === "Inscript") ? "Inscript" : "Remington Gail")}
+                  onChange={(e) => setSelectedKeyboardType(e.target.value)}
+                  className="border border-gray-300 rounded px-1 py-0.5 text-[9px] bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-[5.5rem] max-w-[6.5rem] cursor-pointer"
+                >
+                  <option value="Remington Gail">Remington Gail</option>
+                  <option value="Inscript">Inscript</option>
+                </select>
+              </div>
+            )}
           </div>
           <div className="flex gap-2 items-center">
             {/* Sound Icon - Show in mobile and landscape mode for questions only */}
@@ -2825,7 +3729,7 @@ function ExamModeContent() {
               <button 
                 onClick={() => setIsSoundOn(!isSoundOn)} 
                 title={isSoundOn ? "Mute" : "Unmute"}
-                className="hidden md:flex lg:hidden items-center justify-center text-lg"
+                className="hidden md:flex lg:hidden items-center justify-center text-lg exam-mcq-header-sound"
                 style={{ order: -2, flexShrink: 0 }}
               >
                 {isSoundOn ? "🔊" : "🔇"}
@@ -2844,14 +3748,14 @@ function ExamModeContent() {
             )}
             {/* Timer - Show in landscape mode for questions only, positioned before View Instructions */}
             {currentQuestion?.questionType !== "TYPING" && (
-              <div className="hidden md:flex lg:hidden items-center gap-1" style={{ order: -1, flexShrink: 0 }}>
+              <div className="hidden md:flex lg:hidden items-center gap-1 exam-mcq-header-timer" style={{ order: -1, flexShrink: 0 }}>
                 <span className="text-[10px] font-semibold text-blue-400 whitespace-nowrap">⏱️ Time Left:</span>
                 <b className="bg-blue-400 text-black px-1.5 py-0.5 rounded text-[10px] font-bold whitespace-nowrap">{formatTime(timeLeft)}</b>
               </div>
             )}
             {/* Timer for typing - show pink timer in landscape navbar */}
             {currentQuestion?.questionType === "TYPING" && (
-              <div className="hidden md:flex lg:hidden items-center gap-2" style={{ order: -1 }}>
+              <div className="hidden md:flex lg:hidden max-[900px]:landscape:flex items-center gap-2 exam-typing-header-timer" style={{ order: -1 }}>
                 {isTypingSection && typingTimeLeft !== null ? (
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-pink-300">⏱️ Section Timer:</span>
@@ -2866,28 +3770,25 @@ function ExamModeContent() {
               </div>
             )}
             <div
-              className={`flex items-center gap-2 pr-4 ${
+              className={`flex items-center gap-2 pr-4 exam-typing-header-profile ${
                 currentQuestion?.questionType === "TYPING" ? "max-md:hidden" : ""
               }`}
             >
               <img
-                src={userProfileUrl || "/lo.jpg"}
+                src={profileSrc}
                 alt="Profile"
                 className="w-8 h-8 rounded-full border exam-mobile-profile-img object-cover bg-white"
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = "/lo.jpg";
-                }}
+                onError={handleProfileImgError}
               />
             </div>
             <span 
-              className="cursor-pointer underline hidden sm:inline text-[12px] p-2"
+              className="cursor-pointer underline hidden sm:inline text-[12px] p-2 exam-typing-header-links"
               onClick={() => setShowInstructionsModal(true)}
             >
               View Instructions
             </span>
             <span 
-              className="cursor-pointer underline hidden sm:inline text-[12px]"
+              className="cursor-pointer underline hidden sm:inline text-[12px] exam-typing-header-links"
               onClick={() => setShowQuestionPaperModal(true)}
             >
               Question Paper
@@ -3142,50 +4043,8 @@ function ExamModeContent() {
             </div>
           )}
         </div>
-        {/* Question Navigation - Render inline on mobile (width <= 1024px), regardless of orientation */}
-        {/* Mobile includes both portrait and landscape - desktop (width > 1024px) uses sidebar */}
-        {isMobile && section && currentQuestions && currentQuestions.length > 0 && currentQuestion?.questionType !== "TYPING" && (
-          <div 
-            ref={questionScrollContainerRef}
-            className="flex gap-2 h-16 md:h-20 overflow-x-auto px-2 md:px-4 py-1 md:py-2 scroll-smooth bg-white border-b border-gray-200 flex-shrink-0 landscape-reduce-question-grid exam-mobile-question-grid flex"
-            style={{ scrollBehavior: 'smooth' }}
-          >
-            {currentQuestions.map((q, i) => {
-              const isAnswered = selectedAnswers[q._id] !== undefined && selectedAnswers[q._id] !== null;
-              const isCurrent = i === currentQuestionIndex;
-              const isVisited = visitedQuestions.has(q._id);
-              const isMarked = markedForReview.has(q._id);
-              
-              // Priority: Current > Marked for Review > Answered > Visited > Not Visited
-              let bgColor = "bg-gray-300"; // Not visited
-              if (isCurrent) {
-                bgColor = "bg-red-600 text-white";
-              } else if (isMarked) {
-                bgColor = "bg-purple-600 text-white";
-              } else if (isAnswered) {
-                bgColor = "bg-green-400";
-              } else if (isVisited) {
-                bgColor = "bg-red-500 text-white";
-              }
-              
-              return (
-                <div
-                  key={q._id}
-                  data-question-index={i}
-                  className={`min-w-[2rem] h-8 flex items-center justify-center text-black text-sm font-semibold border border-black cursor-pointer ${bgColor}`}
-                  onClick={() => setCurrentQuestionIndex(i)}
-                >
-                  {i + 1}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-
-
         {/* Question Panel */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-white-50 mt-0 md:mt-0 lg:overflow-hidden lg:px-4 lg:pt-2 lg:pb-0 exam-mobile-question-panel min-h-0">
+      <div className="flex-1 flex flex-col overflow-hidden bg-white-50 mt-0 md:mt-0 lg:overflow-hidden lg:px-4 lg:pt-2 lg:pb-0 exam-mobile-question-panel mcq-exam-landscape-main min-h-0">
   {/* Fixed Top Bar - Hidden for typing questions */}
   {currentQuestion?.questionType !== "TYPING" && (
     <div className="bg-[#290c52] text-white text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 rounded-t flex justify-between flex-wrap gap-2 flex-shrink-0 landscape-reduce-top-bar exam-mobile-top-bar">
@@ -3208,8 +4067,8 @@ function ExamModeContent() {
     </div>
   )}
 
-  {/* Scrollable Content */}
-  <div className="border-t border-gray-300 flex-1 flex flex-col min-h-0 overflow-y-auto landscape-question-content exam-mobile-question-content">
+  {/* Question + options scroll area (landscape MCQ uses mcq-landscape-scroll-box) */}
+  <div className="border-t border-gray-300 flex-1 flex flex-col min-h-0 overflow-hidden landscape-question-content exam-mobile-question-content mcq-question-body">
     {currentQuestion?.questionType !== "TYPING" && (
       <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-b text-xs md:text-sm font-semibold flex flex-col sm:flex-row justify-between flex-shrink-0 landscape-reduce-question-bar exam-mobile-question-meta">
         <span>Question No. {currentQuestionIndex + 1} {currentQuestions && `of ${currentQuestions.length}`}</span>
@@ -3219,40 +4078,10 @@ function ExamModeContent() {
       </div>
     )}
 
-    {loading ? (
-      <div className="p-8 text-center">
-        <p>Loading exam questions...</p>
-      </div>
-    ) : !currentQuestion ? (
-      <div className="p-8 text-center">
-        {section && currentSectionParts.length > 0 && selectedPart ? (
-          <p>No questions available for part "{selectedPart}" in section "{section}". Please add questions to this part in the admin panel.</p>
-        ) : (
-          <p>No questions available for this section.</p>
-        )}
-      </div>
-    ) : currentQuestion?.questionType === "TYPING" ? (
+    {currentQuestion?.questionType === "TYPING" ? (
       // Typing Section UI - New Design
-      <div className="flex-1 flex flex-col overflow-hidden min-h-0 h-full landscape-typing-container">
-        {/* Keyboard Dropdown (Mobile and Landscape) - Show at top right for Hindi typing */}
-        {currentQuestion && currentQuestion.questionType === "TYPING" && currentQuestion.typingLanguage === "Hindi" && (
-          <div className="flex lg:hidden items-center justify-end gap-2 bg-gray-50 border-b border-gray-200 px-2 py-1.5 flex-shrink-0 landscape-keyboard-dropdown">
-            <label className="bg-blue-600 text-white px-2 md:px-2.5 py-0.5 md:py-1 rounded text-[10px] md:text-xs font-semibold whitespace-nowrap">
-              Keyboard:
-            </label>
-            <select
-              value={selectedKeyboardType || (currentQuestion.typingScriptType && (currentQuestion.typingScriptType.toLowerCase().includes("inscript") || currentQuestion.typingScriptType === "Inscript") ? "Inscript" : "Remington Gail")}
-              onChange={(e) => {
-                const newKeyboardType = e.target.value;
-                setSelectedKeyboardType(newKeyboardType);
-              }}
-              className="border border-gray-300 rounded px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[100px] md:min-w-[120px] cursor-pointer"
-            >
-              <option value="Remington Gail">Remington Gail</option>
-              <option value="Inscript">Inscript</option>
-            </select>
-          </div>
-        )}
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0 h-full landscape-typing-container typing-landscape-wrapper">
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden exam-typing-root-wrapper">
         <ExamTypingInterface
           content={
             currentQuestion.typingLanguage === "Hindi"
@@ -3262,7 +4091,9 @@ function ExamModeContent() {
               : (currentQuestion.typingContent_english || "The quick brown fox jumps over the lazy dog. Practice typing to improve your speed and accuracy. This is a sample English typing test for RSCIT exam preparation. Type carefully and focus on accuracy. Speed will come with practice. Keep your fingers on the home row and maintain proper posture while typing.")
           }
           userName={userName}
-          userProfileUrl={userProfileUrl || "/lo.jpg"}
+          userProfileUrl={profileSrc}
+          hindiKeyboardType={selectedKeyboardType || (currentQuestion.typingScriptType && (currentQuestion.typingScriptType.toLowerCase().includes("inscript") || currentQuestion.typingScriptType === "Inscript") ? "Inscript" : "Remington Gail")}
+          onHindiKeyboardTypeChange={setSelectedKeyboardType}
           language={currentQuestion.typingLanguage || "English"}
           scriptType={selectedKeyboardType || (currentQuestion.typingScriptType === "Inscript" || (currentQuestion.typingScriptType && currentQuestion.typingScriptType.toLowerCase().includes("inscript")) ? "Inscript" : (currentQuestion.typingScriptType === "Ramington Gail" || currentQuestion.typingScriptType === "Remington Gail" ? "Remington Gail" : (currentQuestion.typingLanguage === "Hindi" ? "Remington Gail" : null)))}
           allowBackspace={currentQuestion.typingBackspaceEnabled !== false}
@@ -3354,6 +4185,21 @@ function ExamModeContent() {
             localStorage.setItem(`typingProgress_${currentQuestion._id}`, JSON.stringify(progressData));
           }}
         />
+        </div>
+      </div>
+    ) : (
+    <div className="flex-1 min-h-0 overflow-y-auto mcq-landscape-scroll-box">
+    {loading ? (
+      <div className="p-8 text-center">
+        <p>Loading exam questions...</p>
+      </div>
+    ) : !currentQuestion ? (
+      <div className="p-8 text-center">
+        {section && currentSectionParts.length > 0 && selectedPart ? (
+          <p>No questions available for part "{selectedPart}" in section "{section}". Please add questions to this part in the admin panel.</p>
+        ) : (
+          <p>No questions available for this section.</p>
+        )}
       </div>
     ) : (
       <>
@@ -3621,13 +4467,15 @@ function ExamModeContent() {
         )}
       </>
     )}
+    </div>
+    )}
   </div>
   
 </div>
 
         {/* Footer - Hidden for typing questions */}
         {currentQuestion?.questionType !== "TYPING" && (
-          <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-t border-gray-300 flex-shrink-0 exam-mobile-btn-footer">
+          <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-t border-gray-300 flex-shrink-0 exam-mobile-btn-footer mcq-bottom-buttons">
             {/* Mobile: 2x2 Grid Layout, but 1 row in landscape */}
             <div className="lg:hidden grid grid-cols-2 gap-2 landscape-buttons-container exam-mobile-btn-grid">
             {/* Top Left: Mark for Review & Next */}
@@ -3941,7 +4789,7 @@ function ExamModeContent() {
         <div className="hidden lg:block w-full lg:w-60 bg-blue-50 border-l shadow-lg max-h-[100vh] overflow-y-auto sticky top-0 mt-3">
         <div className="p-4 text-sm h-full">
           <div className="flex flex-col items-center py-6">
-            <img src="/lo.jpg" className="w-24 h-24 rounded-full border-2" />
+            <img src={profileSrc} alt={userName} className="w-24 h-24 rounded-full border-2 object-cover" onError={handleProfileImgError} />
             <p className="mt-2 font-semibold text-blue-800">{userName}</p>
             <hr className="border w-full mt-2" />
           </div>
