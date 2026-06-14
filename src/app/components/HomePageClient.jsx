@@ -147,6 +147,12 @@ export default function HomePageClient() {
             font-size: 2.25rem !important;
             line-height: 1.25 !important;
           }
+
+          .home-title-tagline {
+            text-align: center !important;
+            width: 100% !important;
+            margin-left: 0 !important;
+          }
           
           .home-subtitle {
             font-size: 1.125rem !important;
@@ -454,7 +460,30 @@ export default function HomePageClient() {
         
         /* Tablet and below - keep existing responsive behavior */
         @media (max-width: 1023px) {
-          /* Keep existing mobile/tablet styles */
+          .home-hero-line1,
+          .home-title-tagline {
+            text-align: center !important;
+            margin-left: 0 !important;
+            transform: none !important;
+            width: 100% !important;
+            font-size: 1.125rem !important;
+            line-height: 1.35 !important;
+          }
+
+          @media (min-width: 640px) {
+            .home-hero-line1,
+            .home-title-tagline {
+              font-size: 1.25rem !important;
+            }
+          }
+
+          @media (max-width: 380px) {
+            .home-hero-line1,
+            .home-title-tagline {Empower Your Future with MPCPCT
+              font-size: 0.95rem !important;
+            }
+          }
+        }
         //    .home-welcome-text {
         //     font-size: 1.25rem !important;
         //     padding-top: 1.75rem !important;
@@ -496,12 +525,16 @@ export default function HomePageClient() {
       >
       <div className="min-h-screen bg-opacity-60 home-container">
         <div className="p-4">
-          <div className="text-center md:text-left ml-0 md:ml-47 md:justify-center mt-4 md:mt-10 home-hero">
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold home-title leading-snug">
-              <span className="block md:whitespace-nowrap">Empower Your Future with MPCPCT,</span>
-              <span className="block md:whitespace-nowrap">CCC, CPCT &amp; Typing Practice</span>
+          <div className="mt-4 md:mt-10 home-hero">
+            <h1 className="font-bold home-title leading-snug md:text-2xl">
+              <span className="block whitespace-nowrap text-center md:text-left md:ml-47 home-hero-line1">
+                Empower Your Future with MPCPCT
+              </span>
+              <span className="block whitespace-nowrap text-center w-full mt-1 home-title-tagline md:-translate-x-24">
+                CCC, CPCT &amp; Typing Practice
+              </span>
             </h1>
-            <p className="text-sm md:text-lg ml-0 md:ml-28 md:justify-center mt-2 md:mt-4 home-subtitle">
+            <p className="text-sm md:text-lg mt-2 md:mt-4 home-subtitle text-center md:text-left md:ml-47">
               Learn typing and computer skills interactively to prepare for
               government roles
             </p>
@@ -516,7 +549,7 @@ export default function HomePageClient() {
                 else if (label === "Exam Mode") colorClass = "bg-red-800";
 
                 const altMap = {
-                  Learning: "Open Learning mode — typing and computer lessons on MPC PCT",
+                  Learning: "Open Learning mode — typing and computer lessons on MPCPCT",
                   "Skill Test": "Open Skill Test — typing speed and accuracy assessment",
                   "Exam Mode": "Open Exam Mode — CPCT, CCC and mock tests",
                 };
@@ -529,7 +562,7 @@ export default function HomePageClient() {
                     <div className="h-20 w-full md:h-48 md:w-full home-card-image relative">
                       <Image
                         src={img}
-                        alt={altMap[label] || `${label} — MPC PCT`}
+                        alt={altMap[label] || `${label} — MPCPCT`}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 288px"
                         className="object-cover"
@@ -656,7 +689,7 @@ export default function HomePageClient() {
                       href="/forget"
                       className="block text-sm text-red-600 hover:underline mt-2"
                     >
-                      Forgot password — reset your MPC PCT account
+                      Forgot password — reset your MPCPCT account
                     </a>
 
                     <button
@@ -714,14 +747,14 @@ export default function HomePageClient() {
                       href={isAuthenticated ? "/profile" : "/signup"}
                       className="block w-full mt-2 bg-pink-200 text-red-700 font-semibold py-2 cursor-pointer rounded transition-transform duration-300 hover:scale-105 hover:shadow-lg text-center text-sm"
                     >
-                      {isAuthenticated ? "Go to Profile" : "Register for a free MPC PCT account"}
+                      {isAuthenticated ? "Go to Profile" : "Register for a free MPCPCT account"}
                     </a>
                   </div>
 
                   <div className="pt-2">
                     <Image
                       src="/mpc.png"
-                      alt="MPC PCT logo — online exam and typing practice platform"
+                      alt="MPCPCT logo — online exam and typing practice platform"
                       width={64}
                       height={64}
                       className="w-14 h-14 md:w-16 md:h-16 mx-auto"
@@ -740,7 +773,7 @@ export default function HomePageClient() {
             <div className="text-center">
               <h2 className="text-2xl md:text-5xl pt-3 md:pt-5 font-semibold home-info-title">
                 Welcome to our website<br />
-                <span className="text-[#290c52] text-4xl">MPC PCT</span>
+                <span className="text-[#290c52] text-4xl">MPCPCT</span>
               </h2>
             </div>
             <div className="text-center">

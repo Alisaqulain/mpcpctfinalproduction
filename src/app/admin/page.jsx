@@ -782,6 +782,16 @@ export default function AdminPanel() {
               Exams
             </button>
             <button 
+              onClick={() => setActiveTab('examStarts')} 
+              className={`px-6 py-3 rounded-t-lg font-medium transition-colors ${
+                activeTab==='examStarts'
+                  ? 'bg-[#290c52] text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Exam Starts
+            </button>
+            <button 
               onClick={() => setActiveTab('examTypes')} 
               className={`px-6 py-3 rounded-t-lg font-medium transition-colors ${
                 activeTab==='examTypes'
@@ -3841,6 +3851,10 @@ What has enabled cashless transactions? A. Barter B. Digital payments C. Physica
             />
           )}
         </>
+      )}
+
+      {activeTab==='examStarts' && (
+        <ExamStartsAdmin />
       )}
 
       {activeTab==='examTypes' && (
@@ -10653,6 +10667,150 @@ function CPCTImportModal({ examId, onClose }) {
         </div>
       </div>
     </Modal>
+  );
+}
+
+function ExamStartsAdmin() {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const fetchLogs = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/exam-starts?limit=300", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setLogs(data.logs || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch exam starts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs();
+  }, []);
+
+  const formatDate = (date) => {
+    if (!date) return "—";
+    return new Date(date).toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const filteredLogs = logs.filter((log) => {
+    if (!searchTerm.trim()) return true;
+    const q = searchTerm.toLowerCase();
+    return (
+      log.name?.toLowerCase().includes(q) ||
+      log.mobile?.includes(q) ||
+      log.city?.toLowerCase().includes(q) ||
+      log.examTitle?.toLowerCase().includes(q) ||
+      log.examType?.toLowerCase().includes(q) ||
+      log.topicName?.toLowerCase().includes(q)
+    );
+  });
+
+  return (
+    <div className="bg-white rounded-lg shadow border p-6">
+      <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-[#290c52]">Exam Start Test — Candidate Details</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Records from the Start Test page (Name, Mobile Number, City) when users click Start.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={fetchLogs}
+          disabled={loading}
+          className="bg-[#290c52] text-white px-4 py-2 rounded-lg hover:opacity-90 disabled:opacity-50"
+        >
+          {loading ? "Loading…" : "Refresh"}
+        </button>
+      </div>
+
+      <div className="mb-4 p-4 bg-[#290c52]/5 border border-[#290c52]/20 rounded-lg">
+        <p className="text-sm font-semibold text-[#290c52] mb-2">Start Test page fields</p>
+        <div className="flex flex-wrap gap-3 text-xs">
+          <span className="bg-white border px-3 py-1 rounded-full">User (header)</span>
+          <span className="bg-white border px-3 py-1 rounded-full">Start Test (title)</span>
+          <span className="bg-yellow-100 border border-yellow-300 px-3 py-1 rounded-full font-medium">Name</span>
+          <span className="bg-yellow-100 border border-yellow-300 px-3 py-1 rounded-full font-medium">Mobile Number</span>
+          <span className="bg-yellow-100 border border-yellow-300 px-3 py-1 rounded-full font-medium">City</span>
+          <span className="bg-white border px-3 py-1 rounded-full">Start (button)</span>
+        </div>
+      </div>
+
+      <input
+        type="text"
+        placeholder="Search by name, mobile, city, exam…"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full max-w-md border rounded-lg px-3 py-2 mb-4 text-sm"
+      />
+
+      <div className="overflow-x-auto border rounded-lg">
+        <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <thead className="bg-[#290c52] text-white">
+            <tr>
+              <th className="px-4 py-3 text-left font-semibold">Start</th>
+              <th className="px-4 py-3 text-left font-semibold">Name</th>
+              <th className="px-4 py-3 text-left font-semibold">Mobile Number</th>
+              <th className="px-4 py-3 text-left font-semibold">City</th>
+              <th className="px-4 py-3 text-left font-semibold">Exam Type</th>
+              <th className="px-4 py-3 text-left font-semibold">Exam / Topic</th>
+              <th className="px-4 py-3 text-left font-semibold">Account User</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {loading && logs.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="px-4 py-8 text-center text-gray-500">
+                  Loading…
+                </td>
+              </tr>
+            ) : filteredLogs.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="px-4 py-8 text-center text-gray-500">
+                  No exam start records yet. Data appears when candidates submit the Start Test form.
+                </td>
+              </tr>
+            ) : (
+              filteredLogs.map((log) => (
+                <tr key={log._id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-600">{formatDate(log.createdAt)}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">{log.name}</td>
+                  <td className="px-4 py-3 font-mono">{log.mobile}</td>
+                  <td className="px-4 py-3">{log.city}</td>
+                  <td className="px-4 py-3">{log.examType || "—"}</td>
+                  <td className="px-4 py-3">
+                    {log.examTitle || log.topicName || "—"}
+                    {log.topicId && !log.topicName && (
+                      <span className="text-xs text-gray-400 block">{log.topicId}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {log.userId?.name || log.userId?.phoneNumber || "Guest"}
+                    {log.userId?.email && (
+                      <span className="text-xs text-gray-400 block">{log.userId.email}</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-gray-500 mt-3">Showing {filteredLogs.length} of {logs.length} records</p>
+    </div>
   );
 }
 

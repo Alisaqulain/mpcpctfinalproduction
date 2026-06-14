@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { ArrowLeft } from "lucide-react";
 import { getLearningData, getLessonContent } from "@/lib/learningData";
 
 export default function TypingTutor() {
@@ -338,8 +339,33 @@ export default function TypingTutor() {
   return (
     <div className="min-h-screen bg-white font-sans">
       {/* Header */}
-      <div className="bg-[#290c52] text-yellow-400 p-3 md:p-4  shadow-md mb-4">
-        <h1 className="text-lg md:text-2xl font-bold text-center">Skill Test</h1>
+      <div className="bg-[#290c52] text-white p-3 md:p-4 shadow-md mb-4">
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => typeof window !== "undefined" && window.history.back()}
+            aria-label="Go back"
+            className="group flex items-center gap-2 shrink-0 transition-transform duration-200 active:scale-95"
+          >
+            <span className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full border-2 border-yellow-400/60 bg-white/10 backdrop-blur-sm shadow-[0_2px_10px_rgba(0,0,0,0.15)] transition-colors duration-200 group-hover:bg-white/15">
+              <ArrowLeft
+                className="w-5 h-5 text-yellow-400"
+                strokeWidth={2.75}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              />
+            </span>
+            <span className="hidden md:inline text-sm font-semibold text-white">Back</span>
+          </button>
+          <h1 className="text-lg md:text-2xl font-bold text-center flex-1 text-yellow-400">
+            Skill Test
+          </h1>
+          <div className="flex items-center gap-2 shrink-0 invisible pointer-events-none" aria-hidden="true">
+            <span className="w-10 h-10 md:w-11 md:h-11 rounded-full border-2 border-transparent" />
+            <span className="hidden md:inline text-sm font-semibold">Back</span>
+          </div>
+        </div>
       </div>
 
       {/* Settings Section - Top Row */}

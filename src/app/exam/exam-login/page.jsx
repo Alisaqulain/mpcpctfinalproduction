@@ -79,7 +79,7 @@ function StartTestPageContent() {
     checkAccess();
   }, [examId, topicId, examType]);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     // Check access first
     if (!hasAccess) {
       setErrors({ access: accessError || 'You do not have access to this exam' });
@@ -116,6 +116,18 @@ function StartTestPageContent() {
       }
       // Store user data
       localStorage.setItem('examUserData', JSON.stringify({ name, mobile, city }));
+
+      try {
+        await fetch("/api/exam/start-log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ name, mobile, city, examId, topicId, examType }),
+        });
+      } catch (logError) {
+        console.error("Failed to save exam start log:", logError);
+      }
+
       // Navigate to exam
       window.location.href = "/exam/exam-con";
     }

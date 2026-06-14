@@ -428,46 +428,93 @@ export default function ExamTypingInterface({
   };
 
   const renderSpeedometer = (variant = "desktop") => {
-    const isPortrait = variant === "portrait";
-    const gaugeClass = isPortrait
-      ? "relative w-14 h-14 bg-black rounded-full border-4 border-white flex items-center justify-center speedometer-gauge flex-shrink-0"
-      : "relative w-20 h-20 md:w-24 md:h-24 bg-black rounded-full border-4 border-white flex items-center justify-center speedometer-gauge";
-    const svgPx = isPortrait ? 56 : 100;
-    const wpmClass = isPortrait
-      ? "absolute bottom-3 text-red-500 font-bold text-[10px] speedometer-value"
-      : "absolute bottom-5 text-red-500 font-bold text-xs speedometer-value";
+    const gaugeSvg = (
+      <svg
+        width={100}
+        height={100}
+        viewBox="0 0 100 100"
+        className="speedometer-svg"
+      >
+        <line
+          x1="50"
+          y1="50"
+          x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+          y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+          stroke="red"
+          strokeWidth="2"
+        />
+        {Array.from({ length: 9 }).map((_, i) => {
+          const startAngle = (-Math.PI * 5) / 6;
+          const endAngle = (Math.PI * 5) / 6;
+          const angle = startAngle + (i / 8) * (endAngle - startAngle);
+          const x = 50 + 40 * Math.cos(angle);
+          const y = 50 + 42 * Math.sin(angle);
+          return (
+            <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
+              {(i + 1) * 10}
+            </text>
+          );
+        })}
+      </svg>
+    );
+
+    /* Landscape — original simple gauge (unchanged) */
+    if (variant === "landscape") {
+      return (
+        <div className="relative w-16 h-16 bg-black rounded-full border-4 border-white flex items-center justify-center speedometer-gauge flex-shrink-0">
+          {gaugeSvg}
+          <span className="absolute bottom-3 text-red-500 font-bold text-[10px] speedometer-value">{wpm}</span>
+        </div>
+      );
+    }
+
+    const gaugeSizeClass =
+      variant === "portrait"
+        ? "exam-typing-meter-gauge-portrait w-20 h-20"
+        : "exam-typing-meter-gauge-desktop w-20 h-20 md:w-24 md:h-24";
+
+    const valueClass =
+      variant === "portrait"
+        ? "absolute bottom-5 text-red-500 font-bold text-xs speedometer-value"
+        : "absolute bottom-5 md:bottom-6 text-red-500 font-bold text-xs speedometer-value";
 
     return (
-      <div className={gaugeClass}>
-        <svg
-          width={svgPx}
-          height={svgPx}
-          viewBox="0 0 100 100"
-          className="speedometer-svg"
-          style={isPortrait ? { width: `${svgPx}px`, height: `${svgPx}px` } : undefined}
+      <div className="rounded-full border-4 border-black exam-typing-meter-ring flex-shrink-0">
+        <div
+          className={`relative bg-black rounded-full border-4 border-white flex items-center justify-center speedometer-gauge exam-typing-meter-gauge flex-shrink-0 ${gaugeSizeClass}`}
         >
-          <line
-            x1="50"
-            y1="50"
-            x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-            y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-            stroke="red"
-            strokeWidth="2"
-          />
-          {Array.from({ length: 9 }).map((_, i) => {
-            const startAngle = (-Math.PI * 5) / 6;
-            const endAngle = (Math.PI * 5) / 6;
-            const angle = startAngle + (i / 8) * (endAngle - startAngle);
-            const x = 50 + 40 * Math.cos(angle);
-            const y = 50 + 42 * Math.sin(angle);
-            return (
-              <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
-                {(i + 1) * 10}
-              </text>
-            );
-          })}
-        </svg>
-        <span className={wpmClass}>{wpm}</span>
+          <div className="absolute left-1 text-red-500 text-[8px] font-bold tracking-widest z-10 speedometer-label">
+            SPEED
+          </div>
+          <svg
+            width={100}
+            height={100}
+            viewBox="0 0 100 100"
+            className="speedometer-svg w-full h-full"
+          >
+            <line
+              x1="50"
+              y1="50"
+              x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+              y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+              stroke="red"
+              strokeWidth="2"
+            />
+            {Array.from({ length: 9 }).map((_, i) => {
+              const startAngle = (-Math.PI * 5) / 6;
+              const endAngle = (Math.PI * 5) / 6;
+              const angle = startAngle + (i / 8) * (endAngle - startAngle);
+              const x = 50 + 40 * Math.cos(angle);
+              const y = 50 + 42 * Math.sin(angle);
+              return (
+                <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
+                  {(i + 1) * 10}
+                </text>
+              );
+            })}
+          </svg>
+          <span className={valueClass}>{wpm}</span>
+        </div>
       </div>
     );
   };
@@ -477,81 +524,78 @@ export default function ExamTypingInterface({
       {/* Portrait View — mobile/tablet portrait only */}
       {typingLayout === "portrait" && (
       <div className="flex flex-col flex-1 min-h-0 h-full exam-typing-portrait-view exam-typing-portrait">
-        {/* Top Section: User Profile, Stats, Speedometer */}
-        <div className="flex items-start justify-between p-2 bg-white border-b border-gray-200 flex-shrink-0 exam-typing-stats-mobile">
-          {/* Left: User Profile with A- below */}
-          <div className="flex flex-col items-center justify-start exam-typing-profile-col">
+        {/* Top Section: User Profile, Stats, Speedometer — skill section style */}
+        <div className="grid grid-cols-[5rem_1fr_5rem] gap-x-1 gap-y-0.5 px-2 py-2 flex-shrink-0 w-full exam-typing-stats-mobile bg-white text-gray-900 border-b border-gray-200">
+          {/* Row 1 — profile, stats, meter tops aligned */}
+          <div className="col-start-1 row-start-1 flex flex-col items-center exam-typing-profile-top">
             <img
               src={userProfileUrl}
               alt={userName}
-              className="w-14 h-14 rounded-full border-2 border-gray-300 flex-shrink-0"
+              className="w-16 h-16 rounded-md border-2 border-gray-300 flex-shrink-0 object-cover exam-typing-portrait-avatar"
               onError={(e) => {
                 e.target.src = "/lo.jpg";
               }}
             />
-            <p className="text-xs mt-1 text-center font-semibold text-gray-700 whitespace-nowrap">{userName}</p>
-            {/* A- button below profile - aligned with A+ */}
-            <button
-              type="button"
-              onClick={() => setFontSize(prev => Math.max(12, prev - 2))}
-              className="bg-white text-red-600 border-2 border-black rounded-md px-2 py-1 mt-auto translate-y-1 hover:bg-gray-100 transition-colors text-xs font-semibold w-full min-h-[1.75rem] flex items-center justify-center exam-typing-font-btn exam-typing-a-minus-btn"
-            >
-              A -
-            </button>
+            <p className="font-semibold text-xs text-center mt-0.5 leading-tight text-gray-900 whitespace-nowrap exam-typing-portrait-username">
+              {userName}
+            </p>
           </div>
 
-          {/* Center: Statistics Grid 2x2 */}
-          <div className="flex-1 grid grid-cols-2 gap-1.5 mx-2">
-            {/* Correct */}
-            <div className="h-7 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-              <div className="bg-black text-white text-[9px] font-semibold py-[1px]">Correct</div>
-              <div className="bg-white text-green-600 text-xs font-bold">{correctWords}</div>
+          <div className="col-start-2 row-start-1 flex flex-col items-center justify-start exam-typing-stat-center">
+            <div className="grid grid-cols-2 gap-1.5 w-[8.25rem] max-w-[8.25rem] shrink-0 exam-typing-stat-grid">
+              <div className="h-10 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card">
+                <div className="bg-black text-white text-[10px] font-semibold exam-typing-stat-label">Correct</div>
+                <div className="bg-white text-green-600 text-sm font-bold exam-typing-stat-value">{correctWords}</div>
+              </div>
+              <div className="h-10 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card">
+                <div className="bg-black text-white text-[10px] font-semibold exam-typing-stat-label">Wrong</div>
+                <div className="bg-white text-red-500 text-sm font-bold exam-typing-stat-value">{wrongWords}</div>
+              </div>
+              <div className="h-10 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card">
+                <div className="bg-black text-white text-[10px] font-semibold exam-typing-stat-label">Total</div>
+                <div className="bg-white text-[#290c52] text-sm font-bold exam-typing-stat-value">{totalTyped}</div>
+              </div>
+              <div className="h-10 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card">
+                <div className="bg-black text-white text-[10px] font-semibold exam-typing-stat-label">Backspace</div>
+                <div className="bg-white text-blue-500 text-sm font-bold exam-typing-stat-value">{backspaceCount}</div>
+              </div>
             </div>
-            {/* Wrong */}
-            <div className="h-7 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-              <div className="bg-black text-white text-[9px] font-semibold py-[1px]">Wrong</div>
-              <div className="bg-white text-red-500 text-xs font-bold">{wrongWords}</div>
-            </div>
-            {/* Total */}
-            <div className="h-7 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-              <div className="bg-black text-white text-[9px] font-semibold py-[1px]">Total</div>
-              <div className="bg-white text-[#290c52] text-xs font-bold">{totalTyped}</div>
-            </div>
-            {/* Backspace */}
-            <div className="h-7 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-              <div className="bg-black text-white text-[9px] font-semibold py-[1px]">Backspace</div>
-              <div className="bg-white text-blue-500 text-xs font-bold">{backspaceCount}</div>
-            </div>
-            {/* Timer - spans 2 columns, placed last */}
             {timeRemainingToUse !== null && (
-              <div className="col-span-2 h-7 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-                <div className="bg-black text-white text-[9px] font-semibold py-[1px]">Time</div>
-                <div className="bg-white text-black text-xs font-bold">{formatTime(timeRemainingToUse)}</div>
+              <div className="w-[8.25rem] h-10 rounded-lg overflow-hidden text-center mt-1.5 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card exam-typing-stat-time">
+                <div className="bg-black text-white text-[10px] font-semibold exam-typing-stat-label">Time</div>
+                <div className="bg-white text-black text-sm font-bold exam-typing-stat-value">{formatTime(timeRemainingToUse)}</div>
               </div>
             )}
           </div>
 
-          {/* Right: Speedometer with A+ below — same style as desktop */}
-          <div className="flex flex-col items-center justify-start speedometer-container exam-typing-profile-col">
+          <div className="col-start-3 row-start-1 flex flex-col items-center justify-start speedometer-container exam-typing-meter-top">
             {renderSpeedometer("portrait")}
-            {/* A+ button below speedometer - aligned with A- */}
-            <button
-              type="button"
-              onClick={() => setFontSize(prev => Math.min(24, prev + 2))}
-              className="bg-white text-red-600 border-2 border-black rounded-md px-1.5 py-1 mt-auto hover:bg-gray-100 transition-colors text-xs font-semibold w-14 min-h-[1.75rem] flex items-center justify-center self-center exam-typing-font-btn exam-typing-a-plus-btn"
-            >
-              A +
-            </button>
           </div>
+
+          {/* Row 2 — A- and A+ aligned */}
+          <button
+            type="button"
+            onClick={() => setFontSize(prev => Math.max(12, prev - 2))}
+            className="col-start-1 row-start-2 -mt-0.5 bg-white w-full text-red-600 border-2 border-black rounded-md flex items-center justify-center text-xs font-bold min-h-[2rem] exam-typing-font-btn exam-typing-a-minus-btn exam-typing-profile-col"
+          >
+            A -
+          </button>
+          <button
+            type="button"
+            onClick={() => setFontSize(prev => Math.min(24, prev + 2))}
+            className="col-start-3 row-start-2 -mt-0.5 bg-white w-full text-green-600 border-2 border-black rounded-md flex items-center justify-center text-xs font-bold min-h-[2rem] exam-typing-font-btn exam-typing-a-plus-btn exam-typing-meter-col"
+          >
+            A +
+          </button>
         </div>
 
-        {/* Text to Type Box — 8 visible lines, scroll for more */}
+        {/* Text to Type Box — 6 visible lines on portrait, scroll for more */}
         <div
           ref={containerRef}
-          className="flex-none bg-white border-2 border-gray-300 rounded-lg p-2 mx-2 mt-1 mb-1 overflow-y-auto scrollbar-hide exam-typing-passage-mobile"
+          className="flex-none bg-white border-y-2 border-gray-300 p-2 mx-0 mt-0 mb-0 overflow-y-auto scrollbar-hide w-full exam-typing-passage-mobile"
           style={{
-            height: `calc(${fontSize}px * 1.5 * 8 + 1rem)`,
-            maxHeight: `calc(${fontSize}px * 1.5 * 8 + 1rem)`,
+            height: `calc(${fontSize}px * 1.5 * 6 + 1rem)`,
+            maxHeight: `calc(${fontSize}px * 1.5 * 6 + 1rem)`,
             lineHeight: 1.5,
           }}
         >
@@ -559,7 +603,7 @@ export default function ExamTypingInterface({
         </div>
 
         {/* Input Field — grows to fill space; submit sits at bottom */}
-        <div className="flex-1 min-h-0 flex flex-col p-1 pt-0.5 bg-white border-t border-gray-200 exam-typing-input-mobile">
+        <div className="flex-1 min-h-0 flex flex-col px-0 py-0.5 bg-white border-t border-gray-200 w-full exam-typing-input-mobile">
           <textarea
             ref={inputRef}
             value={typedText}
@@ -570,7 +614,7 @@ export default function ExamTypingInterface({
             placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
             lang={isHindiTyping ? "hi" : undefined}
             inputMode={isHindiTyping ? "text" : undefined}
-            className="w-full flex-1 min-h-[4.25rem] h-full p-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono resize-none"
+            className="w-full flex-1 min-h-[4.25rem] h-full p-2 border-y-2 border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono resize-none"
             spellCheck={false}
             autoFocus
             rows={4}
@@ -578,11 +622,11 @@ export default function ExamTypingInterface({
         </div>
 
         {/* Submit Button */}
-        <div className="p-1 bg-white border-t border-gray-200 flex-shrink-0 exam-typing-submit-mobile">
+        <div className="p-0 bg-white border-t border-gray-200 flex-shrink-0 w-full exam-typing-submit-mobile">
           <button
             type="button"
             onClick={handleSubmit}
-            className="w-full block bg-blue-600 text-white py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors min-h-[2.1rem]"
+            className="w-full block bg-blue-600 text-white py-1.5 rounded-none text-sm font-semibold hover:bg-blue-700 transition-colors min-h-[2.1rem]"
           >
             Submit Section
           </button>
@@ -659,7 +703,7 @@ export default function ExamTypingInterface({
                   <p className="text-[9px] text-center font-semibold text-gray-700 whitespace-nowrap max-w-full truncate exam-typing-landscape-username">{userName}</p>
                 </div>
                 <div className="flex-shrink-0 exam-typing-landscape-sidebar-meter speed-meter">
-                  {renderSpeedometer("portrait")}
+                  {renderSpeedometer("landscape")}
                 </div>
               </div>
 

@@ -1,9 +1,80 @@
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/db";
 import User from "@/lib/models/User";
+import Subscription from "@/lib/models/Subscription";
 
 export const TEST_BYPASS_PHONE = "9876543210";
 export const TEST_BYPASS_PASSWORD = "123456";
+
+const TEST_LIFETIME_DAYS = 36500;
+
+function getLifetimeEndDate() {
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + TEST_LIFETIME_DAYS);
+  return endDate;
+}
+
+/** Grant active lifetime access to all paid content for the test bypass user. */
+export async function ensureTestBypassLifetimeSubscription(userId) {
+  if (!isTestBypassEnabled()) return null;
+
+  const endDate = getLifetimeEndDate();
+  const now = new Date();
+
+  let subscription = await Subscription.findOne({
+    userId,
+    type: "all",
+    status: "active",
+    endDate: { $gt: now },
+  });
+
+  if (subscription) {
+    if (subscription.plan !== "lifetime" || subscription.endDate < endDate) {
+      subscription = await Subscription.findByIdAndUpdate(
+        subscription._id,
+        {
+          $set: {
+            plan: "lifetime",
+            endDate,
+            price: 0,
+            paymentId: "test_bypass_lifetime",
+          },
+        },
+        { new: true }
+      );
+    }
+    return subscription;
+  }
+
+  const expired = await Subscription.findOne({ userId, type: "all" });
+  if (expired) {
+    return Subscription.findByIdAndUpdate(
+      expired._id,
+      {
+        $set: {
+          status: "active",
+          plan: "lifetime",
+          startDate: now,
+          endDate,
+          price: 0,
+          paymentId: "test_bypass_lifetime",
+        },
+      },
+      { new: true }
+    );
+  }
+
+  return Subscription.create({
+    userId,
+    type: "all",
+    status: "active",
+    plan: "lifetime",
+    startDate: now,
+    endDate,
+    price: 0,
+    paymentId: "test_bypass_lifetime",
+  });
+}
 
 export function isTestBypassEnabled() {
   if (process.env.ENABLE_TEST_BYPASS_LOGIN === "true") return true;
@@ -32,17 +103,16 @@ export async function findOrCreateTestBypassUser() {
       isMobileVerified: true,
       authProvider: "credentials",
     });
-    return user;
+  } else {
+    const updates = {
+      isPhoneVerified: true,
+      isMobileVerified: true,
+      password: passwordHash,
+    };
+    await User.findByIdAndUpdate(user._id, { $set: updates });
+    user = await User.findById(user._id);
   }
 
-  const updates = {
-    isPhoneVerified: true,
-    isMobileVerified: true,
-  };
-  if (!user.password) {
-    updates.password = passwordHash;
-  }
-
-  await User.findByIdAndUpdate(user._id, { $set: updates });
-  return User.findById(user._id);
+  await ensureTestBypassLifetimeSubscription(user._id);
+  return user;
 }

@@ -130,41 +130,37 @@ function DesktopView({
       {/* Left Section */}
       <div className="flex-1 flex flex-col items-center gap-6 mobile-stack">
         {/* Typing Prompt Buttons - Desktop row-based layout */}
-        <div className="flex flex-wrap justify-center items-center gap-1 md:gap-2 relative mobile-tight-gap typing-prompt-container">
-          {currentRowKeys.map((key, displayIdx) => {
+        {(() => {
+          const spaceIdx = currentRowKeys.indexOf("Space");
+          const leftKeys = spaceIdx >= 0 ? currentRowKeys.slice(0, spaceIdx) : currentRowKeys;
+          const rightKeys = spaceIdx >= 0 ? currentRowKeys.slice(spaceIdx + 1) : [];
+
+          const renderPromptBox = (key, displayIdx) => {
             const originalIndex = getOriginalIndex(displayIdx);
             const isCurrentKey = originalIndex === currentIndex;
             const keyStatusForThisKey = originalIndex >= 0 ? keyStatus[originalIndex] : null;
             const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
-            // Check if previous key was a space (for dynamic spacing)
-            const previousKeyWasSpace = displayIdx > 0 && currentRowKeys[displayIdx - 1] === "Space";
-            
-            let marginClass = "";
-            if (displayIdx === 0) {
-              marginClass = "";
-            } else if (previousKeyWasSpace) {
-              marginClass = "md:ml-8 ml-6";
-            } else {
-              marginClass = "md:ml-2 ml-1.5";
-            }
-            
+            const isSpace = key === "Space";
+            const boxStyle = isSpace
+              ? { flex: "1 1 0", minWidth: "260px", height: "2.75rem" }
+              : { width: "80px", minWidth: "80px", height: "5rem" };
+
             return (
               <div
                 key={`${currentRowIndex}-${displayIdx}`}
                 className={`
-                  ${key === "Space" ? "w-28 h-8 md:w-35 md:h-10 mt-1 mobile-space-key space-key-box" : "w-16 h-14 mobile-small-key"}
-                  rounded flex items-center justify-center text-2xl font-semibold mobile-small-text
-                  ${marginClass}
+                  rounded flex items-center justify-center text-2xl font-bold
+                  ${isSpace ? "min-w-0" : "shrink-0"}
                   transition-all duration-150
-                  ${isRowAnimating ? 'animate-slide-in-right-key' : ''}
+                  ${isRowAnimating ? "animate-slide-in-right-key" : ""}
                   ${
-                    (isCurrentKey && keyStatusForThisKey !== "wrong")
+                    isCurrentKey && keyStatusForThisKey !== "wrong"
                       ? "bg-blue-600 border-blue-400 border-2 text-white"
                       : keyStatusForThisKey === "wrong"
                       ? "bg-red-600 border-red-600 text-white"
                       : keyStatusForThisKey === "correct"
                       ? "bg-green-300 border-green-600 text-green-800"
-                      : isPressed && key === "Space"
+                      : isPressed && isSpace
                       ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
                       : isPressed
                       ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
@@ -174,15 +170,31 @@ function DesktopView({
                   }
                   border
                 `}
-                style={isRowAnimating ? {
-                  animationDelay: `${displayIdx * 0.05}s`
-                } : {}}
+                style={{
+                  ...boxStyle,
+                  ...(isRowAnimating ? { animationDelay: `${displayIdx * 0.05}s` } : {}),
+                }}
               >
-                {key === "Space" ? "Space" : key.toLowerCase()}
+                {isSpace ? "Space" : key.toLowerCase()}
               </div>
             );
-          })}
-        </div>
+          };
+
+          return (
+            <div
+              className="flex flex-nowrap items-center gap-2 w-full typing-prompt-container"
+              style={{ maxWidth: "960px" }}
+            >
+              <div className="flex items-center gap-2 shrink-0">
+                {leftKeys.map((key, i) => renderPromptBox(key, i))}
+              </div>
+              {spaceIdx >= 0 && renderPromptBox("Space", spaceIdx)}
+              <div className="flex items-center gap-2 shrink-0">
+                {rightKeys.map((key, i) => renderPromptBox(key, spaceIdx + 1 + i))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Desktop Toggles */}
         <div className="hidden md:hidden lg:flex flex items-center gap-4 mt-2 mobile-tight-gap mobile-small-text">
@@ -307,8 +319,8 @@ function DesktopView({
       </div>
 
       {/* Right Section - Desktop Stats */}
-      <div className="hidden md:flex flex-col items-center md:mt-0 mt-0 mobile-stack mobile-small-text right-section-stats">
-        <div className="flex flex-col items-center user-profile-section user-profile-landscape mb-0">
+      <div className="hidden md:flex flex-col items-center md:pt-14 lg:pt-20 md:mt-4 mobile-stack mobile-small-text right-section-stats desktop-keyboard-stats-panel">
+        <div className="flex flex-col items-center user-profile-section user-profile-landscape mb-0 md:mt-4 lg:mt-6">
           <img
             src={userProfileUrl}
             alt="User"
@@ -317,14 +329,15 @@ function DesktopView({
               e.target.src = "/lo.jpg";
             }}
           />
-          <p className="font-semibold text-xs md:text-sm mt-0 user-profile-name">{userName}</p>
+          <p className="font-semibold text-xs md:text-sm mt-2 user-profile-name">{userName}</p>
         </div>
         
-        <div className="w-24 h-9 rounded-lg overflow-hidden text-center mb-0 md:-mt-1 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] mobile-scale">          <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
+        <div className="w-24 h-9 rounded-lg overflow-hidden text-center mt-5 mb-5 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] mobile-scale">
+          <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
           <div className="bg-white text-black text-sm font-bold">{formatClock(timer)}</div>
         </div>
         
-        <div className="grid grid-cols-2 gap-y-6 mb-10 gap-x-4 md:gap-x-4 w-full text-center mobile-tight-gap mobile-scale stats-grid-landscape">
+        <div className="grid grid-cols-2 gap-y-8 gap-x-6 mb-6 w-full text-center mobile-tight-gap mobile-scale stats-grid-landscape desktop-keyboard-stats-grid">
           {[
             { label: "Correct", value: correctCount, color: "text-green-600" },
             { label: "Wrong", value: wrongCount, color: "text-red-500" },
@@ -339,7 +352,7 @@ function DesktopView({
         </div>
 
         {/* Speedometer */}
-        <div className="hidden lg:block mt-10 mobile-scale">
+        <div className="hidden lg:block mt-2 lg:mt-3 mobile-scale">
           <div className="border-6 border-black rounded-full">
             <div className="relative w-24 h-24 bg-black rounded-full border-4 border-white flex items-center justify-center">
               <div className="absolute left-1 text-red-500 text-[8px] font-bold tracking-widest">SPEED</div>
@@ -1333,7 +1346,7 @@ function LandscapeMobileView({
           </div>
         </div>
         {/* Close Button - bottom right, below Backspace */}
-        <div className="w-full max-w-[100px] flex justify-end mt-0.5">
+        <div className="w-full max-w-[100px] flex justify-end mt-0 landscape-mobile-close-wrap">
           <button
             onClick={() => window.location.href = '/learning'}
             className="bg-red-600 text-white hover:bg-red-700 px-6 py-1.5 rounded-md shadow transition-all duration-200 hover:scale-105 flex items-center justify-center text-sm font-medium"
@@ -2816,6 +2829,21 @@ function KeyboardApp() {
         }
 
         /* ============================================
+           DESKTOP KEYBOARD STATS PANEL
+           (min-width: 768px) — profile / time / stat boxes
+           ============================================ */
+        @media (min-width: 768px) {
+          .desktop-keyboard-stats-panel {
+            padding-top: 5rem !important;
+          }
+
+          .desktop-keyboard-stats-grid {
+            row-gap: 2rem !important;
+            column-gap: 1.75rem !important;
+          }
+        }
+
+        /* ============================================
            PORTRAIT MOBILE VIEW STYLES
            (max-width: 767px) - Portrait orientation
            ============================================ */
@@ -2978,14 +3006,22 @@ function KeyboardApp() {
             display: none !important;
           }
           
-          /* LANDSCAPE: Right section - no gap between theme, time, Correct, Wrong, Total, Backspace */
+          /* LANDSCAPE: Right section stats — spaced Time / Correct / Wrong / Total / Backspace / Close */
           .landscape-mobile-stats {
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
             width: 100% !important;
             max-width: 120px !important;
-            gap: 0 !important;
+            gap: 0.5rem !important;
+          }
+
+          .landscape-mobile-stats > div {
+            margin-bottom: 0 !important;
+          }
+
+          .landscape-mobile-close-wrap {
+            margin-top: 0.5rem !important;
           }
           
           /* LANDSCAPE: Stats card width in landscape mobile */
@@ -3285,7 +3321,7 @@ function KeyboardApp() {
             top: 3rem !important;
           }
           
-          /* MOBILE LANDSCAPE: Right panel - no top margin, top-aligned so Backspace and Close fit on screen */
+          /* MOBILE LANDSCAPE: Right panel — gap between stat blocks and Close */
           .right-section-stats.landscape-right-stats,
           .right-section-stats {
             top: 0 !important;
@@ -3294,7 +3330,15 @@ function KeyboardApp() {
             transform: none !important;
             padding-right: 0.25rem !important;
             padding-top: 0.25rem !important;
-            gap: 0.25rem !important;
+            gap: 0.5rem !important;
+          }
+
+          .landscape-mobile-stats {
+            gap: 0.55rem !important;
+          }
+
+          .landscape-mobile-close-wrap {
+            margin-top: 0.65rem !important;
           }
           
           /* MOBILE LANDSCAPE: Stats box flush right */

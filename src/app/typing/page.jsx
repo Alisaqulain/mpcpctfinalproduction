@@ -6,8 +6,31 @@ import { useHindiTyping } from "@/hooks/useHindiTyping";
 
 const MIN_NET_SPEED_LEARNING = 10;
 const TYPING_FONT_MIN = 12;
-const TYPING_FONT_MAX = 24;
+const TYPING_FONT_MAX = 28;
 const TYPING_FONT_STEP = 2;
+const TYPING_FONT_DEFAULT = 18;
+const TYPING_PAGE_BG =
+  "bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat";
+
+function typingFontStyle(fontSize, lineHeight = 1.5) {
+  return {
+    fontSize: `${fontSize}px`,
+    lineHeight,
+    ["--typing-passage-size"]: `${fontSize}px`,
+  };
+}
+
+function TypingCloseButton({ href, className = "" }) {
+  return (
+    <a
+      href={href}
+      aria-label="Close"
+      className={`inline-flex items-center justify-center px-2 py-0.5 text-[11px] md:px-4 md:py-2 md:text-sm rounded border md:rounded-md border-gray-600 text-white bg-red-500 hover:bg-red-600 font-semibold shadow md:shadow-lg transition-colors ${className}`}
+    >
+      Close
+    </a>
+  );
+}
 
 // Desktop View Component
 function DesktopView({
@@ -59,18 +82,10 @@ function DesktopView({
 }) {
   return (
     <>
-      <a
-        href={closeHref}
-        className="hidden md:flex md:items-center md:justify-center md:absolute md:right-20 md:top-4 z-[9999] px-4 py-2 rounded-md border border-gray-600 text-white bg-red-500 hover:bg-red-600 text-sm font-semibold md:block"
-        aria-label="Close"
-      >
-        Close
-      </a>
-
       <div className="flex flex-col-reverse lg:flex-row gap-6">
         {/* Typing Area */}
         <div className="w-[90%] lg:w-[110%] mx-auto mt-4">
-          <div className="bg-white p-2 lg:p-3 mr-10 md:p-6 rounded-xl shadow-lg ml-5 mt-[-25]">
+          <div className="bg-white pt-1 px-2 pb-2 lg:pt-1 lg:px-3 lg:pb-3 md:pt-1.5 md:px-6 md:pb-6 mr-10 rounded-xl shadow-lg ml-5 mt-[-25]">
             {/* Results Display */}
             {isCompleted && (
               <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
@@ -146,7 +161,14 @@ function DesktopView({
               </div>
             ) : (
               <>
-                  <div className="text-sm leading-tight  overflow-y-auto min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px] mt-2 lg:mt-2 break-words font-sans w-full" style={{ fontSize: `${fontSize}px`, width: '100%', maxWidth: '100%' }}>
+                  <div
+                    className="typing-passage-font leading-relaxed overflow-y-auto min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px] mt-0 pt-0 break-words font-sans w-full"
+                    style={{
+                      ...typingFontStyle(fontSize),
+                      width: "100%",
+                      maxWidth: "100%",
+                    }}
+                  >
                   {renderColoredWords()}
                 </div>
                 {/* Keyboard Warning for Hindi */}
@@ -202,11 +224,15 @@ function DesktopView({
                     }
                   }}
                   disabled={isPaused || isCompleted}
-                  className="w-full min-h-[100px] max-h-[100px] md:min-h-[80px] md:max-h-[100px] lg:min-h-[180px] lg:max-h-[220px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-1 disabled:opacity-50"
+                  className="typing-input-font w-full min-h-[100px] max-h-[100px] lg:min-h-[180px] lg:max-h-[220px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-1 disabled:opacity-50"
                   placeholder={isHindiTyping ? `Start typing in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout)...` : "Start typing here..."}
                   lang={isHindiTyping ? "hi" : undefined}
                   inputMode={isHindiTyping ? "text" : undefined}
-                  style={{ fontSize: `${fontSize}px` }}
+                  style={{
+                    ...typingFontStyle(fontSize),
+                    width: "100%",
+                    maxWidth: "100%",
+                  }}
                   autoFocus
                 />
               </>
@@ -393,14 +419,7 @@ function PortraitView({
       <div className="flex flex-col-reverse gap-2 pt-2">
         {/* Typing Area */}
         <div className="w-[90%] mx-auto mt-5 relative">
-          <a
-            href={closeHref}
-            className="absolute right-0 top-[2.75rem] z-30 flex items-center justify-center w-7 h-7 rounded-full border border-gray-600 text-white bg-red-500 hover:bg-red-600 shadow text-base font-bold"
-            aria-label="Close"
-          >
-            ×
-          </a>
-          <div className="bg-white p-4 mr-10 md:p-6 rounded-xl shadow-lg mt-12 w-full">
+          <div className="bg-white pt-1 px-4 pb-4 md:pt-1.5 md:px-6 md:pb-6 mr-10 rounded-xl shadow-lg mt-12 w-full">
             {/* Results Display */}
             {isCompleted && (
               <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
@@ -477,13 +496,11 @@ function PortraitView({
             ) : (
               <>
                 <div
-                  className="typing-passage-font leading-relaxed overflow-y-auto min-h-[120px] max-h-[180px] mt-3 break-words font-sans w-full"
+                  className="typing-passage-font leading-relaxed overflow-y-auto min-h-[120px] max-h-[180px] mt-0 pt-0 break-words font-sans w-full"
                   style={{
-                    fontSize: `${fontSize}px`,
-                    lineHeight: 1.5,
+                    ...typingFontStyle(fontSize),
                     width: "100%",
                     maxWidth: "100%",
-                    ["--typing-passage-size"]: `${fontSize}px`,
                   }}
                 >
                   {renderColoredWords()}
@@ -541,10 +558,15 @@ function PortraitView({
                     }
                   }}
                   disabled={isPaused || isCompleted}
-                  className="w-full min-h-[100px] max-h-[100px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-3 disabled:opacity-50 text-sm"
+                  className="typing-input-font w-full min-h-[100px] max-h-[100px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-3 disabled:opacity-50"
                   placeholder={isHindiTyping ? "Start typing in Hindi (हिंदी में टाइप करें)..." : "Start typing here..."}
                   lang={isHindiTyping ? "hi" : undefined}
                   inputMode={isHindiTyping ? "text" : undefined}
+                  style={{
+                    ...typingFontStyle(fontSize),
+                    width: "100%",
+                    maxWidth: "100%",
+                  }}
                   autoFocus
                 />
               </>
@@ -609,9 +631,9 @@ function PortraitView({
                 aria-label="Decrease font size"
                 className="bg-white mt-1.5 w-full text-red-600 border-3 border-black rounded-md flex items-center justify-center text-xs font-bold touch-manipulation cursor-pointer hover:bg-gray-100 active:bg-gray-200 box-border"
                 style={{
-                  height: "40px",
-                  minHeight: "40px",
-                  minWidth: "56px",
+                  height: "32px",
+                  minHeight: "32px",
+                  minWidth: "52px",
                   padding: 0,
                 }}
               >
@@ -699,9 +721,9 @@ function PortraitView({
                 aria-label="Increase font size"
                 className="bg-white mt-1.5 w-full text-green-600 border-3 border-black rounded-md flex items-center justify-center text-xs font-bold touch-manipulation cursor-pointer hover:bg-gray-100 active:bg-gray-200 box-border"
                 style={{
-                  height: "40px",
-                  minHeight: "40px",
-                  minWidth: "56px",
+                  height: "32px",
+                  minHeight: "32px",
+                  minWidth: "52px",
                   padding: 0,
                 }}
               >
@@ -765,72 +787,98 @@ function LandscapeView({
 }) {
   return (
     <>
-      <button
-        className="fixed md:hidden right-2 top-2 z-[9999] border-2 border-gray-600 text-white bg-red-500 hover:bg-red-600 rounded-md shadow-lg"
-        style={{
-          padding: '0.8vh 2vw',
-          fontSize: 'clamp(9px, 1.8vw, 12px)',
-          minHeight: '4vh',
-          position: 'fixed',
-          zIndex: 9999,
-          display: 'block',
-          visibility: 'visible'
-        }}
-      >
-        <a href={closeHref} className="font-semibold">close</a>
-      </button>
-      <div className="landscape-mobile-container">
-        <div className="flex flex-row gap-6">
-          {/* Typing Area */}
-          <div className="landscape-mobile-typing-area ml-26" style={{ flex: '1', overflowY: 'auto', padding: '0.5vh 0.5vw', height: '100vh', width: 'calc(90vw - 18vw)', maxWidth: 'calc(100vw - 18vw)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            {/* Stats row at header */}
-            <div className="flex gap-x-4 justify-center items-center w-full" style={{ paddingTop: '0.5rem', marginBottom: '5vh', flexWrap: 'wrap', gap: '1vw' }}>
-              {[{ label: "Correct", value: correctWords.length, color: "text-green-600" },
-                { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
-                { label: "Total", value: totalTypedWords, color: "text-[#290c52]" },
-                { label: "Backspace", value: backspaceCount, color: "text-blue-500" }].map(({ label, value, color }, i) => (
-                  <div key={i} className="w-24 h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]" style={{ flexShrink: 0 }}>
-                    <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
-                    <div className={`bg-white ${color} text-sm font-bold`}>{value}</div>
-                  </div>
-                ))}
-            </div>
+      <div className="landscape-mobile-view relative z-10 flex flex-col w-full h-full min-h-0 overflow-hidden bg-transparent">
+        {/* Close — landscape only, top-right lowercase like reference */}
+        <a
+          href={closeHref}
+          aria-label="Close"
+          className="landscape-close-link fixed right-2 top-3 z-[9999] px-2.5 py-0.5 text-[11px] font-semibold rounded border border-gray-600 text-white bg-red-500 hover:bg-red-600 lowercase shadow"
+        >
+          close
+        </a>
 
-            <div className="bg-white p-2 rounded-xl shadow-lg" style={{ width: '95%', maxWidth: '95%', padding: '1vh 1vw', marginLeft: 'auto', marginRight: 'auto' }}>
-              {/* Results Display */}
+        {/* Stats row — centered at top */}
+        <div className="landscape-stats-row flex justify-center items-center gap-2 sm:gap-3 w-full shrink-0 pt-1 pb-1 px-2 bg-transparent">
+          {[
+            { label: "Correct", value: correctWords.length, color: "text-green-600" },
+            { label: "Wrong", value: wrongWords.length, color: "text-red-500" },
+            { label: "Total", value: totalTypedWords, color: "text-[#290c52]" },
+            { label: "Backspace", value: backspaceCount, color: "text-blue-500" },
+          ].map(({ label, value, color }, i) => (
+            <div
+              key={i}
+              className="w-[4.5rem] sm:w-24 h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] shrink-0"
+            >
+              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">{label}</div>
+              <div className={`bg-white ${color} text-sm font-bold`}>{value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Three columns: profile | typing | speed + font */}
+        <div className="landscape-main-row flex flex-1 min-h-0 w-full px-1 pb-1 bg-transparent">
+          {/* Left — profile + timer */}
+          <div className="landscape-left-col flex flex-col items-center w-[14vw] min-w-[68px] max-w-[88px] shrink-0 pt-1 gap-1 bg-transparent">
+            <img
+              src={userProfileUrl}
+              alt={userName}
+              className="rounded-md border-2 border-white object-cover"
+              style={{ width: "clamp(52px, 11vw, 72px)", height: "clamp(52px, 11vw, 72px)" }}
+              onError={(e) => {
+                e.target.src = "/lo.jpg";
+              }}
+            />
+            <p
+              className="font-semibold text-center text-white leading-tight"
+              style={{ fontSize: "clamp(8px, 1.2vw, 10px)" }}
+            >
+              {userName}
+            </p>
+            <div className="w-full max-w-[5.5rem] h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+              <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
+              <div className="bg-white text-black text-sm font-bold">
+                {isCompleted ? formatClock(elapsedTime) : formatClock(timeRemaining)}
+              </div>
+            </div>
+          </div>
+
+          {/* Center — typing box + action buttons */}
+          <div className="landscape-center-col landscape-mobile-typing-area flex flex-1 flex-col items-center min-w-0 min-h-0 px-1 bg-transparent">
+            <div
+              className="bg-white rounded-xl shadow-lg w-full flex flex-col min-h-0 flex-1"
+              style={{ maxWidth: "100%", padding: "0.15rem 0.65rem 0.5rem" }}
+            >
               {isCompleted && (
-                <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500" style={{ padding: '1.5vh 1.5vw', marginBottom: '1vh' }}>
-                  <h2 className="text-xl font-bold text-green-800 mb-3" style={{ fontSize: 'clamp(12px, 2.5vw, 18px)', marginBottom: '1vh' }}>Test Completed!</h2>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3" style={{ gap: '1vw', marginBottom: '1vh' }}>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{wpm}</div>
-                      <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>WPM</div>
+                <div className="mb-2 bg-green-50 p-2 rounded-lg border-2 border-green-500 shrink-0">
+                  <h2 className="text-sm font-bold text-green-800 mb-2">Test Completed!</h2>
+                  <div className="grid grid-cols-4 gap-1 mb-2 text-center">
+                    <div>
+                      <div className="text-base font-bold text-green-600">{wpm}</div>
+                      <div className="text-[10px] text-green-700">WPM</div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{accuracy}%</div>
-                      <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Accuracy</div>
+                    <div>
+                      <div className="text-base font-bold text-green-600">{accuracy}%</div>
+                      <div className="text-[10px] text-green-700">Accuracy</div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{formatClock(elapsedTime)}</div>
-                      <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Time</div>
+                    <div>
+                      <div className="text-base font-bold text-green-600">{formatClock(elapsedTime)}</div>
+                      <div className="text-[10px] text-green-700">Time</div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600" style={{ fontSize: 'clamp(14px, 3vw, 20px)' }}>{correctWords.length}</div>
-                      <div className="text-sm text-green-700" style={{ fontSize: 'clamp(9px, 1.8vw, 12px)' }}>Correct</div>
+                    <div>
+                      <div className="text-base font-bold text-green-600">{correctWords.length}</div>
+                      <div className="text-[10px] text-green-700">Correct</div>
                     </div>
                   </div>
-                  <div className="flex gap-3 justify-center" style={{ gap: '1vw' }}>
+                  <div className="flex gap-2 justify-center">
                     <button
                       onClick={handleDownloadPDF}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
-                      style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-semibold"
                     >
                       Download PDF
                     </button>
                     <button
                       onClick={handleReset}
-                      className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
-                      style={{ padding: '1vh 2.5vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '4.5vh' }}
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg text-xs font-semibold"
                     >
                       Try Again
                     </button>
@@ -839,26 +887,23 @@ function LandscapeView({
               )}
 
               {loading ? (
-                <div className="text-center py-8" style={{ padding: '2vh 0' }}>
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4" style={{ width: '4vw', height: '4vw', minWidth: '30px', minHeight: '30px' }}></div>
-                  <p style={{ fontSize: 'clamp(10px, 2vw, 14px)' }}>Loading exercise content...</p>
+                <div className="text-center py-6">
+                  <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-gray-900 mx-auto mb-2" />
+                  <p className="text-xs">Loading exercise content...</p>
                 </div>
               ) : content.length === 0 ? (
-                <div className="text-center py-8 text-gray-500" style={{ padding: '2vh 0', fontSize: 'clamp(10px, 2vw, 14px)' }}>
+                <div className="text-center py-6 text-gray-500 text-xs">
                   <p>No content available for this exercise.</p>
                 </div>
               ) : (
                 <>
                   <div
-                    className="typing-passage-font landscape-typing-passage leading-tight overflow-y-auto min-h-[160px] max-h-[220px] mt-4 break-words font-sans w-full"
+                    className="typing-passage-font landscape-typing-passage leading-tight overflow-y-auto break-words font-sans w-full flex-1 min-h-0 mt-0 pt-0"
                     style={{
-                      minHeight: "26vh",
+                      ...typingFontStyle(fontSize, 1.2),
+                      minHeight: "18vh",
                       maxHeight: "22vh",
-                      fontSize: `${fontSize}px`,
-                      lineHeight: "1.2",
                       width: "100%",
-                      maxWidth: "100%",
-                      ["--typing-passage-size"]: `${fontSize}px`,
                     }}
                   >
                     {renderColoredWords(true)}
@@ -867,13 +912,14 @@ function LandscapeView({
                     ref={textareaRef}
                     value={typedText}
                     onChange={handleChange}
+                    onKeyDown={handleKeyDown}
                     disabled={isPaused || isCompleted}
-                    className="landscape-typing-input-field w-full auto-focus min-h-[130px] max-h-[160px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-2 disabled:opacity-50 text-sm"
+                    className="typing-input-font landscape-typing-input-field w-full p-2 border-t border-gray-400 rounded-md focus:outline-none mt-1 disabled:opacity-50 shrink-0"
                     placeholder="Type Here..."
                     style={{
-                      minHeight: "15vh",
-                      maxHeight: "13vh",
-                      padding: "1vh 1vw",
+                      ...typingFontStyle(fontSize, 1.2),
+                      minHeight: "10vh",
+                      maxHeight: "12vh",
                       width: "100%",
                     }}
                     autoFocus
@@ -881,139 +927,102 @@ function LandscapeView({
                 </>
               )}
             </div>
-            <div className="flex justify-center mt-0 gap-x-2 gap-y-0 flex-wrap" style={{ rowGap: 0 }}>
+
+            <div className="flex justify-center items-center gap-2 mt-1 shrink-0 w-full flex-wrap">
               <button
                 onClick={handleReset}
-                className="bg-pink-500 text-lg cursor-pointer hover:bg-orange-500 text-white px-8 py-1 rounded shadow"
-                style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
+                className="bg-pink-500 cursor-pointer hover:bg-orange-500 text-white px-5 py-1 rounded shadow text-sm font-semibold"
               >
                 Reset
               </button>
               <button
                 onClick={togglePause}
                 disabled={isCompleted}
-                className="bg-blue-600 cursor-pointer text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow"
-                style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
+                className="bg-blue-600 cursor-pointer hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-1 rounded shadow text-sm font-semibold"
               >
                 {isPaused ? "Resume" : "Pause"}
               </button>
               <button
                 onClick={handleCompletion}
                 disabled={!startTime || isCompleted}
-                className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold"
-                style={{ padding: '1vh 3vw', fontSize: 'clamp(10px, 2vw, 14px)', minHeight: '5vh' }}
+                className="bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-1 rounded shadow text-sm font-semibold"
               >
                 Submit
               </button>
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="landscape-mobile-sidebar text-white bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat" style={{ width: '18vw', minWidth: '18vw', maxWidth: '18vw', height: '100vh', padding: '1vh 1vw' }}>
-            <div className="flex flex-col items-center justify-center h-full">
-              {/* Profile + Time — minimal gap between them (landscape only) */}
-              <div className="absolute top-14 left-2 z-10 flex flex-col items-center gap-1">
-                <div className="flex flex-col items-center">
-                  <img
-                    src={userProfileUrl}
-                    alt={userName}
-                    className="w-24 h-24 rounded-md border-2 border-white"
-                    style={{
-                      width: "clamp(60px, 12vw, 80px)",
-                      height: "clamp(60px, 12vw, 80px)",
-                    }}
-                    onError={(e) => {
-                      e.target.src = "/lo.jpg";
-                    }}
-                  />
-                  <p
-                    className="font-semibold text-xs text-center text-white"
-                    style={{
-                      fontSize: "clamp(8px, 1.2vw, 10px)",
-                      marginTop: "0.25vh",
-                    }}
-                  >
-                    {userName}
-                  </p>
-                </div>
-                <div className="w-24 h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-                  <div className="bg-black text-white text-[10px] font-semibold py-[1px]">
-                    Time
-                  </div>
-                  <div className="bg-white text-black text-sm font-bold">
-                    {isCompleted
-                      ? formatClock(elapsedTime)
-                      : formatClock(timeRemaining)}
-                  </div>
-                </div>
-              </div>
-              {/* Speedometer */}
-              <div className="mt-0 absolute top-6 right-1">
-                <div className="border-6 border-black rounded-full mt-2">
-                  <div className="relative w-20 h-20 bg-black rounded-full border-4 border-white flex items-center justify-center" style={{ width: 'clamp(60px, 12vw, 80px)', height: 'clamp(60px, 12vw, 80px)' }}>
-                    <div className="absolute left-1 text-red-500 text-[6px] font-bold tracking-widest" style={{ fontSize: 'clamp(6px, 1vw, 8px)' }}>SPEED</div>
-                    <svg width="100" height="100" viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
-                      <line
-                        x1="50"
-                        y1="50"
-                        x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                        y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
-                        stroke="red"
-                        strokeWidth="2"
-                      />
-                      {Array.from({ length: 9 }).map((_, i) => {
-                        const startAngle = (-Math.PI * 5) / 6;
-                        const endAngle = (Math.PI * 5) / 6;
-                        const angle = startAngle + (i / 8) * (endAngle - startAngle);
-                        const x = 50 + 40 * Math.cos(angle);
-                        const y = 50 + 42 * Math.sin(angle);
-                        return (
-                          <text key={i} x={x} y={y} fontSize="10" fill="white" textAnchor="middle" dominantBaseline="middle">
-                            {(i + 1) * 10}
-                          </text>
-                        );
-                      })}
-                    </svg>
-                    <span className="absolute bottom-5 text-red-500 font-bold text-xs" style={{ fontSize: 'clamp(8px, 1.2vw, 10px)' }}>{wpm}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Font Size Controls - pulled closer to speedometer */}
-              <p className="text-white text-xs font-semibold absolute top-34 right-6">
-                Font size
-              </p>
-              <button
-                type="button"
-                onClick={decreaseFont}
-                aria-label="Decrease font size"
-                className="bg-white absolute top-46 right-7 z-50 text-red-600 font-bold border-3 cursor-pointer border-black rounded-md flex items-center justify-center touch-manipulation box-border hover:bg-gray-100 active:bg-gray-200 pointer-events-auto"
-                style={{
-                  width: "72px",
-                  height: "40px",
-                  minHeight: "40px",
-                  minWidth: "72px",
-                  padding: 0,
-                  fontSize: "clamp(10px, 1.5vw, 14px)",
-                }}
+          {/* Right — speedometer + font size (A+ on top, A- below) */}
+          <div className="landscape-right-col flex flex-col items-center w-[16vw] min-w-[76px] max-w-[96px] shrink-0 pt-0 gap-1 bg-transparent">
+            <div className="border-[3px] border-black rounded-full">
+              <div
+                className="relative bg-black rounded-full border-[3px] border-white flex items-center justify-center"
+                style={{ width: "clamp(52px, 11vw, 72px)", height: "clamp(52px, 11vw, 72px)" }}
               >
-                A -
-              </button>
+                <div
+                  className="absolute left-0.5 text-red-500 font-bold tracking-widest"
+                  style={{ fontSize: "clamp(5px, 0.9vw, 7px)" }}
+                >
+                  SPEED
+                </div>
+                <svg viewBox="0 0 100 100" style={{ width: "100%", height: "100%" }}>
+                  <line
+                    x1="50"
+                    y1="50"
+                    x2={50 + 42 * Math.cos((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                    y2={50 + 42 * Math.sin((wpm / 90) * (Math.PI * 1.5) - Math.PI)}
+                    stroke="red"
+                    strokeWidth="2"
+                  />
+                  {Array.from({ length: 9 }).map((_, i) => {
+                    const startAngle = (-Math.PI * 5) / 6;
+                    const endAngle = (Math.PI * 5) / 6;
+                    const angle = startAngle + (i / 8) * (endAngle - startAngle);
+                    const x = 50 + 40 * Math.cos(angle);
+                    const y = 50 + 42 * Math.sin(angle);
+                    return (
+                      <text
+                        key={i}
+                        x={x}
+                        y={y}
+                        fontSize="10"
+                        fill="white"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                      >
+                        {(i + 1) * 10}
+                      </text>
+                    );
+                  })}
+                </svg>
+                <span
+                  className="absolute bottom-3 text-red-500 font-bold"
+                  style={{ fontSize: "clamp(8px, 1.2vw, 10px)" }}
+                >
+                  {wpm}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-white text-[10px] font-semibold mt-0.5 mb-0">Font size</p>
+            <div className="flex flex-col items-center gap-1 w-full px-1">
               <button
                 type="button"
                 onClick={increaseFont}
                 aria-label="Increase font size"
-                className="bg-white absolute top-38 right-7 z-50 text-green-600 font-bold cursor-pointer border-3 border-black rounded-md flex items-center justify-center touch-manipulation box-border hover:bg-gray-100 active:bg-gray-200 pointer-events-auto"
-                style={{
-                  width: "72px",
-                  height: "40px",
-                  minHeight: "40px",
-                  minWidth: "72px",
-                  padding: 0,
-                  fontSize: "clamp(10px, 1.5vw, 14px)",
-                }}
+                className="landscape-font-btn bg-white w-full text-green-600 font-bold border-2 border-black rounded-md flex items-center justify-center touch-manipulation cursor-pointer hover:bg-gray-100 active:bg-gray-200"
+                style={{ height: "32px", fontSize: "clamp(10px, 1.5vw, 12px)" }}
               >
                 A +
+              </button>
+              <button
+                type="button"
+                onClick={decreaseFont}
+                aria-label="Decrease font size"
+                className="landscape-font-btn bg-white w-full text-red-600 font-bold border-2 border-black rounded-md flex items-center justify-center touch-manipulation cursor-pointer hover:bg-gray-100 active:bg-gray-200"
+                style={{ height: "32px", fontSize: "clamp(10px, 1.5vw, 12px)" }}
+              >
+                A -
               </button>
             </div>
           </div>
@@ -1266,7 +1275,7 @@ function TypingTutorForm() {
   const [backspaceCount, setBackspaceCount] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [fontSize, setFontSize] = useState(16);
+  const [fontSize, setFontSize] = useState(TYPING_FONT_DEFAULT);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(duration * 60); // Convert to seconds
   const [resultId, setResultId] = useState(null);
@@ -1730,6 +1739,8 @@ function TypingTutorForm() {
 
   const renderColoredWords = (isLandscapeMode = false) => {
     let pointer = 0;
+    const wordFontStyle = { fontSize: `${fontSize}px` };
+    const lineHeight = isLandscapeMode ? 1.2 : 1.5;
     return content.map((line, lineIndex) => {
       const lineWords = line.trim().split(/\s+/);
       return (
@@ -1739,15 +1750,20 @@ function TypingTutorForm() {
           style={
             isLandscapeMode
               ? {
+                  ...wordFontStyle,
                   height: "auto",
                   minHeight: "auto",
-                  marginBottom: "0.2vh",
-                  lineHeight: "1.2",
+                  marginTop: lineIndex === 0 ? 0 : undefined,
+                  marginBottom: lineIndex === 0 ? 0 : "0.2vh",
+                  lineHeight,
                   width: "100%",
                   maxWidth: "100%",
                 }
               : {
-                  lineHeight: "1.5",
+                  ...wordFontStyle,
+                  marginTop: lineIndex === 0 ? 0 : undefined,
+                  marginBottom: 0,
+                  lineHeight,
                   width: "100%",
                   maxWidth: "100%",
                 }
@@ -1782,6 +1798,7 @@ function TypingTutorForm() {
                 key={i}
                 ref={(el) => (wordRefs.current[index] = el)}
                 className={`${className} mr-1 inline-block`}
+                style={wordFontStyle}
               >
                 {word}
               </span>
@@ -1859,7 +1876,42 @@ function TypingTutorForm() {
   };
 
   return (
-    <div className="min-h-screen bg-[#290c52] bg-[url('/bg.jpg')] mt-30 md:mt-0  bg-cover bg-center bg-no-repeat px-4 py-6 md:px-14 md:py-12 md:mx-8 md:my-8 rounded-[0px] md:rounded-[100px] typing-background-container">
+    <>
+      {isMobile && isLandscape && (
+        <div className="typing-page-fixed-bg" aria-hidden="true" />
+      )}
+    <div
+      className={`min-h-screen mt-30 md:mt-0 px-4 py-6 md:px-14 md:py-12 md:mx-8 md:my-8 rounded-[0px] md:rounded-[100px] typing-background-container relative ${
+        isMobile && isLandscape
+          ? "typing-background-container--landscape"
+          : TYPING_PAGE_BG
+      }`}
+    >
+      <style jsx global>{`
+        .typing-page-fixed-bg {
+          position: fixed;
+          inset: 0;
+          z-index: 0;
+          pointer-events: none;
+          background-color: #290c52;
+          background-image: url("/bg.jpg");
+          background-size: cover;
+          background-position: top center;
+          background-repeat: no-repeat;
+        }
+        .typing-background-container--landscape {
+          background-color: transparent !important;
+          background-image: none !important;
+          box-shadow: none !important;
+        }
+        .typing-passage-font {
+          padding-top: 0 !important;
+        }
+        .typing-passage-font p:first-child {
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+        }
+      `}</style>
       <style jsx>{`
         @media (max-width: 767px) and (orientation: portrait) {
           html, body {
@@ -1898,13 +1950,6 @@ function TypingTutorForm() {
           .overflow-y-auto {
             scrollbar-width: none !important;
             -ms-overflow-style: none !important;
-          }
-          /* Passage scales with A+/A- like exam mode; input stays text-sm */
-          .typing-passage-font,
-          .typing-passage-font p,
-          .typing-passage-font span {
-            font-size: var(--typing-passage-size, 16px) !important;
-            line-height: 1.5 !important;
           }
         }
         /* iPhone SE and Samsung S8+ portrait view - enable vertical scrolling */
@@ -1964,16 +2009,32 @@ function TypingTutorForm() {
                (max-width: 767px) and (orientation: landscape),
                (max-height: 600px) and (orientation: landscape),
                (max-height: 500px) and (min-aspect-ratio: 1/1) {
-          html, body {
+          html, body,
+          #main-content {
             height: 100vh !important;
             width: 100vw !important;
             margin: 0 !important;
             padding: 0 !important;
             overflow: hidden !important;
+            background: transparent !important;
+          }
+          html, body {
             position: fixed !important;
           }
+          /* Single fixed bg for entire viewport — no panel overrides */
+          .typing-page-fixed-bg {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 0 !important;
+            pointer-events: none !important;
+            background-color: #290c52 !important;
+            background-image: url("/bg.jpg") !important;
+            background-size: cover !important;
+            background-position: top center !important;
+            background-repeat: no-repeat !important;
+          }
           /* Remove rounded corners and make full width in landscape mobile view */
-          .typing-background-container {
+          .typing-background-container.typing-background-container--landscape {
             border-radius: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
@@ -1981,147 +2042,87 @@ function TypingTutorForm() {
             padding: 0 !important;
             max-width: 100vw !important;
             min-height: 100vh !important;
+            position: relative !important;
+            z-index: 1 !important;
+            background: none !important;
+            background-color: transparent !important;
+            background-image: none !important;
+            box-shadow: none !important;
           }
-          /* Close button in landscape - ensure visibility */
-          button[class*="fixed"][class*="md:hidden"] {
-            position: fixed !important;
-            z-index: 9999 !important;
-            display: block !important;
-            visibility: visible !important;
-          }
-          /* Landscape mobile layout - keep typing area on screen, no overflow */
-          .landscape-mobile-container {
+          .portrait-typing-main.landscape-mobile-container {
+            max-width: none !important;
+            width: 100% !important;
+            position: relative !important;
+            z-index: 1 !important;
+            background: transparent !important;
             display: flex !important;
             flex-direction: column !important;
             height: 100vh !important;
-            height: 100dvh !important; /* dynamic viewport when keyboard opens */
-            width: 100vw !important;
+            height: 100dvh !important;
             overflow: hidden !important;
-            max-width: 100vw !important;
-            margin: 0 !important;
-            padding: 0 !important;
           }
-          .landscape-mobile-flex-row {
-            display: flex !important;
+          .landscape-main-row,
+          .landscape-left-col,
+          .landscape-center-col,
+          .landscape-right-col,
+          .landscape-stats-row,
+          .landscape-mobile-view {
+            background: none !important;
+            background-color: transparent !important;
+            background-image: none !important;
+            box-shadow: none !important;
+          }
+          .landscape-mobile-view {
             flex: 1 !important;
             min-height: 0 !important;
             width: 100% !important;
-            max-width: 100vw !important;
+            height: 100% !important;
+            position: relative !important;
+            z-index: 1 !important;
+          }
+          .landscape-main-row {
+            flex: 1 !important;
+            min-height: 0 !important;
             overflow: hidden !important;
           }
-          .landscape-mobile-typing-area {
+          .landscape-center-col.landscape-mobile-typing-area {
             flex: 1 !important;
             min-width: 0 !important;
             min-height: 0 !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
-            padding: 0.5vh 0.5vw !important;
             -webkit-overflow-scrolling: touch !important;
           }
-          .landscape-mobile-sidebar {
-            width: 18vw !important;
-            min-width: 18vw !important;
-            max-width: 18vw !important;
-            flex-shrink: 0 !important;
-            overflow-y: auto !important;
-            height: 100% !important;
-            padding: 1vh 1vw !important;
-            padding-top: 4.5rem !important; /* gap below close button so meter doesn't overlap */
-          }
-          /* Keep textarea visible when keyboard opens - scroll margin for smooth focus */
-          .landscape-typing-input {
-            scroll-margin-bottom: 20vh !important;
-          }
-          /* Hide user profile in landscape mobile view */
-          .user-profile-landscape {
-            display: none !important;
-          }
-          /* Hide font size buttons in landscape mobile view */
-          .font-size-buttons-landscape {
-            display: none !important;
-          }
-          /* Typing area content container */
-          .landscape-mobile-typing-area > div {
-            width: 100% !important;
-            max-width: 100% !important;
-            padding: 1vh 1vw !important;
-            margin: 0 !important;
-          }
-          /* Passage font scales with A+/A- in landscape */
-          .landscape-mobile-typing-area .landscape-typing-passage,
-          .landscape-mobile-typing-area .landscape-typing-passage p,
-          .landscape-mobile-typing-area .landscape-typing-passage span {
-            font-size: var(--typing-passage-size, 16px) !important;
-            line-height: 1.4 !important;
+          .landscape-typing-input-field {
+            scroll-margin-bottom: 16vh !important;
           }
           .landscape-mobile-typing-area .landscape-typing-passage {
-            min-height: 20vh !important;
-            max-height: 25vh !important;
+            min-height: 18vh !important;
+            max-height: 22vh !important;
+            width: 100% !important;
           }
-          /* Textarea in landscape — fixed readable size; passage scales */
           .landscape-mobile-typing-area textarea.landscape-typing-input-field {
-            min-height: 12vh !important;
-            max-height: 15vh !important;
-            padding: 1vh 1vw !important;
+            min-height: 10vh !important;
+            max-height: 12vh !important;
             width: 100% !important;
           }
-          /* Buttons container in landscape */
-          .landscape-mobile-typing-area ~ div {
-            margin-top: 1vh !important;
-            gap: 1vw !important;
+          .landscape-font-btn {
+            max-width: 4.5rem !important;
           }
-          /* Button sizes in landscape */
-          .landscape-mobile-typing-area ~ div button {
-            padding: 1vh 3vw !important;
-            font-size: clamp(10px, 2vw, 14px) !important;
-            min-height: 5vh !important;
-          }
-          /* Stats cards in landscape sidebar */
-          .landscape-mobile-sidebar > div > div {
-            width: 100% !important;
-            max-width: 100% !important;
-            height: 5vh !important;
-            min-height: 5vh !important;
-            margin-bottom: 0.5vh !important;
-          }
-          .landscape-mobile-sidebar > div > div > div:first-child {
-            font-size: clamp(8px, 1.5vw, 10px) !important;
-            padding: 0.3vh 0 !important;
-          }
-          .landscape-mobile-sidebar > div > div > div:last-child {
-            font-size: clamp(10px, 2vw, 14px) !important;
-            padding: 0.5vh 0 !important;
-          }
-          /* Timer boxes in landscape */
-          .landscape-mobile-sidebar .flex.gap-2 {
-            gap: 0.5vw !important;
-            margin-top: 0.5vh !important;
-          }
-          .landscape-mobile-sidebar .flex.gap-2 > div {
-            height: 5vh !important;
-            min-height: 5vh !important;
-            flex: 1 !important;
-          }
-          .landscape-mobile-sidebar .flex.gap-2 > div > div:first-child {
-            font-size: clamp(8px, 1.5vw, 10px) !important;
-            padding: 0.3vh 0 !important;
-          }
-          .landscape-mobile-sidebar .flex.gap-2 > div > div:last-child {
-            font-size: clamp(10px, 2vw, 14px) !important;
-            padding: 0.5vh 0 !important;
-          }
-          /* Close button in landscape */
-          .landscape-mobile-sidebar button,
-          .landscape-mobile-typing-area ~ button {
-            padding: 0.8vh 2vw !important;
-            font-size: clamp(9px, 1.8vw, 12px) !important;
-            min-height: 4vh !important;
+          .landscape-close-link {
+            position: fixed !important;
+            z-index: 9999 !important;
           }
           /* Word line layout in landscape passage only */
           .landscape-mobile-typing-area .landscape-typing-passage p {
             height: auto !important;
-            min-height: 3vh !important;
+            min-height: auto !important;
             margin-bottom: 0.3vh !important;
+          }
+          .landscape-mobile-typing-area .landscape-typing-passage p:first-child {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+            min-height: auto !important;
           }
           /* Completed test message in landscape */
           .landscape-mobile-typing-area .bg-green-50 {
@@ -2171,7 +2172,12 @@ function TypingTutorForm() {
           }
         }
       `}</style>
-      <div className={`max-w-7xl mx-auto mt-6 md:mt-15 portrait-typing-main ${isMobile && isLandscape ? "landscape-mobile-container" : ""}`}>
+      {!(isMobile && isLandscape) && (
+        <div className="absolute right-2 top-15 md:right-8 md:top-8 z-[9999]">
+          <TypingCloseButton href={isLearningWordMode ? "/learning" : "/skill_test"} />
+        </div>
+      )}
+      <div className={`max-w-7xl mx-auto portrait-typing-main ${isMobile && isLandscape ? "landscape-mobile-container mt-0 w-full max-w-none" : "mt-6 md:mt-15"}`}>
         {!isMobile ? (
           <DesktopView {...commonProps} />
         ) : isLandscape ? (
@@ -2181,13 +2187,14 @@ function TypingTutorForm() {
         )}
       </div>
     </div>
+    </>
   );
 }
 
 export default function TypingTutor() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#290c52] bg-[url('/bg.jpg')] mt-30 md:mt-0 bg-cover bg-center bg-no-repeat px-4 py-6 md:px-14 md:py-12 md:mx-8 md:my-8 rounded-[0px] md:rounded-[100px] flex items-center justify-center">
+      <div className={`min-h-screen ${TYPING_PAGE_BG} mt-30 md:mt-0 px-4 py-6 md:px-14 md:py-12 md:mx-8 md:my-8 rounded-[0px] md:rounded-[100px] flex items-center justify-center`}>
         <div className="text-center text-white">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
           <p>Loading...</p>

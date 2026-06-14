@@ -3,14 +3,14 @@ import { FAQSchema } from "./SEO/StructuredData";
 
 const faqs = [
   {
-    question: "Is MPC PCT the best CPCT practice platform for students in Indore?",
+    question: "Is MPCPCT the best CPCT practice platform for students in Madhya Pradesh?",
     answer:
-      "MPC PCT is built for Madhya Pradesh CPCT and CCC aspirants. You get timed mock tests, bilingual typing modules, and skill assessments aligned with exam patterns—ideal for learners in Indore who want structured daily practice instead of random PDFs.",
+      "MPCPCT is built for Madhya Pradesh CPCT and CCC aspirants. You get timed mock tests, bilingual typing modules, and skill assessments aligned with exam patterns—ideal for learners who want structured daily practice instead of random PDFs.",
   },
   {
     question: "Where can I take a free Hindi typing test and English typing practice online?",
     answer:
-      "Use MPC PCT’s typing modules for Hindi Krutidev / Mangal-style practice and English speed drills. Progress tracking helps you improve accuracy before sit-down exams and CPCT typing sections.",
+      "Use MPCPCT’s typing modules for Hindi Krutidev / Mangal-style practice and English speed drills. Progress tracking helps you improve accuracy before sit-down exams and CPCT typing sections.",
   },
   {
     question: "Do you offer CCC online exam style mock tests?",
@@ -18,7 +18,7 @@ const faqs = [
       "Yes. You can attempt CCC-style MCQ practice and topic-wise sessions that mirror the Course on Computer Concepts syllabus so you build confidence before the real NIELIT exam.",
   },
   {
-    question: "How does MPC PCT help with government computer exam practice?",
+    question: "How does MPCPCT help with government computer exam practice?",
     answer:
       "The platform combines computer fundamentals, mock papers, and typing benchmarks—useful for CPCT, CCC, and general MP government recruitment preparation where computer proficiency is tested.",
   },
@@ -32,7 +32,7 @@ export default function HomeMarketingSections() {
       <div className="max-w-6xl mx-auto px-4 py-16 md:py-24 space-y-20">
         <div className="text-center space-y-4">
           <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">
-            MPC PCT · Indore · Madhya Pradesh
+            MPCPCT · Madhya Pradesh
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
             CCC Exam, CPCT Practice &amp; Typing Test Platform Built for MP Students
@@ -41,10 +41,10 @@ export default function HomeMarketingSections() {
             Prepare for{" "}
             <strong>CCC exam</strong>, <strong>CPCT mock tests</strong>, and{" "}
             <strong>government computer certification</strong> goals with one
-            consistent dashboard. MPC PCT blends{" "}
+            consistent dashboard. MPCPCT blends{" "}
             <strong>online exam practice</strong>,{" "}
             <strong>Hindi typing test</strong> labs, and{" "}
-            <strong>English typing practice</strong> so Indore learners can
+            <strong>English typing practice</strong> so Madhya Pradesh learners can
             train speed and accuracy without switching between disconnected apps.
           </p>
         </div>
@@ -53,7 +53,7 @@ export default function HomeMarketingSections() {
           {[
             {
               title: "CPCT Practice & MP CPCT alignment",
-              body: "Structured drills for CPCT-style proficiency: reasoning-friendly MCQs, comprehension practice, and typing lanes that respect exam rhythm—especially helpful if you are searching for CPCT preparation Indore or MP CPCT coaching online.",
+              body: "Structured drills for CPCT-style proficiency: reasoning-friendly MCQs, comprehension practice, and typing lanes that respect exam rhythm—especially helpful if you are searching for CPCT preparation in Madhya Pradesh or MP CPCT coaching online.",
             },
             {
               title: "CCC online test & syllabus coverage",
@@ -80,28 +80,15 @@ export default function HomeMarketingSections() {
           <div className="grid md:grid-cols-2 gap-10 items-start">
             <div className="space-y-4">
               <h2 className="text-2xl md:text-3xl font-bold">
-                Why students in Indore choose MPC PCT
+                Why students in Madhya Pradesh choose MPCPCT
               </h2>
               <p className="text-indigo-100 leading-relaxed">
-                Indore has a competitive queue for government roles. MPC PCT
+                Madhya Pradesh has a competitive queue for government roles. MPCPCT
                 concentrates on{" "}
                 <strong>computer certification</strong> pathways—CCC for NIELIT
                 recognition and CPCT for Madhya Pradesh recruitment—while keeping
                 practice{" "}
-                <strong>mobile-first</strong> and keyboard-friendly. Local SEO
-                landing pages cover{" "}
-                <Link className="underline font-semibold" href="/ccc-exam-indore">
-                  CCC exam in Indore
-                </Link>
-                ,{" "}
-                <Link className="underline font-semibold" href="/cpct-preparation-indore">
-                  CPCT preparation Indore
-                </Link>
-                , and{" "}
-                <Link className="underline font-semibold" href="/typing-test-indore">
-                  typing test Indore
-                </Link>{" "}
-                so you can deep-dive context-specific guidance.
+                <strong>mobile-first</strong> and keyboard-friendly.
               </p>
               <p className="text-indigo-100 leading-relaxed">
                 Whether you need a <strong>free CCC mock test</strong> sprint or a
@@ -132,7 +119,7 @@ export default function HomeMarketingSections() {
             </h3>
             <p className="text-slate-600 leading-relaxed mb-4">
               Institutions and trainers across Madhya Pradesh route students to
-              focused digital labs. MPC PCT complements classroom coaching with{" "}
+              focused digital labs. MPCPCT complements classroom coaching with{" "}
               <strong>online typing test platform</strong> access, repeat
               attempts, and transparent scoring—reducing friction for candidates
               who cannot commute daily.
@@ -140,7 +127,7 @@ export default function HomeMarketingSections() {
             <p className="text-slate-600 leading-relaxed">
               Explore{" "}
               <Link href="/blog" className="text-indigo-600 font-semibold underline">
-                MPC PCT Insights
+                MPCPCT Insights
               </Link>{" "}
               for long-form guides on Hindi typing tips, English speed, and CPCT
               strategy. Each article ships with reading time, structured headings,
@@ -150,7 +137,7 @@ export default function HomeMarketingSections() {
           <div className="grid grid-cols-2 gap-4">
             {[
               { label: "Practice modes", value: "Learning · Skill · Exam" },
-              { label: "Focus regions", value: "Indore · MP · India" },
+              { label: "Focus regions", value: "Madhya Pradesh · India" },
               { label: "Core exams", value: "CCC · CPCT · Typing" },
               { label: "Support", value: "Email & WhatsApp guidance" },
             ].map((stat) => (
@@ -195,7 +182,7 @@ export default function HomeMarketingSections() {
               Ready for CCC · CPCT · Typing success?
             </h3>
             <p className="text-slate-300 mt-2 max-w-xl">
-              Login to track attempts or browse localized guides for Indore
+              Login to track attempts or browse guides for Madhya Pradesh
               aspirants. Combine daily typing streaks with weekly mock tests for
               compounding results.
             </p>
@@ -208,10 +195,10 @@ export default function HomeMarketingSections() {
               Create free account
             </Link>
             <Link
-              href="/exam"
+              href="/learning"
               className="inline-flex items-center justify-center rounded-xl border border-white/30 px-6 py-3 font-semibold hover:bg-white/10 transition"
             >
-              Explore mock tests
+              Start learning
             </Link>
           </div>
         </div>

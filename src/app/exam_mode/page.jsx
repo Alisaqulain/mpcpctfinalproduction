@@ -25,6 +25,24 @@ function ExamModeContent() {
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
+      /* Section parts row — mobile + desktop */
+      .exam-section-parts-row .exam-section-parts-label {
+        font-weight: 700 !important;
+        color: #000 !important;
+      }
+      .exam-section-parts-row button.exam-section-part-active {
+        background: #dc2626 !important;
+        color: #000 !important;
+        border-color: #b91c1c !important;
+        font-weight: 700 !important;
+      }
+      .exam-section-parts-row button.exam-section-part-inactive {
+        background: #fff !important;
+        color: #000 !important;
+        border-color: #d1d5db !important;
+        font-weight: 700 !important;
+      }
+
       /* Mobile Landscape ONLY - Fix UI breaking issues for MCQ QUESTIONS ONLY */
       /* Works for all mobile devices: iPhone SE, iPhone 12, etc. */
       /* COMPLETELY SEPARATED FROM TYPING - Only applies when data-exam-mode="mcq" */
@@ -728,34 +746,203 @@ function ExamModeContent() {
         }
       }
 
-      /* CPCT exam mobile UI only — phones ≤768px; tablet/desktop unchanged */
-      @media screen and (max-width: 768px) {
-        .exam-mobile-section-nav {
+      /* CPCT exam mobile UI only — phones ≤768px portrait; landscape/tablet/desktop unchanged */
+      @media screen and (max-width: 768px) and (orientation: portrait) {
+        [data-exam-mode="mcq"] .exam-mobile-section-nav {
           top: 40px !important;
+          display: flex !important;
+          flex-direction: column !important;
         }
         .exam-mobile-timer-row {
-          order: -1 !important;
+          order: 0 !important;
           padding: 0.2rem 0.75rem !important;
           min-height: auto !important;
-          border-bottom: 1px solid #e5e7eb !important;
           border-top: none !important;
+          border-bottom: 1px solid #e5e7eb !important;
         }
         .exam-mobile-tabs-row {
-          order: 0 !important;
+          order: 1 !important;
           padding-top: 0.15rem !important;
           padding-bottom: 0.15rem !important;
+          border-top: none !important;
         }
         .exam-mobile-exam-title {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          margin-top: 2.5rem !important;
+          padding-top: 0.35rem !important;
+          padding-bottom: 0.35rem !important;
+          background: #fff !important;
+          border-bottom: 1px solid #d1d5db !important;
+        }
+        .exam-mobile-exam-title h2 {
+          font-size: 0.95rem !important;
+          font-weight: 600 !important;
+          color: #290c52 !important;
+        }
+        body:has([data-exam-mode="mcq"]) .exam-mobile-menu-btn {
           display: none !important;
+        }
+        [data-exam-mode="mcq"] .exam-portrait-header-menu {
+          display: inline-flex !important;
+        }
+        [data-exam-mode="mcq"] .landscape-reduce-header .max-md\\:pl-9 {
+          padding-left: 0.25rem !important;
+        }
+        [data-exam-mode="mcq"] .exam-portrait-hide-home {
+          display: none !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-section-nav {
+          position: relative !important;
+          top: auto !important;
+          z-index: 10 !important;
+          flex-shrink: 0 !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-parts-row {
+          order: 2 !important;
+          margin-bottom: 0 !important;
+          background: #f3f4f6 !important;
+          -webkit-overflow-scrolling: touch !important;
+          scroll-behavior: smooth !important;
+        }
+        [data-exam-mode="mcq"] .exam-portrait-question-grid {
+          display: flex !important;
+          flex-wrap: nowrap !important;
+          overflow-x: auto !important;
+          -webkit-overflow-scrolling: touch !important;
+          scroll-behavior: smooth !important;
+          min-height: 2.85rem !important;
+          max-height: 2.85rem !important;
+          background: #fff !important;
+          order: 3 !important;
+          margin-top: 0.35rem !important;
+          margin-bottom: 0.35rem !important;
+          padding-top: 0.25rem !important;
+          padding-bottom: 0.25rem !important;
+          border-top: 1px solid #e5e7eb !important;
+          border-bottom: 1px solid #e5e7eb !important;
+        }
+        [data-exam-mode="mcq"] .exam-portrait-mcq-type-bar {
+          display: flex !important;
+          order: 4 !important;
+          background: #290c52 !important;
+          width: 100% !important;
+          flex-shrink: 0 !important;
+          z-index: 5 !important;
+          padding-top: 0.35rem !important;
+          padding-bottom: 0.35rem !important;
+          min-height: 2rem !important;
+          max-height: 2.15rem !important;
+          font-size: 0.7rem !important;
+          line-height: 1.2 !important;
+        }
+        [data-exam-mode="mcq"] .exam-portrait-mcq-type-bar select {
+          font-size: 0.675rem !important;
+          padding: 0.15rem 0.3rem !important;
+          min-height: 1.25rem !important;
+          line-height: 1.2 !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-question-panel > .exam-mobile-top-bar {
+          display: none !important;
+        }
+        [data-exam-mode="mcq"] .exam-palette-cell {
+          min-width: 2rem !important;
+          width: 2rem !important;
+          height: 2rem !important;
+          font-size: 0.75rem !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-tabs-row button {
+          font-size: 0.78rem !important;
+          padding: 0.45rem 0.6rem !important;
+          min-width: 5.75rem !important;
+          font-weight: 600 !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-tabs-row button span {
+          font-size: inherit !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-parts-row button {
+          font-size: 0.65rem !important;
+          padding: 0.35rem 0.5rem !important;
+          font-weight: 700 !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-parts-row > span {
+          font-size: 0.65rem !important;
+          font-weight: 700 !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-mcq-column {
+          height: 100dvh !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-exam-title {
+          flex-shrink: 0 !important;
+          order: 0 !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-section-nav {
+          flex-shrink: 0 !important;
+          order: 1 !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-question-panel {
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+          order: 2 !important;
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-question-content {
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          overflow-y: auto !important;
+          padding-top: 0 !important;
+          border-top: none !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-question-content.mcq-question-body {
+          border-top: none !important;
+        }
+        [data-exam-mode="mcq"] .exam-portrait-timer-label {
+          font-weight: 600 !important;
+        }
+        [data-exam-mode="mcq"] .exam-portrait-timer-value {
+          background: #93c5fd !important;
+          color: #000 !important;
+          border-radius: 0.25rem !important;
+          min-width: 3.25rem !important;
+          text-align: center !important;
+          font-weight: 700 !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-question-content > .exam-mobile-question-meta {
+          border-bottom: 1px solid #6b7280 !important;
+          background: #fff !important;
         }
         [data-exam-mode="mcq"] .exam-mobile-mcq-column > .exam-mobile-question-grid {
           display: none !important;
-          height: 0 !important;
-          min-height: 0 !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          overflow: hidden !important;
-          border: none !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-tabs-row button:not(:disabled) {
+          border: 1px solid #d1d5db !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-tabs-row button.bg-white {
+          background: #e5e7eb !important;
+          color: #374151 !important;
+        }
+        [data-exam-mode="mcq"] .exam-portrait-btn-mark {
+          background-color: #290c52 !important;
+        }
+        [data-exam-mode="mcq"] .exam-portrait-btn-clear {
+          background-color: #f97316 !important;
+        }
+        [data-exam-mode="mcq"] .exam-portrait-btn-save {
+          background-color: #4ade80 !important;
+          color: #000 !important;
+        }
+        [data-exam-mode="mcq"] .exam-portrait-btn-prev:not(:disabled) {
+          background-color: #94a3b8 !important;
+          color: #fff !important;
         }
         .exam-mobile-question-grid {
           margin-top: 0 !important;
@@ -773,6 +960,10 @@ function ExamModeContent() {
           padding-top: 0.2rem !important;
           padding-bottom: 0.2rem !important;
           gap: 0.25rem !important;
+          font-weight: 400 !important;
+        }
+        .exam-mobile-question-meta > span:first-child {
+          font-weight: 400 !important;
         }
         .exam-mobile-question-meta .exam-mobile-marks {
           margin-top: 0 !important;
@@ -788,10 +979,9 @@ function ExamModeContent() {
         [data-exam-mode="mcq"] .exam-mobile-question-content {
           padding-top: 0 !important;
           padding-bottom: 0 !important;
-          flex: 0 1 auto !important;
-          flex-grow: 0 !important;
+          flex: 1 1 auto !important;
           min-height: 0 !important;
-          max-height: calc(100dvh - 16.75rem) !important;
+          max-height: none !important;
           overflow-y: auto !important;
           -webkit-overflow-scrolling: touch !important;
         }
@@ -814,14 +1004,28 @@ function ExamModeContent() {
           margin-bottom: 0.15rem !important;
         }
         .exam-mobile-question-text {
-          font-size: 0.8rem !important;
-          line-height: 1.25 !important;
-          margin-bottom: 0.2rem !important;
+          font-size: 0.82rem !important;
+          line-height: 1.3 !important;
+          margin-bottom: 0.75rem !important;
+          font-weight: 700 !important;
         }
+        [data-exam-mode="mcq"] .exam-mobile-question-meta > span:first-child {
+          font-weight: 400 !important;
+          font-size: 0.82rem !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-question-body .exam-mobile-options:first-of-type,
+        [data-exam-mode="mcq"] .exam-mobile-options-col .exam-mobile-options:first-of-type {
+          margin-top: 0.75rem !important;
+        }
+        label.exam-mobile-options,
         .exam-mobile-options label {
-          margin-bottom: 0.15rem !important;
+          margin-bottom: 0.45rem !important;
           padding: 0 !important;
-          gap: 0.3rem !important;
+          gap: 0.35rem !important;
+        }
+        [data-exam-mode="mcq"] label.exam-mobile-options {
+          margin-bottom: 0.5rem !important;
+          gap: 0.4rem !important;
         }
         .exam-mobile-options label span {
           font-size: 0.8rem !important;
@@ -841,17 +1045,11 @@ function ExamModeContent() {
         .exam-mobile-options-col .exam-mobile-options:last-of-type {
           margin-bottom: 0 !important;
         }
-        [data-exam-mode="mcq"] .exam-mobile-question-panel {
-          min-height: 0 !important;
-          flex: 0 0 auto !important;
-          flex-grow: 0 !important;
-          overflow: visible !important;
-        }
         .exam-mobile-mcq-column {
           display: flex !important;
           flex-direction: column !important;
           min-height: 0 !important;
-          padding-bottom: 4.25rem !important;
+          padding-bottom: 5.75rem !important;
         }
         .exam-mobile-profile-img {
           object-fit: cover !important;
@@ -859,10 +1057,11 @@ function ExamModeContent() {
         .exam-mobile-parts-row {
           padding-top: 0.15rem !important;
           padding-bottom: 0.15rem !important;
-          margin-bottom: 8px !important;
+          margin-bottom: 0 !important;
+          background: #f3f4f6 !important;
         }
         .exam-mobile-top-bar {
-          margin-top: 8px !important;
+          margin-top: 0 !important;
         }
         .exam-mobile-question-grid {
           margin-bottom: 0 !important;
@@ -880,19 +1079,106 @@ function ExamModeContent() {
           border-top: 1px solid #d1d5db !important;
           box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08) !important;
         }
+        [data-exam-mode="mcq"] .exam-mobile-btn-footer,
+        [data-exam-mode="mcq"] .mcq-bottom-buttons {
+          padding: 0.55rem 0.65rem !important;
+          padding-bottom: max(0.55rem, env(safe-area-inset-bottom)) !important;
+        }
         [data-exam-mode="mcq"] {
           min-height: 0 !important;
         }
         .exam-mobile-btn-grid {
           gap: 0.2rem !important;
         }
+        [data-exam-mode="mcq"] .exam-mobile-btn-grid {
+          gap: 0.4rem !important;
+        }
         .exam-mobile-action-btn {
           padding: 0.3rem 0.2rem !important;
           font-size: 0.625rem !important;
           line-height: 1.1 !important;
         }
+        [data-exam-mode="mcq"] .exam-mobile-action-btn {
+          padding: 0.6rem 0.35rem !important;
+          font-size: 0.75rem !important;
+          line-height: 1.2 !important;
+          min-height: 2.5rem !important;
+          font-weight: 600 !important;
+        }
         .exam-mobile-options-col {
           font-size: 0.8rem !important;
+        }
+      }
+
+      /* Exam typing speedometer — portrait and desktop only (landscape unchanged) */
+      @media screen and (min-width: 1024px), screen and (max-width: 768px) and (orientation: portrait) {
+        [data-exam-mode="typing"] .exam-typing-meter-ring {
+          border: 4px solid #000 !important;
+          border-radius: 9999px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-shrink: 0 !important;
+          line-height: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-meter-gauge {
+          background: #000 !important;
+          border: 4px solid #fff !important;
+          border-radius: 9999px !important;
+          position: relative !important;
+          overflow: hidden !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-meter-gauge .speedometer-svg {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: 100% !important;
+          max-height: 100% !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-meter-gauge-portrait {
+          width: 5rem !important;
+          height: 5rem !important;
+          min-width: 5rem !important;
+          min-height: 5rem !important;
+          max-width: 5rem !important;
+          max-height: 5rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-meter-gauge-portrait .speedometer-value {
+          bottom: 1.25rem !important;
+          font-size: 0.75rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-meter-gauge-desktop {
+          width: 5rem !important;
+          height: 5rem !important;
+          min-width: 5rem !important;
+          min-height: 5rem !important;
+          max-width: 5rem !important;
+          max-height: 5rem !important;
+        }
+      }
+      @media screen and (min-width: 1024px) {
+        [data-exam-mode="typing"] .exam-typing-meter-gauge-desktop {
+          width: 6rem !important;
+          height: 6rem !important;
+          min-width: 6rem !important;
+          min-height: 6rem !important;
+          max-width: 6rem !important;
+          max-height: 6rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-meter-gauge-desktop .speedometer-value {
+          bottom: 1.5rem !important;
+          font-size: 0.875rem !important;
+        }
+        [data-exam-mode="typing"] .landscape-sidebar .speedometer-gauge.exam-typing-meter-gauge {
+          width: 5rem !important;
+          height: 5rem !important;
+          min-width: 5rem !important;
+          min-height: 5rem !important;
+        }
+        [data-exam-mode="typing"] .landscape-sidebar .speedometer-gauge.exam-typing-meter-gauge-desktop {
+          width: 6rem !important;
+          height: 6rem !important;
+          min-width: 6rem !important;
+          min-height: 6rem !important;
         }
       }
 
@@ -903,14 +1189,224 @@ function ExamModeContent() {
           height: 100dvh !important;
           max-height: 100dvh !important;
           overflow: hidden !important;
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+        [data-exam-mode="typing"] .exam-mobile-question-panel,
+        [data-exam-mode="typing"] .exam-mobile-question-content,
+        [data-exam-mode="typing"] .landscape-typing-container,
+        [data-exam-mode="typing"] .exam-typing-root-wrapper,
+        [data-exam-mode="typing"] .exam-typing-portrait-view {
+          width: 100% !important;
+          max-width: 100% !important;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+          padding-left: 0 !important;
+          padding-right: 0 !important;
         }
         [data-exam-mode="typing"] .landscape-typing-container {
-          padding-top: 2.5rem !important;
+          padding-top: 0 !important;
           min-height: 0 !important;
-          flex: 1 1 0 !important;
-          height: calc(100dvh - 2.5rem) !important;
-          max-height: calc(100dvh - 2.5rem) !important;
+          flex: 1 1 auto !important;
+          height: auto !important;
+          max-height: none !important;
           overflow: hidden !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-portrait-menu {
+          display: inline-flex !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-portrait-menu-close {
+          display: inline-flex !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-left {
+          padding-left: 0.25rem !important;
+        }
+        body:has([data-exam-mode="typing"]) .exam-mobile-menu-btn {
+          display: none !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-portrait-section-row {
+          display: flex !important;
+          flex-shrink: 0 !important;
+          margin-top: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-mobile-exam-title {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          margin-top: 2.5rem !important;
+          padding-top: 0.35rem !important;
+          padding-bottom: 0.25rem !important;
+          margin-bottom: 0 !important;
+          background: #fff !important;
+          border-bottom: 1px solid #d1d5db !important;
+          flex-shrink: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-mobile-exam-title h2 {
+          font-size: 0.95rem !important;
+          font-weight: 600 !important;
+          color: #290c52 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-profile-portrait {
+          display: flex !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-links {
+          display: none !important;
+        }
+        [data-exam-mode="typing"] .exam-mobile-section-nav,
+        [data-exam-mode="typing"] .exam-desktop-section-nav {
+          display: none !important;
+        }
+        [data-exam-mode="typing"] .exam-mobile-tabs-row,
+        [data-exam-mode="typing"] .exam-mobile-parts-row {
+          display: none !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-portrait-keyboard-row {
+          display: flex !important;
+          flex-shrink: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-keyboard {
+          display: none !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-stats-mobile {
+          display: grid !important;
+          grid-template-columns: 5rem 1fr 5rem !important;
+          column-gap: 0.25rem !important;
+          row-gap: 0.125rem !important;
+          padding: 0.5rem 0.35rem !important;
+          width: 100% !important;
+          align-items: start !important;
+          background-color: #fff !important;
+          background-image: none !important;
+          border-bottom: 1px solid #e5e7eb !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-profile-col,
+        [data-exam-mode="typing"] .exam-typing-meter-col {
+          width: 100% !important;
+          min-width: 0 !important;
+          max-width: 100% !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-profile-top,
+        [data-exam-mode="typing"] .exam-typing-meter-top {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: flex-start !important;
+          width: 100% !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-portrait-avatar,
+        [data-exam-mode="typing"] .exam-typing-profile-col img {
+          width: 4rem !important;
+          height: 4rem !important;
+          border-radius: 0.375rem !important;
+          border: 2px solid #d1d5db !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-portrait-username {
+          color: #111827 !important;
+          font-weight: 600 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-profile-col.exam-typing-a-minus-btn,
+        [data-exam-mode="typing"] .exam-typing-meter-col.exam-typing-a-plus-btn,
+        [data-exam-mode="typing"] .exam-typing-a-minus-btn,
+        [data-exam-mode="typing"] .exam-typing-a-plus-btn {
+          width: 100% !important;
+          max-width: 100% !important;
+          min-height: 2rem !important;
+          margin-top: -0.125rem !important;
+          padding-left: 0.15rem !important;
+          padding-right: 0.15rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-stat-center {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: flex-start !important;
+          min-width: 0 !important;
+          grid-column: 2 !important;
+          grid-row: 1 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-stats-mobile .exam-typing-stat-grid {
+          flex: 0 0 auto !important;
+          width: 8.25rem !important;
+          max-width: 8.25rem !important;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+          gap: 0.5rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-stat-card {
+          max-width: none !important;
+          min-width: 0 !important;
+          height: 2.5rem !important;
+          min-height: 2.5rem !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-stat-label,
+        [data-exam-mode="typing"] .exam-typing-stat-card > .bg-black {
+          font-size: 10px !important;
+          line-height: 1.1 !important;
+          min-height: 1.15rem !important;
+          height: 1.15rem !important;
+          padding-top: 0.15rem !important;
+          padding-bottom: 0.15rem !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-shrink: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-stat-value,
+        [data-exam-mode="typing"] .exam-typing-stat-card > .bg-white {
+          font-size: 0.875rem !important;
+          line-height: 1.1 !important;
+          flex: 1 1 auto !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          min-height: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-stat-time {
+          max-width: 8.25rem !important;
+          width: 8.25rem !important;
+          margin-top: 0.375rem !important;
+        }
+        [data-exam-mode="typing"] .speedometer-container,
+        [data-exam-mode="typing"] .exam-typing-meter-top {
+          width: 100% !important;
+          min-width: 0 !important;
+          max-width: 100% !important;
+          flex-shrink: 0 !important;
+          display: flex !important;
+          justify-content: center !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-passage-mobile {
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+          border-radius: 0 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-input-mobile {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+          width: 100% !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-input-mobile textarea {
+          border-radius: 0 !important;
+          border-left: none !important;
+          border-right: none !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-submit-mobile {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+          width: 100% !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-submit-mobile button {
+          border-radius: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-mobile-exam-title,
+        [data-exam-mode="typing"] .exam-typing-portrait-section-row,
+        [data-exam-mode="typing"] .exam-typing-portrait-keyboard-row {
+          padding-left: 0.35rem !important;
+          padding-right: 0.35rem !important;
         }
         [data-exam-mode="typing"] .exam-mobile-question-content {
           flex: 1 1 auto !important;
@@ -952,7 +1448,8 @@ function ExamModeContent() {
           height: auto !important;
         }
         .exam-typing-stats-mobile {
-          padding: 0.3rem !important;
+          padding: 0.25rem 0.15rem !important;
+          width: 100% !important;
         }
         .exam-typing-profile-col {
           min-height: 7.5rem !important;
@@ -961,28 +1458,6 @@ function ExamModeContent() {
           padding: 0.25rem !important;
           padding-bottom: max(0.25rem, env(safe-area-inset-bottom)) !important;
           flex-shrink: 0 !important;
-        }
-        [data-exam-mode="typing"] .exam-typing-portrait-view .speedometer-gauge,
-        [data-exam-mode="typing"] .speedometer-container .speedometer-gauge {
-          width: 3.25rem !important;
-          height: 3.25rem !important;
-          min-width: 3.25rem !important;
-          min-height: 3.25rem !important;
-          max-width: 3.25rem !important;
-          max-height: 3.25rem !important;
-          border-width: 2px !important;
-        }
-        [data-exam-mode="typing"] .exam-typing-portrait-view .speedometer-svg,
-        [data-exam-mode="typing"] .speedometer-container .speedometer-svg {
-          width: 2.85rem !important;
-          height: 2.85rem !important;
-          max-width: 2.85rem !important;
-          max-height: 2.85rem !important;
-        }
-        [data-exam-mode="typing"] .exam-typing-portrait-view .speedometer-value,
-        [data-exam-mode="typing"] .speedometer-container .speedometer-value {
-          font-size: 9px !important;
-          bottom: 0.45rem !important;
         }
       }
 
@@ -1073,6 +1548,40 @@ function ExamModeContent() {
           --mcq-landscape-header-h: 2.75rem;
           --mcq-landscape-question-grid-h: 1.75rem;
         }
+
+        /* Landscape-only restore (reference layout) — portrait/desktop UI unchanged */
+        [data-exam-mode="typing"] .exam-typing-portrait-menu,
+        [data-exam-mode="typing"] .exam-typing-portrait-menu-close,
+        [data-exam-mode="typing"] .exam-typing-portrait-section-row,
+        [data-exam-mode="typing"] .exam-typing-portrait-keyboard-row {
+          display: none !important;
+        }
+        [data-exam-mode="typing"] .exam-mobile-exam-title.landscape-hide {
+          display: none !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-portrait-hide-home,
+        [data-exam-mode="typing"] .landscape-reduce-header a[href="/"] {
+          display: inline-flex !important;
+          align-items: center !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-profile,
+        [data-exam-mode="typing"] .exam-typing-header-profile-portrait {
+          display: none !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-left {
+          gap: 0.75rem !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-exam-title {
+          display: none !important;
+        }
+        [data-exam-mode="mcq"] .exam-portrait-header-menu {
+          display: none !important;
+        }
+        body:has([data-exam-mode="typing"]) .exam-mobile-menu-btn,
+        body:has([data-exam-mode="mcq"]) .exam-mobile-menu-btn {
+          display: flex !important;
+        }
+
         html:has([data-exam-mode="typing"]),
         html:has([data-exam-mode="mcq"]),
         body:has([data-exam-mode="typing"]),
@@ -1889,6 +2398,7 @@ function ExamModeContent() {
   const desktopQuestionPaletteRef = useRef(null); // Ref for desktop sidebar question palette scroll container
   const sectionScrollContainerRef = useRef(null); // Ref for mobile section navigation scroll container
   const partsScrollContainerRef = useRef(null); // Ref for mobile parts navigation scroll container
+  const lastPartsAutoScrollKeyRef = useRef(null); // Only auto-scroll parts row when selection changes
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -2877,61 +3387,121 @@ function ExamModeContent() {
     return null;
   }, [section, selectedPart, currentSectionParts]);
 
-  // Auto-scroll question navigation in mobile view when question index changes
-  useEffect(() => {
-    if (questionScrollContainerRef.current && currentQuestionIndex !== null && currentQuestions.length > 0) {
-      const container = questionScrollContainerRef.current;
-      const questionElement = container.querySelector(`[data-question-index="${currentQuestionIndex}"]`);
-      
-      if (questionElement) {
-        // Calculate scroll position to center the current question
-        const containerWidth = container.offsetWidth;
-        const questionLeft = questionElement.offsetLeft;
-        const questionWidth = questionElement.offsetWidth;
-        const scrollLeft = questionLeft - (containerWidth / 2) + (questionWidth / 2);
-        
-        // Smooth scroll to the current question
-        container.scrollTo({
-          left: Math.max(0, scrollLeft),
-          behavior: 'smooth'
-        });
-      }
+  /** Minimal horizontal scroll — only moves enough to reveal the target (no comfort nudge) */
+  const scrollPortraitStripToIndex = useCallback((container, index, dataAttribute) => {
+    if (!container || index === null || index === undefined) return;
+
+    const element = container.querySelector(`[${dataAttribute}="${index}"]`);
+    if (!element) return;
+
+    const containerWidth = container.clientWidth;
+    const scrollLeft = container.scrollLeft;
+    const elementLeft = element.offsetLeft;
+    const elementWidth = element.offsetWidth || 36;
+    const elementRight = elementLeft + elementWidth;
+    const gap = 6;
+
+    const visibleLeft = scrollLeft;
+    const visibleRight = scrollLeft + containerWidth;
+
+    if (elementLeft < visibleLeft) {
+      container.scrollTo({
+        left: Math.max(0, elementLeft - gap),
+        behavior: "smooth",
+      });
+      return;
     }
-  }, [currentQuestionIndex, currentQuestions.length, section, selectedPart]);
+
+    if (elementRight > visibleRight) {
+      container.scrollTo({
+        left: Math.max(0, elementRight - containerWidth + gap),
+        behavior: "smooth",
+      });
+    }
+  }, []);
+
+  /** Horizontal palette auto-scroll (portrait mobile) — mirrors desktop vertical smart scroll */
+  const scrollPortraitPaletteToIndex = useCallback((index) => {
+    const container = questionScrollContainerRef.current;
+    if (!container || index === null || index === undefined) return;
+
+    const questionElement = container.querySelector(`[data-question-index="${index}"]`);
+    if (!questionElement) return;
+
+    const containerWidth = container.clientWidth;
+    const scrollLeft = container.scrollLeft;
+    const elementLeft = questionElement.offsetLeft;
+    const elementWidth = questionElement.offsetWidth || 36;
+    const elementRight = elementLeft + elementWidth;
+    const gap = 6;
+    const cellStep = elementWidth + gap;
+    const comfortCells = 3;
+
+    const visibleLeft = scrollLeft;
+    const visibleRight = scrollLeft + containerWidth;
+
+    if (elementLeft < visibleLeft) {
+      container.scrollTo({
+        left: Math.max(0, elementLeft - gap),
+        behavior: "smooth",
+      });
+      return;
+    }
+
+    if (elementRight > visibleRight) {
+      container.scrollTo({
+        left: Math.max(0, elementRight - containerWidth + gap),
+        behavior: "smooth",
+      });
+      return;
+    }
+
+    const comfortLeft = visibleLeft + cellStep * comfortCells;
+    const comfortRight = visibleRight - cellStep * comfortCells;
+
+    if (elementRight > comfortRight) {
+      container.scrollBy({ left: cellStep * 2, behavior: "smooth" });
+    } else if (elementLeft < comfortLeft) {
+      container.scrollBy({ left: -cellStep * 2, behavior: "smooth" });
+    }
+  }, []);
+
+  // Auto-scroll portrait/mobile question palette when index changes (click, Save & Next, etc.)
+  useEffect(() => {
+    if (currentQuestionIndex === null || !currentQuestions.length) return;
+    const timeoutId = setTimeout(() => {
+      scrollPortraitPaletteToIndex(currentQuestionIndex);
+    }, 80);
+    return () => clearTimeout(timeoutId);
+  }, [currentQuestionIndex, currentQuestions.length, section, selectedPart, scrollPortraitPaletteToIndex]);
 
   // Auto-scroll section navigation in mobile view when section changes
   useEffect(() => {
     if (sectionScrollContainerRef.current && section && sections.length > 0) {
-      // Use setTimeout to ensure DOM is updated after section change
       const timeoutId = setTimeout(() => {
         const container = sectionScrollContainerRef.current;
         if (!container) return;
-        
+
         const currentSectionIndex = sections.findIndex(s => s.name === section);
         if (currentSectionIndex === -1) return;
-        
+
         const sectionElement = container.querySelector(`[data-section-index="${currentSectionIndex}"]`);
-        
+
         if (sectionElement) {
-          // Force immediate scroll to ensure section is visible
           const containerWidth = container.clientWidth;
           const containerScrollLeft = container.scrollLeft;
           const elementLeft = sectionElement.offsetLeft;
           const elementWidth = sectionElement.offsetWidth;
           const elementRight = elementLeft + elementWidth;
-          
-          // Calculate if element is fully visible
-          const isFullyVisible = elementLeft >= containerScrollLeft && 
+
+          const isFullyVisible = elementLeft >= containerScrollLeft &&
                                  elementRight <= (containerScrollLeft + containerWidth);
-          
+
           if (!isFullyVisible) {
-            // Calculate scroll position to center the element
             const scrollLeft = elementLeft - (containerWidth / 2) + (elementWidth / 2);
-            
-            // Scroll immediately
+
             container.scrollLeft = Math.max(0, scrollLeft);
-            
-            // Then smooth scroll for better UX
+
             setTimeout(() => {
               container.scrollTo({
                 left: Math.max(0, scrollLeft),
@@ -2940,58 +3510,37 @@ function ExamModeContent() {
             }, 50);
           }
         }
-      }, 300); // Delay to ensure DOM is fully updated
-      
+      }, 300);
+
       return () => clearTimeout(timeoutId);
     }
   }, [section, sections]);
 
-  // Auto-scroll parts navigation in mobile view when part changes
+  // Auto-scroll parts row only when user picks a different part (not on every timer re-render)
   useEffect(() => {
-    if (partsScrollContainerRef.current && selectedPart && currentSectionParts.length > 0) {
-      // Use setTimeout to ensure DOM is updated after part change
-      const timeoutId = setTimeout(() => {
-        const container = partsScrollContainerRef.current;
-        if (!container) return;
-        
-        const currentPartIndex = currentSectionParts.findIndex(p => p.name === selectedPart);
-        if (currentPartIndex === -1) return;
-        
-        const partElement = container.querySelector(`[data-part-index="${currentPartIndex}"]`);
-        
-        if (partElement) {
-          // Force immediate scroll to ensure part is visible
-          const containerWidth = container.clientWidth;
-          const containerScrollLeft = container.scrollLeft;
-          const elementLeft = partElement.offsetLeft;
-          const elementWidth = partElement.offsetWidth;
-          const elementRight = elementLeft + elementWidth;
-          
-          // Calculate if element is fully visible
-          const isFullyVisible = elementLeft >= containerScrollLeft && 
-                                 elementRight <= (containerScrollLeft + containerWidth);
-          
-          if (!isFullyVisible) {
-            // Calculate scroll position to center the element
-            const scrollLeft = elementLeft - (containerWidth / 2) + (elementWidth / 2);
-            
-            // Scroll immediately
-            container.scrollLeft = Math.max(0, scrollLeft);
-            
-            // Then smooth scroll for better UX
-            setTimeout(() => {
-              container.scrollTo({
-                left: Math.max(0, scrollLeft),
-                behavior: 'smooth'
-              });
-            }, 50);
-          }
-        }
-      }, 300); // Delay to ensure DOM is fully updated
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [selectedPart, currentSectionParts]);
+    if (!selectedPart || !section) return;
+
+    const scrollKey = `${section}::${selectedPart}`;
+    if (lastPartsAutoScrollKeyRef.current === scrollKey) return;
+    lastPartsAutoScrollKeyRef.current = scrollKey;
+
+    const timeoutId = setTimeout(() => {
+      const container = partsScrollContainerRef.current;
+      if (!container) return;
+
+      const partElement = container.querySelector(
+        `[data-part-name="${CSS.escape(selectedPart)}"]`
+      );
+      if (!partElement) return;
+
+      const partIndex = partElement.getAttribute("data-part-index");
+      if (partIndex === null) return;
+
+      scrollPortraitStripToIndex(container, partIndex, "data-part-index");
+    }, 80);
+
+    return () => clearTimeout(timeoutId);
+  }, [selectedPart, section, scrollPortraitStripToIndex]);
 
   // Smart auto-scroll: Only scrolls when needed, keeps items comfortably visible
   // Scrolls down if item is in last 3 rows, scrolls up if in top 3 rows
@@ -3503,6 +4052,16 @@ function ExamModeContent() {
           onClick={() => setIsMobileMenuOpen(false)}
         />
         <div className="lg:hidden fixed inset-y-0 left-0 z-50 bg-white w-64 overflow-y-auto shadow-xl exam-mobile-drawer-panel">
+          <div className="sticky top-0 z-10 flex items-center justify-end bg-white border-b border-gray-200 px-2 py-1.5 exam-mobile-drawer-header">
+            <button
+              type="button"
+              className="flex items-center justify-center w-8 h-8 text-xl font-bold text-red-600 hover:bg-red-50 rounded exam-mobile-drawer-close"
+              onClick={() => setIsMobileMenuOpen(false)}
+              aria-label="Close menu"
+            >
+              ✕
+            </button>
+          </div>
           <div className="p-4 text-sm h-full">
             <div className="flex flex-col items-center py-6">
               <img src={profileSrc} alt={userName} className="w-24 h-24 rounded-full border-2 object-cover" onError={handleProfileImgError} />
@@ -3617,9 +4176,9 @@ function ExamModeContent() {
                 <h2 className="font-bold mb-2 text-white-50">Choose a Question</h2>
               {/* Parts Nav (Desktop Sidebar) - Show if current section has parts */}
               {currentSectionParts.length > 0 && (
-                <div className="mb-3">
+                <div className="mb-3 exam-section-parts-row">
                   <div className="flex flex-wrap gap-2">
-                    <span className="text-xs font-semibold text-gray-700 w-full">Parts:</span>
+                    <span className="text-xs font-bold text-black w-full exam-section-parts-label">Section:</span>
                     {currentSectionParts.map((part) => (
                       <button
                         key={part._id}
@@ -3630,9 +4189,9 @@ function ExamModeContent() {
                         }}
                         className={`${
                           selectedPart === part.name
-                            ? "bg-blue-600 text-white"
-                            : "bg-white text-blue-700 border border-gray-300"
-                        } px-2 py-1 text-xs rounded`}
+                            ? "exam-section-part-active"
+                            : "exam-section-part-inactive border"
+                        } px-2 py-1 text-xs rounded font-bold`}
                       >
                         {part.name}
                       </button>
@@ -3696,15 +4255,35 @@ function ExamModeContent() {
       <div className="flex-1 flex flex-col h-full overflow-hidden exam-mobile-mcq-column" data-exam-mode={currentQuestion?.questionType !== "TYPING" ? "mcq" : "typing"}>
         {/* Header with User Info */}
         <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30 landscape-reduce-header">
-          <div className="flex items-center gap-3 max-md:pl-9">
+          <div className="flex items-center gap-2 max-md:pl-9 exam-typing-header-left">
+            {currentQuestion?.questionType === "TYPING" && (
+              <button
+                type="button"
+                className="exam-typing-portrait-menu hidden items-center justify-center text-white text-xl font-bold w-8 h-8 shrink-0 leading-none"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label="Open menu"
+              >
+                ☰
+              </button>
+            )}
+            {currentQuestion?.questionType !== "TYPING" && (
+              <button
+                type="button"
+                className="exam-portrait-header-menu hidden items-center justify-center text-white text-xl font-bold w-8 h-8 shrink-0 leading-none"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              >
+                {isMobileMenuOpen ? "✕" : "☰"}
+              </button>
+            )}
             <span
               className={`font-semibold whitespace-nowrap exam-typing-header-title ${
                 currentQuestion?.questionType === "TYPING" ? "max-md:text-yellow-400" : ""
               }`}
             >
-              MPCPCT 2025
+              {examData?.key ? `${examData.key} 2025` : "MPCPCT 2025"}
             </span>
-            <Link href="/" className="cursor-pointer inline-flex items-center justify-center text-[12px] font-medium px-3 py-1.5 rounded bg-white/20 hover:bg-white/30 text-white border border-white/40">
+            <Link href="/" className="hidden md:inline-flex exam-portrait-hide-home cursor-pointer items-center justify-center text-[12px] font-medium px-3 py-1.5 rounded bg-white/20 hover:bg-white/30 text-white border border-white/40">
               Home
             </Link>
             {currentQuestion?.questionType === "TYPING" && currentQuestion?.typingLanguage === "Hindi" && (
@@ -3724,6 +4303,16 @@ function ExamModeContent() {
             )}
           </div>
           <div className="flex gap-2 items-center">
+            {currentQuestion?.questionType === "TYPING" && isMobileMenuOpen && (
+              <button
+                type="button"
+                className="exam-typing-portrait-menu-close hidden items-center justify-center text-red-500 text-xl font-bold w-8 h-8 shrink-0 leading-none hover:bg-white/15 rounded"
+                onClick={() => setIsMobileMenuOpen(false)}
+                aria-label="Close menu"
+              >
+                ✕
+              </button>
+            )}
             {/* Sound Icon - Show in mobile and landscape mode for questions only */}
             {currentQuestion?.questionType !== "TYPING" && (
               <button 
@@ -3740,7 +4329,7 @@ function ExamModeContent() {
               <button 
                 onClick={() => setIsSoundOn(!isSoundOn)} 
                 title={isSoundOn ? "Mute" : "Unmute"}
-                className="flex md:flex lg:hidden items-center justify-center text-lg"
+                className="flex md:flex lg:hidden items-center justify-center text-lg exam-typing-header-sound"
                 style={{ order: -2, flexShrink: 0 }}
               >
                 {isSoundOn ? "🔊" : "🔇"}
@@ -3770,8 +4359,8 @@ function ExamModeContent() {
               </div>
             )}
             <div
-              className={`flex items-center gap-2 pr-4 exam-typing-header-profile ${
-                currentQuestion?.questionType === "TYPING" ? "max-md:hidden" : ""
+              className={`flex items-center gap-2 exam-typing-header-profile ${
+                currentQuestion?.questionType === "TYPING" ? "exam-typing-header-profile-portrait pr-1" : "pr-4"
               }`}
             >
               <img
@@ -3805,8 +4394,89 @@ function ExamModeContent() {
           </div>
         )}
 
-        {/* Section Nav (Mobile) - Horizontal tabs like desktop - Hidden in mobile for typing */}
+        {/* Typing portrait: Section row directly after exam title */}
+        {currentQuestion?.questionType === "TYPING" && (
+          <div
+            className="hidden exam-typing-portrait-section-row exam-section-parts-row flex items-center overflow-x-auto border-b border-gray-200 bg-gray-50 px-2 py-1.5 scroll-smooth"
+            style={{ scrollBehavior: "smooth", WebkitOverflowScrolling: "touch" }}
+          >
+            <span className="px-1 py-0.5 font-bold text-black whitespace-nowrap text-xs exam-section-parts-label shrink-0">
+              Section:
+            </span>
+            {currentSectionParts.length > 0 ? (
+              currentSectionParts.map((part, partIndex) => (
+                <button
+                  key={part._id}
+                  type="button"
+                  data-part-index={partIndex}
+                  data-part-name={part.name}
+                  onClick={() => {
+                    setSelectedPart(part.name);
+                    setCurrentQuestionIndex(0);
+                  }}
+                  className={`${
+                    selectedPart === part.name
+                      ? "exam-section-part-active"
+                      : "exam-section-part-inactive hover:bg-gray-100 border-r border-gray-300"
+                  } px-2 py-0.5 whitespace-nowrap text-xs font-bold shrink-0`}
+                >
+                  {part.name}
+                </button>
+              ))
+            ) : (
+              <span className="px-2 py-0.5 font-bold text-black text-xs whitespace-nowrap shrink-0">
+                {section}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Typing portrait: Keyboard row after section row (Hindi only) */}
+        {currentQuestion?.questionType === "TYPING" && currentQuestion?.typingLanguage === "Hindi" && (
+          <div className="hidden exam-typing-portrait-keyboard-row flex items-center justify-end gap-2 border-b border-gray-200 bg-white px-3 py-2">
+            <label className="bg-blue-600 text-white px-2.5 py-1 rounded text-xs font-semibold whitespace-nowrap shrink-0">
+              Keyboard:
+            </label>
+            <select
+              value={
+                selectedKeyboardType ||
+                (currentQuestion.typingScriptType &&
+                (currentQuestion.typingScriptType.toLowerCase().includes("inscript") ||
+                  currentQuestion.typingScriptType === "Inscript")
+                  ? "Inscript"
+                  : "Remington Gail")
+              }
+              onChange={(e) => setSelectedKeyboardType(e.target.value)}
+              className="border border-gray-300 rounded px-2 py-1 text-xs bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-[8rem] max-w-[11rem] cursor-pointer"
+            >
+              <option value="Remington Gail">Remington Gail</option>
+              <option value="Inscript">Inscript</option>
+            </select>
+          </div>
+        )}
+
+        {/* Section Nav (Mobile) - Timer row first, then section tabs - Hidden in mobile for typing */}
         <div className={`lg:hidden flex flex-col border-b border-y-gray-200 bg-[#fff] sticky top-[40px] z-20 shadow-sm landscape-reduce-section-nav landscape-hide-sections exam-mobile-section-nav ${currentQuestion?.questionType === "TYPING" ? "hidden" : ""}`}>
+          <div className="exam-mobile-timer-row flex items-center justify-between px-4 py-2 border-b border-gray-200 landscape-hide-status-bar">
+            <div className="flex items-center gap-2">
+            <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
+              {isSoundOn ? "🔊" : "🔇"}
+            </button>
+            </div>
+            <div className="flex items-center gap-2">
+            {isTypingSection && typingTimeLeft !== null ? (
+              <div className="flex items-center gap-2 landscape-reduce-timer">
+                  <span className="text-xs font-semibold text-pink-300 landscape-reduce-timer">⏱️ Section Timer:</span>
+                  <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold landscape-reduce-timer">{formatTime(typingTimeLeft)}</b>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 landscape-reduce-timer">
+                  <span className="text-xs font-semibold text-blue-600 landscape-reduce-timer exam-portrait-timer-label">Time Left:</span>
+                  <b className="bg-blue-400 text-black px-2 py-0.5 rounded text-sm font-bold landscape-reduce-timer exam-portrait-timer-value">{formatTime(timeLeft)}</b>
+              </div>
+            )}
+          </div>
+          </div>
           <div 
             ref={sectionScrollContainerRef}
             className="exam-mobile-tabs-row flex text-xs overflow-x-auto px-2 py-2 scroll-smooth landscape-reduce-section-nav"
@@ -3856,48 +4526,36 @@ function ExamModeContent() {
                   );
                 })}
               </div>
-          <div className="exam-mobile-timer-row flex items-center justify-between px-4 py-2 border-t border-gray-200 landscape-hide-status-bar">
-            <div className="flex items-center gap-2">
-            <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
-              {isSoundOn ? "🔊" : "🔇"}
-            </button>
-            </div>
-            <div className="flex items-center gap-2">
-            {isTypingSection && typingTimeLeft !== null ? (
-              <div className="flex items-center gap-2 landscape-reduce-timer">
-                  <span className="text-xs font-semibold text-pink-300 landscape-reduce-timer">⏱️ Section Timer:</span>
-                  <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold landscape-reduce-timer">{formatTime(typingTimeLeft)}</b>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 landscape-reduce-timer">
-                  <span className="text-xs font-semibold text-blue-600 landscape-reduce-timer">⏱️ Time Left:</span>
-                  <b className="bg-blue-400 text-black px-2 py-1 rounded text-sm font-bold landscape-reduce-timer">{formatTime(timeLeft)}</b>
-              </div>
-            )}
-          </div>
-          </div>
           
           {/* Parts Nav (Mobile) - Show below sections if current section has parts */}
           {section && currentSectionParts.length > 0 && (
             <div 
               ref={partsScrollContainerRef}
-              className="lg:hidden flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2 scroll-smooth landscape-reduce-subject-tabs landscape-hide-parts exam-mobile-parts-row"
+              className="lg:hidden flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2 scroll-smooth landscape-reduce-subject-tabs landscape-hide-parts exam-mobile-parts-row exam-section-parts-row"
               style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
             >
-              <span className="px-2 py-1 font-semibold text-gray-700 whitespace-nowrap text-xs">Section:</span>
+              <span className="px-2 py-1 font-bold text-black whitespace-nowrap text-xs exam-section-parts-label">Section:</span>
               {currentSectionParts.map((part, partIndex) => (
                 <button
                   key={part._id}
                   data-part-index={partIndex}
+                  data-part-name={part.name}
                   onClick={() => {
                     setSelectedPart(part.name);
                     setCurrentQuestionIndex(0);
+                    requestAnimationFrame(() => {
+                      scrollPortraitStripToIndex(
+                        partsScrollContainerRef.current,
+                        partIndex,
+                        "data-part-index"
+                      );
+                    });
                   }}
                   className={`${
                     selectedPart === part.name
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-blue-700 hover:bg-gray-100 border-r border-gray-300"
-                  } px-3 py-1 whitespace-nowrap text-xs font-medium`}
+                      ? "exam-section-part-active"
+                      : "exam-section-part-inactive hover:bg-gray-100 border-r border-gray-300"
+                  } px-3 py-1 whitespace-nowrap text-xs font-bold`}
                 >
                   {part.name}
                 </button>
@@ -3927,6 +4585,66 @@ function ExamModeContent() {
             </div>
           )}
           
+          {currentQuestion?.questionType !== "TYPING" && currentQuestions && currentQuestions.length > 0 && (
+            <div
+              ref={questionScrollContainerRef}
+              className="lg:hidden exam-portrait-question-grid exam-mobile-question-grid landscape-reduce-question-grid flex overflow-x-auto gap-1.5 px-2 py-1.5 border-t border-gray-200 bg-white scroll-smooth"
+            >
+              {currentQuestions.map((q, i) => {
+                const isAnswered = selectedAnswers[q._id] !== undefined;
+                const isCurrent = i === currentQuestionIndex;
+                return (
+                  <button
+                    key={q._id}
+                    type="button"
+                    data-question-index={i}
+                    className={`flex-shrink-0 w-9 h-9 flex items-center justify-center text-sm font-semibold border exam-palette-cell exam-portrait-palette-cell ${
+                      isCurrent
+                        ? "bg-red-600 text-white border-red-700"
+                        : isAnswered
+                        ? "bg-green-400 text-black border-green-600"
+                        : "bg-gray-300 text-black border-gray-400"
+                    }`}
+                    onClick={() => {
+                      setCurrentQuestionIndex(i);
+                      if (q._id) {
+                        setVisitedQuestions((prev) => {
+                          const newSet = new Set([...prev, q._id]);
+                          localStorage.setItem("visitedQuestions", JSON.stringify([...newSet]));
+                          return newSet;
+                        });
+                      }
+                      requestAnimationFrame(() => scrollPortraitPaletteToIndex(i));
+                    }}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {currentQuestion?.questionType !== "TYPING" && (
+            <div className="lg:hidden hidden exam-portrait-mcq-type-bar bg-[#290c52] text-white text-[11px] px-2.5 py-1 flex justify-between items-center flex-shrink-0 w-full min-h-0">
+              <span className="font-medium whitespace-nowrap leading-tight">Question Type: MCQ</span>
+              <div className="flex items-center gap-1 shrink-0 leading-tight">
+                <span className="text-white/90 text-[10px]">View in:</span>
+                <select
+                  className="text-black text-[10px] bg-white px-1.5 py-0.5 rounded border-0 min-w-[4rem] leading-tight"
+                  value={viewLanguage}
+                  onChange={(e) => {
+                    const newLang = e.target.value;
+                    setViewLanguage(newLang);
+                    localStorage.setItem("viewLanguage", newLang);
+                  }}
+                >
+                  <option value="English">English</option>
+                  <option value="हिन्दी">हिन्दी</option>
+                </select>
+              </div>
+            </div>
+          )}
+
         </div>
 
         {/* Section Nav (Desktop) - Always show on desktop, never hide */}
@@ -3999,8 +4717,8 @@ function ExamModeContent() {
           
           {/* Parts Nav (Desktop) - Show below sections if current section has parts */}
           {section && currentSectionParts.length > 0 && (
-            <div className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 landscape-reduce-subject-tabs landscape-hide-parts">
-              <span className="px-4 py-2 font-semibold text-gray-700 whitespace-nowrap">Section:</span>
+            <div className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 landscape-reduce-subject-tabs landscape-hide-parts exam-section-parts-row">
+              <span className="px-4 py-2 font-bold text-black whitespace-nowrap exam-section-parts-label">Section:</span>
               {currentSectionParts.map((part) => (
                 <button
                   key={part._id}
@@ -4010,9 +4728,9 @@ function ExamModeContent() {
                   }}
                   className={`${
                     selectedPart === part.name
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-blue-700 hover:bg-gray-100 border-r border-gray-300"
-                  } px-3 py-2 whitespace-nowrap`}
+                      ? "exam-section-part-active"
+                      : "exam-section-part-inactive hover:bg-gray-100 border-r border-gray-300"
+                  } px-3 py-2 whitespace-nowrap font-bold`}
                 >
                   {part.name}
                 </button>
@@ -4070,10 +4788,10 @@ function ExamModeContent() {
   {/* Question + options scroll area (landscape MCQ uses mcq-landscape-scroll-box) */}
   <div className="border-t border-gray-300 flex-1 flex flex-col min-h-0 overflow-hidden landscape-question-content exam-mobile-question-content mcq-question-body">
     {currentQuestion?.questionType !== "TYPING" && (
-      <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-b text-xs md:text-sm font-semibold flex flex-col sm:flex-row justify-between flex-shrink-0 landscape-reduce-question-bar exam-mobile-question-meta">
+      <div className="bg-white-50 px-2 md:px-4 py-2 md:py-3 border-b text-xs md:text-sm font-normal flex flex-col sm:flex-row justify-between flex-shrink-0 landscape-reduce-question-bar exam-mobile-question-meta">
         <span>Question No. {currentQuestionIndex + 1} {currentQuestions && `of ${currentQuestions.length}`}</span>
         <span className="mt-1 sm:mt-0 text-xs exam-mobile-marks">
-          Marks: <span className="text-green-600 font-semibold">{currentQuestion?.marks || 1}</span> | Negative: <span className="text-red-500">{currentQuestion?.negativeMarks || 0}</span>
+          Marks: <span className="text-green-600">{currentQuestion?.marks || 1}</span> | Negative: <span className="text-red-500">{currentQuestion?.negativeMarks || 0}</span>
         </span>
       </div>
     )}
@@ -4254,7 +4972,7 @@ function ExamModeContent() {
                   : currentQuestion?.question_en || currentQuestion?.question_hi || 'No question text available';
                 const questionText = formatMobileQuestionText(rawQuestionText);
                 return (
-                  <p className="mb-4 md:mb-6 text-base md:text-lg landscape-reduce-question-text exam-mobile-question-text">
+                  <p className="mb-4 md:mb-6 text-base md:text-lg font-bold landscape-reduce-question-text exam-mobile-question-text">
                     {questionText}
                   </p>
                 );
@@ -4379,7 +5097,7 @@ function ExamModeContent() {
                   : currentQuestion?.question_en || currentQuestion?.question_hi || 'No question text available';
                 const questionText = formatMobileQuestionText(rawQuestionText);
                 return (
-                  <p className="mb-4 md:mb-6 text-base md:text-lg landscape-reduce-question-text exam-mobile-question-text">
+                  <p className="mb-4 md:mb-6 text-base md:text-lg font-bold landscape-reduce-question-text exam-mobile-question-text">
                     {questionText}
                   </p>
                 );
@@ -4480,7 +5198,7 @@ function ExamModeContent() {
             <div className="lg:hidden grid grid-cols-2 gap-2 landscape-buttons-container exam-mobile-btn-grid">
             {/* Top Left: Mark for Review & Next */}
             <button 
-              className="px-2 py-2 bg-purple-600 text-white rounded text-xs whitespace-nowrap landscape-reduce-buttons exam-mobile-action-btn"
+              className="px-2 py-2 bg-purple-600 exam-portrait-btn-mark text-white rounded text-xs whitespace-nowrap landscape-reduce-buttons exam-mobile-action-btn"
               onClick={() => {
                 // Mark current question for review
                 if (currentQuestion && currentQuestion._id) {
@@ -4524,7 +5242,7 @@ function ExamModeContent() {
             </button>
             {/* Top Right: Clear Response */}
             <button 
-              className="px-2 py-2 bg-orange-500 text-white rounded text-xs whitespace-nowrap landscape-reduce-buttons exam-mobile-action-btn"
+              className="px-2 py-2 bg-orange-500 exam-portrait-btn-clear text-white rounded text-xs whitespace-nowrap landscape-reduce-buttons exam-mobile-action-btn"
               onClick={() => {
                 if (currentQuestion) {
                   const newAnswers = {...selectedAnswers};
@@ -4538,7 +5256,7 @@ function ExamModeContent() {
             {/* Bottom Left: Previous - Hidden for typing questions */}
             {currentQuestion?.questionType !== "TYPING" && (
               <button 
-                className="bg-blue-900 hover:bg-blue-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 landscape-reduce-buttons exam-mobile-action-btn"
+                className="exam-portrait-btn-prev bg-slate-400 hover:bg-slate-500 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 landscape-reduce-buttons exam-mobile-action-btn"
                 disabled={currentQuestionIndex === 0 && section === sections[0]?.name}
                 onClick={() => {
                   if (currentQuestionIndex > 0) {
@@ -4567,7 +5285,7 @@ function ExamModeContent() {
             )}
             {/* Bottom Right: Save & Next */}
             <button 
-              className={`bg-green-600 hover:bg-cyan-700 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed landscape-reduce-buttons exam-mobile-action-btn ${isLastQuestion() ? 'bg-green-600' : ''}`}
+              className={`bg-green-600 exam-portrait-btn-save hover:bg-green-500 text-black px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed landscape-reduce-buttons exam-mobile-action-btn ${isLastQuestion() ? 'bg-green-600' : ''}`}
               disabled={currentQuestion && currentQuestion.questionType !== "TYPING" && (selectedAnswers[currentQuestion._id] === undefined || selectedAnswers[currentQuestion._id] === null)}
               onClick={() => {
                 // Check if answer is selected (skip check for TYPING questions)

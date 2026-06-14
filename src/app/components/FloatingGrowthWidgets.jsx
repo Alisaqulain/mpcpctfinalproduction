@@ -50,7 +50,7 @@ export default function FloatingGrowthWidgets({ minimal = false, showWhatsApp = 
   };
 
   const waHref = `https://wa.me/${String(wa).replace(/\D/g, "")}?text=${encodeURIComponent(
-    "Hi MPC PCT — I want help with CCC / CPCT / typing practice."
+    "Hi MPCPCT — I want help with CCC / CPCT / typing practice."
   )}`;
 
   return (
@@ -72,7 +72,7 @@ export default function FloatingGrowthWidgets({ minimal = false, showWhatsApp = 
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full bg-green-600 text-white p-3 shadow-lg hover:bg-green-500"
-            aria-label="WhatsApp MPC PCT — 8989966753"
+            aria-label="WhatsApp MPCPCT — 8989966753"
             title="WhatsApp: 8989966753"
           >
             <MessageCircle size={24} />

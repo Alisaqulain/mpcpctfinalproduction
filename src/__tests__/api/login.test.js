@@ -148,6 +148,33 @@ describe('Login API', () => {
       );
     });
 
+    it('should grant lifetime subscription for test bypass login', async () => {
+      const req = {
+        json: async () => ({
+          phoneNumber: '9876543210',
+          password: '123456',
+        }),
+      };
+
+      const response = await POST(req);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.message).toBe('Login successful');
+      expect(data.user.phoneNumber).toBe('9876543210');
+
+      const Subscription = (await import('@/lib/models/Subscription')).default;
+      const subscription = await Subscription.findOne({
+        userId: data.user.id,
+        type: 'all',
+        status: 'active',
+        plan: 'lifetime',
+      });
+
+      expect(subscription).toBeTruthy();
+      expect(subscription.endDate.getTime()).toBeGreaterThan(Date.now());
+    });
+
     it('should return 500 on database error', async () => {
       // Disconnect database to simulate error
       await disconnectTestDb();

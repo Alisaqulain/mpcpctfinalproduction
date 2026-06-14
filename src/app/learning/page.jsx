@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { 
+import { ArrowLeft } from "lucide-react";
+import {
   getLearningData, 
   getSections, 
   getLanguages, 
@@ -11,6 +12,42 @@ import {
   getAvailableLanguages,
   validateLanguageSelection
 } from "@/lib/learningData";
+
+function LessonCheckbox({ checked, onSelect, disabled }) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={checked}
+      aria-label={checked ? "Lesson selected" : "Select lesson"}
+      disabled={disabled}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!disabled) onSelect();
+      }}
+      className={`relative z-10 flex-shrink-0 w-7 h-7 md:w-6 md:h-6 rounded-md border-2 flex items-center justify-center transition-all duration-150 touch-manipulation ${
+        checked
+          ? "bg-green-500 border-green-600 text-white shadow-sm"
+          : "bg-white border-gray-600 hover:border-green-500"
+      } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-95"}`}
+    >
+      {checked && (
+        <svg
+          className="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M5 13l4 4L19 7" />
+        </svg>
+      )}
+    </button>
+  );
+}
 
 export default function TypingTutor() {
   const [selectedLanguage, setSelectedLanguage] = useState("English");
@@ -27,6 +64,8 @@ export default function TypingTutor() {
   const [accessChecks, setAccessChecks] = useState({});
   const [showWordTypingPopup, setShowWordTypingPopup] = useState(false);
   const lessonSectionRef = useRef(null);
+  const lastSectionRef = useRef(null);
+  const userPickedLessonRef = useRef(false);
 
   // Check user subscription and access
   useEffect(() => {
@@ -138,12 +177,21 @@ export default function TypingTutor() {
     fetchData();
   }, []);
 
-  // By default select first lesson of current section (e.g. section 1 → 1.1, section 2 → 2.1). Works on mobile too.
+  // Auto-select first lesson only when section changes (not when user picks another lesson)
   useEffect(() => {
     if (!learningData?.sections?.length || !selectedSection) return;
+
+    const sectionChanged = lastSectionRef.current !== selectedSection;
+    lastSectionRef.current = selectedSection;
+
+    if (!sectionChanged && userPickedLessonRef.current) return;
+
     const section = learningData.sections.find((s) => s.id === selectedSection);
     const firstLesson = section?.lessons?.[0];
-    if (firstLesson) setSelectedCheckbox(firstLesson);
+    if (firstLesson) {
+      setSelectedCheckbox(firstLesson);
+      userPickedLessonRef.current = false;
+    }
   }, [learningData, selectedSection]);
 
   // Auto-show word typing popup only on mobile when a word lesson is selected
@@ -201,26 +249,26 @@ export default function TypingTutor() {
   };
 
   const handleCheckboxChange = async (lesson) => {
-    // Check if lesson is free (always allow free content)
-    const isFree = lesson.isFree === true || lesson.isFree === 'true';
-    
-    // If free, always allow access
-    if (isFree) {
+    const isFree = lesson.isFree === true || lesson.isFree === "true";
+
+    if (isFree || userSubscription) {
+      userPickedLessonRef.current = true;
       setSelectedCheckbox(lesson);
       return;
     }
-    
-    // For paid content, check subscription
-    const hasAccess = userSubscription || await checkLessonAccess(lesson);
-    
+
+    const cached = accessChecks[lesson.id];
+    const hasAccess = cached !== undefined ? cached : await checkLessonAccess(lesson);
+
     if (!hasAccess) {
-      const login = `/login?redirect=${encodeURIComponent('/learning')}`;
-      if (confirm('Login or subscribe to access this lesson. Go to login now?')) {
+      const login = `/login?redirect=${encodeURIComponent("/learning")}`;
+      if (confirm("Login or subscribe to access this lesson. Go to login now?")) {
         window.location.href = login;
       }
       return;
     }
-    
+
+    userPickedLessonRef.current = true;
     setSelectedCheckbox(lesson);
   };
 
@@ -267,26 +315,28 @@ export default function TypingTutor() {
             <button
               type="button"
               onClick={() => typeof window !== "undefined" && window.history.back()}
-              className="flex items-center gap-2 text-xs md:text-sm text-white"
+              aria-label="Go back"
+              className="group flex items-center gap-2 shrink-0 transition-transform duration-200 active:scale-95"
             >
-              <span className="bg-white text-[#290c52] rounded-full w-8 h-8 flex items-center justify-center">
-                <svg
-                  className="w-4 h-4 md:w-5 md:h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
+              <span className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full border-2 border-yellow-400/60 bg-white/10 backdrop-blur-sm shadow-[0_2px_10px_rgba(0,0,0,0.15)] transition-colors duration-200 group-hover:bg-white/15">
+                <ArrowLeft
+                  className="w-5 h-5 text-yellow-400"
+                  strokeWidth={2.75}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                />
               </span>
-              <span className="hidden md:inline font-semibold">Back</span>
+              <span className="hidden md:inline text-sm font-semibold text-white">Back</span>
             </button>
             <h1 className="text-xl md:text-3xl font-bold text-center flex-1 text-yellow-400">
               Learning
             </h1>
-            {/* Spacer to keep title centered */}
-            <div className="w-8 md:w-12" />
+            {/* Spacer mirrors back button so title stays centered */}
+            <div className="flex items-center gap-2 shrink-0 invisible pointer-events-none" aria-hidden="true">
+              <span className="w-10 h-10 md:w-11 md:h-11 rounded-full border-2 border-transparent" />
+              <span className="hidden md:inline text-sm font-semibold">Back</span>
+            </div>
           </div>
         </div>
       )}
@@ -411,18 +461,19 @@ export default function TypingTutor() {
             <p
               key={section.id}
               onClick={() => {
+                userPickedLessonRef.current = false;
                 setSelectedSection(section.id);
                 const firstLesson = section.lessons?.[0];
                 setSelectedCheckbox(firstLesson ?? null);
               }}
-              className={`cursor-pointer py-1.5 md:py-2 rounded-md md:rounded-full mr-1 md:mr-3 learning-sidebar-item ${
+              className={`cursor-pointer py-1.5 md:py-2 rounded-md md:rounded-full mr-1 md:mr-3 learning-sidebar-item font-bold ${
                 selectedSection === section.id
-                  ? "bg-white text-[#290c52] font-bold pl-1 md:pl-4 md:pr-4 md:w-[500px]"
+                  ? "bg-white text-[#290c52] pl-1 md:pl-4 md:pr-4 md:w-[500px]"
                   : "border-none pl-1 md:pl-4 md:pr-4 md:w-[190px]"
               }`}
             >
-              <span className="text-yellow-400">{section.lessonNumber}.</span>
-              <span className="md:ml-4">{section.name}</span>
+              <span className="text-yellow-400 font-bold">{section.lessonNumber}.</span>
+              <span className="md:ml-4 font-bold">{section.name}</span>
             </p>
           ))}
         </div>
@@ -447,11 +498,10 @@ export default function TypingTutor() {
                   return (
                   <li 
                     key={lesson.id} 
-                    className={`flex items-center gap-3 md:gap-4 ${isLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                    className={`flex items-center gap-3 md:gap-4 touch-manipulation ${isLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                     title={isLocked ? (lesson.lessonType === "word" && !wordUnlocked ? 'Complete previous word lesson with net speed ≥ 10 to unlock' : 'Please purchase subscription to access this content') : ''}
-                    onClick={(e) => {
+                    onClick={() => {
                       if (isLocked) return;
-                      if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') return;
                       handleCheckboxChange(lesson);
                     }}
                   >
@@ -466,12 +516,9 @@ export default function TypingTutor() {
       </div>
     </div>
   ) : (
-    <input
-      type="checkbox"
-      className="w-5 h-5 accent-green-500 flex-shrink-0"
+    <LessonCheckbox
       checked={selectedCheckbox?.id === lesson.id}
-      onChange={() => handleCheckboxChange(lesson)}
-      onClick={(e) => e.stopPropagation()}
+      onSelect={() => handleCheckboxChange(lesson)}
     />
   )}
   <span className="text-base md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl flex-shrink-0 mr-2 md:mr-4">{lesson.id}</span>

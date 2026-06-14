@@ -94,7 +94,7 @@ export default function Header() {
           <a href="/" className="block relative h-16 w-[130px] sm:h-[4.5rem] sm:w-[150px] md:h-20 md:w-[300px] lg:h-24 lg:w-[340px] md:ml-35">
             <Image
               src="/logor.png"
-              alt="MPC PCT — CPCT, CCC and typing exam practice"
+              alt="MPCPCT — CPCT, CCC and typing exam practice"
               fill
               className="object-contain object-left"
               sizes="(max-width: 640px) 130px, (max-width: 768px) 150px, 340px"
@@ -103,20 +103,35 @@ export default function Header() {
           </a>
         </div>
 
-        {/* Centered title — room for full MPCPCT on narrow phones */}
-        <div className="absolute inset-0 z-0 flex flex-col justify-center items-center text-center px-[6.75rem] sm:px-[8rem] md:px-4 pointer-events-none overflow-visible pb-1">
+        {/* Centered title — mobile: true viewport center; desktop: unchanged */}
+        <div className="absolute inset-0 z-0 hidden md:flex flex-col justify-center items-center text-center px-4 pointer-events-none overflow-visible pb-1">
           <p
-            className="inline-block text-[1.75rem] sm:text-[2rem] md:text-7xl font-extrabold uppercase md:mt-0 leading-none whitespace-nowrap text-transparent bg-clip-text bg-center bg-cover px-0.5"
+            className="inline-block text-7xl font-extrabold uppercase leading-none whitespace-nowrap text-transparent bg-clip-text bg-center bg-cover px-0.5"
             style={{
               backgroundImage: "url('/bg.jpg')",
             }}
           >
             MPCPCT
           </p>
-          <p className="text-[10px] sm:text-sm md:text-2xl lg:text-3xl text-gray-600 font-semibold max-w-[12rem] sm:max-w-md mx-auto leading-snug mt-1 sm:mt-1.5">
-            <span className="block">To Help in typing &</span>
-            <span className="block">computer proficiency</span>
+          <p className="text-2xl lg:text-3xl text-gray-600 font-semibold mx-auto leading-snug mt-1.5 whitespace-nowrap">
+            To Help in typing &amp; computer proficiency
           </p>
+        </div>
+
+        <div className="absolute inset-0 z-0 flex md:hidden flex-col justify-center items-center text-center pointer-events-none overflow-visible pb-1">
+          <div className="absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center w-max max-w-[calc(100vw-1rem)]">
+            <p
+              className="inline-block text-[1.75rem] sm:text-[2rem] font-extrabold uppercase leading-none whitespace-nowrap text-transparent bg-clip-text bg-center bg-cover px-0.5 translate-x-3 sm:translate-x-4"
+              style={{
+                backgroundImage: "url('/bg.jpg')",
+              }}
+            >
+              MPCPCT
+            </p>
+            <p className="text-[10px] sm:text-sm text-gray-600 font-semibold leading-snug mt-1 sm:mt-1.5 whitespace-nowrap translate-x-5 sm:translate-x-7">
+              To Help in typing &amp; computer proficiency
+            </p>
+          </div>
         </div>
 
         <div className="z-10 w-[130px] sm:w-[150px] flex-shrink-0 md:hidden" aria-hidden="true" />
