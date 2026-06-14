@@ -2927,8 +2927,19 @@ function ExamModeContent() {
               // For typing sections (like RSCIT Section A), don't set main timer here
               // The typing timer will be set in the useEffect that detects typing sections
               if (isTypingSec) {
-                // Set main timer to 60 minutes for Section B (will be paused during Section A)
-                setTimeLeft(data.data.exam.totalTime * 60); // 60 minutes for Section B
+                // Main timer stays paused during typing — restore saved time if reload
+                const savedTimeLeft = localStorage.getItem('examTimeLeft');
+                const maxMainTime = data.data.exam.totalTime * 60;
+                if (savedTimeLeft) {
+                  const savedTime = parseInt(savedTimeLeft, 10);
+                  if (savedTime > 0 && savedTime <= maxMainTime) {
+                    setTimeLeft(savedTime);
+                  } else {
+                    setTimeLeft(maxMainTime);
+                  }
+                } else {
+                  setTimeLeft(maxMainTime);
+                }
               } else {
                 // For other sections or exams, use saved time or default
                 const savedTimeLeft = localStorage.getItem('examTimeLeft');
@@ -3128,29 +3139,35 @@ function ExamModeContent() {
       console.log(`⏱️ Typing section detected: ${currentSectionData.name}, typing time: ${currentSectionData.typingTime} minutes`);
       setIsTypingSection(true);
       
-      // Always use 15 minutes for typing sections (English and Hindi) - ignore saved time
-      const typingTimeMinutes = 15;
-      const typingTimeToSet = typingTimeMinutes * 60; // Always 15 minutes (900 seconds)
-      
-      // Clear any old saved time and set fresh 15 minutes
-      localStorage.removeItem(`typingTimeLeft-${section}`);
+      const typingTimeMinutes = currentSectionData.typingTime || 15;
+      const maxTypingTime = typingTimeMinutes * 60;
+      const savedTypingTime = localStorage.getItem(`typingTimeLeft-${section}`);
+      let typingTimeToSet = maxTypingTime;
+
+      if (savedTypingTime) {
+        const saved = parseInt(savedTypingTime, 10);
+        if (saved > 0 && saved <= maxTypingTime) {
+          typingTimeToSet = saved;
+          console.log(`⏱️ Restored typing timer from localStorage: ${saved}s remaining`);
+        }
+      }
+
       setTypingTimeLeft(typingTimeToSet);
       localStorage.setItem(`typingTimeLeft-${section}`, typingTimeToSet.toString());
       
       const m = Math.floor(typingTimeToSet / 60);
       const s = typingTimeToSet % 60;
-      console.log(`⏱️ Setting typing time to 15 minutes: ${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
+      console.log(`⏱️ Typing time: ${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
       
       setIsMainTimerPaused(true);
-      // Save current main timer time so we can resume it later
-      // Use functional update to get the latest timeLeft value
+      // Save current main timer time so we can resume it later (and survive reload)
       setTimeLeft(prev => {
-        // Save the current time before pausing
         setPausedMainTime(prev);
-        const m = Math.floor(prev / 60);
-        const s = prev % 60;
-        console.log(`⏱️ Main timer paused at: ${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
-        return prev; // Keep the same time, timer is paused
+        localStorage.setItem('examTimeLeft', prev.toString());
+        const pm = Math.floor(prev / 60);
+        const ps = prev % 60;
+        console.log(`⏱️ Main timer paused at: ${pm.toString().padStart(2, "0")}:${ps.toString().padStart(2, "0")}`);
+        return prev;
       });
     } else {
       // This is a regular section - resume main timer if it was paused
@@ -3160,18 +3177,37 @@ function ExamModeContent() {
       localStorage.removeItem(`typingTimeLeft-${section}`);
       setIsMainTimerPaused(false);
       
-      // For RSCIT Section B: Set main timer to 60 minutes (don't add remaining time from Section A)
+      // For RSCIT Section B: restore saved time on reload, fresh 60 min only if none saved
       if (examData?.key === 'RSCIT' && section === 'Section B') {
-        // Section B gets fresh 60 minutes, not remaining time from Section A
-        console.log('RSCIT Section B: Setting fresh 60 minutes timer');
-        setTimeLeft(60 * 60); // 60 minutes for Section B
-        localStorage.setItem('examTimeLeft', (60 * 60).toString());
-        setPausedMainTime(null); // Clear paused time
+        const sectionBMax = 60 * 60;
+        const savedTimeLeft = localStorage.getItem('examTimeLeft');
+        if (savedTimeLeft) {
+          const savedTime = parseInt(savedTimeLeft, 10);
+          if (savedTime > 0 && savedTime <= sectionBMax) {
+            setTimeLeft(savedTime);
+          } else {
+            setTimeLeft(sectionBMax);
+            localStorage.setItem('examTimeLeft', sectionBMax.toString());
+          }
+        } else {
+          setTimeLeft(sectionBMax);
+          localStorage.setItem('examTimeLeft', sectionBMax.toString());
+        }
+        setPausedMainTime(null);
       } else {
-        // Resume main timer from where it was paused
+        // Resume main timer from saved localStorage or paused state
+        const savedTimeLeft = localStorage.getItem('examTimeLeft');
+        if (savedTimeLeft) {
+          const savedTime = parseInt(savedTimeLeft, 10);
+          const maxTime = (examData?.totalTime || 75) * 60;
+          if (savedTime > 0 && savedTime <= maxTime) {
+            setTimeLeft(savedTime);
+          }
+        }
         setPausedMainTime(prev => {
           if (prev !== null) {
             setTimeLeft(prev);
+            localStorage.setItem('examTimeLeft', prev.toString());
           }
           return null;
         });

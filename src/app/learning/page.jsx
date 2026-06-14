@@ -456,7 +456,7 @@ export default function TypingTutor() {
       {/* Main Content Section - ref for scroll on duration change */}
       <div ref={lessonSectionRef} className="flex flex-row bg-blue-200 bg-[url('/bg.jpg')] pb-10 md:pb-16">
         {/* Sidebar - mobile: 20% left; desktop: w-32 unchanged */}
-        <div className="w-[20%] min-w-0 flex-shrink-0 md:w-32 bg-transparent text-white pt-14 pl-1 md:pl-10 flex flex-col gap-8 md:gap-[3rem] text-xs md:text-1rem md:text-4xl learning-sidebar-sections">
+        <div className="w-[20%] min-w-0 flex-shrink-0 md:w-40 bg-transparent text-white pt-14 pl-1 md:pl-6 flex flex-col gap-8 md:gap-[3rem] text-xs md:text-2xl learning-sidebar-sections">
           {learningData.sections?.map((section, index) => (
             <p
               key={section.id}
@@ -466,14 +466,14 @@ export default function TypingTutor() {
                 const firstLesson = section.lessons?.[0];
                 setSelectedCheckbox(firstLesson ?? null);
               }}
-              className={`cursor-pointer py-1.5 md:py-2 rounded-md md:rounded-full mr-1 md:mr-3 learning-sidebar-item font-bold ${
+              className={`cursor-pointer py-1.5 md:py-2 rounded-md md:rounded-full mr-1 md:mr-3 learning-sidebar-item font-bold leading-tight whitespace-nowrap ${
                 selectedSection === section.id
-                  ? "bg-white text-[#290c52] pl-1 md:pl-4 md:pr-4 md:w-[500px]"
-                  : "border-none pl-1 md:pl-4 md:pr-4 md:w-[190px]"
+                  ? "bg-white text-[#290c52] pl-1 md:pl-3 md:pr-3 md:w-[500px]"
+                  : "border-none pl-1 md:pl-3 md:pr-3 md:w-[190px]"
               }`}
             >
               <span className="text-yellow-400 font-bold">{section.lessonNumber}.</span>
-              <span className="md:ml-4 font-bold">{section.name}</span>
+              <span className="md:ml-2 font-bold">{section.name}</span>
             </p>
           ))}
         </div>

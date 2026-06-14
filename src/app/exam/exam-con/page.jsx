@@ -57,6 +57,9 @@ export default function ExamInstructions() {
     setShowError(false);
     localStorage.removeItem("examProgress");
     localStorage.removeItem("examTimeLeft");
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith("typingTimeLeft-")) localStorage.removeItem(key);
+    });
     localStorage.setItem("questionLanguage", questionLanguage);
     window.location.href = "/exam_mode";
   };

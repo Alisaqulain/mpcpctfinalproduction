@@ -4,12 +4,10 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
-import FirebasePhoneAuth from "@/components/auth/FirebasePhoneAuth";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [loginMode, setLoginMode] = useState("password");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -91,35 +89,6 @@ function LoginForm() {
     }
   };
 
-  const handleFirebaseLogin = async (idToken) => {
-    setError("");
-    setSuccess("");
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/auth/firebase-phone", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          idToken,
-          purpose: "login",
-          redirectTo: redirectUrl,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Login failed");
-
-      window.dispatchEvent(
-        new CustomEvent("authStateChanged", { detail: { isAuthenticated: true } })
-      );
-      setSuccess(data.isNewUser ? "Account created! Redirecting…" : "Login successful!");
-      router.push(data.redirectTo || redirectUrl);
-    } catch (err) {
-      setError(err.message || "Verification failed");
-      setIsLoading(false);
-    }
-  };
-
   if (isCheckingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -136,40 +105,12 @@ function LoginForm() {
             <span className="text-yellow-400">Welcome to</span>
             <span className="block mt-0.5 text-yellow-400 font-bold">MPCPCT</span>
           </h2>
-          <p className="mt-2 text-gray-600 text-sm">Login or register with your mobile</p>
+          <p className="mt-2 text-gray-600 text-sm">Login with your phone number and password</p>
         </div>
 
         <GoogleAuthButton returnTo={redirectUrl} label="Continue with Google" className="mb-4" />
 
-        <div className="flex rounded-lg border border-gray-200 p-0.5 mb-4 text-sm font-medium">
-          <button
-            type="button"
-            onClick={() => {
-              setLoginMode("password");
-              setError("");
-            }}
-            className={`flex-1 py-2 rounded-md transition-colors ${
-              loginMode === "password" ? "bg-[#290c52] text-white" : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            Password
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setLoginMode("otp");
-              setError("");
-            }}
-            className={`flex-1 py-2 rounded-md transition-colors ${
-              loginMode === "otp" ? "bg-[#290c52] text-white" : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            Mobile OTP
-          </button>
-        </div>
-
-        {loginMode === "password" ? (
-          <form onSubmit={handlePasswordSubmit} className="space-y-4 sm:space-y-6">
+        <form onSubmit={handlePasswordSubmit} className="space-y-4 sm:space-y-6">
             <div className="relative">
               <input
                 type="tel"
@@ -242,18 +183,7 @@ function LoginForm() {
             >
               {isLoading ? "Logging in…" : "Login"}
             </button>
-          </form>
-        ) : (
-          <FirebasePhoneAuth
-            phone={phone}
-            onPhoneChange={setPhone}
-            onVerified={handleFirebaseLogin}
-            purpose="login"
-            disabled={isLoading}
-            submitLabel="Verify & Login"
-            hint="New number? We will create your account after OTP verification."
-          />
-        )}
+        </form>
 
         {error && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
         {success && <p className="mt-4 text-center text-sm text-green-600">{success}</p>}

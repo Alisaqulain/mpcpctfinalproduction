@@ -102,6 +102,9 @@ function StartTestPageContent() {
       localStorage.removeItem('completedSections');
       localStorage.removeItem('examProgress');
       localStorage.removeItem('examTimeLeft');
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('typingTimeLeft-')) localStorage.removeItem(key);
+      });
       localStorage.removeItem('currentExamId');
       localStorage.removeItem('currentTopicId');
       
