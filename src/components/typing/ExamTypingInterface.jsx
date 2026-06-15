@@ -525,7 +525,7 @@ export default function ExamTypingInterface({
       {typingLayout === "portrait" && (
       <div className="flex flex-col flex-1 min-h-0 h-full exam-typing-portrait-view exam-typing-portrait">
         {/* Top Section: User Profile, Stats, Speedometer — skill section style */}
-        <div className="grid grid-cols-[5rem_1fr_5rem] gap-x-1 gap-y-0.5 px-2 py-2 flex-shrink-0 w-full exam-typing-stats-mobile bg-white text-gray-900 border-b border-gray-200">
+        <div className="grid grid-cols-[6rem_1fr_6rem] gap-x-1 gap-y-0.5 px-2 py-2 flex-shrink-0 w-full exam-typing-stats-mobile bg-white text-gray-900 border-b border-gray-200">
           {/* Row 1 — profile, stats, meter tops aligned */}
           <div className="col-start-1 row-start-1 flex flex-col items-center exam-typing-profile-top">
             <img
@@ -543,32 +543,32 @@ export default function ExamTypingInterface({
 
           <div className="col-start-2 row-start-1 flex flex-col items-center justify-start exam-typing-stat-center">
             <div className="grid grid-cols-2 gap-1.5 w-[8.25rem] max-w-[8.25rem] shrink-0 exam-typing-stat-grid">
-              <div className="h-10 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card">
-                <div className="bg-black text-white text-[10px] font-semibold exam-typing-stat-label">Correct</div>
-                <div className="bg-white text-green-600 text-sm font-bold exam-typing-stat-value">{correctWords}</div>
+              <div className="h-8 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card">
+                <div className="bg-black text-white text-[9px] font-semibold exam-typing-stat-label">Correct</div>
+                <div className="bg-white text-green-600 text-xs font-bold exam-typing-stat-value">{correctWords}</div>
               </div>
-              <div className="h-10 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card">
-                <div className="bg-black text-white text-[10px] font-semibold exam-typing-stat-label">Wrong</div>
-                <div className="bg-white text-red-500 text-sm font-bold exam-typing-stat-value">{wrongWords}</div>
+              <div className="h-8 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card">
+                <div className="bg-black text-white text-[9px] font-semibold exam-typing-stat-label">Wrong</div>
+                <div className="bg-white text-red-500 text-xs font-bold exam-typing-stat-value">{wrongWords}</div>
               </div>
-              <div className="h-10 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card">
-                <div className="bg-black text-white text-[10px] font-semibold exam-typing-stat-label">Total</div>
-                <div className="bg-white text-[#290c52] text-sm font-bold exam-typing-stat-value">{totalTyped}</div>
+              <div className="h-8 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card">
+                <div className="bg-black text-white text-[9px] font-semibold exam-typing-stat-label">Total</div>
+                <div className="bg-white text-[#290c52] text-xs font-bold exam-typing-stat-value">{totalTyped}</div>
               </div>
-              <div className="h-10 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card">
-                <div className="bg-black text-white text-[10px] font-semibold exam-typing-stat-label">Backspace</div>
-                <div className="bg-white text-blue-500 text-sm font-bold exam-typing-stat-value">{backspaceCount}</div>
+              <div className="h-8 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card">
+                <div className="bg-black text-white text-[9px] font-semibold exam-typing-stat-label">Backspace</div>
+                <div className="bg-white text-blue-500 text-xs font-bold exam-typing-stat-value">{backspaceCount}</div>
               </div>
             </div>
             {timeRemainingToUse !== null && (
-              <div className="w-[8.25rem] h-10 rounded-lg overflow-hidden text-center mt-1.5 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card exam-typing-stat-time">
-                <div className="bg-black text-white text-[10px] font-semibold exam-typing-stat-label">Time</div>
-                <div className="bg-white text-black text-sm font-bold exam-typing-stat-value">{formatTime(timeRemainingToUse)}</div>
+              <div className="w-[8.25rem] h-8 rounded-lg overflow-hidden text-center mt-1.5 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card exam-typing-stat-time">
+                <div className="bg-black text-white text-[9px] font-semibold exam-typing-stat-label">Time</div>
+                <div className="bg-white text-black text-xs font-bold exam-typing-stat-value">{formatTime(timeRemainingToUse)}</div>
               </div>
             )}
           </div>
 
-          <div className="col-start-3 row-start-1 flex flex-col items-center justify-start speedometer-container exam-typing-meter-top">
+          <div className="col-start-3 row-start-1 flex flex-col items-center justify-start speedometer-container exam-typing-meter-top pr-2">
             {renderSpeedometer("portrait")}
           </div>
 
@@ -576,14 +576,14 @@ export default function ExamTypingInterface({
           <button
             type="button"
             onClick={() => setFontSize(prev => Math.max(12, prev - 2))}
-            className="col-start-1 row-start-2 -mt-0.5 bg-white w-full text-red-600 border-2 border-black rounded-md flex items-center justify-center text-xs font-bold min-h-[2rem] exam-typing-font-btn exam-typing-a-minus-btn exam-typing-profile-col"
+            className="col-start-1 row-start-2 -mt-0.5 bg-white w-full text-red-600 border border-black rounded-md flex items-center justify-center text-sm font-bold min-h-[2.25rem] exam-typing-font-btn exam-typing-a-minus-btn exam-typing-profile-col"
           >
             A -
           </button>
           <button
             type="button"
             onClick={() => setFontSize(prev => Math.min(24, prev + 2))}
-            className="col-start-3 row-start-2 -mt-0.5 bg-white w-full text-green-600 border-2 border-black rounded-md flex items-center justify-center text-xs font-bold min-h-[2rem] exam-typing-font-btn exam-typing-a-plus-btn exam-typing-meter-col"
+            className="col-start-3 row-start-2 -mt-0.5 bg-white w-full text-green-600 border border-black rounded-md flex items-center justify-center text-sm font-bold min-h-[2.25rem] exam-typing-font-btn exam-typing-a-plus-btn exam-typing-meter-col"
           >
             A +
           </button>
@@ -622,11 +622,11 @@ export default function ExamTypingInterface({
         </div>
 
         {/* Submit Button */}
-        <div className="p-0 bg-white border-t border-gray-200 flex-shrink-0 w-full exam-typing-submit-mobile">
+        <div className="py-2 px-3 bg-white border-t border-gray-200 flex-shrink-0 w-full exam-typing-submit-mobile flex justify-center">
           <button
             type="button"
             onClick={handleSubmit}
-            className="w-full block bg-blue-600 text-white py-1.5 rounded-none text-sm font-semibold hover:bg-blue-700 transition-colors min-h-[2.1rem]"
+            className="w-[94%] bg-blue-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors min-h-[2.5rem]"
           >
             Submit Section
           </button>

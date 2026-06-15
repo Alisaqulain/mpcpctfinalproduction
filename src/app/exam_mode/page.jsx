@@ -1229,6 +1229,14 @@ function ExamModeContent() {
           flex-shrink: 0 !important;
           margin-top: 0 !important;
         }
+        [data-exam-mode="typing"] .exam-typing-portrait-section-row .exam-typing-section-keyboard {
+          display: flex !important;
+          align-items: center !important;
+          gap: 0.35rem !important;
+          margin-left: auto !important;
+          flex-shrink: 0 !important;
+          padding-left: 0.5rem !important;
+        }
         [data-exam-mode="typing"] .exam-mobile-exam-title {
           display: flex !important;
           align-items: center !important;
@@ -1260,16 +1268,12 @@ function ExamModeContent() {
         [data-exam-mode="typing"] .exam-mobile-parts-row {
           display: none !important;
         }
-        [data-exam-mode="typing"] .exam-typing-portrait-keyboard-row {
-          display: flex !important;
-          flex-shrink: 0 !important;
-        }
         [data-exam-mode="typing"] .exam-typing-header-keyboard {
           display: none !important;
         }
         [data-exam-mode="typing"] .exam-typing-stats-mobile {
           display: grid !important;
-          grid-template-columns: 5rem 1fr 5rem !important;
+          grid-template-columns: 6rem 1fr 6rem !important;
           column-gap: 0.25rem !important;
           row-gap: 0.125rem !important;
           padding: 0.5rem 0.35rem !important;
@@ -1310,10 +1314,21 @@ function ExamModeContent() {
         [data-exam-mode="typing"] .exam-typing-a-plus-btn {
           width: 100% !important;
           max-width: 100% !important;
-          min-height: 2rem !important;
+          min-height: 2.25rem !important;
           margin-top: -0.125rem !important;
-          padding-left: 0.15rem !important;
-          padding-right: 0.15rem !important;
+          padding-left: 0.25rem !important;
+          padding-right: 0.25rem !important;
+          background-color: #fff !important;
+          border: 1px solid #000 !important;
+          border-radius: 0.375rem !important;
+          font-size: 0.875rem !important;
+          font-weight: 700 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-a-minus-btn {
+          color: #dc2626 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-a-plus-btn {
+          color: #16a34a !important;
         }
         [data-exam-mode="typing"] .exam-typing-stat-center {
           display: flex !important;
@@ -1335,33 +1350,33 @@ function ExamModeContent() {
         [data-exam-mode="typing"] .exam-typing-stat-card {
           max-width: none !important;
           min-width: 0 !important;
-          height: 2.5rem !important;
-          min-height: 2.5rem !important;
+          height: 2rem !important;
+          min-height: 2rem !important;
+          max-height: 2rem !important;
           display: flex !important;
           flex-direction: column !important;
         }
         [data-exam-mode="typing"] .exam-typing-stat-label,
         [data-exam-mode="typing"] .exam-typing-stat-card > .bg-black {
-          font-size: 10px !important;
-          line-height: 1.1 !important;
-          min-height: 1.15rem !important;
-          height: 1.15rem !important;
-          padding-top: 0.15rem !important;
-          padding-bottom: 0.15rem !important;
+          font-size: 9px !important;
+          line-height: 1 !important;
+          flex: 1 1 50% !important;
+          min-height: 0 !important;
+          height: auto !important;
+          padding: 0 !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
-          flex-shrink: 0 !important;
         }
         [data-exam-mode="typing"] .exam-typing-stat-value,
         [data-exam-mode="typing"] .exam-typing-stat-card > .bg-white {
-          font-size: 0.875rem !important;
-          line-height: 1.1 !important;
-          flex: 1 1 auto !important;
+          font-size: 0.75rem !important;
+          line-height: 1 !important;
+          flex: 1 1 50% !important;
+          min-height: 0 !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
-          min-height: 0 !important;
         }
         [data-exam-mode="typing"] .exam-typing-stat-time {
           max-width: 8.25rem !important;
@@ -1376,6 +1391,8 @@ function ExamModeContent() {
           flex-shrink: 0 !important;
           display: flex !important;
           justify-content: center !important;
+          padding-right: 0.55rem !important;
+          box-sizing: border-box !important;
         }
         [data-exam-mode="typing"] .exam-typing-passage-mobile {
           margin-left: 0 !important;
@@ -1395,16 +1412,25 @@ function ExamModeContent() {
           border-right: none !important;
         }
         [data-exam-mode="typing"] .exam-typing-submit-mobile {
-          padding-left: 0 !important;
-          padding-right: 0 !important;
+          padding: 0.5rem 0.75rem !important;
+          padding-bottom: max(0.5rem, env(safe-area-inset-bottom)) !important;
           width: 100% !important;
+          display: flex !important;
+          justify-content: center !important;
+          box-sizing: border-box !important;
         }
         [data-exam-mode="typing"] .exam-typing-submit-mobile button {
-          border-radius: 0 !important;
+          width: 94% !important;
+          max-width: 94% !important;
+          border-radius: 0.75rem !important;
+          min-height: 2.5rem !important;
+          font-size: 0.875rem !important;
+          font-weight: 700 !important;
+          padding-top: 0.55rem !important;
+          padding-bottom: 0.55rem !important;
         }
         [data-exam-mode="typing"] .exam-mobile-exam-title,
-        [data-exam-mode="typing"] .exam-typing-portrait-section-row,
-        [data-exam-mode="typing"] .exam-typing-portrait-keyboard-row {
+        [data-exam-mode="typing"] .exam-typing-portrait-section-row {
           padding-left: 0.35rem !important;
           padding-right: 0.35rem !important;
         }
@@ -1552,8 +1578,7 @@ function ExamModeContent() {
         /* Landscape-only restore (reference layout) — portrait/desktop UI unchanged */
         [data-exam-mode="typing"] .exam-typing-portrait-menu,
         [data-exam-mode="typing"] .exam-typing-portrait-menu-close,
-        [data-exam-mode="typing"] .exam-typing-portrait-section-row,
-        [data-exam-mode="typing"] .exam-typing-portrait-keyboard-row {
+        [data-exam-mode="typing"] .exam-typing-portrait-section-row {
           display: none !important;
         }
         [data-exam-mode="typing"] .exam-mobile-exam-title.landscape-hide {
@@ -4430,7 +4455,7 @@ function ExamModeContent() {
           </div>
         )}
 
-        {/* Typing portrait: Section row directly after exam title */}
+        {/* Typing portrait: Section row directly after exam title (keyboard inline for Hindi) */}
         {currentQuestion?.questionType === "TYPING" && (
           <div
             className="hidden exam-typing-portrait-section-row exam-section-parts-row flex items-center overflow-x-auto border-b border-gray-200 bg-gray-50 px-2 py-1.5 scroll-smooth"
@@ -4464,30 +4489,28 @@ function ExamModeContent() {
                 {section}
               </span>
             )}
-          </div>
-        )}
-
-        {/* Typing portrait: Keyboard row after section row (Hindi only) */}
-        {currentQuestion?.questionType === "TYPING" && currentQuestion?.typingLanguage === "Hindi" && (
-          <div className="hidden exam-typing-portrait-keyboard-row flex items-center justify-end gap-2 border-b border-gray-200 bg-white px-3 py-2">
-            <label className="bg-blue-600 text-white px-2.5 py-1 rounded text-xs font-semibold whitespace-nowrap shrink-0">
-              Keyboard:
-            </label>
-            <select
-              value={
-                selectedKeyboardType ||
-                (currentQuestion.typingScriptType &&
-                (currentQuestion.typingScriptType.toLowerCase().includes("inscript") ||
-                  currentQuestion.typingScriptType === "Inscript")
-                  ? "Inscript"
-                  : "Remington Gail")
-              }
-              onChange={(e) => setSelectedKeyboardType(e.target.value)}
-              className="border border-gray-300 rounded px-2 py-1 text-xs bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-[8rem] max-w-[11rem] cursor-pointer"
-            >
-              <option value="Remington Gail">Remington Gail</option>
-              <option value="Inscript">Inscript</option>
-            </select>
+            {currentQuestion?.typingLanguage === "Hindi" && (
+              <div className="flex items-center gap-1.5 ml-auto shrink-0 pl-2 exam-typing-section-keyboard">
+                <label className="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-semibold whitespace-nowrap shrink-0">
+                  Keyboard:
+                </label>
+                <select
+                  value={
+                    selectedKeyboardType ||
+                    (currentQuestion.typingScriptType &&
+                    (currentQuestion.typingScriptType.toLowerCase().includes("inscript") ||
+                      currentQuestion.typingScriptType === "Inscript")
+                      ? "Inscript"
+                      : "Remington Gail")
+                  }
+                  onChange={(e) => setSelectedKeyboardType(e.target.value)}
+                  className="border border-gray-300 rounded px-1.5 py-0.5 text-[10px] bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-[6.5rem] max-w-[8rem] cursor-pointer shrink-0"
+                >
+                  <option value="Remington Gail">Remington Gail</option>
+                  <option value="Inscript">Inscript</option>
+                </select>
+              </div>
+            )}
           </div>
         )}
 
