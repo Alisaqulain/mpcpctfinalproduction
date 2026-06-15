@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { getLessonById, getLessonContent } from "@/lib/learningData";
 import { calculateCPCTMetricsFromText } from "@/lib/cpctFormulas";
 import { useHindiTyping } from "@/hooks/useHindiTyping";
+import ReplaceNavLink from "@/components/common/ReplaceNavLink";
 
 function TypingTestForm() {
   const searchParams = useSearchParams();
@@ -423,7 +424,7 @@ function TypingTestForm() {
         // Store result ID for result page
         localStorage.setItem('lastTypingResultId', data.result._id);
         // Redirect to result page
-        window.location.href = `/result/skill-test?resultId=${data.result._id}`;
+        window.location.replace(`/result/skill-test?resultId=${data.result._id}`);
       } else {
         console.error('Failed to save typing result');
       }
@@ -629,12 +630,12 @@ function TypingTestForm() {
 
           {/* Navigation */}
           <div className="flex justify-between items-center">
-            <a
+            <ReplaceNavLink
               href={exerciseId ? "/skill_test" : "/learning"}
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
               ← Back to {exerciseId ? "Skill Test" : "Learning"}
-            </a>
+            </ReplaceNavLink>
             {isCompleted && (
               <a
                 href={exerciseId 

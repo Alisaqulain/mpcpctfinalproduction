@@ -106,7 +106,7 @@ function LearningWordResultContent() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-600 mb-4">No Result Found</h1>
           <p className="text-gray-500">Complete a Learning Word lesson and submit to see results.</p>
-          <Link href="/learning" className="text-blue-600 hover:underline mt-2 inline-block">
+          <Link href="/learning" replace className="text-blue-600 hover:underline mt-2 inline-block">
             Back to Learning
           </Link>
         </div>
@@ -256,7 +256,7 @@ function LearningWordResultContent() {
       </div>
 
       <div className="flex flex-wrap justify-center gap-3 mb-4">
-        <Link href="/learning" className="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded">
+        <Link href="/learning" replace className="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded">
           Back to Learning
         </Link>
         <a href="/" className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded inline-block">

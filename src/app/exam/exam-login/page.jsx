@@ -132,7 +132,7 @@ function StartTestPageContent() {
       }
 
       // Navigate to exam
-      window.location.href = "/exam/exam-con";
+      window.location.replace("/exam/exam-con");
     }
   };
 

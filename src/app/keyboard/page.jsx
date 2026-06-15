@@ -120,7 +120,7 @@ function DesktopView({
     <div className="p-4 flex flex-col md:flex-row gap-6 w-full min-h-full relative" style={{ minHeight: '100dvh' }}>
       {/* Close Button - Desktop View */}
       <button
-        onClick={() => window.location.href = '/learning'}
+        onClick={() => window.location.replace('/learning')}
         className="fixed top-4 right-4 z-50 bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md shadow-lg transition-all duration-200 hover:scale-110"
         aria-label="Close and return to learning page"
       >
@@ -506,7 +506,7 @@ function PortraitMobileView({
           </button>
         </div>
         <button
-          onClick={() => window.location.href = '/learning'}
+          onClick={() => window.location.replace('/learning')}
           className={`py-3 px-4 rounded-lg shadow-lg min-h-[44px] font-medium text-sm ${
             isDarkMode ? "bg-red-600 text-white hover:bg-red-700" : "bg-white text-black border border-gray-300 hover:bg-gray-100"
           }`}
@@ -1348,7 +1348,7 @@ function LandscapeMobileView({
         {/* Close Button - bottom right, below Backspace */}
         <div className="w-full max-w-[100px] flex justify-end mt-0 landscape-mobile-close-wrap">
           <button
-            onClick={() => window.location.href = '/learning'}
+            onClick={() => window.location.replace('/learning')}
             className="bg-red-600 text-white hover:bg-red-700 px-6 py-1.5 rounded-md shadow transition-all duration-200 hover:scale-105 flex items-center justify-center text-sm font-medium"
             aria-label="Close and return to learning page"
           >
@@ -2515,7 +2515,7 @@ function KeyboardApp() {
         console.log('Verifying saved data:', JSON.parse(savedData));
         
         // Auto-redirect to learning result page immediately
-        window.location.href = '/result/learning-re';
+        window.location.replace('/result/learning-re');
       }
     };
     

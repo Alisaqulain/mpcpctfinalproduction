@@ -61,7 +61,7 @@ export default function ExamInstructions() {
       if (key.startsWith("typingTimeLeft-")) localStorage.removeItem(key);
     });
     localStorage.setItem("questionLanguage", questionLanguage);
-    window.location.href = "/exam_mode";
+      window.location.replace("/exam_mode");
   };
 
   const colorLegendHindi = (

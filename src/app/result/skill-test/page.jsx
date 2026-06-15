@@ -2,6 +2,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import jsPDF from "jspdf";
+import ReplaceNavLink from "@/components/common/ReplaceNavLink";
 
 function SkillTestResultContent() {
   const searchParams = useSearchParams();
@@ -172,9 +173,9 @@ function SkillTestResultContent() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-600 mb-4">No Result Found</h1>
           <p className="text-gray-500">Please complete a typing test to see results.</p>
-          <a href="/skill_test" className="text-blue-600 hover:underline mt-2 inline-block">
+          <ReplaceNavLink href="/skill_test" className="text-blue-600 hover:underline mt-2 inline-block">
             Go to Skill Test
-          </a>
+          </ReplaceNavLink>
         </div>
       </div>
     );
@@ -380,7 +381,7 @@ function SkillTestResultContent() {
         </div>
       </div>
       <button className="bg-red-600 hover:bg-blue-700 text-white font-medium px-4 py-2 mb-2 ml-35 sm:ml-40 md:ml-70 lg:ml-80 xl:ml-156">
-        <a href="/">Go To Home</a>
+        <ReplaceNavLink href="/">Go To Home</ReplaceNavLink>
       </button>
     </div>
   );

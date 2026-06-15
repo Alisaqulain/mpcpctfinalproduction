@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { getLearningData, getLessonContent } from "@/lib/learningData";
 import { useHindiTyping } from "@/hooks/useHindiTyping";
+import ReplaceNavLink from "@/components/common/ReplaceNavLink";
 
 const MIN_NET_SPEED_LEARNING = 10;
 const TYPING_FONT_MIN = 12;
@@ -22,13 +23,13 @@ function typingFontStyle(fontSize, lineHeight = 1.5) {
 
 function TypingCloseButton({ href, className = "" }) {
   return (
-    <a
+    <ReplaceNavLink
       href={href}
       aria-label="Close"
       className={`inline-flex items-center justify-center px-2 py-0.5 text-[11px] md:px-4 md:py-2 md:text-sm rounded border md:rounded-md border-gray-600 text-white bg-red-500 hover:bg-red-600 font-semibold shadow md:shadow-lg transition-colors ${className}`}
     >
       Close
-    </a>
+    </ReplaceNavLink>
   );
 }
 
@@ -116,7 +117,7 @@ function DesktopView({
                       <p className="text-amber-700 font-semibold mb-4">Net speed must be at least {MIN_NET_SPEED_LEARNING} to unlock the next word lesson (only word typing in Learning). Your net speed: {netSpeedLearning}. Practice again to improve.</p>
                     )}
                     <div className="flex gap-3 justify-center">
-                      <a href={closeHref} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold inline-block">Back to Learning</a>
+                      <ReplaceNavLink href={closeHref} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold inline-block">Back to Learning</ReplaceNavLink>
                       <button onClick={handleReset} className="bg-[#290c52] hover:opacity-90 text-white px-6 py-2 rounded-lg font-semibold">Try Again</button>
                     </div>
                   </>
@@ -450,7 +451,7 @@ function PortraitView({
                       <p className="text-amber-700 font-semibold mb-4">Net speed must be at least {MIN_NET_SPEED_LEARNING} to unlock the next word lesson (only word typing in Learning). Your net speed: {netSpeedLearning}. Practice again to improve.</p>
                     )}
                     <div className="flex gap-3 justify-center">
-                      <a href={closeHref} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold inline-block">Back to Learning</a>
+                      <ReplaceNavLink href={closeHref} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold inline-block">Back to Learning</ReplaceNavLink>
                       <button onClick={handleReset} className="bg-[#290c52] hover:opacity-90 text-white px-6 py-2 rounded-lg font-semibold">Try Again</button>
                     </div>
                   </>
@@ -789,13 +790,13 @@ function LandscapeView({
     <>
       <div className="landscape-mobile-view relative z-10 flex flex-col w-full h-full min-h-0 overflow-hidden bg-transparent">
         {/* Close — landscape only, top-right lowercase like reference */}
-        <a
+        <ReplaceNavLink
           href={closeHref}
           aria-label="Close"
           className="landscape-close-link fixed right-2 top-3 z-[9999] px-2.5 py-0.5 text-[11px] font-semibold rounded border border-gray-600 text-white bg-red-500 hover:bg-red-600 lowercase shadow"
         >
           close
-        </a>
+        </ReplaceNavLink>
 
         {/* Stats row — centered at top */}
         <div className="landscape-stats-row flex justify-center items-center gap-2 sm:gap-3 w-full shrink-0 pt-1 pb-1 px-2 bg-transparent">
@@ -953,7 +954,7 @@ function LandscapeView({
           </div>
 
           {/* Right — speedometer + font size (A+ on top, A- below) */}
-          <div className="landscape-right-col flex flex-col items-center w-[16vw] min-w-[76px] max-w-[96px] shrink-0 pt-0 gap-1 bg-transparent">
+          <div className="landscape-right-col landscape-mobile-sidebar flex flex-col items-center w-[16vw] min-w-[76px] max-w-[96px] shrink-0 pt-0 gap-1 text-white bg-transparent">
             <div className="border-[3px] border-black rounded-full">
               <div
                 className="relative bg-black rounded-full border-[3px] border-white flex items-center justify-center"
@@ -1468,7 +1469,7 @@ function TypingTutorForm() {
         };
         if (typeof window !== "undefined") {
           sessionStorage.setItem("learningWordResult", JSON.stringify(resultForPage));
-          window.location.href = "/result/learning-word";
+          window.location.replace("/result/learning-word");
         }
         return;
       }
@@ -1537,7 +1538,7 @@ function TypingTutorForm() {
         setResultId(data.result._id);
         localStorage.setItem('lastTypingResultId', data.result._id);
         // Redirect directly to result page
-        window.location.href = `/result/skill-test?resultId=${data.result._id}`;
+        window.location.replace(`/result/skill-test?resultId=${data.result._id}`);
       } else {
         console.error('Failed to save typing result');
       }
@@ -1819,11 +1820,11 @@ function TypingTutorForm() {
       // If no resultId, redirect to result page
       const storedId = localStorage.getItem('lastTypingResultId');
       if (storedId) {
-        window.location.href = `/result/skill-test?resultId=${storedId}`;
+        window.location.replace(`/result/skill-test?resultId=${storedId}`);
       }
       return;
     }
-    window.location.href = `/result/skill-test?resultId=${resultId}`;
+    window.location.replace(`/result/skill-test?resultId=${resultId}`);
   };
 
   // Common props for all views
@@ -1877,31 +1878,13 @@ function TypingTutorForm() {
 
   return (
     <>
-      {isMobile && isLandscape && (
-        <div className="typing-page-fixed-bg" aria-hidden="true" />
-      )}
     <div
-      className={`min-h-screen mt-30 md:mt-0 px-4 py-6 md:px-14 md:py-12 md:mx-8 md:my-8 rounded-[0px] md:rounded-[100px] typing-background-container relative ${
-        isMobile && isLandscape
-          ? "typing-background-container--landscape"
-          : TYPING_PAGE_BG
+      className={`min-h-screen mt-30 md:mt-0 px-4 py-6 md:px-14 md:py-12 md:mx-8 md:my-8 rounded-[0px] md:rounded-[100px] typing-background-container relative ${TYPING_PAGE_BG}${
+        isMobile && isLandscape ? " typing-background-container--landscape" : ""
       }`}
     >
       <style jsx global>{`
-        .typing-page-fixed-bg {
-          position: fixed;
-          inset: 0;
-          z-index: 0;
-          pointer-events: none;
-          background-color: #290c52;
-          background-image: url("/bg.jpg");
-          background-size: cover;
-          background-position: top center;
-          background-repeat: no-repeat;
-        }
         .typing-background-container--landscape {
-          background-color: transparent !important;
-          background-image: none !important;
           box-shadow: none !important;
         }
         .typing-passage-font {
@@ -2009,31 +1992,14 @@ function TypingTutorForm() {
                (max-width: 767px) and (orientation: landscape),
                (max-height: 600px) and (orientation: landscape),
                (max-height: 500px) and (min-aspect-ratio: 1/1) {
-          html, body,
-          #main-content {
+          html, body {
             height: 100vh !important;
             width: 100vw !important;
             margin: 0 !important;
             padding: 0 !important;
             overflow: hidden !important;
-            background: transparent !important;
-          }
-          html, body {
             position: fixed !important;
           }
-          /* Single fixed bg for entire viewport — no panel overrides */
-          .typing-page-fixed-bg {
-            position: fixed !important;
-            inset: 0 !important;
-            z-index: 0 !important;
-            pointer-events: none !important;
-            background-color: #290c52 !important;
-            background-image: url("/bg.jpg") !important;
-            background-size: cover !important;
-            background-position: top center !important;
-            background-repeat: no-repeat !important;
-          }
-          /* Remove rounded corners and make full width in landscape mobile view */
           .typing-background-container.typing-background-container--landscape {
             border-radius: 0 !important;
             width: 100vw !important;
@@ -2043,17 +2009,18 @@ function TypingTutorForm() {
             max-width: 100vw !important;
             min-height: 100vh !important;
             position: relative !important;
-            z-index: 1 !important;
-            background: none !important;
-            background-color: transparent !important;
-            background-image: none !important;
+            background-color: #290c52 !important;
+            background-image: url("/bg.jpg") !important;
+            background-size: cover !important;
+            background-position: top center !important;
+            background-repeat: no-repeat !important;
+            background-attachment: fixed !important;
             box-shadow: none !important;
           }
           .portrait-typing-main.landscape-mobile-container {
             max-width: none !important;
             width: 100% !important;
             position: relative !important;
-            z-index: 1 !important;
             background: transparent !important;
             display: flex !important;
             flex-direction: column !important;
@@ -2066,11 +2033,13 @@ function TypingTutorForm() {
           .landscape-center-col,
           .landscape-right-col,
           .landscape-stats-row,
-          .landscape-mobile-view {
-            background: none !important;
+          .landscape-mobile-view,
+          .landscape-mobile-sidebar {
+            background: transparent !important;
             background-color: transparent !important;
             background-image: none !important;
             box-shadow: none !important;
+            backdrop-filter: none !important;
           }
           .landscape-mobile-view {
             flex: 1 !important;
@@ -2092,6 +2061,9 @@ function TypingTutorForm() {
             overflow-y: auto !important;
             overflow-x: hidden !important;
             -webkit-overflow-scrolling: touch !important;
+            background: transparent !important;
+            background-color: transparent !important;
+            background-image: none !important;
           }
           .landscape-typing-input-field {
             scroll-margin-bottom: 16vh !important;
