@@ -458,23 +458,15 @@ export default function ExamTypingInterface({
       </svg>
     );
 
-    /* Landscape — original simple gauge (unchanged) */
-    if (variant === "landscape") {
-      return (
-        <div className="relative w-16 h-16 bg-black rounded-full border-4 border-white flex items-center justify-center speedometer-gauge flex-shrink-0">
-          {gaugeSvg}
-          <span className="absolute bottom-3 text-red-500 font-bold text-[10px] speedometer-value">{wpm}</span>
-        </div>
-      );
-    }
+    const resolvedVariant = variant === "landscape" ? "portrait" : variant;
 
     const gaugeSizeClass =
-      variant === "portrait"
+      resolvedVariant === "portrait"
         ? "exam-typing-meter-gauge-portrait w-20 h-20"
         : "exam-typing-meter-gauge-desktop w-20 h-20 md:w-24 md:h-24";
 
     const valueClass =
-      variant === "portrait"
+      resolvedVariant === "portrait"
         ? "absolute bottom-5 text-red-500 font-bold text-xs speedometer-value"
         : "absolute bottom-5 md:bottom-6 text-red-500 font-bold text-xs speedometer-value";
 
@@ -592,7 +584,7 @@ export default function ExamTypingInterface({
         {/* Text to Type Box — 6 visible lines on portrait, scroll for more */}
         <div
           ref={containerRef}
-          className="flex-none bg-white border-y-2 border-gray-300 p-2 mx-0 mt-0 mb-0 overflow-y-auto scrollbar-hide w-full exam-typing-passage-mobile"
+          className="flex-none bg-white border-2 border-gray-300 p-2 mx-[0.35rem] mt-0 mb-0 overflow-y-auto scrollbar-hide w-[calc(100%-0.7rem)] exam-typing-passage-mobile"
           style={{
             height: `calc(${fontSize}px * 1.5 * 6 + 1rem)`,
             maxHeight: `calc(${fontSize}px * 1.5 * 6 + 1rem)`,
@@ -603,7 +595,7 @@ export default function ExamTypingInterface({
         </div>
 
         {/* Input Field — grows to fill space; submit sits at bottom */}
-        <div className="flex-1 min-h-0 flex flex-col px-0 py-0.5 bg-white border-t border-gray-200 w-full exam-typing-input-mobile">
+        <div className="flex-1 min-h-0 flex flex-col px-[0.35rem] py-0.5 bg-white border-t border-gray-200 w-full exam-typing-input-mobile">
           <textarea
             ref={inputRef}
             value={typedText}
@@ -614,7 +606,7 @@ export default function ExamTypingInterface({
             placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
             lang={isHindiTyping ? "hi" : undefined}
             inputMode={isHindiTyping ? "text" : undefined}
-            className="w-full flex-1 min-h-[4.25rem] h-full p-2 border-y-2 border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono resize-none"
+            className="w-full flex-1 min-h-[4.25rem] h-full p-2 border-2 border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono resize-none"
             spellCheck={false}
             autoFocus
             rows={4}
@@ -634,104 +626,121 @@ export default function ExamTypingInterface({
       </div>
       )}
 
-      {/* Mobile landscape typing (≤900px landscape) — side-by-side like desktop */}
+      {/* Mobile landscape typing (≤900px landscape) — stats in left column, sidebar stacked */}
       {typingLayout === "landscape" && (
       <div className="flex flex-col min-h-0 overflow-hidden exam-typing-landscape-mobile-view">
-        {/* Stats row below header */}
-        <div className="flex-shrink-0 bg-white border-b border-gray-200 exam-typing-landscape-stats">
-          <div className="flex gap-0.5 items-stretch justify-center h-full">
-            <div className="flex-1 min-w-0 rounded overflow-hidden text-center exam-typing-landscape-stat-card">
-              <div className="bg-black text-white text-[8px] font-semibold">Correct</div>
-              <div className="bg-white text-green-600 text-[10px] font-bold">{correctWords}</div>
-            </div>
-            <div className="flex-1 min-w-0 rounded overflow-hidden text-center exam-typing-landscape-stat-card">
-              <div className="bg-black text-white text-[8px] font-semibold">Wrong</div>
-              <div className="bg-white text-red-500 text-[10px] font-bold">{wrongWords}</div>
-            </div>
-            <div className="flex-1 min-w-0 rounded overflow-hidden text-center exam-typing-landscape-stat-card">
-              <div className="bg-black text-white text-[8px] font-semibold">Total</div>
-              <div className="bg-white text-[#290c52] text-[10px] font-bold">{totalTyped}</div>
-            </div>
-            <div className="flex-1 min-w-0 rounded overflow-hidden text-center exam-typing-landscape-stat-card">
-              <div className="bg-black text-white text-[8px] font-semibold">Backspace</div>
-              <div className="bg-white text-blue-500 text-[10px] font-bold">{backspaceCount}</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-row min-h-0 overflow-hidden exam-typing-landscape-body typing-landscape-main">
-          {/* Left: passage + typing — 68% */}
+        <div className="flex flex-row flex-1 min-h-0 overflow-hidden exam-typing-landscape-body typing-landscape-main">
+          {/* Left: stats + typing — 68% */}
           <div className="w-[68%] flex flex-col min-h-0 overflow-hidden exam-typing-landscape-left typing-left-panel">
-            <div
-              ref={containerRef}
-              className="bg-white border-2 border-gray-300 rounded-lg p-1.5 overflow-y-auto scrollbar-hide exam-typing-landscape-passage typing-passage-box"
-            >
-              {renderTextContent()}
-            </div>
-            <div className="exam-typing-landscape-input-wrap typing-textarea-wrap min-h-0 flex-1">
-              <textarea
-                ref={inputRef}
-                value={typedText}
-                onInput={handleInputChange}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
-                placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
-                lang={isHindiTyping ? "hi" : undefined}
-                inputMode={isHindiTyping ? "text" : undefined}
-                className="w-full h-full p-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs font-mono resize-none exam-typing-landscape-input typing-textarea"
-                spellCheck={false}
-                autoFocus
-              />
-            </div>
-          </div>
-
-          {/* Right: profile+meter, font buttons, submit — 32% */}
-          <div className="w-[32%] flex-shrink-0 flex flex-col border-l border-gray-200 bg-white overflow-hidden exam-typing-landscape-sidebar typing-right-panel">
-            <div className="w-full flex-1 min-h-0 exam-typing-landscape-sidebar-main typing-right-panel-main">
-              <div className="flex flex-row items-center justify-between gap-1 w-full exam-typing-landscape-sidebar-top profile-meter-row">
-                <div className="flex flex-col items-center min-w-0 flex-1 exam-typing-landscape-sidebar-profile">
-                  <img
-                    src={userProfileUrl}
-                    alt={userName}
-                    className="w-10 h-10 rounded-full border-2 border-gray-300 flex-shrink-0 object-cover"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = "/lo.jpg";
-                    }}
-                  />
-                  <p className="text-[9px] text-center font-semibold text-gray-700 whitespace-nowrap max-w-full truncate exam-typing-landscape-username">{userName}</p>
+            <div className="flex-shrink-0 bg-white border-b border-gray-200 exam-typing-landscape-stats">
+              <div className="flex gap-0.5 items-stretch h-full px-[0.15rem] py-0.5 exam-typing-landscape-stats-grid">
+                <div className="flex-1 min-w-0 rounded overflow-hidden text-center exam-typing-landscape-stat-card">
+                  <div className="bg-black text-white text-[8px] font-semibold">Correct</div>
+                  <div className="bg-white text-green-600 text-[10px] font-bold">{correctWords}</div>
                 </div>
-                <div className="flex-shrink-0 exam-typing-landscape-sidebar-meter speed-meter">
-                  {renderSpeedometer("landscape")}
+                <div className="flex-1 min-w-0 rounded overflow-hidden text-center exam-typing-landscape-stat-card">
+                  <div className="bg-black text-white text-[8px] font-semibold">Wrong</div>
+                  <div className="bg-white text-red-500 text-[10px] font-bold">{wrongWords}</div>
+                </div>
+                <div className="flex-1 min-w-0 rounded overflow-hidden text-center exam-typing-landscape-stat-card">
+                  <div className="bg-black text-white text-[8px] font-semibold">Total</div>
+                  <div className="bg-white text-[#290c52] text-[10px] font-bold">{totalTyped}</div>
+                </div>
+                <div className="flex-1 min-w-0 rounded overflow-hidden text-center exam-typing-landscape-stat-card">
+                  <div className="bg-black text-white text-[8px] font-semibold">Backspace</div>
+                  <div className="bg-white text-blue-500 text-[10px] font-bold">{backspaceCount}</div>
                 </div>
               </div>
+            </div>
 
-              <div className="w-full flex-shrink-0 flex flex-col gap-1 exam-typing-landscape-controls font-controls">
-                <div className="w-full flex-shrink-0 exam-typing-landscape-font-block">
-                  <p className="text-black text-[10px] font-semibold text-center exam-typing-landscape-font-label">Font size</p>
-                  <div className="flex flex-row gap-1 w-full exam-typing-landscape-font-row">
+            <div className="flex flex-col flex-1 min-h-0 overflow-hidden exam-typing-landscape-typing-area">
+              <div
+                ref={containerRef}
+                className="bg-white border-2 border-gray-300 rounded-lg p-1.5 overflow-y-auto scrollbar-hide exam-typing-landscape-passage typing-passage-box"
+              >
+                {renderTextContent()}
+              </div>
+              <div className="exam-typing-landscape-input-wrap typing-textarea-wrap min-h-0 flex-1">
+                <textarea
+                  ref={inputRef}
+                  value={typedText}
+                  onInput={handleInputChange}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  onKeyUp={isHindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
+                  placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
+                  lang={isHindiTyping ? "hi" : undefined}
+                  inputMode={isHindiTyping ? "text" : undefined}
+                  className="w-full h-full p-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs font-mono resize-none exam-typing-landscape-input typing-textarea"
+                  spellCheck={false}
+                  autoFocus
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Right sidebar — profile, meter, font, submit stacked */}
+          <div className="w-[32%] flex-shrink-0 flex flex-col border-l border-gray-200 bg-white overflow-hidden exam-typing-landscape-sidebar typing-right-panel">
+            <div className="w-full flex-1 min-h-0 flex flex-col overflow-hidden exam-typing-landscape-sidebar-main typing-right-panel-main">
+              {isHindiTyping && (
+                <div className="flex-shrink-0 flex flex-row items-center justify-center gap-1 w-full px-1 py-0.5 border-b border-gray-200 exam-typing-landscape-keyboard exam-typing-landscape-keyboard-sidebar landscape-keyboard-dropdown">
+                  <label className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[8px] font-semibold whitespace-nowrap shrink-0 leading-none">
+                    Keyboard:
+                  </label>
+                  <select
+                    value={hindiKeyboardType}
+                    onChange={(e) => onHindiKeyboardTypeChange?.(e.target.value)}
+                    className="w-[5rem] max-w-[5rem] border border-gray-300 rounded px-0.5 py-0 text-[8px] bg-white text-black focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer shrink-0 leading-none"
+                  >
+                    <option value="Remington Gail">Remington Gail</option>
+                    <option value="Inscript">Inscript</option>
+                  </select>
+                </div>
+              )}
+              <div className="flex-shrink-0 flex flex-col items-center w-full exam-typing-landscape-sidebar-profile-block">
+                <img
+                  src={userProfileUrl}
+                  alt={userName}
+                  className="w-8 h-8 rounded-md border-2 border-gray-300 flex-shrink-0 object-cover exam-typing-landscape-sidebar-avatar"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "/lo.jpg";
+                  }}
+                />
+                <p className="text-[8px] text-center font-semibold text-gray-900 whitespace-nowrap max-w-full truncate mt-0.5 leading-tight exam-typing-landscape-username">
+                  {userName}
+                </p>
+              </div>
+
+              <div className="flex-1 min-h-0 flex items-center justify-center w-full overflow-hidden exam-typing-landscape-meter-block exam-typing-landscape-sidebar-meter speed-meter">
+                {renderSpeedometer("landscape")}
+              </div>
+
+              <div className="flex-shrink-0 w-full box-border px-1 pt-0.5 pb-1 exam-typing-landscape-bottom-panel">
+                <div className="w-full max-w-full exam-typing-landscape-font-block">
+                  <p className="text-black text-[9px] font-semibold text-center leading-none mb-0.5 exam-typing-landscape-font-label">Font size</p>
+                  <div className="flex flex-row gap-0.5 w-full max-w-full exam-typing-landscape-font-row">
                     <button
                       type="button"
                       onClick={() => setFontSize(prev => Math.max(12, prev - 2))}
-                      className="flex-1 bg-white text-red-600 border border-black rounded px-1 py-0.5 hover:bg-gray-100 transition-colors text-[9px] font-semibold exam-typing-font-btn exam-typing-font-btn-minus"
+                      className="flex-1 min-w-0 bg-white text-red-600 border border-black rounded px-0.5 py-0.5 hover:bg-gray-100 transition-colors text-[9px] font-semibold exam-typing-font-btn exam-typing-font-btn-minus"
                     >
                       A -
                     </button>
                     <button
                       type="button"
                       onClick={() => setFontSize(prev => Math.min(24, prev + 2))}
-                      className="flex-1 bg-white text-green-600 border border-black rounded px-1 py-0.5 hover:bg-gray-100 transition-colors text-[9px] font-semibold exam-typing-font-btn exam-typing-font-btn-plus"
+                      className="flex-1 min-w-0 bg-white text-green-600 border border-black rounded px-0.5 py-0.5 hover:bg-gray-100 transition-colors text-[9px] font-semibold exam-typing-font-btn exam-typing-font-btn-plus"
                     >
                       A +
                     </button>
                   </div>
                 </div>
-                <div className="w-full flex-shrink-0 exam-typing-landscape-submit-wrap submit-section">
+                <div className="w-full max-w-full exam-typing-landscape-submit-wrap submit-section flex justify-center mt-1">
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    className="w-full bg-blue-600 text-white rounded-md text-[10px] font-semibold hover:bg-blue-700 transition-colors exam-typing-landscape-submit"
+                    className="w-full max-w-full bg-blue-600 text-white rounded-md text-[9px] font-bold hover:bg-blue-700 transition-colors exam-typing-landscape-submit py-1"
                   >
                     Submit Section
                   </button>

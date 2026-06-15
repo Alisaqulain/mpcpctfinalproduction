@@ -1395,21 +1395,24 @@ function ExamModeContent() {
           box-sizing: border-box !important;
         }
         [data-exam-mode="typing"] .exam-typing-passage-mobile {
-          margin-left: 0 !important;
-          margin-right: 0 !important;
+          margin-left: 0.35rem !important;
+          margin-right: 0.35rem !important;
           border-radius: 0 !important;
-          width: 100% !important;
-          max-width: 100% !important;
+          width: calc(100% - 0.7rem) !important;
+          max-width: calc(100% - 0.7rem) !important;
+          border: 2px solid #d1d5db !important;
+          box-sizing: border-box !important;
         }
         [data-exam-mode="typing"] .exam-typing-input-mobile {
-          padding-left: 0 !important;
-          padding-right: 0 !important;
+          padding-left: 0.35rem !important;
+          padding-right: 0.35rem !important;
           width: 100% !important;
+          box-sizing: border-box !important;
         }
         [data-exam-mode="typing"] .exam-typing-input-mobile textarea {
           border-radius: 0 !important;
-          border-left: none !important;
-          border-right: none !important;
+          border: 2px solid #d1d5db !important;
+          box-sizing: border-box !important;
         }
         [data-exam-mode="typing"] .exam-typing-submit-mobile {
           padding: 0.5rem 0.75rem !important;
@@ -1735,23 +1738,7 @@ function ExamModeContent() {
           flex-direction: column !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-keyboard {
-          display: flex !important;
-          align-items: center !important;
-          gap: 0.15rem !important;
-          flex-shrink: 0 !important;
-        }
-        [data-exam-mode="typing"] .exam-typing-header-keyboard label {
-          font-size: 0.5rem !important;
-          padding: 0.05rem 0.2rem !important;
-          line-height: 1 !important;
-        }
-        [data-exam-mode="typing"] .exam-typing-header-keyboard select {
-          font-size: 0.5rem !important;
-          padding: 0.05rem 0.15rem !important;
-          min-width: 4.5rem !important;
-          max-width: 5.25rem !important;
-          height: 1.1rem !important;
-          line-height: 1 !important;
+          display: none !important;
         }
         [data-exam-mode="typing"] .exam-typing-portrait-view {
           display: none !important;
@@ -1787,8 +1774,108 @@ function ExamModeContent() {
           height: var(--exam-landscape-stats-h) !important;
           min-height: var(--exam-landscape-stats-h) !important;
           max-height: var(--exam-landscape-stats-h) !important;
-          padding: 0.15rem 0.35rem !important;
+          padding: 0 !important;
           overflow: hidden !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-stats-grid {
+          height: 100% !important;
+          width: 100% !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-keyboard-sidebar {
+          display: flex !important;
+          flex-direction: row !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 0.15rem !important;
+          flex-shrink: 0 !important;
+          width: 100% !important;
+          min-height: 0 !important;
+          max-height: 1.25rem !important;
+          height: 1.25rem !important;
+          padding: 0.08rem 0.2rem !important;
+          box-sizing: border-box !important;
+          overflow: hidden !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-keyboard-sidebar.landscape-keyboard-dropdown {
+          min-height: 0 !important;
+          max-height: 1.25rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-keyboard-sidebar label {
+          font-size: 8px !important;
+          padding: 0.1rem 0.35rem !important;
+          line-height: 1 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-keyboard-sidebar select {
+          font-size: 8px !important;
+          padding: 0.04rem 0.12rem !important;
+          flex: 0 0 auto !important;
+          min-width: 0 !important;
+          width: 5rem !important;
+          max-width: 5rem !important;
+          height: 1rem !important;
+          line-height: 1 !important;
+          box-sizing: border-box !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-keyboard-sidebar.landscape-keyboard-dropdown select {
+          min-width: 0 !important;
+          width: 5rem !important;
+          max-width: 5rem !important;
+          height: 1rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) {
+          gap: 0.08rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-sidebar-avatar {
+          width: 1.75rem !important;
+          height: 1.75rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-sidebar-profile-block .exam-typing-landscape-username {
+          margin-top: 0.05rem !important;
+          font-size: 7px !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-meter-gauge-portrait {
+          width: 2.55rem !important;
+          height: 2.55rem !important;
+          max-width: 2.55rem !important;
+          max-height: 2.55rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-meter-gauge-portrait .speedometer-value {
+          bottom: 0.55rem !important;
+          font-size: 0.5rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-bottom-panel {
+          padding-top: 0 !important;
+          padding-bottom: 0.08rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-font-label {
+          font-size: 8px !important;
+          margin-bottom: 0.05rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-font-btn {
+          min-height: 1.05rem !important;
+          padding: 0.12rem 0.08rem !important;
+          font-size: 8px !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-submit-wrap {
+          margin-top: 0.12rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-submit {
+          min-height: 1.15rem !important;
+          padding: 0.12rem 0.1rem !important;
+          font-size: 8px !important;
+          line-height: 1.1 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-typing-area {
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          display: flex !important;
+          flex-direction: column !important;
+          overflow: hidden !important;
+          padding: 0.15rem !important;
+          gap: 0.15rem !important;
+          box-sizing: border-box !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-stat-card {
           height: 100% !important;
@@ -1815,11 +1902,12 @@ function ExamModeContent() {
           flex: 1 1 auto !important;
           width: 100% !important;
           max-width: 100% !important;
-          height: calc(var(--exam-landscape-vh, 100dvh) - var(--exam-landscape-header-h) - var(--exam-landscape-stats-h)) !important;
-          max-height: calc(var(--exam-landscape-vh, 100dvh) - var(--exam-landscape-header-h) - var(--exam-landscape-stats-h)) !important;
+          height: calc(var(--exam-landscape-vh, 100dvh) - var(--exam-landscape-header-h)) !important;
+          max-height: calc(var(--exam-landscape-vh, 100dvh) - var(--exam-landscape-header-h)) !important;
           min-height: 0 !important;
           overflow: hidden !important;
           overflow-x: hidden !important;
+          background-color: #ffffff !important;
           opacity: 1 !important;
           visibility: visible !important;
           transform: none !important;
@@ -1835,9 +1923,10 @@ function ExamModeContent() {
           display: flex !important;
           flex-direction: column !important;
           overflow: hidden !important;
-          padding: 0.15rem !important;
-          gap: 0.15rem !important;
+          padding: 0 !important;
+          gap: 0 !important;
           box-sizing: border-box !important;
+          background: #fff !important;
           opacity: 1 !important;
           visibility: visible !important;
         }
@@ -1866,7 +1955,7 @@ function ExamModeContent() {
           flex-direction: column !important;
           overflow: hidden !important;
           margin: 0 !important;
-     .    padding: 0 !important;
+          padding: 0 !important;
           box-sizing: border-box !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-input,
@@ -1891,11 +1980,12 @@ function ExamModeContent() {
           min-height: 0 !important;
           display: flex !important;
           flex-direction: column !important;
-          justify-content: space-between !important;
+          justify-content: flex-start !important;
           overflow: hidden !important;
-          padding: 0.25rem !important;
-          gap: 0.2rem !important;
+          padding: 0.15rem 0.35rem 0.2rem !important;
+          gap: 0 !important;
           box-sizing: border-box !important;
+          background: #fff !important;
           opacity: 1 !important;
           visibility: visible !important;
         }
@@ -1904,23 +1994,111 @@ function ExamModeContent() {
           flex: 1 1 auto !important;
           width: 100% !important;
           min-height: 0 !important;
+          height: 100% !important;
+          max-height: 100% !important;
           overflow: hidden !important;
           display: flex !important;
           flex-direction: column !important;
-          justify-content: space-between !important;
-          gap: 0.2rem !important;
+          justify-content: flex-start !important;
+          gap: 0.15rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-profile-block {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          width: 100% !important;
+          flex: 0 0 auto !important;
+          flex-shrink: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-avatar {
+          width: 2rem !important;
+          height: 2rem !important;
+          border-radius: 0.375rem !important;
+          object-fit: cover !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-profile-block .exam-typing-landscape-username {
+          font-size: 8px !important;
+          line-height: 1.1 !important;
+          padding: 0 !important;
+          margin-top: 0.1rem !important;
+          color: #111827 !important;
+          background: transparent !important;
+          width: 100% !important;
+          text-align: center !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-meter-block {
+          background-color: #ffffff !important;
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          max-height: 100% !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-bottom-panel {
+          flex: 0 0 auto !important;
+          flex-shrink: 0 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          overflow: visible !important;
+          padding-bottom: 0.1rem !important;
+          background: #fff !important;
+          box-sizing: border-box !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-ring {
+          border: 3px solid #000 !important;
+          border-radius: 9999px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-shrink: 1 !important;
+          line-height: 0 !important;
+          max-width: 92% !important;
+          max-height: 100% !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge {
+          background: #000 !important;
+          border: 3px solid #fff !important;
+          border-radius: 9999px !important;
+          position: relative !important;
+          overflow: hidden !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge .speedometer-svg {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: 100% !important;
+          max-height: 100% !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge-portrait {
+          width: 3rem !important;
+          height: 3rem !important;
+          min-width: 0 !important;
+          min-height: 0 !important;
+          max-width: 3rem !important;
+          max-height: 3rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge-portrait .speedometer-value {
+          bottom: 0.65rem !important;
+          font-size: 0.55rem !important;
+          line-height: 1 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar .speedometer-label {
+          font-size: 6px !important;
+          left: 0.15rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-top,
         [data-exam-mode="typing"] .profile-meter-row {
           flex: 0 0 auto !important;
           max-height: none !important;
           align-items: center !important;
-          justify-content: space-around !important;
+          justify-content: center !important;
           width: 100% !important;
           overflow: visible !important;
           display: flex !important;
-          flex-direction: row !important;
-          padding: 0.1rem 0 !important;
+          flex-direction: column !important;
+          padding: 0 !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-profile {
           flex: 1 1 auto !important;
@@ -1928,8 +2106,8 @@ function ExamModeContent() {
           max-width: 46% !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-profile img {
-          width: clamp(2rem, 8vw, 2.75rem) !important;
-          height: clamp(2rem, 8vw, 2.75rem) !important;
+          width: 2rem !important;
+          height: 2rem !important;
           object-fit: cover !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-landscape-username {
@@ -1937,35 +2115,19 @@ function ExamModeContent() {
           margin-top: 0.15rem !important;
           line-height: 1.1 !important;
           max-width: 100% !important;
+          color: #111827 !important;
+          background: transparent !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-meter,
         [data-exam-mode="typing"] .speed-meter {
-          flex: 0 0 auto !important;
-          max-width: 48% !important;
+          flex: none !important;
+          max-width: 100% !important;
+          width: 100% !important;
           overflow: visible !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
-          padding: 0.1rem !important;
-        }
-        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-meter .speedometer-gauge,
-        [data-exam-mode="typing"] .speed-meter .speedometer-gauge {
-          width: clamp(3rem, 10vw, 3.75rem) !important;
-          height: clamp(3rem, 10vw, 3.75rem) !important;
-          min-width: 3rem !important;
-          min-height: 3rem !important;
-          max-width: 3.75rem !important;
-          max-height: 3.75rem !important;
-          border-width: 2px !important;
-          overflow: hidden !important;
-          position: relative !important;
-        }
-        [data-exam-mode="typing"] .exam-typing-landscape-sidebar-meter .speedometer-svg,
-        [data-exam-mode="typing"] .speed-meter .speedometer-svg {
-          width: clamp(2.65rem, 8.5vw, 3.35rem) !important;
-          height: clamp(2.65rem, 8.5vw, 3.35rem) !important;
-          max-width: clamp(2.65rem, 8.5vw, 3.35rem) !important;
-          max-height: clamp(2.65rem, 8.5vw, 3.35rem) !important;
+          padding: 0 !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-meter .speedometer-value,
         [data-exam-mode="typing"] .speed-meter .speedometer-value {
@@ -1979,6 +2141,7 @@ function ExamModeContent() {
           flex-direction: column !important;
           gap: 0.25rem !important;
           width: 100% !important;
+          flex: 0 0 auto !important;
           flex-shrink: 0 !important;
           position: relative !important;
           z-index: 3 !important;
@@ -1997,15 +2160,16 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .exam-typing-landscape-submit-wrap,
         [data-exam-mode="typing"] .submit-section {
-          display: block !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
           width: 100% !important;
           flex: 0 0 auto !important;
           flex-shrink: 0 !important;
-          margin-top: 0.15rem !important;
-          padding-top: 0.15rem !important;
+          margin-top: 0.25rem !important;
+          padding-top: 0 !important;
           position: relative !important;
           z-index: 2 !important;
-          clear: both !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-font-label {
           font-size: 9px !important;
@@ -2018,19 +2182,25 @@ function ExamModeContent() {
           flex-direction: row !important;
           gap: 0.25rem !important;
           width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
           visibility: visible !important;
           opacity: 1 !important;
           overflow: visible !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-font-btn {
           flex: 1 1 0 !important;
+          min-width: 0 !important;
+          max-width: 50% !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
-          padding: 0.15rem 0.25rem !important;
+          padding: 0.2rem 0.1rem !important;
           font-size: 9px !important;
-          min-height: 1.35rem !important;
-          max-height: 1.35rem !important;
+          min-height: 1.25rem !important;
+          height: auto !important;
+          max-height: none !important;
+          line-height: 1 !important;
           cursor: pointer !important;
           touch-action: manipulation !important;
           visibility: visible !important;
@@ -2050,16 +2220,19 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .exam-typing-landscape-submit {
           width: 100% !important;
+          max-width: 100% !important;
           flex: 0 0 auto !important;
-          padding: 0.35rem 0.2rem !important;
+          padding: 0.25rem 0.2rem !important;
           font-size: 9px !important;
-          line-height: 1.2 !important;
-          min-height: 1.65rem !important;
+          line-height: 1.15 !important;
+          min-height: 1.45rem !important;
+          height: auto !important;
+          border-radius: 0.375rem !important;
+          font-weight: 700 !important;
           margin-top: 0 !important;
           display: block !important;
-          align-items: center !important;
-          justify-content: center !important;
           text-align: center !important;
+          white-space: nowrap !important;
           cursor: pointer !important;
           touch-action: manipulation !important;
           box-sizing: border-box !important;
@@ -2506,13 +2679,15 @@ function ExamModeContent() {
       try {
         setLoading(true);
         
-        // Load user data
+        // Load user data — exam-login form name takes priority over profile name
+        let examFormName = "";
         const userDataStr = localStorage.getItem('examUserData');
         if (userDataStr) {
           try {
             const userData = JSON.parse(userDataStr);
             setExamUserRecord((prev) => ({ ...(prev || {}), ...userData }));
             if (userData.name) {
+              examFormName = String(userData.name).trim();
               setUserName(userData.name);
             }
           } catch (error) {
@@ -2526,7 +2701,9 @@ function ExamModeContent() {
             const profData = await profRes.json();
             if (profData.user) {
               setExamUserRecord((prev) => ({ ...(prev || {}), ...profData.user }));
-              if (profData.user.name) setUserName(profData.user.name);
+              if (!examFormName && profData.user.name) {
+                setUserName(profData.user.name);
+              }
             }
           }
         } catch {
