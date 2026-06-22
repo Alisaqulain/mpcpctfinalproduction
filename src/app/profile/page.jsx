@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import jsPDF from "jspdf";
 
@@ -11,6 +11,13 @@ export default function ProfilePage() {
   const [typingActivity, setTypingActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState(null);
+  const fileInputRef = useRef(null);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -115,6 +122,94 @@ export default function ProfilePage() {
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  const openEditProfile = () => {
+    if (!user) return;
+    setEditName(user.name || "");
+    setPhotoPreview(user.profileUrl || "/user.jpg");
+    setPhotoFile(null);
+    setEditError(null);
+    setIsEditing(true);
+  };
+
+  const closeEditProfile = () => {
+    setIsEditing(false);
+    setPhotoFile(null);
+    setEditError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setEditError("Please select a valid image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setEditError("Image must be smaller than 5MB.");
+      return;
+    }
+    setEditError(null);
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    const trimmedName = editName.trim();
+    if (!trimmedName) {
+      setEditError("Name is required.");
+      return;
+    }
+
+    setSaving(true);
+    setEditError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("name", trimmedName);
+      if (photoFile) {
+        formData.append("profile", photoFile);
+      }
+
+      const response = await fetch("/api/profile", {
+        method: "PATCH",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setEditError(data.error || "Failed to update profile.");
+        return;
+      }
+
+      setUser((prev) => ({ ...prev, ...data.user }));
+      closeEditProfile();
+
+      try {
+        const examUserDataStr = localStorage.getItem("examUserData");
+        if (examUserDataStr) {
+          const examUserData = JSON.parse(examUserDataStr);
+          examUserData.name = data.user.name;
+          localStorage.setItem("examUserData", JSON.stringify(examUserData));
+        }
+      } catch {
+        // ignore localStorage errors
+      }
+
+      window.dispatchEvent(
+        new CustomEvent("authStateChanged", { detail: { isAuthenticated: true } })
+      );
+    } catch {
+      setEditError("Network error. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleDownloadPDF = async (result) => {
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -427,6 +522,15 @@ export default function ProfilePage() {
       <div className="max-w-6xl mx-auto">
         {/* Profile Card */}
         <div className="bg-white shadow-2xl rounded-3xl p-8 mb-6">
+          <div className="flex justify-end mb-2">
+            <button
+              type="button"
+              onClick={openEditProfile}
+              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm font-semibold transition-colors"
+            >
+              Edit Profile
+            </button>
+          </div>
           <div className="group">
             <img
               src={user.profileUrl || "/user.jpg"}
@@ -447,6 +551,113 @@ export default function ProfilePage() {
             <InfoRow label="State" value={user.states} />
           </div>
         </div>
+
+        {isEditing && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-gray-800">Edit Profile</h3>
+                <button
+                  type="button"
+                  onClick={closeEditProfile}
+                  className="text-gray-500 hover:text-gray-800 text-2xl leading-none"
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveProfile} className="space-y-5">
+                <div className="text-center">
+                  <img
+                    src={photoPreview || "/user.jpg"}
+                    alt="Profile preview"
+                    className="w-24 h-24 rounded-full mx-auto border-4 border-purple-500 object-cover"
+                    onError={(e) => {
+                      e.target.src = "/user.jpg";
+                    }}
+                  />
+                  <label className="mt-3 inline-block cursor-pointer text-sm text-purple-600 hover:text-purple-700 font-semibold">
+                    Change photo
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                <div>
+                  <label htmlFor="editName" className="block text-sm font-semibold text-gray-600 mb-1">
+                    Name
+                  </label>
+                  <input
+                    id="editName"
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    maxLength={100}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-gray-900"
+                    placeholder="Your name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="editEmail" className="block text-sm font-semibold text-gray-600 mb-1">
+                    Email
+                  </label>
+                  <input
+                    id="editEmail"
+                    type="email"
+                    value={user.email || ""}
+                    disabled
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Email cannot be changed</p>
+                </div>
+
+                <div>
+                  <label htmlFor="editPhone" className="block text-sm font-semibold text-gray-600 mb-1">
+                    Mobile
+                  </label>
+                  <input
+                    id="editPhone"
+                    type="text"
+                    value={user.phoneNumber || ""}
+                    disabled
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Phone number cannot be changed</p>
+                </div>
+
+                {editError && (
+                  <p className="text-sm text-red-600">{editError}</p>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={closeEditProfile}
+                    disabled={saving}
+                    className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="flex-1 px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+                  >
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Membership/Subscription Section */}
         <div className="bg-white shadow-2xl rounded-3xl p-8 mb-6">

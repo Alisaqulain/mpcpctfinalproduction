@@ -154,16 +154,16 @@ export default function ExamCategoryPage() {
       <div className="sticky top-0 z-50 bg-white shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4 mb-4">
-            <button
-              type="button"
-              onClick={() => router.push("/exam")}
+          <button
+            type="button"
+            onClick={() => router.push("/exam")}
               className="text-sm text-[#290c52] font-medium shrink-0"
-            >
-              ← Categories
-            </button>
+          >
+            ← Categories
+          </button>
             <h1 className="text-xl font-bold flex-1 text-center pr-16 truncate">
               {category?.name || "Exam Mode"}
-            </h1>
+          </h1>
           </div>
 
           {tabs.length > 0 && (
@@ -195,7 +195,7 @@ export default function ExamCategoryPage() {
             </div>
           )}
 
-          {!loading && subs.length === 0 && (
+        {!loading && subs.length === 0 && (
             <div className="text-center py-8 border border-gray-200 rounded-xl">
               <p className="text-gray-600">No exam types in this category yet.</p>
             </div>
