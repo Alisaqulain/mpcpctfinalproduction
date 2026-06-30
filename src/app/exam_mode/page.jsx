@@ -1281,6 +1281,10 @@ function ExamModeContent() {
         [data-exam-mode="typing"] .exam-typing-header-links {
           display: none !important;
         }
+        [data-exam-mode="typing"] .landscape-reduce-header a[href="/"],
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-portrait-hide-home {
+          display: none !important;
+        }
         [data-exam-mode="typing"] .exam-mobile-section-nav,
         [data-exam-mode="typing"] .exam-desktop-section-nav {
           display: none !important;
@@ -1591,8 +1595,8 @@ function ExamModeContent() {
         [data-exam-mode="typing"] {
           --exam-landscape-header-h: 2.75rem;
           --exam-landscape-stats-h: 1.75rem;
-          --exam-landscape-sidebar-w: 32%;
-          --exam-landscape-left-w: 68%;
+          --exam-landscape-sidebar-w: 28%;
+          --exam-landscape-left-w: 72%;
         }
         [data-exam-mode="mcq"] {
           --mcq-landscape-header-h: 2.75rem;
@@ -1610,8 +1614,7 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-portrait-hide-home,
         [data-exam-mode="typing"] .landscape-reduce-header a[href="/"] {
-          display: inline-flex !important;
-          align-items: center !important;
+          display: none !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-profile,
         [data-exam-mode="typing"] .exam-typing-header-profile-portrait {
@@ -1808,42 +1811,48 @@ function ExamModeContent() {
           display: flex !important;
           flex-direction: row !important;
           align-items: center !important;
-          justify-content: center !important;
-          gap: 0.15rem !important;
+          justify-content: flex-start !important;
+          gap: 0.2rem !important;
           flex-shrink: 0 !important;
           width: 100% !important;
           min-height: 0 !important;
-          max-height: 1.25rem !important;
-          height: 1.25rem !important;
-          padding: 0.08rem 0.2rem !important;
+          max-height: none !important;
+          height: auto !important;
+          padding: 0.15rem 0.25rem !important;
           box-sizing: border-box !important;
-          overflow: hidden !important;
+          overflow: visible !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-keyboard-sidebar.landscape-keyboard-dropdown {
           min-height: 0 !important;
-          max-height: 1.25rem !important;
+          max-height: none !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-keyboard-sidebar label {
           font-size: 8px !important;
-          padding: 0.1rem 0.35rem !important;
+          padding: 0.12rem 0.25rem !important;
           line-height: 1 !important;
+          text-align: center !important;
+          flex-shrink: 0 !important;
+          white-space: nowrap !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-keyboard-sidebar select {
           font-size: 8px !important;
-          padding: 0.04rem 0.12rem !important;
-          flex: 0 0 auto !important;
+          padding: 0.12rem 0.15rem !important;
+          flex: 1 1 auto !important;
           min-width: 0 !important;
-          width: 5rem !important;
-          max-width: 5rem !important;
-          height: 1rem !important;
-          line-height: 1 !important;
+          width: auto !important;
+          max-width: 100% !important;
+          height: auto !important;
+          min-height: 1.1rem !important;
+          line-height: 1.1 !important;
           box-sizing: border-box !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-keyboard-sidebar.landscape-keyboard-dropdown select {
           min-width: 0 !important;
-          width: 5rem !important;
-          max-width: 5rem !important;
-          height: 1rem !important;
+          flex: 1 1 auto !important;
+          width: auto !important;
+          max-width: 100% !important;
+          height: auto !important;
+          min-height: 1.1rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) {
           gap: 0.08rem !important;
@@ -1875,8 +1884,10 @@ function ExamModeContent() {
           margin-bottom: 0.05rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-font-btn {
-          min-height: 1.05rem !important;
-          padding: 0.12rem 0.08rem !important;
+          min-height: 1.2rem !important;
+          height: 1.2rem !important;
+          max-height: 1.2rem !important;
+          padding: 0.2rem 0.1rem !important;
           font-size: 8px !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-submit-wrap {
@@ -1888,15 +1899,73 @@ function ExamModeContent() {
           font-size: 8px !important;
           line-height: 1.1 !important;
         }
+        [data-exam-mode="typing"] .exam-typing-landscape-passage,
+        [data-exam-mode="typing"] .typing-passage-box {
+          flex: 0 0 var(--exam-typing-line-box-h, auto) !important;
+          height: var(--exam-typing-line-box-h, auto) !important;
+          max-height: var(--exam-typing-line-box-h, auto) !important;
+          min-height: var(--exam-typing-line-box-h, auto) !important;
+          min-width: 0 !important;
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
+          -webkit-overflow-scrolling: touch !important;
+          padding: 0.25rem !important;
+          margin: 0 !important;
+          box-sizing: border-box !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-input-wrap,
+        [data-exam-mode="typing"] .typing-textarea-wrap {
+          flex: 0 0 var(--exam-typing-line-box-h, auto) !important;
+          height: var(--exam-typing-line-box-h, auto) !important;
+          max-height: var(--exam-typing-line-box-h, auto) !important;
+          min-height: var(--exam-typing-line-box-h, auto) !important;
+          display: flex !important;
+          flex-direction: column !important;
+          overflow: hidden !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          box-sizing: border-box !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          border: 2px solid #d1d5db !important;
+          border-radius: 0.5rem !important;
+          background: #fff !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-input,
+        [data-exam-mode="typing"] .typing-textarea {
+          flex: 1 1 auto !important;
+          width: 100% !important;
+          height: 100% !important;
+          min-height: 0 !important;
+          max-height: 100% !important;
+          margin: 0 !important;
+          padding: 0.25rem !important;
+          box-sizing: border-box !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+          display: block !important;
+          resize: none !important;
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch !important;
+          border: none !important;
+          outline: none !important;
+          background: #fff !important;
+          border-radius: 0.375rem !important;
+        }
         [data-exam-mode="typing"] .exam-typing-landscape-typing-area {
           flex: 1 1 auto !important;
           min-height: 0 !important;
           display: flex !important;
           flex-direction: column !important;
-          overflow: hidden !important;
-          padding: 0.15rem !important;
+          justify-content: flex-start !important;
+          overflow-x: hidden !important;
+          overflow-y: auto !important;
+          padding: 0.1rem 0.15rem 0.4rem !important;
           gap: 0.15rem !important;
           box-sizing: border-box !important;
+          -webkit-overflow-scrolling: touch !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-stat-card {
           height: 100% !important;
@@ -1944,53 +2013,12 @@ function ExamModeContent() {
           display: flex !important;
           flex-direction: column !important;
           overflow: hidden !important;
-          padding: 0 !important;
+          padding: 0 0 0.35rem 0 !important;
           gap: 0 !important;
           box-sizing: border-box !important;
           background: #fff !important;
           opacity: 1 !important;
           visibility: visible !important;
-        }
-        [data-exam-mode="typing"] .exam-typing-landscape-passage,
-        [data-exam-mode="typing"] .typing-passage-box {
-          flex: 0 0 40% !important;
-          height: 40% !important;
-          max-height: 40% !important;
-          min-height: 0 !important;
-          overflow-y: auto !important;
-          overflow-x: hidden !important;
-          -webkit-overflow-scrolling: touch !important;
-          padding: 0.25rem !important;
-          margin: 0 !important;
-          box-sizing: border-box !important;
-          opacity: 1 !important;
-          visibility: visible !important;
-        }
-        [data-exam-mode="typing"] .exam-typing-landscape-input-wrap,
-        [data-exam-mode="typing"] .typing-textarea-wrap {
-          flex: 1 1 auto !important;
-          height: auto !important;
-          max-height: none !important;
-          min-height: 0 !important;
-          display: flex !important;
-          flex-direction: column !important;
-          overflow: hidden !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          box-sizing: border-box !important;
-        }
-        [data-exam-mode="typing"] .exam-typing-landscape-input,
-        [data-exam-mode="typing"] .typing-textarea {
-          flex: 1 1 auto !important;
-          width: 100% !important;
-          height: 100% !important;
-          min-height: 0 !important;
-          margin: 0 !important;
-          padding: 0.25rem !important;
-          box-sizing: border-box !important;
-          opacity: 1 !important;
-          visibility: visible !important;
-          resize: none !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar,
         [data-exam-mode="typing"] .typing-right-panel {
@@ -2002,26 +2030,39 @@ function ExamModeContent() {
           display: flex !important;
           flex-direction: column !important;
           justify-content: flex-start !important;
-          overflow: hidden !important;
-          padding: 0.15rem 0.35rem 0.2rem !important;
+          overflow-x: hidden !important;
+          overflow-y: auto !important;
+          padding: 0.15rem 0.25rem max(0.35rem, env(safe-area-inset-bottom)) !important;
           gap: 0 !important;
           box-sizing: border-box !important;
           background: #fff !important;
           opacity: 1 !important;
           visibility: visible !important;
+          -webkit-overflow-scrolling: touch !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main,
         [data-exam-mode="typing"] .typing-right-panel-main {
           flex: 1 1 auto !important;
           width: 100% !important;
           min-height: 0 !important;
-          height: 100% !important;
-          max-height: 100% !important;
-          overflow: hidden !important;
+          height: auto !important;
+          max-height: none !important;
+          overflow: visible !important;
           display: flex !important;
           flex-direction: column !important;
           justify-content: flex-start !important;
-          gap: 0.15rem !important;
+          gap: 0.2rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-footer {
+          flex: 0 0 auto !important;
+          flex-shrink: 0 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          margin-top: auto !important;
+          padding-top: 0.15rem !important;
+          padding-bottom: max(0.2rem, env(safe-area-inset-bottom)) !important;
+          box-sizing: border-box !important;
+          overflow: visible !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-profile-block {
           display: flex !important;
@@ -2030,6 +2071,7 @@ function ExamModeContent() {
           width: 100% !important;
           flex: 0 0 auto !important;
           flex-shrink: 0 !important;
+          margin-bottom: 0.2rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-avatar {
           width: 2rem !important;
@@ -2049,11 +2091,13 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .exam-typing-landscape-meter-block {
           background-color: #ffffff !important;
-          flex: 1 1 auto !important;
+          flex: 0 0 auto !important;
+          flex-shrink: 0 !important;
           min-height: 0 !important;
-          max-height: 100% !important;
+          max-height: none !important;
           padding: 0 !important;
-          overflow: hidden !important;
+          margin-bottom: 0.15rem !important;
+          overflow: visible !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
@@ -2064,7 +2108,7 @@ function ExamModeContent() {
           width: 100% !important;
           max-width: 100% !important;
           overflow: visible !important;
-          padding-bottom: 0.1rem !important;
+          padding-bottom: 0.15rem !important;
           background: #fff !important;
           box-sizing: border-box !important;
         }
@@ -2170,9 +2214,12 @@ function ExamModeContent() {
         [data-exam-mode="typing"] .exam-typing-landscape-font-block {
           flex: 0 0 auto !important;
           width: 100% !important;
+          max-width: 100% !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
           display: flex !important;
           flex-direction: column !important;
-          gap: 0.2rem !important;
+          gap: 0.15rem !important;
           visibility: visible !important;
           opacity: 1 !important;
           overflow: visible !important;
@@ -2185,25 +2232,34 @@ function ExamModeContent() {
           justify-content: center !important;
           align-items: center !important;
           width: 100% !important;
+          max-width: 100% !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
           flex: 0 0 auto !important;
           flex-shrink: 0 !important;
-          margin-top: 0.25rem !important;
+          margin-top: 0 !important;
           padding-top: 0 !important;
+          padding-bottom: 0 !important;
           position: relative !important;
           z-index: 2 !important;
+          box-sizing: border-box !important;
+          overflow: visible !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-font-label {
-          font-size: 9px !important;
-          margin-bottom: 0.1rem !important;
+          font-size: 8px !important;
+          margin-bottom: 0.08rem !important;
           visibility: visible !important;
           opacity: 1 !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-font-row {
           display: flex !important;
           flex-direction: row !important;
+          align-items: stretch !important;
           gap: 0.25rem !important;
           width: 100% !important;
           max-width: 100% !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
           box-sizing: border-box !important;
           visibility: visible !important;
           opacity: 1 !important;
@@ -2212,15 +2268,16 @@ function ExamModeContent() {
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-font-btn {
           flex: 1 1 0 !important;
           min-width: 0 !important;
-          max-width: 50% !important;
+          max-width: none !important;
+          width: auto !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
           padding: 0.2rem 0.1rem !important;
-          font-size: 9px !important;
+          font-size: 8px !important;
           min-height: 1.25rem !important;
-          height: auto !important;
-          max-height: none !important;
+          height: 1.25rem !important;
+          max-height: 1.25rem !important;
           line-height: 1 !important;
           cursor: pointer !important;
           touch-action: manipulation !important;
@@ -2232,6 +2289,7 @@ function ExamModeContent() {
           position: relative !important;
           margin-top: 0 !important;
           transform: none !important;
+          border-radius: 0.25rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-font-btn-minus {
           color: #dc2626 !important;
@@ -2243,10 +2301,10 @@ function ExamModeContent() {
           width: 100% !important;
           max-width: 100% !important;
           flex: 0 0 auto !important;
-          padding: 0.25rem 0.2rem !important;
-          font-size: 9px !important;
-          line-height: 1.15 !important;
-          min-height: 1.45rem !important;
+          padding: 0.35rem 0.2rem !important;
+          font-size: 8px !important;
+          line-height: 1.2 !important;
+          min-height: 1.35rem !important;
           height: auto !important;
           border-radius: 0.375rem !important;
           font-weight: 700 !important;
@@ -2266,6 +2324,7 @@ function ExamModeContent() {
           appearance: none !important;
           position: static !important;
           z-index: auto !important;
+          overflow: visible !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-title {
           color: #facc15 !important;
@@ -2273,7 +2332,12 @@ function ExamModeContent() {
         [data-exam-mode="typing"] .exam-typing-header-profile {
           display: none !important;
         }
-        [data-exam-mode="typing"] .exam-typing-header-timer {
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer {
+          display: flex !important;
+          align-items: center !important;
+          flex-shrink: 0 !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-sound {
           display: flex !important;
           align-items: center !important;
           flex-shrink: 0 !important;
@@ -4717,17 +4781,17 @@ function ExamModeContent() {
                 <b className="bg-blue-400 text-black px-1.5 py-0.5 rounded text-[10px] font-bold whitespace-nowrap">{formatTime(timeLeft)}</b>
               </div>
             )}
-            {/* Timer for typing - show pink timer in landscape navbar */}
+            {/* Timer for typing - landscape/tablet header (text only, no icon; portrait uses stats row) */}
             {currentQuestion?.questionType === "TYPING" && (
-              <div className="hidden md:flex lg:hidden max-[900px]:landscape:flex items-center gap-2 exam-typing-header-timer" style={{ order: -1 }}>
+              <div className="hidden max-[900px]:landscape:flex md:flex lg:hidden items-center gap-1.5 exam-typing-header-timer" style={{ order: -1 }}>
                 {isTypingSection && typingTimeLeft !== null ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-pink-300">⏱️ Section Timer:</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold text-pink-300">Section Timer:</span>
                     <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(typingTimeLeft)}</b>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-pink-300">⏱️ Time Left:</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold text-pink-300">Time Left:</span>
                     <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(timeLeft)}</b>
                   </div>
                 )}
