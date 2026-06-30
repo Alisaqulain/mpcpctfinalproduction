@@ -67,9 +67,20 @@ function ExamModeContent() {
           display: none !important;
         }
         
-        /* Hide parts navigation in landscape */
+        /* Hide parts navigation in landscape (typing only — MCQ overrides below) */
         .landscape-hide-parts {
           display: none !important;
+        }
+
+        /* Show parts (Section) row in mobile landscape MCQ — same as question strip */
+        [data-exam-mode="mcq"] .landscape-hide-parts.exam-section-parts-row,
+        [data-exam-mode="mcq"] .exam-mobile-parts-row.landscape-hide-parts {
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+          scroll-behavior: smooth !important;
         }
         
         /* Hide subject tabs row in landscape */
@@ -231,9 +242,19 @@ function ExamModeContent() {
           display: none !important;
         }
         
-        /* Hide parts navigation in landscape */
+        /* Hide parts navigation in landscape (typing only — MCQ overrides below) */
         .landscape-hide-parts {
           display: none !important;
+        }
+
+        [data-exam-mode="mcq"] .landscape-hide-parts.exam-section-parts-row,
+        [data-exam-mode="mcq"] .exam-mobile-parts-row.landscape-hide-parts {
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+          scroll-behavior: smooth !important;
         }
         
         /* Hide subject tabs row in landscape */
@@ -2596,7 +2617,7 @@ function ExamModeContent() {
   const desktopQuestionPaletteRef = useRef(null); // Ref for desktop sidebar question palette scroll container
   const sectionScrollContainerRef = useRef(null); // Ref for mobile section navigation scroll container
   const partsScrollContainerRef = useRef(null); // Ref for mobile parts navigation scroll container
-  const lastPartsAutoScrollKeyRef = useRef(null); // Only auto-scroll parts row when selection changes
+  const desktopPartsScrollContainerRef = useRef(null); // Ref for desktop parts navigation scroll container
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -3625,6 +3646,23 @@ function ExamModeContent() {
     return null;
   }, [section, selectedPart, currentSectionParts]);
 
+  // Get previous part in current section
+  const getPreviousPart = useCallback(() => {
+    if (!section || currentSectionParts.length === 0 || !selectedPart) return null;
+    const currentPartIndex = currentSectionParts.findIndex(p => p.name === selectedPart);
+    if (currentPartIndex > 0) {
+      return currentSectionParts[currentPartIndex - 1];
+    }
+    return null;
+  }, [section, selectedPart, currentSectionParts]);
+
+  const isAtFirstQuestionOverall = useCallback(() => {
+    if (currentQuestionIndex > 0) return false;
+    if (getPreviousPart()) return false;
+    const currentSectionIndex = sections.findIndex((s) => s.name === section);
+    return currentSectionIndex <= 0;
+  }, [currentQuestionIndex, getPreviousPart, section, sections]);
+
   /** Minimal horizontal scroll — only moves enough to reveal the target (no comfort nudge) */
   const scrollPortraitStripToIndex = useCallback((container, index, dataAttribute) => {
     if (!container || index === null || index === undefined) return;
@@ -3657,6 +3695,134 @@ function ExamModeContent() {
       });
     }
   }, []);
+
+  /** Auto-scroll parts (Section) strip — centers the active part in the visible row */
+  const scrollPartsStripToPart = useCallback((partName) => {
+    if (!partName) return;
+
+    const containers = [
+      partsScrollContainerRef.current,
+      desktopPartsScrollContainerRef.current,
+    ].filter((container) => container && container.clientWidth > 0);
+
+    for (const container of containers) {
+      const partElement = container.querySelector(
+        `[data-part-name="${CSS.escape(partName)}"]`
+      );
+      if (!partElement) continue;
+
+      const containerWidth = container.clientWidth;
+      const elementLeft = partElement.offsetLeft;
+      const elementWidth = partElement.offsetWidth || partElement.clientWidth || 0;
+      const targetScroll = elementLeft - (containerWidth - elementWidth) / 2;
+      const maxScroll = Math.max(0, container.scrollWidth - containerWidth);
+
+      container.scrollTo({
+        left: Math.max(0, Math.min(targetScroll, maxScroll)),
+        behavior: "smooth",
+      });
+    }
+  }, []);
+
+  const goToNextPartFirstQuestion = useCallback(
+    (nextPart) => {
+      if (!nextPart) return;
+      setSelectedPart(nextPart.name);
+      setCurrentQuestionIndex(0);
+      const nextPartQuestions = questionsByPart[section]?.[nextPart.name] || [];
+      if (nextPartQuestions.length > 0 && nextPartQuestions[0]?._id) {
+        setVisitedQuestions((prev) => {
+          const newSet = new Set([...prev, nextPartQuestions[0]._id]);
+          localStorage.setItem("visitedQuestions", JSON.stringify([...newSet]));
+          return newSet;
+        });
+      }
+      requestAnimationFrame(() => scrollPartsStripToPart(nextPart.name));
+    },
+    [section, questionsByPart, scrollPartsStripToPart]
+  );
+
+  const goToPreviousQuestion = useCallback(() => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      return;
+    }
+
+    const prevPart = getPreviousPart();
+    if (prevPart) {
+      const prevPartQuestions = questionsByPart[section]?.[prevPart.name] || [];
+      const prevIndex = Math.max(0, prevPartQuestions.length - 1);
+      setSelectedPart(prevPart.name);
+      setCurrentQuestionIndex(prevIndex);
+      if (prevPartQuestions[prevIndex]?._id) {
+        setVisitedQuestions((prev) => {
+          const newSet = new Set([...prev, prevPartQuestions[prevIndex]._id]);
+          localStorage.setItem("visitedQuestions", JSON.stringify([...newSet]));
+          return newSet;
+        });
+      }
+      requestAnimationFrame(() => scrollPartsStripToPart(prevPart.name));
+      return;
+    }
+
+    if (sections.length === 0) return;
+
+    const currentSectionIndex = sections.findIndex((s) => s.name === section);
+    if (currentSectionIndex <= 0) return;
+
+    const prevSection = sections[currentSectionIndex - 1];
+    setSection(prevSection.name);
+
+    const prevSectionParts = parts
+      .filter((p) => {
+        const pSectionId = String(p.sectionId).trim();
+        const secIdStr = String(prevSection.id).trim();
+        const secIdObj = String(prevSection._id).trim();
+        return (
+          pSectionId === secIdObj ||
+          pSectionId === secIdStr ||
+          pSectionId === prevSection._id.toString()
+        );
+      })
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    if (prevSectionParts.length > 0) {
+      const lastPart = prevSectionParts[prevSectionParts.length - 1];
+      const prevPartQuestions = questionsByPart[prevSection.name]?.[lastPart.name] || [];
+      const prevIndex = Math.max(0, prevPartQuestions.length - 1);
+      setSelectedPart(lastPart.name);
+      setCurrentQuestionIndex(prevIndex);
+      if (prevPartQuestions[prevIndex]?._id) {
+        setVisitedQuestions((prev) => {
+          const newSet = new Set([...prev, prevPartQuestions[prevIndex]._id]);
+          localStorage.setItem("visitedQuestions", JSON.stringify([...newSet]));
+          return newSet;
+        });
+      }
+      requestAnimationFrame(() => scrollPartsStripToPart(lastPart.name));
+    } else {
+      setSelectedPart(null);
+      const prevIndex = Math.max(0, (questions[prevSection.name]?.length || 1) - 1);
+      setCurrentQuestionIndex(prevIndex);
+      const prevQuestion = questions[prevSection.name]?.[prevIndex];
+      if (prevQuestion?._id) {
+        setVisitedQuestions((prev) => {
+          const newSet = new Set([...prev, prevQuestion._id]);
+          localStorage.setItem("visitedQuestions", JSON.stringify([...newSet]));
+          return newSet;
+        });
+      }
+    }
+  }, [
+    currentQuestionIndex,
+    getPreviousPart,
+    section,
+    sections,
+    parts,
+    questions,
+    questionsByPart,
+    scrollPartsStripToPart,
+  ]);
 
   /** Horizontal palette auto-scroll (portrait mobile) — mirrors desktop vertical smart scroll */
   const scrollPortraitPaletteToIndex = useCallback((index) => {
@@ -3715,70 +3881,41 @@ function ExamModeContent() {
 
   // Auto-scroll section navigation in mobile view when section changes
   useEffect(() => {
-    if (sectionScrollContainerRef.current && section && sections.length > 0) {
-      const timeoutId = setTimeout(() => {
-        const container = sectionScrollContainerRef.current;
-        if (!container) return;
+    if (!sectionScrollContainerRef.current || !section || sections.length === 0) return;
 
-        const currentSectionIndex = sections.findIndex(s => s.name === section);
-        if (currentSectionIndex === -1) return;
-
-        const sectionElement = container.querySelector(`[data-section-index="${currentSectionIndex}"]`);
-
-        if (sectionElement) {
-          const containerWidth = container.clientWidth;
-          const containerScrollLeft = container.scrollLeft;
-          const elementLeft = sectionElement.offsetLeft;
-          const elementWidth = sectionElement.offsetWidth;
-          const elementRight = elementLeft + elementWidth;
-
-          const isFullyVisible = elementLeft >= containerScrollLeft &&
-                                 elementRight <= (containerScrollLeft + containerWidth);
-
-          if (!isFullyVisible) {
-            const scrollLeft = elementLeft - (containerWidth / 2) + (elementWidth / 2);
-
-            container.scrollLeft = Math.max(0, scrollLeft);
-
-            setTimeout(() => {
-              container.scrollTo({
-                left: Math.max(0, scrollLeft),
-                behavior: 'smooth'
-              });
-            }, 50);
-          }
-        }
-      }, 300);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [section, sections]);
-
-  // Auto-scroll parts row only when user picks a different part (not on every timer re-render)
-  useEffect(() => {
-    if (!selectedPart || !section) return;
-
-    const scrollKey = `${section}::${selectedPart}`;
-    if (lastPartsAutoScrollKeyRef.current === scrollKey) return;
-    lastPartsAutoScrollKeyRef.current = scrollKey;
+    const currentSectionIndex = sections.findIndex((s) => s.name === section);
+    if (currentSectionIndex === -1) return;
 
     const timeoutId = setTimeout(() => {
-      const container = partsScrollContainerRef.current;
-      if (!container) return;
-
-      const partElement = container.querySelector(
-        `[data-part-name="${CSS.escape(selectedPart)}"]`
+      scrollPortraitStripToIndex(
+        sectionScrollContainerRef.current,
+        currentSectionIndex,
+        "data-section-index"
       );
-      if (!partElement) return;
-
-      const partIndex = partElement.getAttribute("data-part-index");
-      if (partIndex === null) return;
-
-      scrollPortraitStripToIndex(container, partIndex, "data-part-index");
     }, 80);
 
     return () => clearTimeout(timeoutId);
-  }, [selectedPart, section, scrollPortraitStripToIndex]);
+  }, [section, sections, scrollPortraitStripToIndex]);
+
+  // Auto-scroll parts row to the active part (after load, tab click, Save & Next, Previous)
+  useEffect(() => {
+    if (loading || !selectedPart || !section || currentSectionParts.length === 0) return;
+
+    const runScroll = () => scrollPartsStripToPart(selectedPart);
+    const timeoutId = setTimeout(runScroll, 80);
+    const retryId = setTimeout(runScroll, 400);
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(retryId);
+    };
+  }, [
+    loading,
+    selectedPart,
+    section,
+    currentSectionParts.length,
+    scrollPartsStripToPart,
+  ]);
 
   // Smart auto-scroll: Only scrolls when needed, keeps items comfortably visible
   // Scrolls down if item is in last 3 rows, scrolls up if in top 3 rows
@@ -4779,13 +4916,7 @@ function ExamModeContent() {
                   onClick={() => {
                     setSelectedPart(part.name);
                     setCurrentQuestionIndex(0);
-                    requestAnimationFrame(() => {
-                      scrollPortraitStripToIndex(
-                        partsScrollContainerRef.current,
-                        partIndex,
-                        "data-part-index"
-                      );
-                    });
+                    requestAnimationFrame(() => scrollPartsStripToPart(part.name));
                   }}
                   className={`${
                     selectedPart === part.name
@@ -4953,14 +5084,21 @@ function ExamModeContent() {
           
           {/* Parts Nav (Desktop) - Show below sections if current section has parts */}
           {section && currentSectionParts.length > 0 && (
-            <div className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 landscape-reduce-subject-tabs landscape-hide-parts exam-section-parts-row">
+            <div
+              ref={desktopPartsScrollContainerRef}
+              className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 landscape-reduce-subject-tabs landscape-hide-parts exam-section-parts-row scroll-smooth"
+              style={{ scrollBehavior: "smooth", WebkitOverflowScrolling: "touch" }}
+            >
               <span className="px-4 py-2 font-bold text-black whitespace-nowrap exam-section-parts-label">Section:</span>
-              {currentSectionParts.map((part) => (
+              {currentSectionParts.map((part, partIndex) => (
                 <button
                   key={part._id}
+                  data-part-index={partIndex}
+                  data-part-name={part.name}
                   onClick={() => {
                     setSelectedPart(part.name);
                     setCurrentQuestionIndex(0);
+                    requestAnimationFrame(() => scrollPartsStripToPart(part.name));
                   }}
                   className={`${
                     selectedPart === part.name
@@ -5447,16 +5585,7 @@ function ExamModeContent() {
                 } else if (isLastQuestionInPart()) {
                   const nextPart = getNextPart();
                   if (nextPart) {
-                    setSelectedPart(nextPart.name);
-                    setCurrentQuestionIndex(0);
-                    const nextPartQuestions = questionsByPart[section]?.[nextPart.name] || [];
-                    if (nextPartQuestions.length > 0 && nextPartQuestions[0]?._id) {
-                      setVisitedQuestions(prev => {
-                        const newSet = new Set([...prev, nextPartQuestions[0]._id]);
-                        localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                        return newSet;
-                      });
-                    }
+                    goToNextPartFirstQuestion(nextPart);
                   }
                 } else {
                   if (currentQuestion && currentQuestions && currentQuestionIndex < currentQuestions.length - 1) {
@@ -5493,28 +5622,8 @@ function ExamModeContent() {
             {currentQuestion?.questionType !== "TYPING" && (
               <button 
                 className="exam-portrait-btn-prev bg-slate-400 hover:bg-slate-500 text-white px-2 py-2 text-xs rounded whitespace-nowrap disabled:opacity-50 landscape-reduce-buttons exam-mobile-action-btn"
-                disabled={currentQuestionIndex === 0 && section === sections[0]?.name}
-                onClick={() => {
-                  if (currentQuestionIndex > 0) {
-                    setCurrentQuestionIndex(currentQuestionIndex - 1);
-                  } else if (sections.length > 0) {
-                    const currentSectionIndex = sections.findIndex(s => s.name === section);
-                    if (currentSectionIndex > 0) {
-                      const prevSection = sections[currentSectionIndex - 1];
-                      setSection(prevSection.name);
-                      const prevIndex = (questions[prevSection.name]?.length || 1) - 1;
-                      setCurrentQuestionIndex(prevIndex);
-                      const prevQuestion = questions[prevSection.name]?.[prevIndex];
-                      if (prevQuestion?._id) {
-                        setVisitedQuestions(prev => {
-                          const newSet = new Set([...prev, prevQuestion._id]);
-                          localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                          return newSet;
-                        });
-                      }
-                    }
-                  }
-                }}
+                disabled={isAtFirstQuestionOverall()}
+                onClick={goToPreviousQuestion}
               >
                 Previous
               </button>
@@ -5547,16 +5656,7 @@ function ExamModeContent() {
                   const nextPart = getNextPart();
                   if (nextPart) {
                     console.log('Moving to next part:', nextPart.name);
-                    setSelectedPart(nextPart.name);
-                    setCurrentQuestionIndex(0);
-                    const nextPartQuestions = questionsByPart[section]?.[nextPart.name] || [];
-                    if (nextPartQuestions.length > 0 && nextPartQuestions[0]?._id) {
-                      setVisitedQuestions(prev => {
-                        const newSet = new Set([...prev, nextPartQuestions[0]._id]);
-                        localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                        return newSet;
-                      });
-                    }
+                    goToNextPartFirstQuestion(nextPart);
                   } else {
                     console.warn('No next part found, but isLastQuestionInPart is true');
                   }
@@ -5598,16 +5698,7 @@ function ExamModeContent() {
                   } else if (isLastQuestionInPart()) {
                     const nextPart = getNextPart();
                     if (nextPart) {
-                      setSelectedPart(nextPart.name);
-                      setCurrentQuestionIndex(0);
-                      const nextPartQuestions = questionsByPart[section]?.[nextPart.name] || [];
-                      if (nextPartQuestions.length > 0 && nextPartQuestions[0]?._id) {
-                        setVisitedQuestions(prev => {
-                          const newSet = new Set([...prev, nextPartQuestions[0]._id]);
-                          localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                          return newSet;
-                        });
-                      }
+                      goToNextPartFirstQuestion(nextPart);
                     }
                   } else {
                     if (currentQuestion && currentQuestions && currentQuestionIndex < currentQuestions.length - 1) {
@@ -5645,28 +5736,8 @@ function ExamModeContent() {
               {currentQuestion?.questionType !== "TYPING" && (
                 <button 
                   className="bg-blue-900 hover:bg-blue-700 text-white px-6 py-2 text-sm rounded whitespace-nowrap disabled:opacity-50"
-                  disabled={currentQuestionIndex === 0 && section === sections[0]?.name}
-                  onClick={() => {
-                    if (currentQuestionIndex > 0) {
-                      setCurrentQuestionIndex(currentQuestionIndex - 1);
-                    } else if (sections.length > 0) {
-                      const currentSectionIndex = sections.findIndex(s => s.name === section);
-                      if (currentSectionIndex > 0) {
-                        const prevSection = sections[currentSectionIndex - 1];
-                        setSection(prevSection.name);
-                        const prevIndex = (questions[prevSection.name]?.length || 1) - 1;
-                        setCurrentQuestionIndex(prevIndex);
-                        const prevQuestion = questions[prevSection.name]?.[prevIndex];
-                        if (prevQuestion?._id) {
-                          setVisitedQuestions(prev => {
-                            const newSet = new Set([...prev, prevQuestion._id]);
-                            localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                            return newSet;
-                          });
-                        }
-                      }
-                    }
-                  }}
+                  disabled={isAtFirstQuestionOverall()}
+                  onClick={goToPreviousQuestion}
                 >
                   Previous
                 </button>
@@ -5698,16 +5769,7 @@ function ExamModeContent() {
                     const nextPart = getNextPart();
                     if (nextPart) {
                       console.log('Moving to next part:', nextPart.name);
-                      setSelectedPart(nextPart.name);
-                      setCurrentQuestionIndex(0);
-                      const nextPartQuestions = questionsByPart[section]?.[nextPart.name] || [];
-                      if (nextPartQuestions.length > 0 && nextPartQuestions[0]?._id) {
-                        setVisitedQuestions(prev => {
-                          const newSet = new Set([...prev, nextPartQuestions[0]._id]);
-                          localStorage.setItem('visitedQuestions', JSON.stringify([...newSet]));
-                          return newSet;
-                        });
-                      }
+                      goToNextPartFirstQuestion(nextPart);
                     } else {
                       console.warn('No next part found, but isLastQuestionInPart is true');
                     }
