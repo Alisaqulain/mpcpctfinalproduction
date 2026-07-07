@@ -10,6 +10,7 @@ const TYPING_FONT_MIN = 12;
 const TYPING_FONT_MAX = 28;
 const TYPING_FONT_STEP = 2;
 const TYPING_FONT_DEFAULT = 18;
+const TYPING_FONT_PORTRAIT_BONUS = 2;
 const TYPING_PAGE_BG =
   "bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat";
 const TYPING_LANDSCAPE_BG =
@@ -421,196 +422,8 @@ function PortraitView({
 }) {
   return (
     <>
-      <div className="flex flex-col-reverse gap-2 pt-2">
-        {/* Typing Area */}
-        <div className="w-[90%] mx-auto mt-5 relative">
-          <div className="bg-white pt-1 px-4 pb-4 md:pt-1.5 md:px-6 md:pb-6 mr-10 rounded-xl shadow-lg mt-12 w-full">
-            {/* Results Display */}
-            {isCompleted && (
-              <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
-                {isLearningWordMode ? (
-                  <>
-                    <h2 className="text-xl font-bold text-green-800 mb-3">Lesson Complete</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">{netSpeedLearning}</div>
-                        <div className="text-sm text-green-700">Net Speed (WPM)</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">{wpm}</div>
-                        <div className="text-sm text-green-700">WPM</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
-                        <div className="text-sm text-green-700">Accuracy</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
-                        <div className="text-sm text-green-700">Time</div>
-                      </div>
-                    </div>
-                    {lessonPassed ? (
-                      <p className="text-green-700 font-semibold mb-4">You reached net speed {netSpeedLearning} (≥ {MIN_NET_SPEED_LEARNING}). The next word lesson is now unlocked.</p>
-                    ) : (
-                      <p className="text-amber-700 font-semibold mb-4">Net speed must be at least {MIN_NET_SPEED_LEARNING} to unlock the next word lesson (only word typing in Learning). Your net speed: {netSpeedLearning}. Practice again to improve.</p>
-                    )}
-                    <div className="flex gap-3 justify-center">
-                      <ReplaceNavLink href={closeHref} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold inline-block">Back to Learning</ReplaceNavLink>
-                      <button onClick={handleReset} className="bg-[#290c52] hover:opacity-90 text-white px-6 py-2 rounded-lg font-semibold">Try Again</button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <h2 className="text-xl font-bold text-green-800 mb-3">Test Completed!</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">{wpm}</div>
-                        <div className="text-sm text-green-700">WPM</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
-                        <div className="text-sm text-green-700">Accuracy</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
-                        <div className="text-sm text-green-700">Time</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">{correctWords.length}</div>
-                        <div className="text-sm text-green-700">Correct</div>
-                      </div>
-                    </div>
-                    <div className="flex gap-3 justify-center">
-                      <button onClick={handleDownloadPDF} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold">Download PDF</button>
-                      <button onClick={handleReset} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold">Try Again</button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                <p>Loading exercise content...</p>
-              </div>
-            ) : content.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>No content available for this exercise.</p>
-              </div>
-            ) : (
-              <>
-                <div
-                  className="typing-passage-font leading-relaxed overflow-y-auto min-h-[120px] max-h-[180px] mt-0 pt-0 break-words font-sans w-full"
-                  style={{
-                    ...typingFontStyle(fontSize),
-                    width: "100%",
-                    maxWidth: "100%",
-                  }}
-                >
-                  {renderColoredWords()}
-                </div>
-                {/* Keyboard Warning for Hindi */}
-                {isHindiTyping && showKeyboardWarning && (
-                  <div className="mt-2 mb-2 bg-red-100 border-2 border-red-500 rounded-lg p-3 animate-pulse">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-start gap-2 flex-1">
-                        <span className="text-2xl">⚠️</span>
-                        <div className="flex-1">
-                          <p className="text-red-800 font-bold text-sm mb-1">English Keyboard Detected!</p>
-                          <p className="text-red-700 text-xs mb-2">
-                            Please switch to <strong>Hindi ({subLanguage || "Remington Gail"})</strong> keyboard:
-                          </p>
-                          <div className="space-y-1 text-[10px] text-red-700">
-                            <div className="flex items-center gap-1">
-                              <span className="font-semibold">💻 Laptop/PC:</span>
-                              <span>Press <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Windows+Space</kbd> or <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Ctrl+Shift</kbd></span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <span className="font-semibold">📱 Mobile:</span>
-                              <span>Long press <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Space</kbd> key → Select Hindi keyboard</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setShowKeyboardWarning(false)}
-                        className="text-red-600 hover:text-red-800 font-bold text-xl flex-shrink-0"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  </div>
-                )}
-                <textarea
-                  ref={textareaRef}
-                  value={typedText}
-                  onInput={handleChange}
-                  onChange={handleChange}
-                  onKeyDown={handleKeyDown}
-                  onKeyUp={isHindiTyping && hindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
-                  onFocus={(e) => {
-                    // Auto-activate Hindi IME on focus
-                    if (isHindiTyping) {
-                      e.target.setAttribute('lang', 'hi');
-                      e.target.setAttribute('inputmode', 'text');
-                      e.target.setAttribute('x-ms-ime-mode', 'active');
-                    }
-                  }}
-                  onCompositionStart={() => {
-                    if (isHindiTyping) {
-                      setShowKeyboardWarning(false);
-                    }
-                  }}
-                  disabled={isPaused || isCompleted}
-                  className="typing-input-font w-full min-h-[100px] max-h-[100px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-3 disabled:opacity-50"
-                  placeholder={isHindiTyping ? "Start typing in Hindi (हिंदी में टाइप करें)..." : "Start typing here..."}
-                  lang={isHindiTyping ? "hi" : undefined}
-                  inputMode={isHindiTyping ? "text" : undefined}
-                  style={{
-                    ...typingFontStyle(fontSize),
-                    width: "100%",
-                    maxWidth: "100%",
-                  }}
-                  autoFocus
-                />
-              </>
-            )}
-          </div>
-          <div className="flex justify-center mt-3 gap-4 flex-wrap">
-          <button
-              onClick={handleCompletion}
-              disabled={!startTime || isCompleted}
-              className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold w-full"
-            >
-              Submit
-            </button>
-            
-            <button
-              onClick={handleReset}
-              className="bg-pink-500 text-lg cursor-pointer hover:bg-orange-500 text-white px-8 py-1 rounded shadow"
-            >
-              Reset
-            </button>
-            <button
-              onClick={togglePause}
-              disabled={isCompleted}
-              className="bg-blue-600 cursor-pointer text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow"
-            >
-              {isPaused ? "Resume" : "Pause"}
-            </button>
-            {/* <button
-              onClick={handleCompletion}
-              disabled={!startTime || isCompleted}
-              className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold w-full"
-            >
-              Submit
-            </button> */}
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="w-full text-white p-3 fixed top-0 mt-[-15] left-0 z-50 bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat">
+      {/* Upper fixed — profile, stats, timer, speedometer */}
+      <div className="portrait-top-panel w-full text-white p-3 fixed top-0 mt-[-15] left-0 z-50 bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat">
           <div className="flex flex-col items-center space-y-1 mt-[-18]">
             {/* Left: profile + A- (aligned row with speedometer + A+) */}
             <div className="absolute top-10 left-2 z-50 flex flex-col items-center w-20 pointer-events-auto">
@@ -735,6 +548,183 @@ function PortraitView({
                 A +
               </button>
             </div>
+          </div>
+        </div>
+
+      {/* Lower fixed — typing area + buttons */}
+      <div className="portrait-bottom-panel fixed left-0 right-0 z-40 w-full pb-2">
+        <div className="portrait-bottom-inner w-[90%] mx-auto h-full flex flex-col min-h-0">
+          <div className="portrait-white-box bg-white pt-1 px-4 pb-4 md:pt-1.5 md:px-6 md:pb-6 mr-10 rounded-xl shadow-lg w-full flex flex-col flex-1 min-h-0">
+            {isCompleted && (
+              <div className="mb-6 bg-green-50 p-4 rounded-lg border-2 border-green-500">
+                {isLearningWordMode ? (
+                  <>
+                    <h2 className="text-xl font-bold text-green-800 mb-3">Lesson Complete</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{netSpeedLearning}</div>
+                        <div className="text-sm text-green-700">Net Speed (WPM)</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{wpm}</div>
+                        <div className="text-sm text-green-700">WPM</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
+                        <div className="text-sm text-green-700">Accuracy</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
+                        <div className="text-sm text-green-700">Time</div>
+                      </div>
+                    </div>
+                    {lessonPassed ? (
+                      <p className="text-green-700 font-semibold mb-4">You reached net speed {netSpeedLearning} (≥ {MIN_NET_SPEED_LEARNING}). The next word lesson is now unlocked.</p>
+                    ) : (
+                      <p className="text-amber-700 font-semibold mb-4">Net speed must be at least {MIN_NET_SPEED_LEARNING} to unlock the next word lesson (only word typing in Learning). Your net speed: {netSpeedLearning}. Practice again to improve.</p>
+                    )}
+                    <div className="flex gap-3 justify-center">
+                      <ReplaceNavLink href={closeHref} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold inline-block">Back to Learning</ReplaceNavLink>
+                      <button onClick={handleReset} className="bg-[#290c52] hover:opacity-90 text-white px-6 py-2 rounded-lg font-semibold">Try Again</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl font-bold text-green-800 mb-3">Test Completed!</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{wpm}</div>
+                        <div className="text-sm text-green-700">WPM</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
+                        <div className="text-sm text-green-700">Accuracy</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{formatClock(elapsedTime)}</div>
+                        <div className="text-sm text-green-700">Time</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{correctWords.length}</div>
+                        <div className="text-sm text-green-700">Correct</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 justify-center">
+                      <button onClick={handleDownloadPDF} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold">Download PDF</button>
+                      <button onClick={handleReset} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold">Try Again</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                <p>Loading exercise content...</p>
+              </div>
+            ) : content.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No content available for this exercise.</p>
+              </div>
+            ) : (
+              <div className="portrait-typing-content flex flex-col flex-1 min-h-0">
+                <div
+                  className="typing-passage-font portrait-passage-scroll leading-relaxed overflow-y-auto mt-0 pt-0 break-words font-sans w-full flex-1 min-h-0"
+                  style={{
+                    ...typingFontStyle(fontSize + TYPING_FONT_PORTRAIT_BONUS),
+                    width: "100%",
+                    maxWidth: "100%",
+                  }}
+                >
+                  {renderColoredWords()}
+                </div>
+                {isHindiTyping && showKeyboardWarning && (
+                  <div className="mt-2 mb-2 bg-red-100 border-2 border-red-500 rounded-lg p-3 animate-pulse">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2 flex-1">
+                        <span className="text-2xl">⚠️</span>
+                        <div className="flex-1">
+                          <p className="text-red-800 font-bold text-sm mb-1">English Keyboard Detected!</p>
+                          <p className="text-red-700 text-xs mb-2">
+                            Please switch to <strong>Hindi ({subLanguage || "Remington Gail"})</strong> keyboard:
+                          </p>
+                          <div className="space-y-1 text-[10px] text-red-700">
+                            <div className="flex items-center gap-1">
+                              <span className="font-semibold">💻 Laptop/PC:</span>
+                              <span>Press <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Windows+Space</kbd> or <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Ctrl+Shift</kbd></span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="font-semibold">📱 Mobile:</span>
+                              <span>Long press <kbd className="bg-white px-1.5 py-0.5 rounded border border-red-300 font-mono">Space</kbd> key → Select Hindi keyboard</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setShowKeyboardWarning(false)}
+                        className="text-red-600 hover:text-red-800 font-bold text-xl flex-shrink-0"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <textarea
+                  ref={textareaRef}
+                  value={typedText}
+                  onInput={handleChange}
+                  onChange={handleChange}
+                  onKeyDown={handleKeyDown}
+                  onKeyUp={isHindiTyping && hindiTyping ? (ev) => hindiTyping.handleKeyUp(ev, typedText, setTypedText) : undefined}
+                  onFocus={(e) => {
+                    if (isHindiTyping) {
+                      e.target.setAttribute('lang', 'hi');
+                      e.target.setAttribute('inputmode', 'text');
+                      e.target.setAttribute('x-ms-ime-mode', 'active');
+                    }
+                  }}
+                  onCompositionStart={() => {
+                    if (isHindiTyping) {
+                      setShowKeyboardWarning(false);
+                    }
+                  }}
+                  disabled={isPaused || isCompleted}
+                  className="typing-input-font portrait-typing-input w-full flex-1 min-h-0 p-2 border-t border-gray-400 rounded-md focus:outline-none mt-3 disabled:opacity-50"
+                  placeholder={isHindiTyping ? "Start typing in Hindi (हिंदी में टाइप करें)..." : "Start typing here..."}
+                  lang={isHindiTyping ? "hi" : undefined}
+                  inputMode={isHindiTyping ? "text" : undefined}
+                  style={{
+                    ...typingFontStyle(fontSize + TYPING_FONT_PORTRAIT_BONUS),
+                    width: "100%",
+                    maxWidth: "100%",
+                  }}
+                  autoFocus
+                />
+              </div>
+            )}
+          </div>
+          <div className="flex justify-center mt-3 gap-4 flex-wrap shrink-0">
+            <button
+              onClick={handleCompletion}
+              disabled={!startTime || isCompleted}
+              className="bg-green-600 hover:bg-green-700 cursor-pointer text-lg disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow font-semibold w-full"
+            >
+              Submit
+            </button>
+            <button
+              onClick={handleReset}
+              className="bg-pink-500 text-lg cursor-pointer hover:bg-orange-500 text-white px-8 py-1 rounded shadow"
+            >
+              Reset
+            </button>
+            <button
+              onClick={togglePause}
+              disabled={isCompleted}
+              className="bg-blue-600 cursor-pointer text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-1 rounded shadow"
+            >
+              {isPaused ? "Resume" : "Pause"}
+            </button>
           </div>
         </div>
       </div>
@@ -1960,21 +1950,70 @@ function TypingTutorForm() {
         }
         @media (max-width: 767px) and (orientation: portrait) {
           html, body {
-            overflow-x: hidden !important;
+            overflow: hidden !important;
             min-height: 100vh !important;
             width: 100% !important;
+            height: 100dvh !important;
           }
           .typing-background-container {
-            min-height: 100vh !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
+            min-height: 100dvh !important;
+            max-height: 100dvh !important;
+            height: 100dvh !important;
+            overflow: hidden !important;
             position: relative !important;
             width: 100vw !important;
             padding-top: 0.75rem !important;
-            padding-bottom: 1rem !important;
+            padding-bottom: 0 !important;
           }
           .portrait-typing-main {
-            margin-top: 0.5rem !important;
+            margin-top: 0 !important;
+            overflow: hidden !important;
+            height: 100dvh !important;
+          }
+          .portrait-top-panel {
+            overflow: hidden !important;
+          }
+          .portrait-close-btn {
+            top: 3rem !important;
+          }
+          .portrait-bottom-panel {
+            top: 13.25rem;
+            bottom: 0.75rem;
+            overflow: hidden !important;
+            display: flex;
+            flex-direction: column;
+          }
+          .portrait-bottom-inner {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+          }
+          .portrait-white-box {
+            flex: 1;
+            min-height: 0;
+            max-height: calc(100dvh - 19rem);
+          }
+          .portrait-typing-content {
+            flex: 1;
+            min-height: 0;
+          }
+          .portrait-passage-scroll::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+          }
+          .portrait-passage-scroll {
+            flex: 1 1 55%;
+            min-height: 6.5rem;
+            max-height: none !important;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+          }
+          .portrait-typing-input {
+            flex: 1 1 45%;
+            min-height: 5rem;
+            max-height: none !important;
           }
           .w-full.text-white::-webkit-scrollbar {
             display: none !important;
@@ -2001,45 +2040,28 @@ function TypingTutorForm() {
                (max-height: 740px) and (max-width: 360px) and (orientation: portrait),
                (max-height: 800px) and (max-width: 400px) and (orientation: portrait) {
           .typing-background-container {
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            -webkit-overflow-scrolling: touch !important;
-            height: 100vh !important;
+            overflow: hidden !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
             position: relative !important;
-            padding: 1vh 2vw !important;
-            scrollbar-width: thin !important;
-            scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1) !important;
+            padding: 0.75rem 2vw 0 !important;
           }
-          .typing-background-container::-webkit-scrollbar {
-            width: 8px !important;
-            display: block !important;
+          .portrait-bottom-panel {
+            top: 12.75rem;
           }
-          .typing-background-container::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1) !important;
-            border-radius: 4px !important;
+          .portrait-white-box {
+            max-height: calc(100dvh - 18rem);
           }
-          .typing-background-container::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.4) !important;
-            border-radius: 4px !important;
+          .portrait-passage-scroll {
+            min-height: 6rem;
           }
-          .typing-background-container::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.6) !important;
+          .portrait-typing-input {
+            min-height: 4.75rem;
           }
           .max-w-7xl.mx-auto {
-            overflow-y: visible !important;
-            max-height: none !important;
-            height: auto !important;
-          }
-          .flex.flex-col-reverse.gap-6 {
-            overflow-y: visible !important;
-            overflow-x: hidden !important;
-            height: auto !important;
-            min-height: auto !important;
-          }
-          .w-\\[90\\%\\].mx-auto {
-            overflow-x: hidden !important;
-            max-width: 100% !important;
-            width: 90% !important;
+            overflow: hidden !important;
+            max-height: 100dvh !important;
+            height: 100dvh !important;
           }
         }
         @media (max-width: 1024px) and (orientation: landscape),
@@ -2229,7 +2251,7 @@ function TypingTutorForm() {
       }`}
     >
       {!isLandscape && (
-        <div className="absolute right-2 top-15 md:right-8 md:top-8 z-[9999]">
+        <div className="portrait-close-btn absolute right-2 top-10 md:right-8 md:top-8 z-[9999]">
           <TypingCloseButton href={isLearningWordMode ? "/learning" : "/skill_test"} />
         </div>
       )}
