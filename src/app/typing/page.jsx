@@ -12,8 +12,10 @@ const TYPING_FONT_STEP = 2;
 const TYPING_FONT_DEFAULT = 18;
 const TYPING_PAGE_BG =
   "bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat";
-/** Desktop UI scale so 100% browser zoom matches prior 80% zoom appearance */
-const DESKTOP_UI_SCALE = 0.8;
+const TYPING_LANDSCAPE_BG =
+  "bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-center bg-no-repeat";
+/** Desktop UI scale so 100% browser zoom matches 90% zoom appearance */
+const DESKTOP_UI_SCALE = 0.9;
 
 function typingFontStyle(fontSize, lineHeight = 1.5) {
   return {
@@ -790,16 +792,32 @@ function LandscapeView({
 }) {
   return (
     <>
+      <div
+        aria-hidden
+        className="landscape-right-bright-bg fixed top-0 right-0 bottom-0 pointer-events-none z-[1]"
+        style={{
+          width: "12vw",
+          minWidth: "64px",
+          maxWidth: "80px",
+          backgroundImage: "url('/dd1.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center top",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
+      <ReplaceNavLink
+        href={closeHref}
+        aria-label="Close"
+        className="landscape-close-link fixed md:hidden right-2 top-2 z-[9999] border-2 border-gray-600 text-white bg-red-500 hover:bg-red-600 rounded-md shadow-lg lowercase font-semibold"
+        style={{
+          padding: "0.8vh 2vw",
+          fontSize: "clamp(9px, 1.8vw, 12px)",
+          minHeight: "4vh",
+        }}
+      >
+        close
+      </ReplaceNavLink>
       <div className="landscape-mobile-view relative z-10 flex flex-col w-full h-full min-h-0 overflow-hidden bg-transparent">
-        {/* Close — landscape only, top-right lowercase like reference */}
-        <ReplaceNavLink
-          href={closeHref}
-          aria-label="Close"
-          className="landscape-close-link fixed right-2 top-3 z-[9999] px-2.5 py-0.5 text-[11px] font-semibold rounded border border-gray-600 text-white bg-red-500 hover:bg-red-600 lowercase shadow"
-        >
-          close
-        </ReplaceNavLink>
-
         {/* Stats row — centered at top */}
         <div className="landscape-stats-row flex justify-center items-center gap-2 sm:gap-3 w-full shrink-0 pt-1 pb-1 px-2 bg-transparent">
           {[
@@ -956,22 +974,8 @@ function LandscapeView({
           </div>
 
           {/* Right — speedometer + font size (A+ on top, A- below) */}
-          <div className="landscape-right-col landscape-mobile-sidebar relative flex flex-col items-center w-[16vw] min-w-[76px] max-w-[96px] shrink-0 self-stretch pt-0 gap-1 text-white overflow-hidden">
-            <div
-              aria-hidden
-              className="landscape-sidebar-bg absolute inset-0 pointer-events-none"
-              style={{
-                backgroundImage: "url('/dd1.jpg')",
-                // backgroundSize: "100% 100%",
-                backgroundPosition: "center top",
-                backgroundRepeat: "no-repeat",
-                WebkitMaskImage:
-                  "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 55%, rgba(0,0,0,0.35) 85%, rgba(0,0,0,0) 100%)",
-                maskImage:
-                  "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 55%, rgba(0,0,0,0.35) 85%, rgba(0,0,0,0) 100%)",
-              }}
-            />
-            <div className="relative z-[1] flex flex-col items-center w-full gap-1">
+          <div className="landscape-right-col landscape-mobile-sidebar relative flex flex-col items-center w-[12vw] min-w-[64px] max-w-[80px] shrink-0 self-stretch pt-0 gap-1 text-white overflow-hidden bg-transparent">
+            <div className="relative z-[1] flex flex-col items-center w-full gap-1 pt-1">
             <div className="border-[3px] border-black rounded-full">
               <div
                 className="relative bg-black rounded-full border-[3px] border-white flex items-center justify-center"
@@ -1896,26 +1900,7 @@ function TypingTutorForm() {
 
   return (
     <>
-    <div
-      className={`min-h-screen typing-background-container relative ${TYPING_PAGE_BG}${
-        isMobile && isLandscape ? " typing-background-container--landscape" : ""
-      }${!isMobile ? " typing-desktop-card" : ""}${
-        !isMobile
-          ? " md:mt-0 md:px-14 md:py-12 md:mx-8 md:my-8 md:rounded-[100px]"
-          : " mt-30 px-4 py-6 rounded-[0px]"
-      }`}
-    >
       <style jsx global>{`
-        @media (min-width: 768px) {
-          html:has(.typing-desktop-card),
-          body:has(.typing-desktop-card) {
-            background-color: #ffffff !important;
-            background-image: none !important;
-          }
-          .typing-desktop-80-scale {
-            zoom: ${DESKTOP_UI_SCALE};
-          }
-        }
         .typing-background-container--landscape {
           box-shadow: none !important;
         }
@@ -1926,8 +1911,53 @@ function TypingTutorForm() {
           margin-top: 0 !important;
           padding-top: 0 !important;
         }
-      `}</style>
-      <style jsx>{`
+        @media (min-width: 768px) {
+          html:has(.typing-desktop-card),
+          body:has(.typing-desktop-card),
+          #main-content:has(.typing-desktop-card) {
+            background-color: #ffffff !important;
+            background-image: none !important;
+          }
+        }
+        @media (min-width: 1024px) {
+          .typing-desktop-card {
+            overflow-x: hidden;
+          }
+          .typing-desktop-card .portrait-typing-main {
+            max-width: 100%;
+            overflow: hidden;
+          }
+          .desktop-scale-90 {
+            transform: scale(${DESKTOP_UI_SCALE});
+            transform-origin: center center;
+            width: 100%;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+          }
+          .desktop-scale-90 .flex.lg\\:flex-row {
+            max-width: 100%;
+            justify-content: center;
+          }
+          .desktop-scale-90 .flex.lg\\:flex-row > div:first-child {
+            width: 78% !important;
+            max-width: 78% !important;
+            flex: 1 1 auto;
+            min-width: 0;
+          }
+          .desktop-scale-90 .desktop-typing-sidebar {
+            width: 20% !important;
+            max-width: 220px;
+            flex-shrink: 0;
+          }
+          .desktop-scale-90 .flex.lg\\:flex-row > div:first-child > .bg-white {
+            margin-left: 0.75rem !important;
+            margin-right: 0.75rem !important;
+          }
+          .desktop-scale-90 .desktop-typing-sidebar .md\\:mr-10 {
+            margin-right: 0 !important;
+          }
+        }
         @media (max-width: 767px) and (orientation: portrait) {
           html, body {
             overflow-x: hidden !important;
@@ -1946,7 +1976,6 @@ function TypingTutorForm() {
           .portrait-typing-main {
             margin-top: 0.5rem !important;
           }
-          /* Hide scrollbar for sidebar in mobile */
           .w-full.text-white::-webkit-scrollbar {
             display: none !important;
             width: 0 !important;
@@ -1956,7 +1985,6 @@ function TypingTutorForm() {
             scrollbar-width: none !important;
             -ms-overflow-style: none !important;
           }
-          /* Keep typing box scrollable but hide its scrollbar */
           .overflow-y-auto::-webkit-scrollbar {
             display: none !important;
             width: 0 !important;
@@ -1967,13 +1995,11 @@ function TypingTutorForm() {
             -ms-overflow-style: none !important;
           }
         }
-        /* iPhone SE and Samsung S8+ portrait view - enable vertical scrolling */
         @media (max-width: 375px) and (orientation: portrait),
                (max-width: 360px) and (orientation: portrait),
                (max-height: 667px) and (max-width: 375px) and (orientation: portrait),
                (max-height: 740px) and (max-width: 360px) and (orientation: portrait),
                (max-height: 800px) and (max-width: 400px) and (orientation: portrait) {
-          /* Make background container scrollable on small devices */
           .typing-background-container {
             overflow-y: auto !important;
             overflow-x: hidden !important;
@@ -1984,7 +2010,6 @@ function TypingTutorForm() {
             scrollbar-width: thin !important;
             scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1) !important;
           }
-          /* Show vertical scrollbar for background container on small devices */
           .typing-background-container::-webkit-scrollbar {
             width: 8px !important;
             display: block !important;
@@ -2000,21 +2025,18 @@ function TypingTutorForm() {
           .typing-background-container::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.6) !important;
           }
-          /* Allow parent container to expand */
           .max-w-7xl.mx-auto {
             overflow-y: visible !important;
             max-height: none !important;
             height: auto !important;
           }
-          /* Enable vertical scrolling for portrait view main container on small devices */
           .flex.flex-col-reverse.gap-6 {
             overflow-y: visible !important;
             overflow-x: hidden !important;
             height: auto !important;
             min-height: auto !important;
           }
-          /* Ensure typing area doesn't overflow */
-          .w-\[90\%\].mx-auto {
+          .w-\\[90\\%\\].mx-auto {
             overflow-x: hidden !important;
             max-width: 100% !important;
             width: 90% !important;
@@ -2024,15 +2046,6 @@ function TypingTutorForm() {
                (max-width: 767px) and (orientation: landscape),
                (max-height: 600px) and (orientation: landscape),
                (max-height: 500px) and (min-aspect-ratio: 1/1) {
-          html:has(.typing-background-container--landscape),
-          body:has(.typing-background-container--landscape),
-          #main-content:has(.typing-background-container--landscape) {
-            background-color: #290c52 !important;
-            background-image: url("/bg.jpg") !important;
-            background-size: cover !important;
-            background-position: center center !important;
-            background-repeat: no-repeat !important;
-          }
           html, body {
             height: 100vh !important;
             width: 100vw !important;
@@ -2041,7 +2054,7 @@ function TypingTutorForm() {
             overflow: hidden !important;
             position: fixed !important;
           }
-          .typing-background-container.typing-background-container--landscape {
+          .typing-background-container {
             border-radius: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
@@ -2049,13 +2062,15 @@ function TypingTutorForm() {
             padding: 0 !important;
             max-width: 100vw !important;
             min-height: 100vh !important;
-            position: relative !important;
-            background-color: #290c52 !important;
-            background-image: url("/bg.jpg") !important;
-            background-size: cover !important;
-            background-position: center center !important;
-            background-repeat: no-repeat !important;
-            box-shadow: none !important;
+          }
+          .landscape-close-link {
+            position: fixed !important;
+            z-index: 9999 !important;
+            display: block !important;
+            visibility: visible !important;
+          }
+          .landscape-right-bright-bg {
+            z-index: 1 !important;
           }
           .portrait-typing-main.landscape-mobile-container {
             max-width: none !important;
@@ -2080,16 +2095,18 @@ function TypingTutorForm() {
             backdrop-filter: none !important;
           }
           .landscape-mobile-sidebar {
+            width: 12vw !important;
+            min-width: 64px !important;
+            max-width: 80px !important;
+            flex-shrink: 0 !important;
             align-self: stretch !important;
             min-height: 100% !important;
             position: relative !important;
             overflow: hidden !important;
-            background-color: transparent !important;
-            background-image: none !important;
+            height: 100% !important;
+            padding: 0.5vh 0.5vw !important;
+            background: transparent !important;
             box-shadow: none !important;
-          }
-          .landscape-sidebar-bg {
-            z-index: 0 !important;
           }
           .landscape-mobile-view {
             flex: 1 !important;
@@ -2131,11 +2148,6 @@ function TypingTutorForm() {
           .landscape-font-btn {
             max-width: 4.5rem !important;
           }
-          .landscape-close-link {
-            position: fixed !important;
-            z-index: 9999 !important;
-          }
-          /* Word line layout in landscape passage only */
           .landscape-mobile-typing-area .landscape-typing-passage p {
             height: auto !important;
             min-height: auto !important;
@@ -2146,7 +2158,6 @@ function TypingTutorForm() {
             padding-top: 0 !important;
             min-height: auto !important;
           }
-          /* Completed test message in landscape */
           .landscape-mobile-typing-area .bg-green-50 {
             padding: 1.5vh 1.5vw !important;
             margin-bottom: 1vh !important;
@@ -2170,19 +2181,16 @@ function TypingTutorForm() {
             font-size: clamp(10px, 2vw, 14px) !important;
             min-height: 4.5vh !important;
           }
-          /* Loading spinner in landscape */
           .landscape-mobile-typing-area .animate-spin {
             width: 4vw !important;
             height: 4vw !important;
             min-width: 30px !important;
             min-height: 30px !important;
           }
-          /* Ensure all text is readable in landscape */
           .landscape-mobile-typing-area,
           .landscape-mobile-sidebar {
             font-size: clamp(10px, 2vw, 14px) !important;
           }
-          /* Scrollbar styling for landscape */
           .landscape-mobile-typing-area::-webkit-scrollbar,
           .landscape-mobile-sidebar::-webkit-scrollbar {
             width: 0.5vw !important;
@@ -2194,21 +2202,46 @@ function TypingTutorForm() {
           }
         }
       `}</style>
-      {!(isMobile && isLandscape) && (
+
+      {!isMobile ? (
+        <div
+          className={`min-h-screen typing-background-container typing-desktop-card relative ${TYPING_PAGE_BG} md:mt-0 md:px-14 md:py-12 md:mx-8 md:my-8 md:rounded-[100px]`}
+        >
+          <div className="absolute right-2 top-15 md:right-8 md:top-8 z-[9999]">
+            <TypingCloseButton href={isLearningWordMode ? "/learning" : "/skill_test"} />
+          </div>
+          <div className="max-w-7xl mx-auto portrait-typing-main mt-6 md:mt-15">
+            <div className="desktop-scale-90">
+              <DesktopView {...commonProps} />
+            </div>
+          </div>
+        </div>
+      ) : (
+    <div
+      className={`min-h-screen typing-background-container relative ${
+        isLandscape ? TYPING_LANDSCAPE_BG : TYPING_PAGE_BG
+      }${
+        isLandscape ? " typing-background-container--landscape" : ""
+      }${
+        isLandscape
+          ? ""
+          : " mt-30 px-4 py-6 rounded-[0px]"
+      }`}
+    >
+      {!isLandscape && (
         <div className="absolute right-2 top-15 md:right-8 md:top-8 z-[9999]">
           <TypingCloseButton href={isLearningWordMode ? "/learning" : "/skill_test"} />
         </div>
       )}
-      <div className={`max-w-7xl mx-auto portrait-typing-main ${isMobile && isLandscape ? "landscape-mobile-container mt-0 w-full max-w-none" : !isMobile ? "typing-desktop-80-scale mt-6 md:mt-15" : "mt-6 md:mt-15"}`}>
-        {!isMobile ? (
-          <DesktopView {...commonProps} />
-        ) : isLandscape ? (
+      <div className={`max-w-7xl mx-auto portrait-typing-main ${isLandscape ? "landscape-mobile-container mt-0 w-full max-w-none" : "mt-6 md:mt-15"}`}>
+        {isLandscape ? (
           <LandscapeView {...commonProps} />
         ) : (
           <PortraitView {...commonProps} />
         )}
       </div>
     </div>
+      )}
     </>
   );
 }
