@@ -4,23 +4,27 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import TypingArea from "@/components/typing/TypingArea";
 import ExamTypingInterface from "@/components/typing/ExamTypingInterface";
-
-const DEFAULT_EXAM_AVATAR = "/lo.jpg";
+import {
+  DEFAULT_PROFILE_AVATAR,
+  fetchUserProfileFromApi,
+  mergeExamUserProfile,
+  readExamUserDataFromStorage,
+  resolveUserProfileUrl,
+} from "@/lib/userProfile";
 
 function resolveExamProfileSrc(user) {
-  if (!user || typeof user !== "object") return DEFAULT_EXAM_AVATAR;
-  const src =
-    user.profileImage ||
-    user.avatar ||
-    user.uploadedProfileImage ||
-    user.photoURL ||
-    user.profileUrl ||
-    user.profilePicture ||
-    user.image;
-  return src && String(src).trim() ? String(src).trim() : DEFAULT_EXAM_AVATAR;
+  return resolveUserProfileUrl(user);
 }
 
 function ExamModeContent() {
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
   // Add landscape-specific styles to reduce sizes
   useEffect(() => {
     const style = document.createElement('style');
@@ -677,7 +681,7 @@ function ExamModeContent() {
           height: auto !important;
           max-height: calc(100dvh - 200px) !important;
           overflow-x: hidden !important;
-          overflow-y: auto !important;
+          overflow: hidden !important;
           -webkit-overflow-scrolling: touch !important;
           width: 100% !important;
           max-width: 100vw !important;
@@ -919,7 +923,7 @@ function ExamModeContent() {
           flex: 1 1 auto !important;
           min-height: 0 !important;
           max-height: none !important;
-          overflow-y: auto !important;
+          overflow: hidden !important;
           padding-top: 0 !important;
           border-top: none !important;
         }
@@ -1003,8 +1007,7 @@ function ExamModeContent() {
           flex: 1 1 auto !important;
           min-height: 0 !important;
           max-height: none !important;
-          overflow-y: auto !important;
-          -webkit-overflow-scrolling: touch !important;
+          overflow: hidden !important;
         }
         .exam-mobile-passage-layout {
           padding: 0.2rem 0.35rem !important;
@@ -1582,7 +1585,7 @@ function ExamModeContent() {
         [data-exam-mode="mcq"] .exam-mobile-question-content {
           flex: 1 1 auto !important;
           min-height: 0 !important;
-          overflow-y: auto !important;
+          overflow: hidden !important;
           max-height: none !important;
         }
         .exam-desktop-section-nav {
@@ -2624,6 +2627,55 @@ function ExamModeContent() {
           padding-bottom: 0.15rem !important;
         }
       }
+
+      .exam-mode-root {
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+      }
+
+      [data-exam-mode="mcq"] .exam-mobile-mcq-column {
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
+
+      [data-exam-mode="mcq"] .exam-mobile-question-panel {
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
+
+      [data-exam-mode="mcq"] .mcq-question-body.landscape-question-content,
+      [data-exam-mode="mcq"] .exam-mobile-question-content.mcq-question-body {
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 0 !important;
+      }
+
+      [data-exam-mode="mcq"] .mcq-landscape-scroll-box {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        overscroll-behavior: contain !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: thin !important;
+        scrollbar-color: rgba(41, 12, 82, 0.45) rgba(0, 0, 0, 0.08) !important;
+      }
+
+      [data-exam-mode="mcq"] .mcq-landscape-scroll-box::-webkit-scrollbar {
+        width: 6px !important;
+        display: block !important;
+      }
+
+      [data-exam-mode="mcq"] .mcq-landscape-scroll-box::-webkit-scrollbar-thumb {
+        background: rgba(41, 12, 82, 0.45) !important;
+        border-radius: 999px !important;
+      }
+
+      [data-exam-mode="mcq"] .mcq-landscape-scroll-box::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.06) !important;
+      }
     `;
     document.head.appendChild(style);
     
@@ -2644,7 +2696,7 @@ function ExamModeContent() {
   const profileSrc = useMemo(() => resolveExamProfileSrc(examUserRecord), [examUserRecord]);
   const handleProfileImgError = useCallback((e) => {
     e.currentTarget.onerror = null;
-    e.currentTarget.src = DEFAULT_EXAM_AVATAR;
+    e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
   }, []);
   const [examData, setExamData] = useState(null);
   const [sections, setSections] = useState([]);
@@ -2766,33 +2818,25 @@ function ExamModeContent() {
         
         // Load user data — exam-login form name takes priority over profile name
         let examFormName = "";
-        const userDataStr = localStorage.getItem('examUserData');
-        if (userDataStr) {
-          try {
-            const userData = JSON.parse(userDataStr);
-            setExamUserRecord((prev) => ({ ...(prev || {}), ...userData }));
-            if (userData.name) {
-              examFormName = String(userData.name).trim();
-              setUserName(userData.name);
-            }
-          } catch (error) {
-            console.error('Error parsing user data:', error);
-          }
-        }
+        const userData = readExamUserDataFromStorage();
+        let apiUser = null;
 
         try {
-          const profRes = await fetch("/api/profile", { credentials: "include" });
-          if (profRes.ok) {
-            const profData = await profRes.json();
-            if (profData.user) {
-              setExamUserRecord((prev) => ({ ...(prev || {}), ...profData.user }));
-              if (!examFormName && profData.user.name) {
-                setUserName(profData.user.name);
-              }
-            }
-          }
+          apiUser = await fetchUserProfileFromApi();
         } catch {
           /* keep localStorage profile if API unavailable */
+        }
+
+        const mergedUser = mergeExamUserProfile(userData, apiUser);
+        if (Object.keys(mergedUser).length > 0) {
+          setExamUserRecord(mergedUser);
+        }
+
+        if (userData?.name) {
+          examFormName = String(userData.name).trim();
+          setUserName(userData.name);
+        } else if (apiUser?.name) {
+          setUserName(apiUser.name);
         }
 
         // Load question language preference
@@ -4314,42 +4358,10 @@ function ExamModeContent() {
     return true;
   }, [examData, completedSections, questions]);
 
-  const handleSectionTabClick = useCallback(
-    (sec, isLocked, isCompleted) => {
-      if (isCompleted) {
-        alert("This section is already completed and locked.");
-        return;
-      }
-
-      if (examData?.key === "RSCIT" && sec.name === "Section B") {
-        if (!canProceedToRscitSectionB()) return;
-      }
-
-      const switchingSection = sec.name !== section;
-      const typingTarget = isTypingSectionName(sec.name);
-
-      if (typingTarget && switchingSection && !completedSections.has(section)) {
-        setPendingSectionNav(sec);
-        setShowSectionSubmitModal(true);
-        return;
-      }
-
-      if (isLocked && !typingTarget) {
-        alert("Please complete the current section before moving to the next section.");
-        return;
-      }
-
-      navigateToSection(sec);
-    },
-    [
-      section,
-      isTypingSectionName,
-      completedSections,
-      examData,
-      canProceedToRscitSectionB,
-      navigateToSection,
-    ]
-  );
+  const openDesktopSectionSubmitConfirm = useCallback(() => {
+    setPendingSectionNav({ submitCurrent: true });
+    setShowSectionSubmitModal(true);
+  }, []);
 
   const redirectAfterSectionSubmit = useCallback(
     (submittedSection, targetSectionName = null) => {
@@ -4393,6 +4405,43 @@ function ExamModeContent() {
       }
     },
     [sections]
+  );
+
+  const handleSectionTabClick = useCallback(
+    (sec, isLocked, isCompleted) => {
+      if (isCompleted) {
+        alert("This section is already completed and locked.");
+        return;
+      }
+
+      if (examData?.key === "RSCIT" && sec.name === "Section B") {
+        if (!canProceedToRscitSectionB()) return;
+      }
+
+      const switchingSection = sec.name !== section;
+      const typingTarget = isTypingSectionName(sec.name);
+
+      if (typingTarget && switchingSection && !completedSections.has(section)) {
+        setPendingSectionNav(sec);
+        setShowSectionSubmitModal(true);
+        return;
+      }
+
+      if (isLocked && !typingTarget) {
+        alert("Please complete the current section before moving to the next section.");
+        return;
+      }
+
+      navigateToSection(sec);
+    },
+    [
+      section,
+      isTypingSectionName,
+      completedSections,
+      examData,
+      canProceedToRscitSectionB,
+      navigateToSection,
+    ]
   );
 
   // Handle section submission
@@ -4468,7 +4517,7 @@ function ExamModeContent() {
   };
 
   return (
-    <div className="h-screen flex flex-col lg:flex-row bg-white relative">
+    <div className="exam-mode-root h-screen flex flex-col lg:flex-row bg-white relative overflow-hidden">
       {/* Mobile Menu Button */}
       <button
         type="button"
@@ -5946,12 +5995,14 @@ function ExamModeContent() {
             </>
           )}
         
-          <button 
-            onClick={handleSubmitSection}
-            className="desktop-submit-btn bg-green-800 hover:bg-cyan-700 text-white px-12 py-2 ml-2 mt-[-4] text-[13px] rounded whitespace-nowrap"
-          >
-            Submit Section
-          </button>
+          <div className="w-full flex justify-start mt-2">
+            <button 
+              onClick={openDesktopSectionSubmitConfirm}
+              className="desktop-submit-btn bg-green-800 hover:bg-cyan-700 text-white px-8 py-2 max-w-[13.5rem] text-[13px] rounded whitespace-nowrap text-center"
+            >
+              Submit Section
+            </button>
+          </div>
         </div>
         </div>
       )}
@@ -5980,12 +6031,11 @@ function ExamModeContent() {
               <button
                 type="button"
                 onClick={() => {
-                  const target = pendingSectionNav?.name || null;
+                  const submitCurrent = pendingSectionNav?.submitCurrent;
+                  const target = submitCurrent ? null : pendingSectionNav?.name || null;
                   setShowSectionSubmitModal(false);
                   setPendingSectionNav(null);
-                  if (target) {
-                    handleSubmitSection(target);
-                  }
+                  handleSubmitSection(target);
                 }}
                 className="px-5 py-2 rounded-lg bg-[#290c52] text-white font-medium text-sm"
               >

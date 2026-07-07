@@ -2,6 +2,13 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { FaUser, FaPhone, FaHome, FaArrowLeft } from "react-icons/fa";
+import UserProfileAvatar from "@/components/common/UserProfileAvatar";
+import {
+  fetchUserProfileFromApi,
+  mergeExamUserProfile,
+  readExamUserDataFromStorage,
+  resolveUserProfileUrl,
+} from "@/lib/userProfile";
 
 function StartTestPageContent() {
   const searchParams = useSearchParams();
@@ -15,6 +22,23 @@ function StartTestPageContent() {
   const [accessChecked, setAccessChecked] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
   const [accessError, setAccessError] = useState(null);
+  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const examUser = readExamUserDataFromStorage();
+      let apiUser = null;
+      try {
+        apiUser = await fetchUserProfileFromApi();
+      } catch {
+        /* ignore */
+      }
+      const mergedUser = mergeExamUserProfile(examUser, apiUser);
+      setUserProfileUrl(resolveUserProfileUrl(mergedUser));
+    };
+
+    loadProfile();
+  }, []);
 
   useEffect(() => {
     // Get exam ID, topic ID and type from URL parameters
@@ -152,10 +176,10 @@ function StartTestPageContent() {
           </p>
         </div> */}
         <div className="w-16 h-16">
-          <img
-            src="/lo.jpg"
+          <UserProfileAvatar
+            src={userProfileUrl}
             alt="User"
-            className="w-full h-full object-contain rounded-full"
+            className="w-full h-full object-cover rounded-full border-2 border-white"
           />
         </div>
       </div>

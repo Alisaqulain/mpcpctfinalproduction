@@ -1,5 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import UserProfileAvatar from "@/components/common/UserProfileAvatar";
+import {
+  fetchUserProfileFromApi,
+  mergeExamUserProfile,
+  readExamUserDataFromStorage,
+  resolveUserProfileUrl,
+} from "@/lib/userProfile";
 
 export default function ExamInstructions() {
   const [language, setLanguage] = useState("हिन्दी");
@@ -8,6 +15,7 @@ export default function ExamInstructions() {
   const [questionLanguage, setQuestionLanguage] = useState("हिन्दी");
   const [isAgreed, setIsAgreed] = useState(true);
   const [showError, setShowError] = useState(false);
+  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
 
   const isHindi = language === "हिन्दी" || language === "Hindi";
   const brandName = "MPCPCT";
@@ -24,6 +32,23 @@ export default function ExamInstructions() {
         console.error("Error parsing user data:", error);
       }
     }
+
+    const loadProfile = async () => {
+      const examUser = readExamUserDataFromStorage();
+      let apiUser = null;
+      try {
+        apiUser = await fetchUserProfileFromApi();
+      } catch {
+        /* ignore */
+      }
+      const mergedUser = mergeExamUserProfile(examUser, apiUser);
+      setUserProfileUrl(resolveUserProfileUrl(mergedUser));
+      if (mergedUser.name) {
+        setUserName(mergedUser.name);
+      }
+    };
+
+    loadProfile();
 
     const savedLang = localStorage.getItem("questionLanguage");
     if (savedLang) {
@@ -256,7 +281,7 @@ export default function ExamInstructions() {
           <span className="hidden md:inline">T&amp;C and Exam Instruction — </span>
           <span className="whitespace-nowrap text-yellow-300">{brandName}</span>
         </h1>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <span className="hidden sm:inline text-xs">View in :</span>
           <select
             className="bg-white text-black px-2 py-1 rounded text-xs sm:text-sm"
@@ -266,6 +291,11 @@ export default function ExamInstructions() {
             <option value="हिन्दी">हिन्दी</option>
             <option value="English">English</option>
           </select>
+          <UserProfileAvatar
+            src={userProfileUrl}
+            alt={userName}
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-white object-cover"
+          />
         </div>
       </div>
 
@@ -473,10 +503,10 @@ export default function ExamInstructions() {
 
         {/* Desktop sidebar */}
         <div className="hidden lg:flex lg:w-[15%] border-l border-gray-300 flex-col items-center justify-start py-6 bg-white">
-          <img
-            src="/lo.jpg"
-            alt="User"
-            className="w-24 h-24 rounded-full border-2 border-gray-400"
+          <UserProfileAvatar
+            src={userProfileUrl}
+            alt={userName}
+            className="w-24 h-24 rounded-full border-2 border-gray-400 object-cover"
           />
           <p className="mt-2 font-semibold text-blue-800">{userName}</p>
           <span className="border w-full border-black mt-2" />

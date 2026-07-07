@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import UserProfileAvatar from "@/components/common/UserProfileAvatar";
+import { resolveUserProfileUrl } from "@/lib/userProfile";
 
 export default function Header() {
   const router = useRouter();
@@ -16,7 +18,7 @@ export default function Header() {
       if (response.ok) {
         const data = await response.json();
         setIsAuthenticated(true);
-        setUserProfile(data.user ? { name: data.user.name, profileUrl: data.user.profileUrl } : null);
+        setUserProfile(data.user ? { ...data.user } : null);
       } else {
         setIsAuthenticated(false);
         setUserProfile(null);
@@ -273,11 +275,11 @@ export default function Header() {
             {isAuthenticated ? (
               <>
                 <a href="/profile" className="flex items-center gap-2 text-white hover:text-blue-300 transition-colors" title="Profile">
-                  {userProfile?.profileUrl ? (
-                    <img src={userProfile.profileUrl} alt={userProfile?.name || "Profile"} className="w-8 h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-full border-2 border-white object-cover" />
-                  ) : (
-                    <FaUserCircle className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7" />
-                  )}
+                  <UserProfileAvatar
+                    user={userProfile}
+                    alt={userProfile?.name || "Profile"}
+                    className="w-8 h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-full border-2 border-white object-cover"
+                  />
                   {userProfile?.name && (
                     <span className="hidden sm:inline text-xs md:text-sm lg:text-base font-medium truncate max-w-[100px] lg:max-w-[120px]">{userProfile.name}</span>
                   )}
@@ -329,19 +331,11 @@ export default function Header() {
           onClick={() => setMobileNavOpen(false)}
           className="flex flex-col items-center pb-3 no-underline text-white hover:opacity-90"
         >
-          {isAuthenticated && userProfile?.profileUrl ? (
-            <img
-              src={userProfile.profileUrl}
-              alt={userProfile?.name || "User"}
-              className="w-16 h-16 rounded-full border-2 border-white mb-2 object-cover"
-            />
-          ) : (
-            <img
-              src="/lo.jpg"
-              alt="User"
-              className="w-16 h-16 rounded-full border-2 border-white mb-2 object-cover"
-            />
-          )}
+          <UserProfileAvatar
+            user={userProfile}
+            alt={userProfile?.name || "User"}
+            className="w-16 h-16 rounded-full border-2 border-white mb-2 object-cover"
+          />
           <p className="text-sm font-semibold">{isAuthenticated && userProfile?.name ? userProfile.name : "User"}</p>
         </a>
         <ul className="mt-3 space-y-1 px-3">

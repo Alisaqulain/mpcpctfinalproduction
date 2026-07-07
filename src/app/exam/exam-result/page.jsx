@@ -7,6 +7,13 @@ import {
   buildCriteriaLines,
   normalizePassingConfig,
 } from "@/lib/examPassingCriteria";
+import {
+  fetchUserProfileFromApi,
+  mergeExamUserProfile,
+  readExamUserDataFromStorage,
+  resolveUserProfileUrl,
+} from "@/lib/userProfile";
+import UserProfileAvatar from "@/components/common/UserProfileAvatar";
 
 function ExamResultContent() {
   const [userName, setUserName] = useState("User");
@@ -69,29 +76,24 @@ function ExamResultContent() {
         }
         // If no section parameter, show all results (old functionality - no blocking)
         
-        // Load user data
-        const userDataStr = localStorage.getItem('examUserData');
-        if (userDataStr) {
-          try {
-            const userData = JSON.parse(userDataStr);
-            if (userData.name) {
-              setUserName(userData.name);
-            }
-            const profile =
-              userData.profileImage ||
-              userData.avatar ||
-              userData.uploadedProfileImage ||
-              userData.photoURL ||
-              userData.profileUrl ||
-              userData.profilePicture ||
-              userData.image;
-            if (profile && String(profile).trim()) {
-              setUserProfileUrl(String(profile).trim());
-            }
-          } catch (error) {
-            console.error('Error parsing user data:', error);
-          }
+        const userData = readExamUserDataFromStorage();
+        let apiUser = null;
+
+        try {
+          apiUser = await fetchUserProfileFromApi();
+        } catch {
+          /* ignore */
         }
+
+        const mergedUser = mergeExamUserProfile(userData, apiUser);
+        if (mergedUser.name) {
+          setUserName(mergedUser.name);
+        } else if (userData?.name) {
+          setUserName(userData.name);
+        } else if (apiUser?.name) {
+          setUserName(apiUser.name);
+        }
+        setUserProfileUrl(resolveUserProfileUrl(mergedUser));
 
         // Load selected answers
         const answersStr = localStorage.getItem('examAnswers');
@@ -410,8 +412,8 @@ function ExamResultContent() {
         const result = await res.json();
         localStorage.setItem('lastResultId', result.result._id);
         
-        // Redirect to break page or show success
-        window.location.href = "/exam/break";
+        // Redirect to score card after final submit
+        window.location.href = "/result/score-card";
       } else {
         alert('Error saving result. Please try again.');
       }
@@ -530,14 +532,10 @@ function ExamResultContent() {
       <div className="bg-[#290c52] text-white px-3 py-2 flex items-center justify-between gap-2 border-b border-[#1a0835]">
         <span className="text-yellow-400 text-base sm:text-lg font-bold whitespace-nowrap">MPCPCT 2025</span>
         <div className="flex items-center gap-2 min-w-0">
-          <img
+          <UserProfileAvatar
             src={userProfileUrl}
             alt={userName}
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/80 object-cover flex-shrink-0"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = "/lo.jpg";
-            }}
           />
           <span className="text-sm font-semibold truncate max-w-[10rem] sm:max-w-none">{userName}</span>
         </div>
@@ -549,11 +547,11 @@ function ExamResultContent() {
       
       {/* Download PDF Button and View Official Result - Only show for full exam summary */}
       {!currentSection && (
-        <div className="text-center mb-4 flex flex-col items-center gap-3">
-          <div className="flex gap-3">
+        <div className="mb-4 px-4">
+          <div className="flex flex-row gap-2 w-full">
             <button
               onClick={handleDownloadPDF}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-2.5 rounded-lg font-semibold flex-1 basis-0 min-h-[44px] text-xs sm:text-sm text-center"
             >
               Download PDF
             </button>
@@ -574,7 +572,7 @@ function ExamResultContent() {
                     router.push(resultPath);
                   }
                 }}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold"
+                className="bg-green-500 hover:bg-green-600 text-white px-2 py-2.5 rounded-lg font-semibold flex-1 basis-0 min-h-[44px] text-xs sm:text-sm text-center leading-tight"
               >
                 View Official Result Certificate
               </button>

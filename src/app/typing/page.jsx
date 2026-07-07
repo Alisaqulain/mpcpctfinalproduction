@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { getLearningData, getLessonContent } from "@/lib/learningData";
 import { useHindiTyping } from "@/hooks/useHindiTyping";
 import ReplaceNavLink from "@/components/common/ReplaceNavLink";
+import { resolveUserProfileUrl, readExamUserDataFromStorage } from "@/lib/userProfile";
 
 const MIN_NET_SPEED_LEARNING = 10;
 const TYPING_FONT_MIN = 12;
@@ -1227,10 +1228,10 @@ function TypingTutorForm() {
           if (data.user?.name) {
             setUserName(data.user.name);
           }
-          if (data.user?.profileUrl) {
-            setUserProfileUrl(data.user.profileUrl);
+          if (data.user) {
+            setUserProfileUrl(resolveUserProfileUrl(data.user));
           }
-          if (data.user?.name || data.user?.profileUrl) {
+          if (data.user?.name || data.user) {
             return;
           }
         }
@@ -1239,16 +1240,12 @@ function TypingTutorForm() {
       }
       
       // Fallback to localStorage
-      const userDataStr = localStorage.getItem('examUserData');
-      if (userDataStr) {
-        try {
-          const userData = JSON.parse(userDataStr);
-          if (userData.name) {
-            setUserName(userData.name);
-          }
-        } catch (error) {
-          console.error('Error parsing user data:', error);
+      const userData = readExamUserDataFromStorage();
+      if (userData) {
+        if (userData.name) {
+          setUserName(userData.name);
         }
+        setUserProfileUrl(resolveUserProfileUrl(userData));
       }
     };
     
