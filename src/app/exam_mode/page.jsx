@@ -4725,7 +4725,10 @@ function ExamModeContent() {
             )}
           
             <button 
-              onClick={handleSubmitSection}
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                openDesktopSectionSubmitConfirm();
+              }}
               disabled={completedSections.has(section)}
               className={`mobile-submit-btn px-12 py-3 ml-2 mt-1 text-[13px] rounded whitespace-nowrap ${
                 completedSections.has(section)
@@ -6035,6 +6038,7 @@ function ExamModeContent() {
                   const target = submitCurrent ? null : pendingSectionNav?.name || null;
                   setShowSectionSubmitModal(false);
                   setPendingSectionNav(null);
+                  setIsMobileMenuOpen(false);
                   handleSubmitSection(target);
                 }}
                 className="px-5 py-2 rounded-lg bg-[#290c52] text-white font-medium text-sm"
