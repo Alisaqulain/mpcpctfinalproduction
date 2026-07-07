@@ -888,32 +888,34 @@ function ExamResultContent() {
       {/* Questions Review Section - Show only in final result (no section parameter) */}
       {sectionStats.length > 0 && !currentSection && (
         <div className="px-4 mt-8 mb-4">
-          <div className="bg-[#290c52] text-white p-3 rounded-t-lg flex justify-between items-center">
-            <h2 className="text-lg md:text-xl font-bold">Questions Review</h2>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowAnswers(!showAnswers)}
-                className="bg-white text-[#290c52] px-3 py-1 rounded text-xs font-semibold hover:bg-gray-100"
-              >
-                {showAnswers ? '🔒 Hide Answers' : '🔓 Show Answers'}
-              </button>
-              <span className="text-sm">View in:</span>
-              <select 
-                className="text-black text-xs bg-white px-2 py-1 rounded"
-                value={viewLanguage}
-                onChange={(e) => {
-                  const newLang = e.target.value;
-                  setViewLanguage(newLang);
-                  localStorage.setItem('viewLanguage', newLang);
-                }}
-              >
-                <option value="हिन्दी">हिन्दी</option>
-                <option value="English">English</option>
-              </select>
+          <div className="border border-gray-300 rounded-lg flex flex-col overflow-hidden">
+            {/* Static header — stays fixed while questions scroll inside the box below */}
+            <div className="bg-[#290c52] text-white p-3 rounded-t-lg flex flex-wrap justify-between items-center gap-2 flex-shrink-0">
+              <h2 className="text-lg md:text-xl font-bold">Questions Review</h2>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setShowAnswers(!showAnswers)}
+                  className="bg-white text-[#290c52] px-3 py-1 rounded text-xs font-semibold hover:bg-gray-100"
+                >
+                  {showAnswers ? '🔒 Hide Answers' : '🔓 Show Answers'}
+                </button>
+                <span className="text-sm">View in:</span>
+                <select 
+                  className="text-black text-xs bg-white px-2 py-1 rounded"
+                  value={viewLanguage}
+                  onChange={(e) => {
+                    const newLang = e.target.value;
+                    setViewLanguage(newLang);
+                    localStorage.setItem('viewLanguage', newLang);
+                  }}
+                >
+                  <option value="हिन्दी">हिन्दी</option>
+                  <option value="English">English</option>
+                </select>
+              </div>
             </div>
-          </div>
           
-          <div className="border border-gray-300 rounded-b-lg overflow-hidden">
+          <div className="overflow-y-auto max-h-[60vh] sm:max-h-[65vh] md:max-h-[70vh] border-t border-gray-300">
             {sections
               .filter(sec => !currentSection || sec.name === currentSection)
               .map((sec, sectionIndex) => {
@@ -1131,6 +1133,7 @@ function ExamResultContent() {
                 </div>
               );
             })}
+          </div>
           </div>
         </div>
       )}
