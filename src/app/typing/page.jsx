@@ -11,6 +11,10 @@ const TYPING_FONT_MAX = 28;
 const TYPING_FONT_STEP = 2;
 const TYPING_FONT_DEFAULT = 18;
 const TYPING_FONT_PORTRAIT_BONUS = 2;
+const TYPING_FONT_LANDSCAPE_BONUS = 2;
+const LANDSCAPE_RIGHT_SIDEBAR_VW = 14;
+const LANDSCAPE_RIGHT_SIDEBAR_MIN_PX = 72;
+const LANDSCAPE_RIGHT_SIDEBAR_MAX_PX = 92;
 const TYPING_PAGE_BG =
   "bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat";
 const TYPING_LANDSCAPE_BG =
@@ -786,9 +790,9 @@ function LandscapeView({
         aria-hidden
         className="landscape-right-bright-bg fixed top-0 right-0 bottom-0 pointer-events-none z-[1]"
         style={{
-          width: "12vw",
-          minWidth: "64px",
-          maxWidth: "80px",
+          width: `${LANDSCAPE_RIGHT_SIDEBAR_VW}vw`,
+          minWidth: `${LANDSCAPE_RIGHT_SIDEBAR_MIN_PX}px`,
+          maxWidth: `${LANDSCAPE_RIGHT_SIDEBAR_MAX_PX}px`,
           backgroundImage: "url('/dd1.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center top",
@@ -854,10 +858,10 @@ function LandscapeView({
           </div>
 
           {/* Center — typing box + action buttons */}
-          <div className="landscape-center-col landscape-mobile-typing-area flex flex-1 flex-col items-center min-w-0 min-h-0 px-1 bg-transparent">
+          <div className="landscape-center-col landscape-mobile-typing-area flex flex-1 flex-col items-center min-w-0 min-h-0 px-2 bg-transparent">
             <div
-              className="bg-white rounded-xl shadow-lg w-full flex flex-col min-h-0 flex-1"
-              style={{ maxWidth: "100%", padding: "0.15rem 0.65rem 0.5rem" }}
+              className="landscape-typing-white-box bg-white rounded-xl shadow-lg w-[92%] max-w-full mx-auto flex flex-col min-h-0 flex-1"
+              style={{ padding: "0.15rem 0.65rem 0.5rem" }}
             >
               {isCompleted && (
                 <div className="mb-2 bg-green-50 p-2 rounded-lg border-2 border-green-500 shrink-0">
@@ -911,7 +915,7 @@ function LandscapeView({
                   <div
                     className="typing-passage-font landscape-typing-passage leading-tight overflow-y-auto break-words font-sans w-full flex-1 min-h-0 mt-0 pt-0"
                     style={{
-                      ...typingFontStyle(fontSize, 1.2),
+                      ...typingFontStyle(fontSize + TYPING_FONT_LANDSCAPE_BONUS, 1.2),
                       minHeight: "18vh",
                       maxHeight: "22vh",
                       width: "100%",
@@ -928,7 +932,7 @@ function LandscapeView({
                     className="typing-input-font landscape-typing-input-field w-full p-2 border-t border-gray-400 rounded-md focus:outline-none mt-1 disabled:opacity-50 shrink-0"
                     placeholder="Type Here..."
                     style={{
-                      ...typingFontStyle(fontSize, 1.2),
+                      ...typingFontStyle(fontSize + TYPING_FONT_LANDSCAPE_BONUS, 1.2),
                       minHeight: "10vh",
                       maxHeight: "12vh",
                       width: "100%",
@@ -964,11 +968,11 @@ function LandscapeView({
           </div>
 
           {/* Right — speedometer + font size (A+ on top, A- below) */}
-          <div className="landscape-right-col landscape-mobile-sidebar relative flex flex-col items-center w-[12vw] min-w-[64px] max-w-[80px] shrink-0 self-stretch pt-0 gap-1 text-white overflow-hidden bg-transparent">
+          <div className={`landscape-right-col landscape-mobile-sidebar relative flex flex-col items-center w-[${LANDSCAPE_RIGHT_SIDEBAR_VW}vw] min-w-[${LANDSCAPE_RIGHT_SIDEBAR_MIN_PX}px] max-w-[${LANDSCAPE_RIGHT_SIDEBAR_MAX_PX}px] shrink-0 self-stretch pt-0 gap-1 text-white overflow-hidden bg-transparent`}>
             <div className="relative z-[1] flex flex-col items-center w-full gap-1 pt-1">
-            <div className="border-[3px] border-black rounded-full">
+            <div className="landscape-speedometer-outer border-[4px] border-black rounded-full">
               <div
-                className="relative bg-black rounded-full border-[3px] border-white flex items-center justify-center"
+                className="landscape-speedometer-inner relative bg-black rounded-full border-[4px] border-white flex items-center justify-center"
                 style={{ width: "clamp(52px, 11vw, 72px)", height: "clamp(52px, 11vw, 72px)" }}
               >
                 <div
@@ -1974,7 +1978,7 @@ function TypingTutorForm() {
             overflow: hidden !important;
           }
           .portrait-close-btn {
-            top: 3rem !important;
+            top: 3.5rem !important;
           }
           .portrait-bottom-panel {
             top: 13.25rem;
@@ -2093,6 +2097,9 @@ function TypingTutorForm() {
           }
           .landscape-right-bright-bg {
             z-index: 1 !important;
+          }
+          .landscape-speedometer-outer {
+            transform: translateX(-0.10rem);
           }
           .portrait-typing-main.landscape-mobile-container {
             max-width: none !important;
