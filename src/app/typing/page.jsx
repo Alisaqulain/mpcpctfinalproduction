@@ -9,7 +9,7 @@ const MIN_NET_SPEED_LEARNING = 10;
 const TYPING_FONT_MIN = 12;
 const TYPING_FONT_MAX = 28;
 const TYPING_FONT_STEP = 2;
-const TYPING_FONT_DEFAULT = 18;
+const TYPING_FONT_DEFAULT = 19;
 const TYPING_FONT_PORTRAIT_BONUS = 2;
 const TYPING_FONT_LANDSCAPE_BONUS = 2;
 const LANDSCAPE_RIGHT_SIDEBAR_VW = 14;
@@ -1756,7 +1756,10 @@ function TypingTutorForm() {
 
   const renderColoredWords = (isLandscapeMode = false) => {
     let pointer = 0;
-    const wordFontStyle = { fontSize: `${fontSize}px` };
+    const wordFontSize = isLandscapeMode
+      ? fontSize + TYPING_FONT_LANDSCAPE_BONUS
+      : fontSize;
+    const wordFontStyle = { fontSize: `${wordFontSize}px` };
     const lineHeight = isLandscapeMode ? 1.2 : 1.5;
     return content.map((line, lineIndex) => {
       const lineWords = line.trim().split(/\s+/);
