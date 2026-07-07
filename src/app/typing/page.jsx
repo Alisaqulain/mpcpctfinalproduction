@@ -12,6 +12,8 @@ const TYPING_FONT_STEP = 2;
 const TYPING_FONT_DEFAULT = 18;
 const TYPING_PAGE_BG =
   "bg-[#290c52] bg-[url('/bg.jpg')] bg-cover bg-top bg-no-repeat";
+/** Desktop UI scale so 100% browser zoom matches prior 80% zoom appearance */
+const DESKTOP_UI_SCALE = 0.8;
 
 function typingFontStyle(fontSize, lineHeight = 1.5) {
   return {
@@ -954,7 +956,22 @@ function LandscapeView({
           </div>
 
           {/* Right — speedometer + font size (A+ on top, A- below) */}
-          <div className="landscape-right-col landscape-mobile-sidebar flex flex-col items-center w-[16vw] min-w-[76px] max-w-[96px] shrink-0 pt-0 gap-1 text-white bg-transparent">
+          <div className="landscape-right-col landscape-mobile-sidebar relative flex flex-col items-center w-[16vw] min-w-[76px] max-w-[96px] shrink-0 self-stretch pt-0 gap-1 text-white overflow-hidden">
+            <div
+              aria-hidden
+              className="landscape-sidebar-bg absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: "url('/dd1.jpg')",
+                // backgroundSize: "100% 100%",
+                backgroundPosition: "center top",
+                backgroundRepeat: "no-repeat",
+                WebkitMaskImage:
+                  "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 55%, rgba(0,0,0,0.35) 85%, rgba(0,0,0,0) 100%)",
+                maskImage:
+                  "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 55%, rgba(0,0,0,0.35) 85%, rgba(0,0,0,0) 100%)",
+              }}
+            />
+            <div className="relative z-[1] flex flex-col items-center w-full gap-1">
             <div className="border-[3px] border-black rounded-full">
               <div
                 className="relative bg-black rounded-full border-[3px] border-white flex items-center justify-center"
@@ -1025,6 +1042,7 @@ function LandscapeView({
               >
                 A -
               </button>
+            </div>
             </div>
           </div>
         </div>
@@ -1879,11 +1897,25 @@ function TypingTutorForm() {
   return (
     <>
     <div
-      className={`min-h-screen mt-30 md:mt-0 px-4 py-6 md:px-14 md:py-12 md:mx-8 md:my-8 rounded-[0px] md:rounded-[100px] typing-background-container relative ${TYPING_PAGE_BG}${
+      className={`min-h-screen typing-background-container relative ${TYPING_PAGE_BG}${
         isMobile && isLandscape ? " typing-background-container--landscape" : ""
+      }${!isMobile ? " typing-desktop-card" : ""}${
+        !isMobile
+          ? " md:mt-0 md:px-14 md:py-12 md:mx-8 md:my-8 md:rounded-[100px]"
+          : " mt-30 px-4 py-6 rounded-[0px]"
       }`}
     >
       <style jsx global>{`
+        @media (min-width: 768px) {
+          html:has(.typing-desktop-card),
+          body:has(.typing-desktop-card) {
+            background-color: #ffffff !important;
+            background-image: none !important;
+          }
+          .typing-desktop-80-scale {
+            zoom: ${DESKTOP_UI_SCALE};
+          }
+        }
         .typing-background-container--landscape {
           box-shadow: none !important;
         }
@@ -1992,6 +2024,15 @@ function TypingTutorForm() {
                (max-width: 767px) and (orientation: landscape),
                (max-height: 600px) and (orientation: landscape),
                (max-height: 500px) and (min-aspect-ratio: 1/1) {
+          html:has(.typing-background-container--landscape),
+          body:has(.typing-background-container--landscape),
+          #main-content:has(.typing-background-container--landscape) {
+            background-color: #290c52 !important;
+            background-image: url("/bg.jpg") !important;
+            background-size: cover !important;
+            background-position: center center !important;
+            background-repeat: no-repeat !important;
+          }
           html, body {
             height: 100vh !important;
             width: 100vw !important;
@@ -2012,9 +2053,8 @@ function TypingTutorForm() {
             background-color: #290c52 !important;
             background-image: url("/bg.jpg") !important;
             background-size: cover !important;
-            background-position: top center !important;
+            background-position: center center !important;
             background-repeat: no-repeat !important;
-            background-attachment: fixed !important;
             box-shadow: none !important;
           }
           .portrait-typing-main.landscape-mobile-container {
@@ -2031,15 +2071,25 @@ function TypingTutorForm() {
           .landscape-main-row,
           .landscape-left-col,
           .landscape-center-col,
-          .landscape-right-col,
           .landscape-stats-row,
-          .landscape-mobile-view,
-          .landscape-mobile-sidebar {
+          .landscape-mobile-view {
             background: transparent !important;
             background-color: transparent !important;
             background-image: none !important;
             box-shadow: none !important;
             backdrop-filter: none !important;
+          }
+          .landscape-mobile-sidebar {
+            align-self: stretch !important;
+            min-height: 100% !important;
+            position: relative !important;
+            overflow: hidden !important;
+            background-color: transparent !important;
+            background-image: none !important;
+            box-shadow: none !important;
+          }
+          .landscape-sidebar-bg {
+            z-index: 0 !important;
           }
           .landscape-mobile-view {
             flex: 1 !important;
@@ -2149,7 +2199,7 @@ function TypingTutorForm() {
           <TypingCloseButton href={isLearningWordMode ? "/learning" : "/skill_test"} />
         </div>
       )}
-      <div className={`max-w-7xl mx-auto portrait-typing-main ${isMobile && isLandscape ? "landscape-mobile-container mt-0 w-full max-w-none" : "mt-6 md:mt-15"}`}>
+      <div className={`max-w-7xl mx-auto portrait-typing-main ${isMobile && isLandscape ? "landscape-mobile-container mt-0 w-full max-w-none" : !isMobile ? "typing-desktop-80-scale mt-6 md:mt-15" : "mt-6 md:mt-15"}`}>
         {!isMobile ? (
           <DesktopView {...commonProps} />
         ) : isLandscape ? (

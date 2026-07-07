@@ -32,7 +32,7 @@ export default function RootLayout({ children }) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mpcpct.com";
 
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
         <meta name="geo.region" content="IN-MP" />
         <meta name="geo.placename" content="Indore, Madhya Pradesh, India" />
@@ -66,6 +66,7 @@ export default function RootLayout({ children }) {
       </head>
       <body
         className={`${GeistSans.variable} ${GeistMono.variable} antialiased ${poppins.className}`}
+        suppressHydrationWarning
       >
         <AnalyticsScripts />
         <LayoutWrapper>{children}</LayoutWrapper>

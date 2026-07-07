@@ -50,7 +50,7 @@ export async function GET(req) {
     }
 
     try {
-      settings = await SkillTestSettings.findOne({ id: "settings" }).lean();({ id: "settings" }).lean();
+      settings = await SkillTestSettings.findOne({ id: "settings" }).lean();
     } catch (settingsError) {
       console.error("[Skill Test API] Error fetching settings:", settingsError);
       settings = null;
