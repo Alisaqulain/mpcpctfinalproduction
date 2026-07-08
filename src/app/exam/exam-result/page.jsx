@@ -6,6 +6,7 @@ import {
   evaluateExamPassing,
   buildCriteriaLines,
   normalizePassingConfig,
+  getOfficialResultPath,
 } from "@/lib/examPassingCriteria";
 import {
   fetchUserProfileFromApi,
@@ -14,6 +15,22 @@ import {
   resolveUserProfileUrl,
 } from "@/lib/userProfile";
 import UserProfileAvatar from "@/components/common/UserProfileAvatar";
+
+function isTypingSectionName(name) {
+  if (!name) return false;
+  return (
+    name === "English Typing" ||
+    name === "हिंदी टाइपिंग" ||
+    name.includes("Typing") ||
+    name.includes("typing")
+  );
+}
+
+function getMcqQuestions(section, sectionQuestions) {
+  if (!sectionQuestions?.length) return [];
+  if (isTypingSectionName(section?.name) || section?.typingTime) return [];
+  return sectionQuestions.filter((q) => q.questionType !== "TYPING");
+}
 
 function ExamResultContent() {
   const [userName, setUserName] = useState("User");
@@ -174,6 +191,7 @@ function ExamResultContent() {
             const stats = [];
             data.data.sections.forEach((sec, index) => {
               const secQuestions = questionsBySection[sec.name] || [];
+              const mcqQuestions = getMcqQuestions(sec, secQuestions);
               const isCompleted = completedSectionsSet.has(sec.name);
               
               // Check if section has any answers, visited questions, or marked questions
@@ -197,7 +215,7 @@ function ExamResultContent() {
                   // Upcoming section - always show "Yet to attempt"
                   stats.push({
                     sectionName: sec.name,
-                    totalQuestions: secQuestions.length,
+                    totalQuestions: mcqQuestions.length,
                     answered: 0,
                     notAnswered: 0,
                     markedForReview: 0,
@@ -206,7 +224,8 @@ function ExamResultContent() {
                     correct: 0,
                     incorrect: 0,
                     score: 0,
-                    yetToAttempt: true
+                    yetToAttempt: true,
+                    isTypingSection: isTypingSectionName(sec.name) || !!sec.typingTime,
                   });
                   return;
                 }
@@ -216,7 +235,7 @@ function ExamResultContent() {
                 if (!sectionHasData) {
                   stats.push({
                     sectionName: sec.name,
-                    totalQuestions: secQuestions.length,
+                    totalQuestions: mcqQuestions.length,
                     answered: 0,
                     notAnswered: 0,
                     markedForReview: 0,
@@ -225,7 +244,8 @@ function ExamResultContent() {
                     correct: 0,
                     incorrect: 0,
                     score: 0,
-                    yetToAttempt: true
+                    yetToAttempt: true,
+                    isTypingSection: isTypingSectionName(sec.name) || !!sec.typingTime,
                   });
                   return;
                 }
@@ -239,7 +259,7 @@ function ExamResultContent() {
               let correct = 0;
               let incorrect = 0;
               
-              secQuestions.forEach(q => {
+              mcqQuestions.forEach(q => {
                 const answer = loadedAnswers[q._id];
                 const isVisited = visitedSet.has(q._id);
                 const isMarked = markedSet.has(q._id);
@@ -268,7 +288,7 @@ function ExamResultContent() {
               
               // Calculate score based on marks per question
               let sectionScore = 0;
-              secQuestions.forEach(q => {
+              mcqQuestions.forEach(q => {
                 const answer = loadedAnswers[q._id];
                 if (answer !== undefined && answer !== null && answer === q.correctAnswer) {
                   sectionScore += (q.marks || 1);
@@ -277,7 +297,7 @@ function ExamResultContent() {
               
               stats.push({
                 sectionName: sec.name,
-                totalQuestions: secQuestions.length,
+                totalQuestions: mcqQuestions.length,
                 answered,
                 notAnswered,
                 markedForReview: markedForReviewCount,
@@ -286,7 +306,8 @@ function ExamResultContent() {
                 correct,
                 incorrect,
                 score: sectionScore,
-                yetToAttempt: false
+                yetToAttempt: false,
+                isTypingSection: isTypingSectionName(sec.name) || !!sec.typingTime,
               });
             });
             setSectionStats(stats);
@@ -296,12 +317,15 @@ function ExamResultContent() {
               // For section-specific view, calculate pass/fail for this section only
               const currentSectionStat = stats.find(s => s.sectionName === currentSection);
               if (currentSectionStat) {
-                const sectionQuestions = questionsBySection[currentSection] || [];
+                const currentSectionData = data.data.sections.find(s => s.name === currentSection);
+                const sectionQuestions = getMcqQuestions(
+                  currentSectionData,
+                  questionsBySection[currentSection] || []
+                );
                 const sectionMaxMarks = sectionQuestions.reduce((sum, q) => sum + (q.marks || 1), 0);
                 const sectionScore = currentSectionStat.score || 0;
                 
                 // Get section's minimum marks requirement
-                const currentSectionData = data.data.sections.find(s => s.name === currentSection);
                 const cfg = normalizePassingConfig(data.data.exam);
                 let sectionPassingMarks = 0;
                 if (cfg.examKey === "RSCIT") {
@@ -318,10 +342,12 @@ function ExamResultContent() {
                 setIsPassed(sectionScore >= sectionPassingMarks);
               }
             } else {
-              // For full exam view, calculate overall pass/fail
-              const totalScore = stats.reduce((sum, s) => sum + (s.score || 0), 0);
-              const totalMaxMarks = stats.reduce((sum, s) => {
-                const sectionQuestions = questionsBySection[s.sectionName] || [];
+              // For full exam view, calculate overall pass/fail (MCQ sections only for marks)
+              const mcqStats = stats.filter((s) => !s.isTypingSection);
+              const totalScore = mcqStats.reduce((sum, s) => sum + (s.score || 0), 0);
+              const totalMaxMarks = mcqStats.reduce((sum, s) => {
+                const sectionData = data.data.sections.find((sec) => sec.name === s.sectionName);
+                const sectionQuestions = getMcqQuestions(sectionData, questionsBySection[s.sectionName] || []);
                 return sum + sectionQuestions.reduce((qSum, q) => qSum + (q.marks || 1), 0);
               }, 0);
               const evalResult = evaluateExamPassing(data.data.exam, stats, totalMaxMarks);
@@ -352,14 +378,19 @@ function ExamResultContent() {
       const examType = localStorage.getItem('examType');
       
       const totalAnswered = Object.keys(selectedAnswers).length;
-      const totalCorrect = sectionStats.reduce((sum, stat) => sum + stat.correct, 0);
-      const totalIncorrect = sectionStats.reduce((sum, stat) => sum + stat.incorrect, 0);
+      const totalCorrect = sectionStats
+        .filter((s) => !s.isTypingSection)
+        .reduce((sum, stat) => sum + stat.correct, 0);
+      const totalIncorrect = sectionStats
+        .filter((s) => !s.isTypingSection)
+        .reduce((sum, stat) => sum + stat.incorrect, 0);
       
-      // Calculate total score based on marks per question
+      // Calculate total score based on MCQ marks only (exclude typing sections)
       let totalScore = 0;
       let totalMaxMarks = 0;
-      sectionStats.forEach(stat => {
-        const sectionQuestions = questions[stat.sectionName] || [];
+      sectionStats.filter((s) => !s.isTypingSection).forEach(stat => {
+        const sectionData = sections.find((sec) => sec.name === stat.sectionName);
+        const sectionQuestions = getMcqQuestions(sectionData, questions[stat.sectionName] || []);
         sectionQuestions.forEach(q => {
           const marks = q.marks || 1;
           totalMaxMarks += marks;
@@ -369,7 +400,9 @@ function ExamResultContent() {
         });
       });
       
-      const totalQuestions = sectionStats.reduce((sum, stat) => sum + stat.totalQuestions, 0);
+      const totalQuestions = sectionStats
+        .filter((s) => !s.isTypingSection)
+        .reduce((sum, stat) => sum + stat.totalQuestions, 0);
       const percentage = totalMaxMarks > 0 ? Math.round((totalScore / totalMaxMarks) * 100) : 0;
       
       const evalResult = evaluateExamPassing(examData, sectionStats, totalMaxMarks);
@@ -412,8 +445,9 @@ function ExamResultContent() {
         const result = await res.json();
         localStorage.setItem('lastResultId', result.result._id);
         
-        // Redirect to score card after final submit
-        window.location.href = "/result/score-card";
+        // Redirect to the correct official result page for this exam type
+        const resultPath = getOfficialResultPath(examData?.key) || "/exam/exam-result";
+        window.location.href = resultPath;
       } else {
         alert('Error saving result. Please try again.');
       }
@@ -494,7 +528,9 @@ function ExamResultContent() {
     // Total
     yPos += 5;
     const totalCorrect = sectionStats.reduce((sum, s) => sum + s.correct, 0);
-    const totalQuestions = sectionStats.reduce((sum, s) => sum + s.totalQuestions, 0);
+    const totalQuestions = sectionStats
+      .filter((s) => !s.isTypingSection)
+      .reduce((sum, s) => sum + s.totalQuestions, 0);
     pdf.setFontSize(12);
     pdf.text(`Total Score: ${totalCorrect} / ${totalQuestions}`, pageWidth / 2, yPos, { align: 'center' });
     yPos += 10;
@@ -515,15 +551,26 @@ function ExamResultContent() {
     );
   }
 
+  const currentSectionData = sections.find((s) => s.name === currentSection);
   const displayScore = currentSection
     ? (sectionStats.find((s) => s.sectionName === currentSection)?.score || 0)
-    : sectionStats.reduce((sum, s) => sum + (s.score || 0), 0);
+    : sectionStats.filter((s) => !s.isTypingSection).reduce((sum, s) => sum + (s.score || 0), 0);
   const displayMaxMarks = currentSection
-    ? (questions[currentSection] || []).reduce((sum, q) => sum + (q.marks || 1), 0)
-    : sectionStats.reduce((sum, s) => {
-        const sectionQuestions = questions[s.sectionName] || [];
-        return sum + sectionQuestions.reduce((qSum, q) => qSum + (q.marks || 1), 0);
+    ? getMcqQuestions(currentSectionData, questions[currentSection] || []).reduce(
+        (sum, q) => sum + (q.marks || 1),
+        0
+      )
+    : sectionStats.filter((s) => !s.isTypingSection).reduce((sum, s) => {
+        const sectionData = sections.find((sec) => sec.name === s.sectionName);
+        const mcqQs = getMcqQuestions(sectionData, questions[s.sectionName] || []);
+        return sum + mcqQs.reduce((qSum, q) => qSum + (q.marks || 1), 0);
       }, 0);
+  const sumMcqStats = (key) =>
+    sectionStats.filter((s) => !s.isTypingSection).reduce((sum, s) => sum + (s[key] || 0), 0);
+  const formatMcqStat = (stat, key) => {
+    if (stat.yetToAttempt || stat.isTypingSection) return "-";
+    return stat[key];
+  };
   const displayPercentage =
     displayMaxMarks > 0 ? ((displayScore / displayMaxMarks) * 100).toFixed(2) : "0.00";
   return (
@@ -613,14 +660,14 @@ function ExamResultContent() {
                       {stat.sectionName}
                       {stat.yetToAttempt && <span className="text-gray-500 ml-2">( Yet to attempt )</span>}
                     </td>
-                    <td className="border p-2">{stat.yetToAttempt ? '-' : stat.totalQuestions}</td>
-                    <td className="border p-2">{stat.yetToAttempt ? '-' : stat.answered}</td>
-                    <td className="border p-2">{stat.yetToAttempt ? '-' : stat.notAnswered}</td>
-                    <td className="border p-2">{stat.yetToAttempt ? '-' : stat.markedForReview}</td>
-                    <td className="border p-2">{stat.yetToAttempt ? '-' : stat.answeredAndMarked}</td>
-                    <td className="border p-2">{stat.yetToAttempt ? '-' : stat.notVisited}</td>
-                    <td className="border p-2 text-green-600 font-semibold">{stat.yetToAttempt ? '-' : stat.correct}</td>
-                    <td className="border p-2 font-semibold">{stat.yetToAttempt ? '-' : stat.score}</td>
+                    <td className="border p-2">{formatMcqStat(stat, "totalQuestions")}</td>
+                    <td className="border p-2">{formatMcqStat(stat, "answered")}</td>
+                    <td className="border p-2">{formatMcqStat(stat, "notAnswered")}</td>
+                    <td className="border p-2">{formatMcqStat(stat, "markedForReview")}</td>
+                    <td className="border p-2">{formatMcqStat(stat, "answeredAndMarked")}</td>
+                    <td className="border p-2">{formatMcqStat(stat, "notVisited")}</td>
+                    <td className="border p-2 text-green-600 font-semibold">{formatMcqStat(stat, "correct")}</td>
+                    <td className="border p-2 font-semibold">{formatMcqStat(stat, "score")}</td>
                   </tr>
                 ))
               ) : (
@@ -631,14 +678,14 @@ function ExamResultContent() {
               {sectionStats.length > 0 && !currentSection && (
                 <tr className="bg-gray-100 font-bold">
                   <td className="border p-2 text-left">Total</td>
-                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.totalQuestions, 0)}</td>
-                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.answered, 0)}</td>
-                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.notAnswered, 0)}</td>
-                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.markedForReview, 0)}</td>
-                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.answeredAndMarked, 0)}</td>
-                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.notVisited, 0)}</td>
-                  <td className="border p-2 text-green-600">{sectionStats.reduce((sum, s) => sum + s.correct, 0)}</td>
-                  <td className="border p-2">{sectionStats.reduce((sum, s) => sum + s.score, 0)}</td>
+                  <td className="border p-2">{sumMcqStats("totalQuestions")}</td>
+                  <td className="border p-2">{sumMcqStats("answered")}</td>
+                  <td className="border p-2">{sumMcqStats("notAnswered")}</td>
+                  <td className="border p-2">{sumMcqStats("markedForReview")}</td>
+                  <td className="border p-2">{sumMcqStats("answeredAndMarked")}</td>
+                  <td className="border p-2">{sumMcqStats("notVisited")}</td>
+                  <td className="border p-2 text-green-600">{sumMcqStats("correct")}</td>
+                  <td className="border p-2">{sumMcqStats("score")}</td>
                 </tr>
               )}
             </tbody>
@@ -918,8 +965,9 @@ function ExamResultContent() {
           <div className="overflow-y-auto max-h-[60vh] sm:max-h-[65vh] md:max-h-[70vh] border-t border-gray-300">
             {sections
               .filter(sec => !currentSection || sec.name === currentSection)
+              .filter(sec => !isTypingSectionName(sec.name) && !sec.typingTime)
               .map((sec, sectionIndex) => {
-                const sectionQuestions = questions[sec.name] || [];
+                const sectionQuestions = getMcqQuestions(sec, questions[sec.name] || []);
                 if (sectionQuestions.length === 0) return null;
                 
                 const sectionStat = sectionStats.find(s => s.sectionName === sec.name);

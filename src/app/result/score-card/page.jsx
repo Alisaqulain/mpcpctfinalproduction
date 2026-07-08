@@ -5,7 +5,14 @@ import Link from "next/link";
 import {
   normalizePassingConfig,
   formatPublicationDate,
+  getOfficialResultPath,
 } from "@/lib/examPassingCriteria";
+import {
+  fetchUserProfileFromApi,
+  mergeExamUserProfile,
+  readExamUserDataFromStorage,
+  resolveUserProfileUrl,
+} from "@/lib/userProfile";
 
 export default function CpctScoreCard() {
   const [userName, setUserName] = useState("User");
@@ -33,6 +40,13 @@ export default function CpctScoreCard() {
         if (profileResultDataStr) {
           try {
             const profileResult = JSON.parse(profileResultDataStr);
+            const profileExamKey = profileResult.examKey;
+            const profileResultPath = getOfficialResultPath(profileExamKey);
+            if (profileResultPath && profileResultPath !== "/result/score-card") {
+              window.location.replace(profileResultPath);
+              return;
+            }
+
             setUserName(profileResult.userName || "User");
             
             // Get MCQ score from sectionStats
@@ -41,13 +55,16 @@ export default function CpctScoreCard() {
               if (mcqSection) {
                 setMcqScore(mcqSection.score || 0);
                 setMcqMax(mcqSection.totalQuestions * 1 || 75);
-                const cfg = normalizePassingConfig({ key: "CPCT" });
+                const cfg = normalizePassingConfig({ key: profileExamKey || "CPCT" });
                 setPassConfig(cfg);
                 setMcqPassed((mcqSection.score || 0) >= cfg.mcqPassingMarks);
               }
             }
             
-            setExamData({ title: profileResult.examTitle || 'CPCT' });
+            setExamData({
+              title: profileResult.examTitle || profileExamKey || "Exam",
+              key: profileExamKey || "CPCT",
+            });
             setLoading(false);
             localStorage.removeItem('profileResultData'); // Clean up
             return;
@@ -56,37 +73,41 @@ export default function CpctScoreCard() {
           }
         }
 
-        // Load user data
-        const userDataStr = localStorage.getItem("examUserData");
-        if (userDataStr) {
-          try {
-            const userData = JSON.parse(userDataStr);
-            if (userData.name) setUserName(userData.name);
-            const profile =
-              userData.profileImage ||
-              userData.avatar ||
-              userData.uploadedProfileImage ||
-              userData.photoURL ||
-              userData.profileUrl ||
-              userData.profilePicture ||
-              userData.image;
-            if (profile && String(profile).trim()) setUserProfileUrl(String(profile).trim());
-          } catch (error) {
-            console.error("Error parsing user data:", error);
-          }
+        const userData = readExamUserDataFromStorage();
+        let apiUser = null;
+        try {
+          apiUser = await fetchUserProfileFromApi();
+        } catch {
+          /* ignore */
         }
+        const mergedUser = mergeExamUserProfile(userData, apiUser);
+        if (mergedUser.name) {
+          setUserName(mergedUser.name);
+        } else if (userData?.name) {
+          setUserName(userData.name);
+        } else if (apiUser?.name) {
+          setUserName(apiUser.name);
+        }
+        setUserProfileUrl(resolveUserProfileUrl(mergedUser));
 
         let config = normalizePassingConfig({ key: "CPCT" });
 
-        // Load MCQ exam data
+        // Load MCQ exam data (CPCT score card only)
         const examId = localStorage.getItem('currentExamId');
         if (examId) {
           const res = await fetch(`/api/exam-questions?examId=${examId}`);
           if (res.ok) {
             const data = await res.json();
-            if (data.success && data.data && data.data.exam?.key === "CPCT") {
-              setExamData(data.data.exam);
-              config = normalizePassingConfig(data.data.exam);
+            if (data.success && data.data?.exam) {
+              const exam = data.data.exam;
+              const resultPath = getOfficialResultPath(exam.key);
+              if (resultPath && resultPath !== "/result/score-card") {
+                window.location.replace(resultPath);
+                return;
+              }
+
+              setExamData(exam);
+              config = normalizePassingConfig(exam);
               setPassConfig(config);
               setPublicationDate(formatPublicationDate(config.resultPublicationDate));
               
@@ -188,6 +209,7 @@ export default function CpctScoreCard() {
   const mcqPercentage = mcqMax > 0 ? ((mcqScore / mcqMax) * 100).toFixed(2) : 0;
   const englishPercentage = englishNetSpeed > 0 ? ((englishNetSpeed / 60) * 100).toFixed(0) : 0; // Assuming 60 WPM is 100%
   const hindiPercentage = hindiNetSpeed > 0 ? ((hindiNetSpeed / 40) * 100).toFixed(0) : 0; // Assuming 40 WPM is 100%
+  const subjectName = examData?.title || examData?.key || "Exam";
 
   const handleDownloadPDF = () => {
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -262,7 +284,7 @@ export default function CpctScoreCard() {
     pdf.setFont('helvetica', 'bold');
     pdf.text('Subject Name', 10 + colWidths[0]/2, yPos + 5, { align: 'center' });
     pdf.setFont('helvetica', 'normal');
-    pdf.text(examData?.title || 'CPCT', 10 + colWidths[0] + (colWidths[1] + colWidths[2] + colWidths[3])/2, yPos + 5, { align: 'center' });
+    pdf.text(subjectName, 10 + colWidths[0] + (colWidths[1] + colWidths[2] + colWidths[3])/2, yPos + 5, { align: 'center' });
     yPos += rowHeight;
     
     // Exam Centre
@@ -382,34 +404,77 @@ export default function CpctScoreCard() {
       <div className="max-w-4xl mx-auto shadow-xl text-sm font-sans bg-white my-3 sm:my-5 border-2 border-[#290c52]">
         <div className="border-x-2 border-[#290c52]">
 
-        {/* Compact header row */}
+        {/* Mobile header — logo left, title centered */}
         <div
-          className="w-full px-3 py-2 border-b border-[#290c52] flex flex-wrap items-center justify-between gap-2 min-h-[3rem]"
+          className="sm:hidden relative w-full border-b border-[#290c52] min-h-[4.5rem]"
           style={{ backgroundColor: "#290c52" }}
         >
-          <h1 className="text-lg sm:text-2xl font-extrabold uppercase text-white tracking-wide">
-            MPCPCT
-          </h1>
-          <p className="text-[10px] sm:text-xs text-pink-200 font-medium text-center flex-1">
-            To Help in typing &amp; computer proficiency
-          </p>
-          <p className="text-[10px] sm:text-xs text-white/90 whitespace-nowrap">Examination 2025-26</p>
+          <img
+            src="/logor.png"
+            alt="MPCPCT Logo"
+            className="absolute left-1 top-1/2 -translate-y-1/2 h-14 w-auto object-contain"
+          />
+          <div className="text-center px-3 py-2.5 pl-16 pr-3">
+            <h1 className="text-xl font-extrabold uppercase text-white tracking-wide leading-tight">
+              MPCPCT
+            </h1>
+            <p className="text-[11px] text-pink-200 font-medium mt-1 leading-snug">
+              To Help in typing &amp; computer proficiency
+            </p>
+          </div>
         </div>
 
-        {/* Title + profile touching header bottom */}
-        <div className="relative border-b border-gray-300 pb-2 pt-1 px-2 sm:px-3 min-h-[4.5rem]">
+        {/* Desktop header */}
+        <div
+          className="hidden sm:flex w-full px-3 py-2 border-b border-[#290c52] items-center justify-between gap-2 min-h-[3rem]"
+          style={{ backgroundColor: "#290c52" }}
+        >
+          <img
+            src="/logor.png"
+            alt="MPCPCT Logo"
+            className="h-16 w-auto object-contain flex-shrink-0"
+          />
+          <h1 className="text-2xl font-extrabold uppercase text-white tracking-wide">
+            MPCPCT
+          </h1>
+          <p className="text-xs text-pink-200 font-medium text-center flex-1">
+            To Help in typing &amp; computer proficiency
+          </p>
+          <p className="text-xs text-white/90 whitespace-nowrap">Examination 2025-26</p>
+        </div>
+
+        {/* Mobile: profile pic + Score Card / exam year / exam title */}
+        <div className="sm:hidden relative border-b border-gray-300 min-h-[6.5rem]">
           <img
             src={userProfileUrl}
             alt="Student"
-            className="absolute left-2 sm:left-3 bottom-0 w-[4.5rem] sm:w-[5.5rem] h-[3.5rem] sm:h-[4.25rem] border-2 border-[#290c52] object-cover bg-white"
+            className="absolute left-0 bottom-0 w-[6.75rem] h-[6.5rem] border-2 border-black border-l-0 border-b-0 object-cover bg-white"
             onError={(e) => {
               e.currentTarget.onerror = null;
               e.currentTarget.src = "/lo.jpg";
             }}
           />
-          <div className="text-center pl-[5rem] sm:pl-[6.5rem] pr-2">
-            <p className="uppercase font-semibold text-base sm:text-xl leading-tight">Score Card</p>
-            <p className="text-sm sm:text-lg leading-tight">{examData?.title || "MPCPCT Examination 2025-26"}</p>
+          <div className="text-center pl-[7.25rem] pr-3 py-3 min-w-0">
+            <p className="uppercase font-bold text-lg leading-tight">Score Card</p>
+            <p className="text-sm mt-1 leading-tight">{subjectName}</p>
+            <p className="text-xs mt-1 leading-tight">Examination 2025-26</p>
+          </div>
+        </div>
+
+        {/* Desktop: title + profile */}
+        <div className="hidden sm:block relative border-b border-gray-300 pb-2 pt-1 px-3 min-h-[4.5rem]">
+          <img
+            src={userProfileUrl}
+            alt="Student"
+            className="absolute left-3 bottom-0 w-[5.5rem] h-[4.25rem] border-2 border-[#290c52] object-cover bg-white"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = "/lo.jpg";
+            }}
+          />
+          <div className="text-center pl-[6.5rem] pr-2">
+            <p className="uppercase font-semibold text-xl leading-tight">Score Card</p>
+            <p className="text-lg leading-tight">{subjectName}</p>
           </div>
         </div>
 
@@ -431,7 +496,7 @@ export default function CpctScoreCard() {
               </tr>
               <tr className="border border-black">
                 <td className="border border-black px-1 sm:px-2 py-1 font-semibold">Subject Name</td>
-                <td className="border border-black px-1 sm:px-2 py-1" colSpan={3}>{examData?.title || 'CPCT'}</td>
+                <td className="border border-black px-1 sm:px-2 py-1" colSpan={3}>{subjectName}</td>
               </tr>
               <tr>
                 <td className="border border-black px-1 sm:px-2 py-1 font-semibold">Exam Centre Name</td>
@@ -446,20 +511,20 @@ export default function CpctScoreCard() {
 
         {/* Result Table */}
         <div className="overflow-x-auto">
-          <table className="w-full border border-gray-400 text-center font-semibold text-xs sm:text-sm">
+          <table className="w-full border border-gray-400 border-collapse text-center font-semibold text-xs sm:text-sm">
             <thead>
               <tr className="bg-gray-200">
-                <th className="p-1" colSpan={2}>Sections</th>
-                <th className="border-l p-1" colSpan={2}>Maximum Marks</th>
+                <th className="p-1 border border-gray-400" colSpan={2}>Sections</th>
+                <th className="border border-gray-400 p-1" colSpan={2}>Maximum Marks</th>
               </tr>
-              <tr className="bg-gray-200">
-                <th className="p-1" colSpan={2}>Section 1 — Computer Proficiency</th>
-                <th className="border-l p-1">Section 2 — English Typing</th>
-                <th className="border-l p-1">Section 3 — Hindi Typing</th>
+              <tr className="bg-gray-200 border-b-2 border-gray-500">
+                <th className="p-1 border border-gray-400" colSpan={2}>Section 1 — Computer Proficiency</th>
+                <th className="border border-gray-400 p-1">Section 2 — English Typing</th>
+                <th className="border border-gray-400 p-1">Section 3 — Hindi Typing</th>
               </tr>
               <tr className="bg-gray-100 text-[10px] sm:text-xs">
-                <th className="p-0.5" colSpan={2}>Maximum Marks</th>
-                <th className="border-l p-0.5" colSpan={2}>Net Typing Speed (WPM)</th>
+                <th className="p-0.5 border border-gray-400" colSpan={2}>Maximum Marks</th>
+                <th className="border border-gray-400 p-0.5" colSpan={2}>Net Typing Speed (WPM)</th>
               </tr>
             </thead>
             <tbody>
@@ -482,31 +547,32 @@ export default function CpctScoreCard() {
               </tr>
               <tr>
                 <td className="border p-1 text-center" colSpan={2}>
-                  <span className={mcqPassed ? 'text-green-600' : 'text-red-600'}>
-                    {mcqPassed ? 'Qualified' : 'Not Qualified'}
+                  <span className={`font-semibold ${mcqPassed ? "text-green-600" : "text-red-600"}`}>
+                    {mcqPassed ? "Qualified" : "Not Qualified"}
                   </span>
                 </td>
                 <td className="border p-1">
-                  <span className={englishPassed ? 'text-green-600' : 'text-red-600'}>
-                    {englishPassed ? 'Qualified' : 'Not Qualified'}
+                  <span className={`font-semibold ${englishPassed ? "text-green-600" : "text-red-600"}`}>
+                    {englishPassed ? "Qualified" : "Not Qualified"}
                   </span>
                 </td>
                 <td className="border p-1">
-                  <span className={hindiPassed ? 'text-green-600' : 'text-red-600'}>
-                    {hindiPassed ? 'Qualified' : 'Not Qualified'}
+                  <span className={`font-semibold ${hindiPassed ? "text-green-600" : "text-red-600"}`}>
+                    {hindiPassed ? "Qualified" : "Not Qualified"}
                   </span>
                 </td>
               </tr>
-              <tr className="font-bold">
-                <td className="border p-1 text-center">Total</td>
-                <td colSpan="3" className={`border p-1 text-center font-bold ${isPassed ? "text-green-600" : "text-red-600"}`}>
-                  {mcqScore}/{mcqMax}
+              <tr className="font-bold text-black">
+                <td className="border border-black p-1 text-center">Total</td>
+                <td colSpan="3" className="border border-black p-1 text-center font-bold">
+                  <span className={mcqPassed ? "text-green-600" : "text-red-600"}>{mcqScore}</span>
+                  <span className="text-black">/{mcqMax}</span>
                 </td>
               </tr>
               <tr className="font-bold">
-                <td className="border p-1 text-center">Final Result</td>
-                <td colSpan="3" className="border p-1 text-center">
-                  <span className={isPassed ? "text-green-600" : "text-red-600"}>
+                <td className="border border-black p-1 text-center text-black">Final Result</td>
+                <td colSpan="3" className="border border-black p-1 text-center">
+                  <span className={isPassed ? "text-green-600 font-bold" : "text-red-600 font-bold"}>
                     {isPassed ? "Pass" : "Fail"}
                   </span>
                 </td>

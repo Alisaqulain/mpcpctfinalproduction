@@ -279,3 +279,19 @@ export function buildPassingRulesPayload(form) {
   };
   return Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== undefined && v !== ""));
 }
+
+/** Official result certificate route for each exam type */
+export function getOfficialResultPath(examKey) {
+  switch (examKey) {
+    case "CCC":
+      return "/result/ccc";
+    case "RSCIT":
+      return "/result/rscit";
+    case "CPCT":
+      return "/result/score-card";
+    case "TOPICWISE":
+      return "/result/topic";
+    default:
+      return null;
+  }
+}
