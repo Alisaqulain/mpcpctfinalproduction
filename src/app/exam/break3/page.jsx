@@ -45,7 +45,7 @@ export default function BreakScreen() {
       {/* Buttons */}
       <div className="mt-6 flex gap-4">
         <button className="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded">
-         <a href="/result/topic"> Show Full Result </a>
+         <a href="/result/ccc?source=topic"> Show Full Result </a>
         </button>
        
       </div>

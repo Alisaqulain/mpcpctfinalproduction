@@ -284,14 +284,21 @@ export function buildPassingRulesPayload(form) {
 export function getOfficialResultPath(examKey) {
   switch (examKey) {
     case "CCC":
-      return "/result/ccc";
     case "RSCIT":
-      return "/result/rscit";
+    case "TOPICWISE":
+      return "/result/ccc";
     case "CPCT":
       return "/result/score-card";
-    case "TOPICWISE":
-      return "/result/topic";
     default:
-      return null;
+      return "/result/ccc";
   }
+}
+
+/** Unified dynamic result page with source query param */
+export function getDynamicResultPath(source, resultId) {
+  const params = new URLSearchParams();
+  if (source) params.set("source", source);
+  if (resultId) params.set("resultId", resultId);
+  const qs = params.toString();
+  return qs ? `/result/ccc?${qs}` : "/result/ccc";
 }

@@ -846,11 +846,8 @@ export default function ProfilePage() {
                     <div className="flex flex-col gap-2 items-end">
                       <a
                         href={
-                          result.examKey === 'CCC' ? '/result/ccc' :
-                          result.examKey === 'RSCIT' ? '/result/rscit' :
                           result.examKey === 'CPCT' ? '/result/score-card' :
-                          result.examKey === 'TOPICWISE' ? '/result/topic' :
-                          '#'
+                          '/result/ccc'
                         }
                         className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors bg-green-500 hover:bg-green-600 text-white text-center"
                       >
@@ -979,7 +976,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <a
-                    href={item._id ? `/result/skill-test?resultId=${item._id}` : "/result/skill-test"}
+                    href={item._id ? `/result/ccc?source=skill&resultId=${item._id}` : "/result/ccc?source=skill"}
                     className="mt-3 inline-block text-sm text-purple-600 hover:underline"
                   >
                     View details

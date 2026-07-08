@@ -375,7 +375,15 @@ function ExamResultContent() {
       const userDataStr = localStorage.getItem('examUserData');
       const userData = userDataStr ? JSON.parse(userDataStr) : {};
       const examId = localStorage.getItem('currentExamId');
+      const topicId = localStorage.getItem('currentTopicId');
+      const resolvedExamId = examId || topicId;
       const examType = localStorage.getItem('examType');
+
+      if (!resolvedExamId) {
+        alert('No exam or topic ID found. Cannot save result.');
+        setSaving(false);
+        return;
+      }
       
       const totalAnswered = Object.keys(selectedAnswers).length;
       const totalCorrect = sectionStats
@@ -413,9 +421,9 @@ function ExamResultContent() {
       // Save result to database
       const resultData = {
         userId: userData.mobile || 'anonymous',
-        examId: examId,
+        examId: resolvedExamId,
         examTitle: examData?.title || 'Exam',
-        examType: examType || 'CUSTOM',
+        examType: examType || (topicId && !examId ? 'TOPICWISE' : 'CUSTOM'),
         userName: userName,
         userMobile: userData.mobile,
         userCity: userData.city,
@@ -605,16 +613,7 @@ function ExamResultContent() {
             {examData?.key && (
               <button
                 onClick={() => {
-                  let resultPath = '';
-                  if (examData.key === 'CCC') {
-                    resultPath = '/result/ccc';
-                  } else if (examData.key === 'RSCIT') {
-                    resultPath = '/result/rscit';
-                  } else if (examData.key === 'CPCT') {
-                    resultPath = '/result/score-card';
-                  } else if (examData.key === 'TOPICWISE') {
-                    resultPath = '/result/topic';
-                  }
+                  const resultPath = getOfficialResultPath(examData.key);
                   if (resultPath) {
                     router.push(resultPath);
                   }

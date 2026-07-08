@@ -252,7 +252,7 @@ export default function ExamSummary() {
             <a href="/exam_mode">Take Another Test</a>
           </button>
           <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold">
-            <a href="/result/topic">View Detailed Analysis</a>
+            <a href="/result/ccc?source=topic">View Detailed Analysis</a>
           </button>
           <button onClick={handleDownloadPdf} disabled={downloading} className="bg-purple-600 hover:bg-purple-700 disabled:opacity-60 text-white px-6 py-2 rounded-lg font-semibold">
             Download PDF

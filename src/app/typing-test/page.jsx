@@ -424,7 +424,7 @@ function TypingTestForm() {
         // Store result ID for result page
         localStorage.setItem('lastTypingResultId', data.result._id);
         // Redirect to result page
-        window.location.replace(`/result/skill-test?resultId=${data.result._id}`);
+        window.location.replace(`/result/ccc?source=skill&resultId=${data.result._id}`);
       } else {
         console.error('Failed to save typing result');
       }

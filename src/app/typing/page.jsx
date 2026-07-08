@@ -1482,7 +1482,7 @@ function TypingTutorForm() {
         };
         if (typeof window !== "undefined") {
           sessionStorage.setItem("learningWordResult", JSON.stringify(resultForPage));
-          window.location.replace("/result/learning-word");
+          window.location.replace("/result/ccc?source=learning-word");
         }
         return;
       }
@@ -1551,7 +1551,7 @@ function TypingTutorForm() {
         setResultId(data.result._id);
         localStorage.setItem('lastTypingResultId', data.result._id);
         // Redirect directly to result page
-        window.location.replace(`/result/skill-test?resultId=${data.result._id}`);
+        window.location.replace(`/result/ccc?source=skill&resultId=${data.result._id}`);
       } else {
         console.error('Failed to save typing result');
       }
@@ -1836,11 +1836,11 @@ function TypingTutorForm() {
       // If no resultId, redirect to result page
       const storedId = localStorage.getItem('lastTypingResultId');
       if (storedId) {
-        window.location.replace(`/result/skill-test?resultId=${storedId}`);
+        window.location.replace(`/result/ccc?source=skill&resultId=${storedId}`);
       }
       return;
     }
-    window.location.replace(`/result/skill-test?resultId=${resultId}`);
+    window.location.replace(`/result/ccc?source=skill&resultId=${resultId}`);
   };
 
   // Common props for all views

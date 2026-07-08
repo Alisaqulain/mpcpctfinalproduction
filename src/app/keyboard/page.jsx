@@ -2515,7 +2515,7 @@ function KeyboardApp() {
         console.log('Verifying saved data:', JSON.parse(savedData));
         
         // Auto-redirect to learning result page immediately
-        window.location.replace('/result/learning-re');
+        window.location.replace('/result/ccc?source=learning-re');
       }
     };
     
