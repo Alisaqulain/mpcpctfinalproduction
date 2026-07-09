@@ -989,8 +989,8 @@ function LandscapeMobileView({
       <div className="flex-1 flex flex-col items-center gap-6 mobile-stack relative" data-typing-area>
         {/* Typing Prompt Buttons - Landscape mobile row-based layout */}
         <div
-          className="flex flex-nowrap typing-prompt-mobile justify-between items-center gap-1 md:gap-2 absolute top-0 left-2 typing-prompt-container landscape-typing-prompt"
-          style={{ width: 'calc(100% - 90px)', overflow: 'visible', paddingRight: '0', marginRight: '0' }}
+          className="flex flex-nowrap typing-prompt-mobile justify-between items-center gap-0 absolute top-0 left-2 typing-prompt-container landscape-typing-prompt"
+          style={{ width: 'calc(100% - 94px)', maxWidth: 'calc(100% - 94px)', overflow: 'hidden', paddingRight: '0', marginRight: '0' }}
         >
           {currentRowKeys.map((key, displayIdx) => {
             const originalIndex = getOriginalIndex(displayIdx);
@@ -1004,8 +1004,13 @@ function LandscapeMobileView({
             return (
               <div
                 key={`${currentRowIndex}-${displayIdx}`}
+                style={
+                  key === "Space"
+                    ? { width: "96px", minWidth: "96px", maxWidth: "96px", height: "30px", flexShrink: 0 }
+                    : { width: "24px", minWidth: "24px", maxWidth: "24px", height: "36px", flexShrink: 0 }
+                }
                 className={`
-                  ${key === "Space" ? "w-28 h-8 text-xl space-key-box landscape-space-key" : "w-12 h-10 landscape-letter-box"}
+                  ${key === "Space" ? "h-8 text-xl space-key-box landscape-space-key" : "h-9 landscape-letter-box"}
                   rounded flex items-center justify-center text-xl font-semibold
                   transition-all duration-200 ease-out flex-shrink-0 landscape-char-box
                     ${
@@ -1035,9 +1040,12 @@ function LandscapeMobileView({
 
         {/* Keyboard */}
         {keyboard && (
-          <div className={`absolute landscape-keyboard-top left-2 p-1 border border-gray-600 rounded-xl shadow-md keyboard-container landscape-keyboard-small ${
+          <div
+            className={`absolute landscape-keyboard-top left-2 p-1 border border-gray-600 rounded-xl shadow-md keyboard-container landscape-keyboard-small ${
             isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
-          }`}>
+          }`}
+            style={{ width: "calc(100% - 94px)", maxWidth: "calc(100% - 94px)" }}
+          >
             {/* Dual Hand Image Overlay */}
             {hand && (leftHandImage || rightHandImage) && (
               <div className="absolute inset-0 pointer-events-none z-10 hand-overlay">
@@ -1079,8 +1087,8 @@ function LandscapeMobileView({
               /* LANDSCAPE: Base keyboard styles - original key sizes; container slightly wider */
               /* Only affects landscape-keyboard-small, not desktop keyboard-container */
               .landscape-keyboard-small {
-                width: calc(100% - 90px) !important;
-                max-width: calc(100% - 90px) !important;
+                width: calc(100% - 94px) !important;
+                max-width: calc(100% - 94px) !important;
                 margin-left: 0 !important;
                 margin-right: 0 !important;
                 transform-origin: left top !important;
@@ -1094,18 +1102,18 @@ function LandscapeMobileView({
                 left: 0.5rem !important;
                 top: 0 !important;
                 margin-top: 0 !important;
-                width: calc(100% - 90px) !important;
-                max-width: calc(100% - 90px) !important;
+                width: calc(100% - 94px) !important;
+                max-width: calc(100% - 94px) !important;
                 padding-left: 0 !important;
                 padding-right: 0 !important;
                 margin-left: 0 !important;
                 margin-right: 0 !important;
                 justify-content: space-between !important;
-                overflow: visible !important;
+                overflow: hidden !important;
                 flex-wrap: nowrap !important;
                 box-sizing: border-box !important;
                 right: auto !important;
-                gap: 2rem !important;
+                gap: 0 !important;
               }
               
               /* LANDSCAPE: Ensure first and last boxes align with keyboard edges */
@@ -1118,24 +1126,29 @@ function LandscapeMobileView({
               }
               
               /* LANDSCAPE: Character boxes (asdf jkl;) */
-              .landscape-typing-prompt > div.landscape-char-box,
               .landscape-typing-prompt > div.landscape-letter-box,
-              .landscape-typing-prompt > div:not([class*="w-32"]):not([class*="space-key"]) {
-                width: 49px !important;
-                min-width: 49px !important;
-                max-width: 49px !important;
-                height: 39px !important;
-                min-height: 39px !important;
+              .landscape-typing-prompt > div.landscape-char-box:not([class*="space-key"]),
+              .landscape-typing-prompt > div[class*="w-12"]:not([class*="space-key"]),
+              .landscape-typing-prompt > div[class*="w-"]:not([class*="space-key"]):not([class*="w-28"]):not([class*="w-32"]) {
+                width: 24px !important;
+                min-width: 24px !important;
+                max-width: 24px !important;
+                height: 36px !important;
+                min-height: 36px !important;
                 font-size: 1rem !important;
                 flex-shrink: 0 !important;
                 box-sizing: border-box !important;
               }
               
               /* LANDSCAPE: Space box size */
+              .landscape-typing-prompt > div.landscape-space-key,
+              .landscape-typing-prompt > div.space-key-box,
               .landscape-typing-prompt > div[class*="w-32"] {
-                width: 135px !important;
-                min-width: 135px !important;
-                max-width: 135px !important;
+                width: 96px !important;
+                min-width: 96px !important;
+                max-width: 96px !important;
+                height: 30px !important;
+                min-height: 30px !important;
                 flex-shrink: 0 !important;
               }
               
@@ -1228,49 +1241,49 @@ function LandscapeMobileView({
               /* LANDSCAPE: Media queries - adjust container only, keys stay same */
               @media (min-width: 1400px) {
                 .landscape-keyboard-small {
-                  transform: scale(1.1) !important;
-                  width: 95vw !important;
-                  max-width: 95vw !important;
+                  transform: scale(1.13) !important;
+                  width: 99vw !important;
+                  max-width: 99vw !important;
                 }
               }
               
               @media (min-width: 1200px) and (max-width: 1399px) {
                 .landscape-keyboard-small {
-                  transform: scale(1) !important;
-                  width: 98vw !important;
-                  max-width: 98vw !important;
+                  transform: scale(1.03) !important;
+                  width: 99vw !important;
+                  max-width: 99vw !important;
                 }
               }
               
               @media (min-width: 1000px) and (max-width: 1199px) {
                 .landscape-keyboard-small {
-                  transform: scale(0.95) !important;
-                  width: 98vw !important;
-                  max-width: 98vw !important;
+                  transform: scale(0.98) !important;
+                  width: 99vw !important;
+                  max-width: 99vw !important;
                 }
               }
               
               @media (min-width: 800px) and (max-width: 999px) {
                 .landscape-keyboard-small {
-                  transform: scale(0.85) !important;
-                  width: 98vw !important;
-                  max-width: 98vw !important;
+                  transform: scale(0.88) !important;
+                  width: 99vw !important;
+                  max-width: 99vw !important;
                 }
               }
               
               @media (min-width: 600px) and (max-width: 799px) {
                 .landscape-keyboard-small {
-                  transform: scale(0.75) !important;
-                  width: 98vw !important;
-                  max-width: 98vw !important;
+                  transform: scale(0.78) !important;
+                  width: 99vw !important;
+                  max-width: 99vw !important;
                 }
               }
               
               @media (max-width: 599px) {
                 .landscape-keyboard-small {
-                  transform: scale(0.7) !important;
-                  width: 98vw !important;
-                  max-width: 98vw !important;
+                  transform: scale(0.73) !important;
+                  width: 99vw !important;
+                  max-width: 99vw !important;
                 }
               }
             `}</style>
@@ -1304,8 +1317,8 @@ function LandscapeMobileView({
 
       {/* Right Section - Landscape: Settings & Day/Night top right, then Stats (Close X is inside Settings modal) */}
       <div className="flex flex-col items-center gap-0 mt-0 mobile-stack mobile-small-text right-section-stats absolute right-4 top-0 landscape-right-stats">
-        {/* Settings & Theme - top right, no gap between theme and time */}
-        <div className="flex items-center gap-0.5 mb-0 w-full max-w-[100px] justify-end">
+        {/* Settings & Theme - top right */}
+        <div className="flex items-center gap-0.5 mb-0 w-full max-w-[100px] justify-end landscape-settings-row">
           <button
             onClick={() => setShowSettings(!showSettings)}
             className="p-2 rounded-full shadow min-w-[40px] min-h-[40px] flex items-center justify-center bg-white text-purple-600"
@@ -1321,33 +1334,45 @@ function LandscapeMobileView({
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
         </div>
-        <div className="flex flex-col gap-0 w-full max-w-[100px] items-center landscape-mobile-stats">
-          <div className="w-full h-4 rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+        {/* Spacer below Settings & Theme */}
+        <div
+          className="landscape-settings-spacer w-full shrink-0"
+          style={{ height: "14px", minHeight: "14px" }}
+          aria-hidden="true"
+        />
+        <div className="flex flex-col gap-[12px] w-full max-w-[100px] items-center landscape-mobile-stats">
+          <div className="w-full h-[24px] rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
             <div className="bg-black text-white text-[10px] font-semibold py-0 leading-none">Time</div>
             <div className="bg-white text-black text-sm font-bold leading-none">{formatClock(timer)}</div>
           </div>
-          <div className="w-full h-4 rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+          <div className="w-full h-[24px] rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
             <div className="bg-black text-white text-[10px] font-semibold py-0 leading-none">Correct</div>
             <div className="bg-white text-green-600 text-sm font-bold leading-none">{correctCount}</div>
           </div>
-          <div className="w-full h-4 rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+          <div className="w-full h-[24px] rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
             <div className="bg-black text-white text-[10px] font-semibold py-0 leading-none">Wrong</div>
             <div className="bg-white text-red-500 text-sm font-bold leading-none">{wrongCount}</div>
           </div>
-          <div className="w-full h-4 rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+          <div className="w-full h-[24px] rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
             <div className="bg-black text-white text-[10px] font-semibold py-0 leading-none">Total</div>
             <div className="bg-white text-[#290c52] text-sm font-bold leading-none">{totalCount}</div>
           </div>
-          <div className="w-full h-4 rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+          <div className="w-full h-[24px] rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
             <div className="bg-black text-white text-[10px] font-semibold py-0 leading-none">Backspace</div>
             <div className="bg-white text-blue-500 text-sm font-bold leading-none">{backspaceCount}</div>
           </div>
         </div>
+        {/* Spacer above Close button */}
+        <div
+          className="landscape-close-spacer w-full shrink-0"
+          style={{ height: "14px", minHeight: "14px" }}
+          aria-hidden="true"
+        />
         {/* Close Button - bottom right, below Backspace */}
-        <div className="w-full max-w-[100px] flex justify-end mt-0 landscape-mobile-close-wrap">
+        <div className="w-full max-w-[110px] flex justify-center landscape-mobile-close-wrap">
           <button
             onClick={onClose}
-            className="bg-red-600 text-white hover:bg-red-700 px-2 py-0 h-[18px] rounded-md shadow transition-all duration-200 hover:scale-105 flex items-center justify-center text-xs font-medium leading-none"
+            className="bg-red-600 text-white hover:bg-red-700 px-4 py-0 h-[24px] w-full min-w-[100px] rounded-md shadow transition-all duration-200 hover:scale-105 flex items-center justify-center text-xs font-medium leading-none"
             aria-label="Close and go to result"
           >
             Close
@@ -3028,56 +3053,92 @@ function KeyboardApp() {
             align-items: center !important;
             width: 100% !important;
             max-width: 78px !important;
-            gap: 4px !important;
+            gap: 12px !important;
+            margin-top: 0 !important;
           }
 
           .landscape-mobile-stats > div {
-            margin-bottom: 0 !important;
+            margin-top: 3px !important;
+            margin-bottom: 3px !important;
             width: 78px !important;
             min-width: 78px !important;
             max-width: 78px !important;
-            height: 16px !important;
-            min-height: 16px !important;
-            max-height: 16px !important;
+            height: 24px !important;
+            min-height: 24px !important;
+            max-height: 24px !important;
+          }
+
+          .landscape-mobile-stats > div:first-child {
+            margin-top: 0 !important;
+          }
+
+          .landscape-mobile-stats > div:last-child {
+            margin-bottom: 10px !important;
           }
 
           .landscape-mobile-stats > div > div:first-child {
-            font-size: 6px !important;
-            line-height: 1 !important;
-            padding-top: 0 !important;
+            font-size: 7px !important;
+            line-height: 1.1 !important;
+            padding-top: 1px !important;
             padding-bottom: 0 !important;
+            padding-left: 2px !important;
+            padding-right: 2px !important;
           }
 
           .landscape-mobile-stats > div > div:last-child {
-            font-size: 9px !important;
-            line-height: 1 !important;
+            font-size: 10px !important;
+            line-height: 1.1 !important;
             padding-top: 0 !important;
-            padding-bottom: 0 !important;
+            padding-bottom: 1px !important;
+          }
+
+          .landscape-close-spacer {
+            display: block !important;
+            width: 100% !important;
+            height: 14px !important;
+            min-height: 14px !important;
+            max-height: 14px !important;
+            flex-shrink: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
 
           .landscape-mobile-close-wrap {
-            margin-top: 4px !important;
-            max-width: 78px !important;
-            width: 78px !important;
+            margin-top: 0 !important;
+            max-width: 100px !important;
+            width: 100px !important;
           }
 
           .landscape-mobile-close-wrap button {
             width: 100% !important;
-            max-width: 78px !important;
-            height: 18px !important;
-            min-height: 18px !important;
-            max-height: 18px !important;
+            max-width: 100px !important;
+            min-width: 100px !important;
+            height: 24px !important;
+            min-height: 24px !important;
+            max-height: 24px !important;
             padding-left: 0.25rem !important;
             padding-right: 0.25rem !important;
             padding-top: 0 !important;
             padding-bottom: 0 !important;
-            font-size: 0.65rem !important;
-            line-height: 1 !important;
+            font-size: 0.75rem !important;
+            line-height: 1.1 !important;
           }
           
           /* LANDSCAPE: Stats card width in landscape mobile */
-          .landscape-right-stats > div:first-child {
-            max-width: 78px !important;
+          .landscape-right-stats > div:first-child,
+          .landscape-settings-row {
+            max-width: 100px !important;
+          }
+
+          .landscape-settings-spacer {
+            display: block !important;
+            width: 100% !important;
+            height: 14px !important;
+            min-height: 14px !important;
+            max-height: 14px !important;
+            flex-shrink: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           
           /* LANDSCAPE: Hide user profile image in landscape mobile view */
@@ -3257,12 +3318,12 @@ function KeyboardApp() {
         @media (max-width: 932px) and (orientation: landscape) {
           /* LANDSCAPE: Typing prompt - same width as keyboard for 100% same alignment on every device */
           .landscape-typing-prompt {
-            width: calc(100% - 106px) !important;
-            max-width: calc(100% - 106px) !important;
+            width: calc(100% - 94px) !important;
+            max-width: calc(100% - 94px) !important;
             justify-content: space-between !important;
-            overflow: visible !important;
+            overflow: hidden !important;
             flex-wrap: nowrap !important;
-            gap: 2rem !important;
+            gap: 0 !important;
             padding-left: 0 !important;
             padding-right: 0 !important;
             margin-left: 0 !important;
@@ -3282,33 +3343,36 @@ function KeyboardApp() {
           }
           
           /* LANDSCAPE: Character boxes size (asdf jkl;) */
-          .landscape-typing-prompt > div.landscape-char-box:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]),
-          .landscape-typing-prompt > div[class*="w-20"]:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]),
-          .landscape-typing-prompt > div[class*="w-15"]:not([class*="w-22"]):not([class*="w-24"]):not([class*="w-32"]) {
-            width: 49px !important;
-            min-width: 49px !important;
-            max-width: 49px !important;
-            height: 39px !important;
-            min-height: 39px !important;
+          .landscape-typing-prompt > div.landscape-letter-box,
+          .landscape-typing-prompt > div.landscape-char-box:not([class*="space-key"]),
+          .landscape-typing-prompt > div[class*="w-12"]:not([class*="space-key"]),
+          .landscape-typing-prompt > div[class*="w-"]:not([class*="space-key"]):not([class*="w-28"]):not([class*="w-32"]):not([class*="w-22"]):not([class*="w-24"]) {
+            width: 24px !important;
+            min-width: 24px !important;
+            max-width: 24px !important;
+            height: 36px !important;
+            min-height: 36px !important;
             font-size: 1rem !important;
             flex-shrink: 0 !important;
           }
           
           /* LANDSCAPE: Space key in typing prompt */
+          .landscape-typing-prompt > div.landscape-space-key,
+          .landscape-typing-prompt > div.space-key-box,
           .landscape-typing-prompt > div[class*="w-32"],
           .landscape-typing-prompt > div[class*="w-22"],
           .landscape-typing-prompt > div[class*="w-24"] {
-            width: 135px !important;
-            min-width: 135px !important;
-            max-width: 135px !important;
-            height: 33px !important;
-            min-height: 33px !important;
+            width: 96px !important;
+            min-width: 96px !important;
+            max-width: 96px !important;
+            height: 30px !important;
+            min-height: 30px !important;
             flex-shrink: 0 !important;
           }
           
-          /* LANDSCAPE: Gap to distribute boxes evenly across full width */
+          /* LANDSCAPE: Gap removed — space-between aligns row with keyboard width */
           .landscape-typing-prompt {
-            gap: 2rem !important;
+            gap: 0 !important;
           }
         }
 
@@ -3337,12 +3401,14 @@ function KeyboardApp() {
             padding-right: 0.25rem !important;
             gap: 0.25rem !important;
           }
-          .keyboard-container.landscape-keyboard-small {
-            max-width: calc(100% - 106px) !important;
-            width: calc(100% - 106px) !important;
+          .keyboard-container.landscape-keyboard-small,
+          div.keyboard-container.landscape-keyboard-small.landscape-keyboard-top {
+            max-width: calc(100% - 94px) !important;
+            width: calc(100% - 94px) !important;
             margin-left: 0 !important;
             margin-right: 0 !important;
             left: 0.5rem !important;
+            box-sizing: border-box !important;
           }
           
           /* MOBILE LANDSCAPE: Same width/left as keyboard = alignment 100% same as image 3 on every device */
@@ -3352,14 +3418,14 @@ function KeyboardApp() {
             left: 0.5rem !important;
             top: 0 !important;
             margin-top: 0 !important;
-            width: calc(100% - 106px) !important;
-            max-width: calc(100% - 106px) !important;
+            width: calc(100% - 94px) !important;
+            max-width: calc(100% - 94px) !important;
             padding-left: 0 !important;
             padding-right: 0 !important;
             margin-left: 0 !important;
             margin-right: 0 !important;
             justify-content: space-between !important;
-            gap: 2rem !important;
+            gap: 0 !important;
           }
           
           
@@ -3380,55 +3446,93 @@ function KeyboardApp() {
             transform: none !important;
             padding-right: 0.25rem !important;
             padding-top: 0.25rem !important;
-            gap: 0.25rem !important;
-            width: 78px !important;
-            max-width: 78px !important;
+            gap: 0.5rem !important;
+            width: 100px !important;
+            max-width: 100px !important;
           }
 
           .landscape-mobile-stats {
-            gap: 4px !important;
+            gap: 12px !important;
             max-width: 78px !important;
+            margin-top: 0 !important;
+          }
+
+          .landscape-settings-spacer {
+            display: block !important;
+            width: 100% !important;
+            height: 14px !important;
+            min-height: 14px !important;
+            max-height: 14px !important;
+            flex-shrink: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
 
           .landscape-mobile-stats > div {
+            margin-top: 3px !important;
+            margin-bottom: 3px !important;
             width: 78px !important;
             min-width: 78px !important;
             max-width: 78px !important;
-            height: 16px !important;
-            min-height: 16px !important;
-            max-height: 16px !important;
+            height: 24px !important;
+            min-height: 24px !important;
+            max-height: 24px !important;
+          }
+
+          .landscape-mobile-stats > div:first-child {
+            margin-top: 0 !important;
+          }
+
+          .landscape-mobile-stats > div:last-child {
+            margin-bottom: 10px !important;
           }
 
           .landscape-mobile-stats > div > div:first-child {
-            font-size: 6px !important;
-            line-height: 1 !important;
-            padding-top: 0 !important;
+            font-size: 7px !important;
+            line-height: 1.1 !important;
+            padding-top: 1px !important;
             padding-bottom: 0 !important;
+            padding-left: 2px !important;
+            padding-right: 2px !important;
           }
 
           .landscape-mobile-stats > div > div:last-child {
-            font-size: 9px !important;
-            line-height: 1 !important;
+            font-size: 10px !important;
+            line-height: 1.1 !important;
+            padding-top: 0 !important;
+            padding-bottom: 1px !important;
+          }
+
+          .landscape-close-spacer {
+            display: block !important;
+            width: 100% !important;
+            height: 14px !important;
+            min-height: 14px !important;
+            max-height: 14px !important;
+            flex-shrink: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
 
           .landscape-mobile-close-wrap {
-            margin-top: 4px !important;
-            max-width: 78px !important;
-            width: 78px !important;
+            margin-top: 0 !important;
+            max-width: 100px !important;
+            width: 100px !important;
           }
 
           .landscape-mobile-close-wrap button {
             width: 100% !important;
-            max-width: 78px !important;
-            height: 18px !important;
-            min-height: 18px !important;
-            max-height: 18px !important;
+            max-width: 100px !important;
+            min-width: 100px !important;
+            height: 24px !important;
+            min-height: 24px !important;
+            max-height: 24px !important;
             padding-left: 0.25rem !important;
             padding-right: 0.25rem !important;
             padding-top: 0 !important;
             padding-bottom: 0 !important;
-            font-size: 0.65rem !important;
-            line-height: 1 !important;
+            font-size: 0.75rem !important;
+            line-height: 1.1 !important;
           }
           
           /* MOBILE LANDSCAPE: Stats box flush right */
