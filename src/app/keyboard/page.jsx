@@ -48,7 +48,8 @@ function DesktopView({
   setSound,
   setKeyboard,
   timer,
-  totalAttempts
+  totalAttempts,
+  onClose,
 }) {
   const currentRowKeys = getCurrentRowKeys();
   const rows = organizeKeysIntoRows(highlightedKeys);
@@ -120,9 +121,9 @@ function DesktopView({
     <div className="p-4 flex flex-col md:flex-row gap-6 w-full min-h-full relative" style={{ minHeight: '100dvh' }}>
       {/* Close Button - Desktop View */}
       <button
-        onClick={() => window.location.replace('/learning')}
+        onClick={onClose}
         className="fixed top-4 right-4 z-50 bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md shadow-lg transition-all duration-200 hover:scale-110"
-        aria-label="Close and return to learning page"
+        aria-label="Close and go to result"
       >
         Close
       </button>
@@ -417,7 +418,8 @@ function PortraitMobileView({
   leftHandImage,
   rightHandImage,
   onRequestFocusInput,
-  showRotatePrompt
+  showRotatePrompt,
+  onClose,
 }) {
   const [showSettings, setShowSettings] = useState(false);
   const currentRowKeys = getCurrentRowKeys();
@@ -488,29 +490,25 @@ function PortraitMobileView({
         <div className="flex items-center gap-4">
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className={`p-3 rounded-full shadow min-w-[44px] min-h-[44px] flex items-center justify-center ${
-              isDarkMode ? "bg-white text-black" : "bg-black text-white"
-            }`}
+            className="p-3 rounded-full shadow min-w-[44px] min-h-[44px] flex items-center justify-center bg-white text-purple-600"
             aria-label="Settings"
           >
             <Settings size={22} />
           </button>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`p-3 rounded-full shadow min-w-[44px] min-h-[44px] flex items-center justify-center ${
-              isDarkMode ? "bg-white text-black" : "bg-black text-white"
-            }`}
+            className="p-3 rounded-full shadow min-w-[44px] min-h-[44px] flex items-center justify-center bg-white text-yellow-400"
             aria-label="Toggle theme"
           >
             {isDarkMode ? <Sun size={22} /> : <Moon size={22} />}
           </button>
         </div>
         <button
-          onClick={() => window.location.replace('/learning')}
-          className={`py-3 px-4 rounded-lg shadow-lg min-h-[44px] font-medium text-sm ${
+          onClick={onClose}
+          className={`py-1.5 px-3 rounded-lg shadow-lg min-h-[32px] h-8 font-medium text-xs leading-none ${
             isDarkMode ? "bg-red-600 text-white hover:bg-red-700" : "bg-white text-black border border-gray-300 hover:bg-gray-100"
           }`}
-          aria-label="Close and return to learning page"
+          aria-label="Close and go to result"
         >
           Close
         </button>
@@ -537,10 +535,10 @@ function PortraitMobileView({
       </div>
 
       {/* Left Section - data-typing-area for app WebView so taps focus input and mobile keyboard works */}
-      <div className="flex-1 flex flex-col items-center gap-6 mobile-stack" data-typing-area>
+      <div className="flex-1 flex flex-col items-center gap-3 mobile-stack" data-typing-area>
         {/* Typing Prompt - Tap to open keyboard and type */}
         <div 
-          className="flex flex-nowrap justify-between items-center gap-0.5 relative mt-6 px-1 typing-prompt-container w-full portrait-typing-prompt touch-manipulation cursor-pointer active:opacity-90"
+          className="flex flex-nowrap justify-between items-center gap-0.5 relative mt-2 px-1 typing-prompt-container w-full portrait-typing-prompt touch-manipulation cursor-pointer active:opacity-90"
           style={{ overflow: 'hidden', maxWidth: '100%', WebkitTapHighlightColor: 'transparent' }}
           onClick={(e) => { e.preventDefault(); onRequestFocusInput?.(); }}
           role="button"
@@ -584,9 +582,6 @@ function PortraitMobileView({
             );
           })}
         </div>
-        <p className={`text-center text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-          Tap above to open keyboard
-        </p>
 
         {/* Rotation Prompt - Rotate your phone (mobile only, 3D animated like GIF/video) */}
         {showRotatePrompt && (
@@ -614,7 +609,7 @@ function PortraitMobileView({
         {/* Keyboard */}
         {keyboard && (
           <div 
-            className={`relative mt-4 p-1 w-full border border-gray-600 rounded-2xl shadow-md keyboard-container portrait-keyboard touch-manipulation cursor-pointer active:opacity-95 ${
+            className={`relative mt-1 p-1 w-full border border-gray-600 rounded-2xl shadow-md keyboard-container portrait-keyboard touch-manipulation cursor-pointer active:opacity-95 ${
               isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
             }`}
             onClick={() => onRequestFocusInput?.()}
@@ -829,7 +824,8 @@ function LandscapeMobileView({
   backspaceCount,
   elapsedTime,
   formatClock,
-  timer
+  timer,
+  onClose,
 }) {
   const [showSettings, setShowSettings] = useState(false);
   const currentRowKeys = getCurrentRowKeys();
@@ -987,7 +983,7 @@ function LandscapeMobileView({
         {/* Typing Prompt Buttons - Landscape mobile row-based layout */}
         <div
           className="flex flex-nowrap typing-prompt-mobile justify-between items-center gap-1 md:gap-2 absolute top-0 left-2 typing-prompt-container landscape-typing-prompt"
-          style={{ width: 'calc(100% - 140px)', overflow: 'visible', paddingRight: '0', marginRight: '0' }}
+          style={{ width: 'calc(100% - 90px)', overflow: 'visible', paddingRight: '0', marginRight: '0' }}
         >
           {currentRowKeys.map((key, displayIdx) => {
             const originalIndex = getOriginalIndex(displayIdx);
@@ -1073,12 +1069,11 @@ function LandscapeMobileView({
                 display: block !important;
               }
               
-              /* LANDSCAPE: Base keyboard styles - keys remain unchanged */
+              /* LANDSCAPE: Base keyboard styles - original key sizes; container slightly wider */
               /* Only affects landscape-keyboard-small, not desktop keyboard-container */
-              /* Account for stats panel (120px) + gap (4rem) on right side */
               .landscape-keyboard-small {
-                width: calc(100% - 140px) !important;
-                max-width: calc(100% - 140px) !important;
+                width: calc(100% - 90px) !important;
+                max-width: calc(100% - 90px) !important;
                 margin-left: 0 !important;
                 margin-right: 0 !important;
                 transform-origin: left top !important;
@@ -1092,8 +1087,8 @@ function LandscapeMobileView({
                 left: 0.5rem !important;
                 top: 0 !important;
                 margin-top: 0 !important;
-                width: calc(100% - 140px) !important;
-                max-width: calc(100% - 140px) !important;
+                width: calc(100% - 90px) !important;
+                max-width: calc(100% - 90px) !important;
                 padding-left: 0 !important;
                 padding-right: 0 !important;
                 margin-left: 0 !important;
@@ -1167,7 +1162,7 @@ function LandscapeMobileView({
                 font-size: 0.9rem !important;
               }
               
-              /* Key widths - fixed sizes, never change */
+              /* Key widths - original sizes, do not change */
               .landscape-keyboard-small .flex > div[class*="w-"] {
                 width: 20px !important;
                 min-width: 8% !important;
@@ -1306,18 +1301,14 @@ function LandscapeMobileView({
         <div className="flex items-center gap-0.5 mb-0 w-full max-w-[100px] justify-end">
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className={`p-2 rounded-full shadow min-w-[40px] min-h-[40px] flex items-center justify-center ${
-              isDarkMode ? "bg-white text-black" : "bg-black text-white"
-            }`}
+            className="p-2 rounded-full shadow min-w-[40px] min-h-[40px] flex items-center justify-center bg-white text-purple-600"
             aria-label="Settings"
           >
             <Settings size={20} />
           </button>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`p-2 rounded-full shadow min-w-[40px] min-h-[40px] flex items-center justify-center ${
-              isDarkMode ? "bg-white text-black" : "bg-black text-white"
-            }`}
+            className="p-2 rounded-full shadow min-w-[40px] min-h-[40px] flex items-center justify-center bg-white text-yellow-400"
             aria-label="Toggle theme"
           >
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
@@ -1348,9 +1339,9 @@ function LandscapeMobileView({
         {/* Close Button - bottom right, below Backspace */}
         <div className="w-full max-w-[100px] flex justify-end mt-0 landscape-mobile-close-wrap">
           <button
-            onClick={() => window.location.replace('/learning')}
+            onClick={onClose}
             className="bg-red-600 text-white hover:bg-red-700 px-6 py-1.5 rounded-md shadow transition-all duration-200 hover:scale-105 flex items-center justify-center text-sm font-medium"
-            aria-label="Close and return to learning page"
+            aria-label="Close and go to result"
           >
             Close
           </button>
@@ -2544,6 +2535,19 @@ function KeyboardApp() {
     return `${m}:${s}`;
   };
 
+  // Close: finish session and open learning result page
+  const handleCloseToResult = useCallback(() => {
+    if (isCompleted) {
+      window.location.replace("/result/ccc?source=learning-re");
+      return;
+    }
+    if (!startTime) {
+      setStartTime(Date.now());
+    }
+    setEndTime(Date.now());
+    setIsCompleted(true);
+  }, [isCompleted, startTime]);
+
   // Determine which view to render
   const renderView = () => {
     // Show landscape mobile view when mobile device is in landscape orientation
@@ -2577,6 +2581,7 @@ function KeyboardApp() {
           elapsedTime={elapsedTime}
           formatClock={formatClock}
           timer={timer}
+          onClose={handleCloseToResult}
         />
       );
     } else if (isMobile && !isLandscape) {
@@ -2617,6 +2622,7 @@ function KeyboardApp() {
               inputRef.current.focus();
             }
           }}
+          onClose={handleCloseToResult}
         />
       );
     } else {
@@ -2653,6 +2659,7 @@ function KeyboardApp() {
           setKeyboard={setKeyboard}
           timer={timer}
           totalAttempts={totalAttempts}
+          onClose={handleCloseToResult}
         />
       );
     }
@@ -2892,7 +2899,7 @@ function KeyboardApp() {
             gap: 0.15rem !important;
             padding-left: 0.15rem !important;
             padding-right: 0.15rem !important;
-            margin-top: 1.5rem !important;
+            margin-top: 0.5rem !important;
             width: 100% !important;
             max-width: 100% !important;
             box-sizing: border-box !important;
@@ -2926,11 +2933,12 @@ function KeyboardApp() {
             flex-shrink: 0 !important;
           }
           
-          /* PORTRAIT: Keyboard container - full width, smaller keys */
+          /* PORTRAIT: Keyboard container - full width, smaller keys, moved up */
           .portrait-keyboard {
             width: 100% !important;
             max-width: 100% !important;
             padding: 4px !important;
+            margin-top: 0.25rem !important;
             margin-left: 0 !important;
             margin-right: 0 !important;
             box-sizing: border-box !important;
@@ -3012,22 +3020,53 @@ function KeyboardApp() {
             flex-direction: column !important;
             align-items: center !important;
             width: 100% !important;
-            max-width: 120px !important;
-            gap: 0.5rem !important;
+            max-width: 78px !important;
+            gap: 6px !important;
           }
 
           .landscape-mobile-stats > div {
             margin-bottom: 0 !important;
+            width: 78px !important;
+            min-width: 78px !important;
+            max-width: 78px !important;
+            height: 22px !important;
+            min-height: 22px !important;
+            max-height: 22px !important;
+          }
+
+          .landscape-mobile-stats > div > div:first-child {
+            font-size: 7px !important;
+            line-height: 1 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+          }
+
+          .landscape-mobile-stats > div > div:last-child {
+            font-size: 10px !important;
+            line-height: 1 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
           }
 
           .landscape-mobile-close-wrap {
-            margin-top: 0.5rem !important;
+            margin-top: 6px !important;
+            max-width: 78px !important;
+            width: 78px !important;
+          }
+
+          .landscape-mobile-close-wrap button {
+            width: 100% !important;
+            max-width: 78px !important;
+            padding-left: 0.35rem !important;
+            padding-right: 0.35rem !important;
+            padding-top: 0.25rem !important;
+            padding-bottom: 0.25rem !important;
+            font-size: 0.75rem !important;
           }
           
           /* LANDSCAPE: Stats card width in landscape mobile */
-          .landscape-mobile-stats > div {
-            width: 100% !important;
-            min-width: 100% !important;
+          .landscape-right-stats > div:first-child {
+            max-width: 78px !important;
           }
           
           /* LANDSCAPE: Hide user profile image in landscape mobile view */
@@ -3207,8 +3246,8 @@ function KeyboardApp() {
         @media (max-width: 932px) and (orientation: landscape) {
           /* LANDSCAPE: Typing prompt - same width as keyboard for 100% same alignment on every device */
           .landscape-typing-prompt {
-            width: calc(100% - 140px) !important;
-            max-width: calc(100% - 140px) !important;
+            width: calc(100% - 106px) !important;
+            max-width: calc(100% - 106px) !important;
             justify-content: space-between !important;
             overflow: visible !important;
             flex-wrap: nowrap !important;
@@ -3288,8 +3327,8 @@ function KeyboardApp() {
             gap: 0.25rem !important;
           }
           .keyboard-container.landscape-keyboard-small {
-            max-width: calc(100% - 140px) !important;
-            width: calc(100% - 140px) !important;
+            max-width: calc(100% - 106px) !important;
+            width: calc(100% - 106px) !important;
             margin-left: 0 !important;
             margin-right: 0 !important;
             left: 0.5rem !important;
@@ -3302,8 +3341,8 @@ function KeyboardApp() {
             left: 0.5rem !important;
             top: 0 !important;
             margin-top: 0 !important;
-            width: calc(100% - 140px) !important;
-            max-width: calc(100% - 140px) !important;
+            width: calc(100% - 106px) !important;
+            max-width: calc(100% - 106px) !important;
             padding-left: 0 !important;
             padding-right: 0 !important;
             margin-left: 0 !important;
@@ -3330,15 +3369,51 @@ function KeyboardApp() {
             transform: none !important;
             padding-right: 0.25rem !important;
             padding-top: 0.25rem !important;
-            gap: 0.5rem !important;
+            gap: 0.4rem !important;
+            width: 78px !important;
+            max-width: 78px !important;
           }
 
           .landscape-mobile-stats {
-            gap: 0.55rem !important;
+            gap: 6px !important;
+            max-width: 78px !important;
+          }
+
+          .landscape-mobile-stats > div {
+            width: 78px !important;
+            min-width: 78px !important;
+            max-width: 78px !important;
+            height: 22px !important;
+            min-height: 22px !important;
+            max-height: 22px !important;
+          }
+
+          .landscape-mobile-stats > div > div:first-child {
+            font-size: 7px !important;
+            line-height: 1 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+          }
+
+          .landscape-mobile-stats > div > div:last-child {
+            font-size: 10px !important;
+            line-height: 1 !important;
           }
 
           .landscape-mobile-close-wrap {
-            margin-top: 0.65rem !important;
+            margin-top: 6px !important;
+            max-width: 78px !important;
+            width: 78px !important;
+          }
+
+          .landscape-mobile-close-wrap button {
+            width: 100% !important;
+            max-width: 78px !important;
+            padding-left: 0.35rem !important;
+            padding-right: 0.35rem !important;
+            padding-top: 0.25rem !important;
+            padding-bottom: 0.25rem !important;
+            font-size: 0.75rem !important;
           }
           
           /* MOBILE LANDSCAPE: Stats box flush right */
@@ -3349,7 +3424,7 @@ function KeyboardApp() {
             margin-right: 0 !important;
           }
 
-          /* MOBILE LANDSCAPE: Increase virtual keyboard key size (were too small) */
+          /* MOBILE LANDSCAPE: Keep original key sizes; only whole keyboard container is slightly wider */
           .keyboard-container.landscape-keyboard-small .flex > div {
             min-height: 40px !important;
             height: 40px !important;
@@ -3362,29 +3437,29 @@ function KeyboardApp() {
             gap: 3px !important;
           }
           .keyboard-container.landscape-keyboard-small .flex > div[class*="w-"] {
-            min-width: 32px !important;
-            width: 32px !important;
-            max-width: 32px !important;
+            min-width: 20px !important;
+            width: 20px !important;
+            max-width: 20px !important;
           }
           .keyboard-container.landscape-keyboard-small .flex > div[class*="170px"] {
-            width: 56px !important;
-            min-width: 56px !important;
-            max-width: 56px !important;
+            width: 70px !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
           }
           .keyboard-container.landscape-keyboard-small .flex > div[class*="175px"] {
-            width: 58px !important;
-            min-width: 58px !important;
-            max-width: 58px !important;
+            width: 70px !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
           }
           .keyboard-container.landscape-keyboard-small .flex > div[class*="130px"] {
-            width: 44px !important;
-            min-width: 44px !important;
-            max-width: 44px !important;
+            width: 38px !important;
+            min-width: 38px !important;
+            max-width: 38px !important;
           }
           .keyboard-container.landscape-keyboard-small .flex > div[class*="118px"] {
-            width: 42px !important;
-            min-width: 42px !important;
-            max-width: 42px !important;
+            width: 36px !important;
+            min-width: 36px !important;
+            max-width: 36px !important;
           }
           .keyboard-container.landscape-keyboard-small .flex > div[class*="100px"] {
             width: 36px !important;
@@ -3392,18 +3467,18 @@ function KeyboardApp() {
             max-width: 36px !important;
           }
           .keyboard-container.landscape-keyboard-small .flex > div[class*="95px"] {
-            width: 38px !important;
-            min-width: 38px !important;
-            max-width: 38px !important;
+            width: 30px !important;
+            min-width: 30px !important;
+            max-width: 30px !important;
           }
           .keyboard-container.landscape-keyboard-small .flex > div[class*="55px"] {
-            width: 32px !important;
-            min-width: 32px !important;
-            max-width: 32px !important;
+            width: 20px !important;
+            min-width: 20px !important;
+            max-width: 20px !important;
           }
           .keyboard-container.landscape-keyboard-small .flex > div[class*="flex-1"] {
-            min-width: 80px !important;
-            max-width: 50% !important;
+            min-width: 60px !important;
+            max-width: 42% !important;
           }
         }
       `}</style>
@@ -3412,9 +3487,7 @@ function KeyboardApp() {
       <div className="fixed top-4 right-28 z-40 cursor-pointer theme-toggle-button hidden md:block">
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
-          className={`p-2 rounded-full shadow text-sm cursor-pointer ${
-            isDarkMode ? "bg-white text-black" : "bg-black text-white"
-          }`}
+          className="p-2 rounded-full shadow text-sm cursor-pointer bg-white text-yellow-400"
         >
           {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
         </button>

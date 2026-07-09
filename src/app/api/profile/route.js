@@ -145,6 +145,8 @@ export async function PATCH(request) {
 
     const formData = await request.formData();
     const name = formData.get("name")?.toString().trim();
+    const city = formData.get("city")?.toString().trim() ?? "";
+    const states = formData.get("states")?.toString().trim() ?? "";
     const file = formData.get("profile");
 
     if (!name) {
@@ -155,7 +157,18 @@ export async function PATCH(request) {
       return NextResponse.json({ error: "Name must be 100 characters or less." }, { status: 400 });
     }
 
+    if (city.length > 100) {
+      return NextResponse.json({ error: "City must be 100 characters or less." }, { status: 400 });
+    }
+
+    if (states.length > 100) {
+      return NextResponse.json({ error: "State must be 100 characters or less." }, { status: 400 });
+    }
+
+    // Email and phoneNumber are intentionally not updatable
     user.name = name;
+    user.city = city;
+    user.states = states;
 
     try {
       const imageUrl = await uploadProfilePhoto(file);

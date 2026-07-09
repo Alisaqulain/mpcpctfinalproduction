@@ -13,6 +13,8 @@ export default function ProfilePage() {
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  const [editCity, setEditCity] = useState("");
+  const [editState, setEditState] = useState("");
   const [photoPreview, setPhotoPreview] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -126,6 +128,8 @@ export default function ProfilePage() {
   const openEditProfile = () => {
     if (!user) return;
     setEditName(user.name || "");
+    setEditCity(user.city || "");
+    setEditState(user.states || "");
     setPhotoPreview(user.profileUrl || "/user.jpg");
     setPhotoFile(null);
     setEditError(null);
@@ -171,6 +175,8 @@ export default function ProfilePage() {
     try {
       const formData = new FormData();
       formData.append("name", trimmedName);
+      formData.append("city", editCity.trim());
+      formData.append("states", editState.trim());
       if (photoFile) {
         formData.append("profile", photoFile);
       }
@@ -518,33 +524,33 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-white to-blue-100 p-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-white to-blue-100 p-3 sm:p-4 overflow-x-hidden">
+      <div className="max-w-6xl mx-auto w-full min-w-0">
         {/* Profile Card */}
-        <div className="bg-white shadow-2xl rounded-3xl p-8 mb-6">
-          <div className="flex justify-end mb-2">
-            <button
-              type="button"
-              onClick={openEditProfile}
-              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm font-semibold transition-colors"
-            >
-              Edit Profile
-            </button>
-          </div>
+        <div className="bg-white shadow-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-8 mb-4 sm:mb-6">
           <div className="group">
             <img
               src={user.profileUrl || "/user.jpg"}
               alt="User"
-              className="w-28 h-28 rounded-full mx-auto border-4 border-purple-500 shadow-lg transform transition-transform duration-300 group-hover:scale-105"
+              className="w-24 h-24 sm:w-28 sm:h-28 rounded-full mx-auto border-4 border-purple-500 shadow-lg transform transition-transform duration-300 group-hover:scale-105 object-cover"
               onError={(e) => {
                 e.target.src = "/user.jpg";
               }}
             />
           </div>
-          <h2 className="text-3xl font-extrabold text-gray-800 mt-4 text-center">{user.name}</h2>
-          <p className="text-sm text-gray-500 mb-6 text-center">MPCPCT Student</p>
+          <div className="flex justify-center mt-3 mb-1">
+            <button
+              type="button"
+              onClick={openEditProfile}
+              className="px-3 sm:px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm font-semibold transition-colors"
+            >
+              Edit Profile
+            </button>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-800 mt-3 text-center break-words px-1">{user.name}</h2>
+          <p className="text-sm text-gray-500 mb-4 sm:mb-6 text-center">MPCPCT Student</p>
 
-          <div className="mt-6 text-left space-y-4">
+          <div className="mt-4 sm:mt-6 text-left space-y-3 sm:space-y-4">
             <InfoRow label="Email" value={user.email} />
             <InfoRow label="Mobile" value={user.phoneNumber} />
             <InfoRow label="City" value={user.city} />
@@ -553,26 +559,36 @@ export default function ProfilePage() {
         </div>
 
         {isEditing && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-gray-800">Edit Profile</h3>
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4 overflow-hidden">
+            <div
+              className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-md max-h-[92dvh] sm:max-h-[90vh] flex flex-col overflow-hidden"
+              style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+            >
+              <div className="flex justify-between items-center px-4 sm:px-6 pt-4 sm:pt-6 pb-3 border-b border-gray-100 shrink-0">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800">Edit Profile</h3>
                 <button
                   type="button"
                   onClick={closeEditProfile}
-                  className="text-gray-500 hover:text-gray-800 text-2xl leading-none"
+                  className="text-gray-500 hover:text-gray-800 text-3xl leading-none w-10 h-10 flex items-center justify-center -mr-2"
                   aria-label="Close"
                 >
                   &times;
                 </button>
               </div>
 
-              <form onSubmit={handleSaveProfile} className="space-y-5">
+              <form
+                onSubmit={handleSaveProfile}
+                className="flex flex-col flex-1 min-h-0"
+              >
+                <div
+                  className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 space-y-4"
+                  style={{ WebkitOverflowScrolling: "touch" }}
+                >
                 <div className="text-center">
                   <img
                     src={photoPreview || "/user.jpg"}
                     alt="Profile preview"
-                    className="w-24 h-24 rounded-full mx-auto border-4 border-purple-500 object-cover"
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full mx-auto border-4 border-purple-500 object-cover"
                     onError={(e) => {
                       e.target.src = "/user.jpg";
                     }}
@@ -599,7 +615,7 @@ export default function ProfilePage() {
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     maxLength={100}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-gray-900"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-gray-900 text-base"
                     placeholder="Your name"
                     required
                   />
@@ -614,7 +630,8 @@ export default function ProfilePage() {
                     type="email"
                     value={user.email || ""}
                     disabled
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed text-base"
                   />
                   <p className="mt-1 text-xs text-gray-500">Email cannot be changed</p>
                 </div>
@@ -628,28 +645,60 @@ export default function ProfilePage() {
                     type="text"
                     value={user.phoneNumber || ""}
                     disabled
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed text-base"
                   />
                   <p className="mt-1 text-xs text-gray-500">Phone number cannot be changed</p>
+                </div>
+
+                <div>
+                  <label htmlFor="editCity" className="block text-sm font-semibold text-gray-600 mb-1">
+                    City
+                  </label>
+                  <input
+                    id="editCity"
+                    type="text"
+                    value={editCity}
+                    onChange={(e) => setEditCity(e.target.value)}
+                    maxLength={100}
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-gray-900 text-base"
+                    placeholder="Your city"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="editState" className="block text-sm font-semibold text-gray-600 mb-1">
+                    State
+                  </label>
+                  <input
+                    id="editState"
+                    type="text"
+                    value={editState}
+                    onChange={(e) => setEditState(e.target.value)}
+                    maxLength={100}
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-gray-900 text-base"
+                    placeholder="Your state"
+                  />
                 </div>
 
                 {editError && (
                   <p className="text-sm text-red-600">{editError}</p>
                 )}
+                </div>
 
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3 px-4 sm:px-6 py-3 border-t border-gray-100 shrink-0 bg-white">
                   <button
                     type="button"
                     onClick={closeEditProfile}
                     disabled={saving}
-                    className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    className="flex-1 px-3 sm:px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50 text-sm sm:text-base"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="flex-1 px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+                    className="flex-1 px-3 sm:px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 text-sm sm:text-base"
                   >
                     {saving ? "Saving..." : "Save Changes"}
                   </button>
@@ -660,12 +709,12 @@ export default function ProfilePage() {
         )}
 
         {/* Membership/Subscription Section */}
-        <div className="bg-white shadow-2xl rounded-3xl p-8 mb-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Membership Details</h2>
+        <div className="bg-white shadow-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-8 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Membership Details</h2>
             <button
               onClick={fetchProfile}
-              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm font-semibold transition-colors"
+              className="self-start sm:self-auto px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm font-semibold transition-colors"
               title="Refresh subscription status"
             >
               🔄 Refresh
@@ -727,27 +776,27 @@ export default function ProfilePage() {
         </div>
 
         {/* Referral Section */}
-        <div className="bg-white shadow-2xl rounded-3xl p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Referral Program</h2>
+        <div className="bg-white shadow-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-8 mb-4 sm:mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Referral Program</h2>
           
           {user.referralCode ? (
             <div className="space-y-4">
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 sm:p-4">
                 <div className="mb-4">
                   <label className="text-sm font-semibold text-gray-700 block mb-2">Your Referral Code</label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <input
                       type="text"
                       readOnly
                       value={user.referralCode}
-                      className="flex-1 px-4 py-2 bg-white border border-purple-300 rounded-lg font-mono font-bold text-lg text-purple-700"
+                      className="w-full min-w-0 flex-1 px-3 sm:px-4 py-2 bg-white border border-purple-300 rounded-lg font-mono font-bold text-base sm:text-lg text-purple-700"
                     />
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(user.referralCode);
                         alert('Referral code copied to clipboard!');
                       }}
-                      className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors"
+                      className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors shrink-0"
                     >
                       Copy
                     </button>
@@ -756,12 +805,12 @@ export default function ProfilePage() {
                 
                 <div className="mb-4">
                   <label className="text-sm font-semibold text-gray-700 block mb-2">Your Referral Link</label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <input
                       type="text"
                       readOnly
                       value={`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/signup?ref=${user.referralCode}`}
-                      className="flex-1 px-4 py-2 bg-white border border-purple-300 rounded-lg text-sm text-purple-700"
+                      className="w-full min-w-0 flex-1 px-3 sm:px-4 py-2 bg-white border border-purple-300 rounded-lg text-sm text-purple-700"
                     />
                     <button
                       onClick={() => {
@@ -769,7 +818,7 @@ export default function ProfilePage() {
                         navigator.clipboard.writeText(link);
                         alert('Referral link copied to clipboard!');
                       }}
-                      className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors"
+                      className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors shrink-0"
                     >
                       Copy Link
                     </button>
@@ -797,7 +846,7 @@ export default function ProfilePage() {
               </div>
             </div>
           ) : (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 sm:p-6 text-center">
               <p className="text-gray-600">Referral code will be generated after account setup.</p>
             </div>
           )}
@@ -805,12 +854,12 @@ export default function ProfilePage() {
 
         {/* Results + User Activity — scrollable on mobile */}
         <div
-          className="overflow-y-auto overscroll-contain max-h-[52vh] sm:max-h-[58vh] md:max-h-none md:overflow-visible space-y-6 pr-1 -mr-1"
+          className="overflow-y-auto overscroll-contain max-h-[52vh] sm:max-h-[58vh] md:max-h-none md:overflow-visible space-y-4 sm:space-y-6 pr-1 -mr-1 min-w-0"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
         {/* Exam Results Section */}
-        <div className="bg-white shadow-2xl rounded-3xl p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Exam Results</h2>
+        <div className="bg-white shadow-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Exam Results</h2>
           
           {results.length === 0 ? (
             <div className="text-center py-8">
@@ -822,13 +871,13 @@ export default function ProfilePage() {
           ) : (
             <div className="space-y-4">
               {results.map((result, index) => (
-                <div key={result._id || index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-lg font-semibold text-gray-800">{result.examTitle}</h3>
+                <div key={result._id || index} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 break-words">{result.examTitle}</h3>
                         {result.pdfDownloaded && (
-                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full flex items-center gap-1">
+                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full flex items-center gap-1 shrink-0">
                             <span>✓</span>
                             <span>Downloaded</span>
                           </span>
@@ -843,19 +892,19 @@ export default function ProfilePage() {
                         </p>
                       )}
                     </div>
-                    <div className="flex flex-col gap-2 items-end">
+                    <div className="flex flex-row sm:flex-col gap-2 items-stretch sm:items-end w-full sm:w-auto">
                       <a
                         href={
                           result.examKey === 'CPCT' ? '/result/score-card' :
                           '/result/ccc'
                         }
-                        className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors bg-green-500 hover:bg-green-600 text-white text-center"
+                        className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors bg-green-500 hover:bg-green-600 text-white text-center"
                       >
                         View Official Result
                       </a>
                       <button
                         onClick={() => handleDownloadPDF(result)}
-                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                        className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors ${
                           result.pdfDownloaded
                             ? 'bg-green-500 hover:bg-green-600 text-white'
                             : 'bg-blue-500 hover:bg-blue-600 text-white'
@@ -864,40 +913,40 @@ export default function ProfilePage() {
                         {result.pdfDownloaded ? 'Download Again' : 'Download PDF'}
                       </button>
                       {!result.pdfDownloaded && (
-                        <span className="text-xs text-gray-500">Not downloaded yet</span>
+                        <span className="text-xs text-gray-500 hidden sm:inline">Not downloaded yet</span>
                       )}
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-3">
                     <div className="text-center">
                       <p className="text-xs text-gray-500">Total Questions</p>
-                      <p className="text-lg font-semibold">{result.totalQuestions}</p>
+                      <p className="text-base sm:text-lg font-semibold">{result.totalQuestions}</p>
                     </div>
                     <div className="text-center">
                       <p className="text-xs text-gray-500">Answered</p>
-                      <p className="text-lg font-semibold">{result.totalAnswered}</p>
+                      <p className="text-base sm:text-lg font-semibold">{result.totalAnswered}</p>
                     </div>
                     <div className="text-center">
                       <p className="text-xs text-gray-500">Correct</p>
-                      <p className="text-lg font-semibold text-green-600">{result.totalCorrect}</p>
+                      <p className="text-base sm:text-lg font-semibold text-green-600">{result.totalCorrect}</p>
                     </div>
                     <div className="text-center">
                       <p className="text-xs text-gray-500">Score</p>
-                      <p className="text-lg font-semibold text-purple-600">{result.totalScore} / {result.totalQuestions}</p>
+                      <p className="text-base sm:text-lg font-semibold text-purple-600">{result.totalScore} / {result.totalQuestions}</p>
                     </div>
                   </div>
                   
                   <div className="mt-3 pt-3 border-t">
-                    <p className="text-center text-xl font-bold">
+                    <p className="text-center text-lg sm:text-xl font-bold">
                       Percentage: <span className="text-purple-600">{result.percentage}%</span>
                     </p>
                   </div>
                   
                   {/* Section-wise breakdown */}
                   {result.sectionStats && result.sectionStats.length > 0 && (
-                    <div className="mt-4 overflow-x-auto">
-                      <table className="w-full text-sm border-collapse">
+                    <div className="mt-4 overflow-x-auto -mx-1 px-1">
+                      <table className="w-full text-sm border-collapse min-w-[420px]">
                         <thead>
                           <tr className="bg-gray-100">
                             <th className="border p-2 text-left">Section</th>
@@ -928,8 +977,8 @@ export default function ProfilePage() {
         </div>
 
         {/* User Activity Section */}
-        <div className="bg-white shadow-2xl rounded-3xl p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">User Activity</h2>
+        <div className="bg-white shadow-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">User Activity</h2>
 
           {typingActivity.length === 0 ? (
             <div className="text-center py-8">
@@ -994,9 +1043,9 @@ export default function ProfilePage() {
 
 function InfoRow({ label, value }) {
   return (
-    <div className="flex justify-between text-sm border-b border-gray-200 pb-2">
-      <span className="font-semibold text-gray-600">{label}:</span>
-      <span className="text-gray-800">{value || "Not provided"}</span>
+    <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-3 text-sm border-b border-gray-200 pb-2 min-w-0">
+      <span className="font-semibold text-gray-600 shrink-0">{label}:</span>
+      <span className="text-gray-800 break-all sm:text-right min-w-0">{value || "Not provided"}</span>
     </div>
   );
 }

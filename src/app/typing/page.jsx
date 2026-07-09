@@ -31,7 +31,19 @@ function typingFontStyle(fontSize, lineHeight = 1.5) {
   };
 }
 
-function TypingCloseButton({ href, className = "" }) {
+function TypingCloseButton({ href, onClick, className = "" }) {
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label="Close"
+        className={`inline-flex items-center justify-center px-2 py-0.5 text-[11px] md:px-4 md:py-2 md:text-sm rounded border md:rounded-md border-gray-600 text-white bg-red-500 hover:bg-red-600 font-semibold shadow md:shadow-lg transition-colors ${className}`}
+      >
+        Close
+      </button>
+    );
+  }
   return (
     <ReplaceNavLink
       href={href}
@@ -84,6 +96,7 @@ function DesktopView({
   subLanguage,
   hindiLayout,
   closeHref = "/skill_test",
+  onClose,
   isLearningWordMode = false,
   lessonTitle = "",
   lessonPassed = false,
@@ -418,6 +431,7 @@ function PortraitView({
   subLanguage,
   hindiLayout,
   closeHref = "/skill_test",
+  onClose,
   isLearningWordMode = false,
   lessonTitle = "",
   lessonPassed = false,
@@ -778,6 +792,7 @@ function LandscapeView({
   subLanguage,
   hindiLayout,
   closeHref = "/skill_test",
+  onClose,
   isLearningWordMode = false,
   lessonTitle = "",
   lessonPassed = false,
@@ -800,18 +815,34 @@ function LandscapeView({
           backgroundRepeat: "no-repeat",
         }}
       />
-      <ReplaceNavLink
-        href={closeHref}
-        aria-label="Close"
-        className="landscape-close-link fixed md:hidden right-2 top-2 z-[9999] border-2 border-gray-600 text-white bg-red-500 hover:bg-red-600 rounded-md shadow-lg lowercase font-semibold"
-        style={{
-          padding: "0.8vh 2vw",
-          fontSize: "clamp(9px, 1.8vw, 12px)",
-          minHeight: "4vh",
-        }}
-      >
-        close
-      </ReplaceNavLink>
+      {onClose ? (
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="landscape-close-link fixed md:hidden right-2 top-2 z-[9999] border-2 border-gray-600 text-white bg-red-500 hover:bg-red-600 rounded-md shadow-lg lowercase font-semibold"
+          style={{
+            padding: "0.8vh 2vw",
+            fontSize: "clamp(9px, 1.8vw, 12px)",
+            minHeight: "4vh",
+          }}
+        >
+          close
+        </button>
+      ) : (
+        <ReplaceNavLink
+          href={closeHref}
+          aria-label="Close"
+          className="landscape-close-link fixed md:hidden right-2 top-2 z-[9999] border-2 border-gray-600 text-white bg-red-500 hover:bg-red-600 rounded-md shadow-lg lowercase font-semibold"
+          style={{
+            padding: "0.8vh 2vw",
+            fontSize: "clamp(9px, 1.8vw, 12px)",
+            minHeight: "4vh",
+          }}
+        >
+          close
+        </ReplaceNavLink>
+      )}
       <div className="landscape-mobile-view relative z-10 flex flex-col w-full h-full min-h-0 overflow-hidden bg-transparent">
         {/* Stats row — centered at top */}
         <div className="landscape-stats-row flex justify-center items-center gap-2 sm:gap-3 w-full shrink-0 pt-1 pb-1 px-2 bg-transparent">
@@ -1582,6 +1613,24 @@ function TypingTutorForm() {
     saveTypingResult(endTimeNow, startTime, finalWPM, finalAccuracy);
   }, [isCompleted, elapsedTime, correctWords.length, typedWords.length, startTime, saveTypingResult]);
 
+  // Close in skill/learning: finish session and open result page
+  const handleCloseToResult = React.useCallback(() => {
+    if (isCompleted) {
+      if (isLearningWordMode) {
+        window.location.replace("/result/ccc?source=learning-word");
+        return;
+      }
+      const storedId = localStorage.getItem("lastTypingResultId");
+      if (storedId) {
+        window.location.replace(`/result/ccc?source=skill&resultId=${storedId}`);
+      } else {
+        window.location.replace("/result/ccc?source=skill");
+      }
+      return;
+    }
+    handleCompletion();
+  }, [isCompleted, isLearningWordMode, handleCompletion]);
+
   // Timer effect - count up elapsed time and count down remaining time
   useEffect(() => {
     if (isPaused || !startTime || isCompleted) return;
@@ -1884,6 +1933,7 @@ function TypingTutorForm() {
     decreaseFont,
     textareaRef,
     closeHref: isLearningWordMode ? "/learning" : "/skill_test",
+    onClose: handleCloseToResult,
     isLearningWordMode,
     lessonTitle,
     lessonPassed,
@@ -2237,7 +2287,7 @@ function TypingTutorForm() {
           className={`min-h-screen typing-background-container typing-desktop-card relative ${TYPING_PAGE_BG} md:mt-0 md:px-14 md:py-12 md:mx-8 md:my-8 md:rounded-[100px]`}
         >
           <div className="absolute right-2 top-15 md:right-8 md:top-8 z-[9999]">
-            <TypingCloseButton href={isLearningWordMode ? "/learning" : "/skill_test"} />
+            <TypingCloseButton onClick={handleCloseToResult} />
           </div>
           <div className="max-w-7xl mx-auto portrait-typing-main mt-6 md:mt-15">
             <div className="desktop-scale-90">
@@ -2259,7 +2309,7 @@ function TypingTutorForm() {
     >
       {!isLandscape && (
         <div className="portrait-close-btn absolute right-2 top-10 md:right-8 md:top-8 z-[9999]">
-          <TypingCloseButton href={isLearningWordMode ? "/learning" : "/skill_test"} />
+          <TypingCloseButton onClick={handleCloseToResult} />
         </div>
       )}
       <div className={`max-w-7xl mx-auto portrait-typing-main ${isLandscape ? "landscape-mobile-container mt-0 w-full max-w-none" : "mt-6 md:mt-15"}`}>
