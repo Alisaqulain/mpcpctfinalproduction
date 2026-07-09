@@ -643,7 +643,8 @@ function PortraitMobileView({
                 left: 0;
                 right: 0;
                 bottom: 0;
-                padding: 0 2%;
+                padding: 0 1%;
+                column-gap: 6%; /* more gap between left/right hands */
               }
               
               .portrait-keyboard-hand-image {
@@ -657,9 +658,15 @@ function PortraitMobileView({
               }
               .portrait-keyboard-hand-image.left {
                 object-position: left center;
+                /* Very slight left of center (moved a little right from previous) */
+                transform: translateX(-2%) scaleX(1.18);
               }
               .portrait-keyboard-hand-image.right {
                 object-position: right center;
+                /* Keep hand position; only stretch fingers apart (scaleX) */
+                transform-origin: center center;
+                transform: translateX(-20%) scaleX(1.55);
+                margin-right: 2%;
               }
             `}</style>
             
@@ -671,14 +678,14 @@ function PortraitMobileView({
                   src={leftHandImage} 
                   alt="Left hand position" 
                   className="portrait-keyboard-hand-image left"
-                  style={{ backfaceVisibility: 'hidden', transform: 'scaleX(1.12)' }}
+                  style={{ backfaceVisibility: 'hidden' }}
                 />
                 <img 
                   key={`${rightHandImage}-${pressedKey}`}
                   src={rightHandImage} 
                   alt="Right hand position" 
                   className="portrait-keyboard-hand-image right"
-                  style={{ backfaceVisibility: 'hidden', transform: 'scaleX(1.12)' }}
+                  style={{ backfaceVisibility: 'hidden' }}
                 />
               </div>
             )}
@@ -1315,32 +1322,32 @@ function LandscapeMobileView({
           </button>
         </div>
         <div className="flex flex-col gap-0 w-full max-w-[100px] items-center landscape-mobile-stats">
-          <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-            <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Time</div>
-            <div className="bg-white text-black text-sm font-bold">{formatClock(timer)}</div>
+          <div className="w-full h-4 rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+            <div className="bg-black text-white text-[10px] font-semibold py-0 leading-none">Time</div>
+            <div className="bg-white text-black text-sm font-bold leading-none">{formatClock(timer)}</div>
           </div>
-          <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-            <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Correct</div>
-            <div className="bg-white text-green-600 text-sm font-bold">{correctCount}</div>
+          <div className="w-full h-4 rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+            <div className="bg-black text-white text-[10px] font-semibold py-0 leading-none">Correct</div>
+            <div className="bg-white text-green-600 text-sm font-bold leading-none">{correctCount}</div>
           </div>
-          <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-            <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Wrong</div>
-            <div className="bg-white text-red-500 text-sm font-bold">{wrongCount}</div>
+          <div className="w-full h-4 rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+            <div className="bg-black text-white text-[10px] font-semibold py-0 leading-none">Wrong</div>
+            <div className="bg-white text-red-500 text-sm font-bold leading-none">{wrongCount}</div>
           </div>
-          <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-            <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Total</div>
-            <div className="bg-white text-[#290c52] text-sm font-bold">{totalCount}</div>
+          <div className="w-full h-4 rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+            <div className="bg-black text-white text-[10px] font-semibold py-0 leading-none">Total</div>
+            <div className="bg-white text-[#290c52] text-sm font-bold leading-none">{totalCount}</div>
           </div>
-          <div className="w-full h-9 rounded-lg overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
-            <div className="bg-black text-white text-[10px] font-semibold py-[1px]">Backspace</div>
-            <div className="bg-white text-blue-500 text-sm font-bold">{backspaceCount}</div>
+          <div className="w-full h-4 rounded-md overflow-hidden text-center shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)]">
+            <div className="bg-black text-white text-[10px] font-semibold py-0 leading-none">Backspace</div>
+            <div className="bg-white text-blue-500 text-sm font-bold leading-none">{backspaceCount}</div>
           </div>
         </div>
         {/* Close Button - bottom right, below Backspace */}
         <div className="w-full max-w-[100px] flex justify-end mt-0 landscape-mobile-close-wrap">
           <button
             onClick={onClose}
-            className="bg-red-600 text-white hover:bg-red-700 px-6 py-1.5 rounded-md shadow transition-all duration-200 hover:scale-105 flex items-center justify-center text-sm font-medium"
+            className="bg-red-600 text-white hover:bg-red-700 px-2 py-0 h-[18px] rounded-md shadow transition-all duration-200 hover:scale-105 flex items-center justify-center text-xs font-medium leading-none"
             aria-label="Close and go to result"
           >
             Close
@@ -3021,7 +3028,7 @@ function KeyboardApp() {
             align-items: center !important;
             width: 100% !important;
             max-width: 78px !important;
-            gap: 6px !important;
+            gap: 4px !important;
           }
 
           .landscape-mobile-stats > div {
@@ -3029,27 +3036,27 @@ function KeyboardApp() {
             width: 78px !important;
             min-width: 78px !important;
             max-width: 78px !important;
-            height: 22px !important;
-            min-height: 22px !important;
-            max-height: 22px !important;
+            height: 16px !important;
+            min-height: 16px !important;
+            max-height: 16px !important;
           }
 
           .landscape-mobile-stats > div > div:first-child {
-            font-size: 7px !important;
+            font-size: 6px !important;
             line-height: 1 !important;
             padding-top: 0 !important;
             padding-bottom: 0 !important;
           }
 
           .landscape-mobile-stats > div > div:last-child {
-            font-size: 10px !important;
+            font-size: 9px !important;
             line-height: 1 !important;
             padding-top: 0 !important;
             padding-bottom: 0 !important;
           }
 
           .landscape-mobile-close-wrap {
-            margin-top: 6px !important;
+            margin-top: 4px !important;
             max-width: 78px !important;
             width: 78px !important;
           }
@@ -3057,11 +3064,15 @@ function KeyboardApp() {
           .landscape-mobile-close-wrap button {
             width: 100% !important;
             max-width: 78px !important;
-            padding-left: 0.35rem !important;
-            padding-right: 0.35rem !important;
-            padding-top: 0.25rem !important;
-            padding-bottom: 0.25rem !important;
-            font-size: 0.75rem !important;
+            height: 18px !important;
+            min-height: 18px !important;
+            max-height: 18px !important;
+            padding-left: 0.25rem !important;
+            padding-right: 0.25rem !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            font-size: 0.65rem !important;
+            line-height: 1 !important;
           }
           
           /* LANDSCAPE: Stats card width in landscape mobile */
@@ -3369,13 +3380,13 @@ function KeyboardApp() {
             transform: none !important;
             padding-right: 0.25rem !important;
             padding-top: 0.25rem !important;
-            gap: 0.4rem !important;
+            gap: 0.25rem !important;
             width: 78px !important;
             max-width: 78px !important;
           }
 
           .landscape-mobile-stats {
-            gap: 6px !important;
+            gap: 4px !important;
             max-width: 78px !important;
           }
 
@@ -3383,25 +3394,25 @@ function KeyboardApp() {
             width: 78px !important;
             min-width: 78px !important;
             max-width: 78px !important;
-            height: 22px !important;
-            min-height: 22px !important;
-            max-height: 22px !important;
+            height: 16px !important;
+            min-height: 16px !important;
+            max-height: 16px !important;
           }
 
           .landscape-mobile-stats > div > div:first-child {
-            font-size: 7px !important;
+            font-size: 6px !important;
             line-height: 1 !important;
             padding-top: 0 !important;
             padding-bottom: 0 !important;
           }
 
           .landscape-mobile-stats > div > div:last-child {
-            font-size: 10px !important;
+            font-size: 9px !important;
             line-height: 1 !important;
           }
 
           .landscape-mobile-close-wrap {
-            margin-top: 6px !important;
+            margin-top: 4px !important;
             max-width: 78px !important;
             width: 78px !important;
           }
@@ -3409,11 +3420,15 @@ function KeyboardApp() {
           .landscape-mobile-close-wrap button {
             width: 100% !important;
             max-width: 78px !important;
-            padding-left: 0.35rem !important;
-            padding-right: 0.35rem !important;
-            padding-top: 0.25rem !important;
-            padding-bottom: 0.25rem !important;
-            font-size: 0.75rem !important;
+            height: 18px !important;
+            min-height: 18px !important;
+            max-height: 18px !important;
+            padding-left: 0.25rem !important;
+            padding-right: 0.25rem !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            font-size: 0.65rem !important;
+            line-height: 1 !important;
           }
           
           /* MOBILE LANDSCAPE: Stats box flush right */
