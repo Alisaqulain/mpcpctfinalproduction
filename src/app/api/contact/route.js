@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import dbConnect from "@/lib/db";
+import ContactSubmission from "@/lib/models/ContactSubmission";
 import { sendMail } from "@/lib/email";
 
 export async function POST(request) {
@@ -22,6 +24,16 @@ export async function POST(request) {
       );
     }
 
+    await dbConnect();
+    const submission = await ContactSubmission.create({
+      name: String(name).trim(),
+      email: String(email).trim().toLowerCase(),
+      phone: phone ? String(phone).trim() : "",
+      message: String(message).trim(),
+      status: "new",
+      emailSent: false,
+    });
+
     // Prepare email content
     const subject = `Contact Form Submission from ${name}`;
     const html = `
@@ -44,29 +56,32 @@ export async function POST(request) {
       </div>
     `;
 
-    // Send email to mpcpct111@gmail.com
-    const result = await sendMail({
-      to: "mpcpct111@gmail.com",
-      subject,
-      html,
-    });
+    let emailSent = false;
+    try {
+      const result = await sendMail({
+        to: "mpcpct111@gmail.com",
+        subject,
+        html,
+      });
+      emailSent = !result.skipped;
+      if (result.skipped) {
+        console.warn("Email sending skipped - SMTP not configured");
+      }
+    } catch (emailError) {
+      console.error("Contact form email error:", emailError);
+    }
 
-    if (result.skipped) {
-      console.warn("Email sending skipped - SMTP not configured");
-      return NextResponse.json(
-        { 
-          success: true, 
-          message: "Your message has been received. We'll get back to you soon.",
-          warning: "Email service not configured" 
-        },
-        { status: 200 }
-      );
+    if (emailSent) {
+      await ContactSubmission.findByIdAndUpdate(submission._id, { emailSent: true });
     }
 
     return NextResponse.json(
       {
         success: true,
-        message: "Your message has been sent successfully. We'll get back to you soon.",
+        message: emailSent
+          ? "Your message has been sent successfully. We'll get back to you soon."
+          : "Your message has been received. We'll get back to you soon.",
+        warning: emailSent ? undefined : "Email service not configured",
       },
       { status: 200 }
     );

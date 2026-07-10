@@ -764,6 +764,10 @@ export default function AdminPanel() {
           <Link href="/admin/doubts" className="underline hover:text-yellow-200 font-semibold">
             Student doubts &amp; chat
           </Link>
+          <span className="opacity-50">|</span>
+          <Link href="/admin/contact-us" className="underline hover:text-yellow-200 font-semibold">
+            Contact Us messages
+          </Link>
         </div>
       </div>
 
@@ -832,6 +836,12 @@ export default function AdminPanel() {
               className="px-6 py-3 rounded-t-lg font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 whitespace-nowrap"
             >
               Student Doubts
+            </Link>
+            <Link
+              href="/admin/contact-us"
+              className="px-6 py-3 rounded-t-lg font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200 whitespace-nowrap"
+            >
+              Contact Us
             </Link>
             <button 
               onClick={() => setActiveTab('subscriptions')} 
