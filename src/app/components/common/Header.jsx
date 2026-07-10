@@ -1,12 +1,40 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import UserProfileAvatar from "@/components/common/UserProfileAvatar";
 import { resolveUserProfileUrl } from "@/lib/userProfile";
 
 export default function Header() {
+  return (
+    <Suspense fallback={null}>
+      <HeaderInner />
+    </Suspense>
+  );
+}
+
+const TOPIC_WISE_EXAM_URL = "/exam/computer-exams?tab=topicwise";
+
+/** Mobile: hide logo + MPCPCT title block only; keep purple Home bar */
+const HIDE_BRANDING_TOP_ON_MOBILE = [
+  "/contact-us",
+  "/payment-app",
+  "/faq",
+  "/about-us",
+  "/notes",
+];
+
+function hideBrandingTopOnMobile(pathname) {
+  if (!pathname) return false;
+  return HIDE_BRANDING_TOP_ON_MOBILE.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`)
+  );
+}
+
+function HeaderInner() {
   const router = useRouter();
+  const pathname = usePathname();
+  const hideBrandingTop = hideBrandingTopOnMobile(pathname);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -90,8 +118,12 @@ export default function Header() {
 
   return (
     <header className="border-b shadow-sm relative z-50">
-      {/* Top Section - mobile: logo left, title centered in rest; desktop: unchanged */}
-      <div className="bg-white flex flex-row items-center justify-between px-2 py-3 pb-4 sm:pb-5 relative min-h-[128px] sm:min-h-[148px] md:min-h-[168px] md:px-4 md:py-4 overflow-visible">
+      {/* Top Section - logo + title; hidden on mobile for info/download pages */}
+      <div
+        className={`bg-white flex-row items-center justify-between px-2 py-3 pb-4 sm:pb-5 relative min-h-[128px] sm:min-h-[148px] md:min-h-[168px] md:px-4 md:py-4 overflow-visible ${
+          hideBrandingTop ? "hidden md:flex" : "flex"
+        }`}
+      >
         <div className="z-10 flex-shrink-0 w-[130px] sm:w-[150px] md:w-auto">
           <a href="/" className="block relative h-16 w-[130px] sm:h-[4.5rem] sm:w-[150px] md:h-20 md:w-[300px] lg:h-24 lg:w-[340px] md:ml-35">
             <Image
@@ -172,9 +204,9 @@ export default function Header() {
               >
                 Course
                 <span
-                  className={`transform transition-transform duration-300 ${
-                    openDropdown === "course" ? "rotate-180" : "rotate-0"
-                  } text-xs md:text-sm lg:text-base`}
+                  className={`transform transition-all duration-300 text-xs md:text-sm lg:text-base ${
+                    openDropdown === "course" ? "rotate-180 text-yellow-400" : "rotate-0 text-inherit"
+                  }`}
                 >
                   ▾
                 </span>
@@ -194,7 +226,7 @@ export default function Header() {
                   <a href="/exam" className="text-xs md:text-sm lg:text-base">Exam Mode</a>
                 </li>
                 <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
-                  <a href="/topicwise" className="text-xs md:text-sm lg:text-base">Topic Wise MCQ</a>
+                  <a href={TOPIC_WISE_EXAM_URL} className="text-xs md:text-sm lg:text-base">Topic Wise MCQ</a>
                 </li>
               </ul>
             </li>
@@ -205,9 +237,9 @@ export default function Header() {
               >
                 Download
                 <span
-                  className={`transform transition-transform duration-300 ${
-                    openDropdown === "download" ? "rotate-180" : "rotate-0"
-                  } text-xs md:text-sm lg:text-base`}
+                  className={`transform transition-all duration-300 text-xs md:text-sm lg:text-base ${
+                    openDropdown === "download" ? "rotate-180 text-yellow-400" : "rotate-0 text-inherit"
+                  }`}
                 >
                   ▾
                 </span>
@@ -235,9 +267,9 @@ export default function Header() {
               >
                 Our App
                 <span
-                  className={`transform transition-transform duration-300 ${
-                    openDropdown === "ourApp" ? "rotate-180" : "rotate-0"
-                  } text-xs md:text-sm lg:text-base`}
+                  className={`transform transition-all duration-300 text-xs md:text-sm lg:text-base ${
+                    openDropdown === "ourApp" ? "rotate-180 text-yellow-400" : "rotate-0 text-inherit"
+                  }`}
                 >
                   ▾
                 </span>
@@ -347,46 +379,67 @@ export default function Header() {
           <li>
             <button
               onClick={() => toggleDropdown("mobileCourse")}
-              className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm"
+              className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm text-white"
             >
-              <span>COURSE <span className="text-gray-300">(कोर्स)</span></span> <span className="text-2xl">▾</span>
+              <span>COURSE <span className="text-gray-300">(कोर्स)</span></span>
+              <span
+                className={`text-2xl transition-colors ${
+                  openDropdown === "mobileCourse" ? "text-yellow-400" : "text-white"
+                }`}
+              >
+                ▾
+              </span>
             </button>
             {openDropdown === "mobileCourse" && (
-              <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-gray-300">
-                <li><a href="/learning" onClick={() => setMobileNavOpen(false)}>Learning</a></li>
-                <li><a href="/skill_test" onClick={() => setMobileNavOpen(false)}>Skill Test</a></li>
-                <li><a href="/exam" onClick={() => setMobileNavOpen(false)}>Exam Mode</a></li>
-                <li><a href="/topicwise" onClick={() => setMobileNavOpen(false)}>Topic Wise MCQ</a></li>
+              <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-yellow-400">
+                <li><a href="/learning" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Learning</a></li>
+                <li><a href="/skill_test" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Skill Test</a></li>
+                <li><a href="/exam" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Exam Mode</a></li>
+                <li><a href={TOPIC_WISE_EXAM_URL} onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Topic Wise MCQ</a></li>
               </ul>
             )}
           </li>
           <li>
             <button
               onClick={() => toggleDropdown("mobileDownload")}
-              className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm"
+              className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm text-white"
             >
-              <span>DOWNLOAD <span className="text-gray-300">(डाउनलोड)</span></span> <span className="text-2xl">▾</span>
+              <span>DOWNLOAD <span className="text-gray-300">(डाउनलोड)</span></span>
+              <span
+                className={`text-2xl transition-colors ${
+                  openDropdown === "mobileDownload" ? "text-yellow-400" : "text-white"
+                }`}
+              >
+                ▾
+              </span>
             </button>
             {openDropdown === "mobileDownload" && (
-              <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-gray-300">
-                <li><a href="/notes?type=video_notes" onClick={() => setMobileNavOpen(false)}>Video Notes</a></li>
-                <li><a href="/notes?type=pdf_notes" onClick={() => setMobileNavOpen(false)}>Pdf Notes</a></li>
-                <li><a href="/notes?type=syllabus_pdf" onClick={() => setMobileNavOpen(false)}>Syllabus PDF</a></li>
+              <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-yellow-400">
+                <li><a href="/notes?type=video_notes" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Video Notes</a></li>
+                <li><a href="/notes?type=pdf_notes" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Pdf Notes</a></li>
+                <li><a href="/notes?type=syllabus_pdf" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Syllabus PDF</a></li>
               </ul>
             )}
           </li>
           <li>
             <button
               onClick={() => toggleDropdown("mobileOurApp")}
-              className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm"
+              className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm text-white"
             >
-              <span>OUR APP <span className="text-gray-300">(हमारा ऐप)</span></span> <span className="text-2xl">▾</span>
+              <span>OUR APP <span className="text-gray-300">(हमारा ऐप)</span></span>
+              <span
+                className={`text-2xl transition-colors ${
+                  openDropdown === "mobileOurApp" ? "text-yellow-400" : "text-white"
+                }`}
+              >
+                ▾
+              </span>
             </button>
             {openDropdown === "mobileOurApp" && (
-              <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-gray-300">
-                <li><a href="/android" onClick={() => setMobileNavOpen(false)}>Android App</a></li>
-                <li><a href="/android" onClick={() => setMobileNavOpen(false)}>iOS App</a></li>
-                <li><a href="/android" onClick={() => setMobileNavOpen(false)}>App Features</a></li>
+              <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-yellow-400">
+                <li><a href="/android" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Android App</a></li>
+                <li><a href="/android" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">iOS App</a></li>
+                <li><a href="/android" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">App Features</a></li>
               </ul>
             )}
           </li>

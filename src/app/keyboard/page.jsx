@@ -1436,6 +1436,7 @@ function KeyboardApp() {
   const [endTime, setEndTime] = useState(null);
   const [userName, setUserName] = useState("User");
   const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+  const [currentSectionName, setCurrentSectionName] = useState("");
   const [currentRowIndex, setCurrentRowIndex] = useState(0);
   const [isRowAnimating, setIsRowAnimating] = useState(false);
   const [showRotatePrompt, setShowRotatePrompt] = useState(false);
@@ -1549,6 +1550,7 @@ function KeyboardApp() {
             const foundLesson = section.lessons?.find(l => l.id === lessonId);
             if (foundLesson) {
               lesson = { ...foundLesson, section: section.name };
+              setCurrentSectionName(section.name || "");
               break;
             }
           }
@@ -2413,6 +2415,10 @@ function KeyboardApp() {
         const finalWpm = timeTaken > 0 ? Math.round((finalCorrectCount / timeTaken) * 60) : 0;
         const finalAccuracy = totalCount > 0 ? Math.round((finalCorrectCount / totalCount) * 100) : 100;
         const netSpeed = Math.round(finalWpm * (finalAccuracy / 100));
+        const wrongKeysCount = Object.values(keyDifficulties).reduce(
+          (sum, count) => sum + (count || 0),
+          0
+        );
         
         // Get ALL unique keys that were practiced with their difficulty levels
         // Count frequency of each key (how many times it appeared in the sequence)
@@ -2472,9 +2478,9 @@ function KeyboardApp() {
         const userDataStr = localStorage.getItem('examUserData');
         const userData = userDataStr ? JSON.parse(userDataStr) : {};
         
-        // Get exercise/lesson name
-        let exerciseName = "";
-        if (lessonId) {
+        // Get section name (e.g. Home, Upper) — not individual lesson title (e.g. ASDF & jkl;)
+        let exerciseName = currentSectionName;
+        if (!exerciseName && lessonId) {
           try {
             const res = await fetch('/api/learning?' + new Date().getTime());
             if (res.ok) {
@@ -2482,27 +2488,19 @@ function KeyboardApp() {
               for (const section of data.sections || []) {
                 const foundLesson = section.lessons?.find(l => l.id === lessonId);
                 if (foundLesson) {
-                  exerciseName = foundLesson.name || foundLesson.title || "";
+                  exerciseName = section.name || "";
                   break;
                 }
               }
             }
           } catch (error) {
-            console.error('Error fetching lesson name:', error);
+            console.error('Error fetching section name:', error);
           }
         }
         
-        // Get current date and time
+        // Get current date
         const now = new Date();
-        const resultDate = now.toLocaleDateString('en-GB', { 
-          day: '2-digit', 
-          month: 'long', 
-          year: 'numeric' 
-        });
-        const resultTime = now.toLocaleTimeString('en-GB', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        });
+        const resultDate = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`;
         
         // Ensure difficultKeysData is an array before saving
         const keysToSave = Array.isArray(difficultKeysData) ? difficultKeysData : [];
@@ -2513,13 +2511,15 @@ function KeyboardApp() {
           grossSpeed: finalWpm,
           accuracy: finalAccuracy,
           netSpeed: netSpeed,
+          correctCount: finalCorrectCount,
+          wrongCount: wrongKeysCount,
           difficultKeys: keysToSave, // Always ensure it's an array
           userName: userName || userData.name || "User",
           exerciseName: exerciseName,
+          sectionName: exerciseName,
           language: language === "hindi" ? "Hindi" : "English",
           subLanguage: subLanguage || "",
           resultDate: resultDate,
-          resultTime: resultTime,
           timeDuration: Math.round(timeTaken) // Save in seconds
         };
         
@@ -2543,7 +2543,7 @@ function KeyboardApp() {
     };
     
     saveAndRedirect();
-  }, [isCompleted, startTime, endTime, totalCount, highlightedKeys, keyDifficulties, lessonId, language, subLanguage, userName]);
+  }, [isCompleted, startTime, endTime, totalCount, highlightedKeys, keyDifficulties, lessonId, language, subLanguage, userName, currentSectionName]);
 
   // Keep currentIndexRef in sync so we only ever update keyStatus for the true current index
   useEffect(() => {

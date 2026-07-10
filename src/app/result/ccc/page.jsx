@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import DynamicResultCertificate from "@/components/result/DynamicResultCertificate";
+import ScoreCardCertificate from "@/components/result/ScoreCardCertificate";
 import { loadDynamicResult } from "@/lib/loadDynamicResult";
 
 function DynamicResultContent() {
@@ -61,6 +62,10 @@ function DynamicResultContent() {
         </div>
       </div>
     );
+  }
+
+  if (resultData.layout === "score-card") {
+    return <ScoreCardCertificate data={resultData} />;
   }
 
   return <DynamicResultCertificate data={resultData} />;

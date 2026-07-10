@@ -26,7 +26,12 @@ function NotesPageContent() {
 
       if (res.ok) {
         const data = await res.json();
-        setFiles(data.downloads || []);
+        const sorted = (data.downloads || []).sort((a, b) => {
+          const orderDiff = (a.order ?? 0) - (b.order ?? 0);
+          if (orderDiff !== 0) return orderDiff;
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        });
+        setFiles(sorted);
         // Store membership status for display
         if (!data.hasMembership && data.downloads?.length === 0) {
           setError("Membership required to access this content. Please subscribe to view notes.");
@@ -102,33 +107,45 @@ function NotesPageContent() {
               </div>
             ) : (
               <div className="space-y-4">
-                {files.map((file) => (
+                {files.map((file, index) => (
                   <div
                     key={file._id}
-                    className="relative border border-gray-200 rounded-xl shadow-md p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-[#290c52] hover:text-white transition-colors duration-300"
+                    className="relative border border-gray-200 rounded-xl shadow-md p-4 flex flex-col gap-4 hover:bg-[#290c52] hover:text-white transition-colors duration-300 group"
                   >
                     {/* File Info */}
-                    <div className="flex-1 pl-2 sm:pl-4">
-                      <div className="text-md font-medium mb-1">{file.title}</div>
+                    <div className="pl-2 sm:pl-4 pr-2 sm:pr-4">
+                      <div className="flex items-center gap-2 mt-1">
+                        {type === "pdf_notes" && (
+                          <span className="flex-shrink-0 bg-yellow-400 text-[#290c52] rounded-full w-6 h-6 md:w-7 md:h-7 flex items-center justify-center text-xs md:text-sm font-bold -translate-y-0.5">
+                            {index + 1}
+                          </span>
+                        )}
+                        <div className="text-md font-medium">{file.title}</div>
+                      </div>
                       {file.title_hi && (
-                        <div className="text-sm opacity-80 mb-1">{file.title_hi}</div>
+                        <div className="text-sm opacity-80 mb-1 mt-1">{file.title_hi}</div>
                       )}
                       {file.description && (
                         <div className="text-sm opacity-80 mb-2">{file.description}</div>
                       )}
-                      <div className="flex flex-wrap gap-3 text-xs opacity-70 mt-1">
-                        {file.fileSize && <span>{file.fileSize}</span>}
-                        {file.duration && <span>Duration: {file.duration}</span>}
-                        {file.isFree && (
-                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded">FREE</span>
-                        )}
-                        {!file.isFree && (
-                          <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded">MEMBERS ONLY</span>
+                      <div className={`flex items-center justify-between gap-3 text-xs mt-1 ${type === "pdf_notes" ? "ml-7 md:ml-8" : ""}`}>
+                        <div className="flex flex-wrap items-center gap-3 opacity-70">
+                          {file.duration && <span>Duration: {file.duration}</span>}
+                          {file.isFree && (
+                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded">FREE</span>
+                          )}
+                          {!file.isFree && (
+                            <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded">MEMBERS ONLY</span>
+                          )}
+                        </div>
+                        {file.fileSize && (
+                          <span className="opacity-70 flex-shrink-0">{file.fileSize}</span>
                         )}
                       </div>
                     </div>
 
                     {/* Action Button */}
+                    <div className="flex justify-center w-full">
                     {type === "video_notes" ? (
                       <a
                         href={file.fileUrl}
@@ -151,6 +168,7 @@ function NotesPageContent() {
                       Download
                     </a>
                     )}
+                    </div>
                   </div>
                 ))}
               </div>

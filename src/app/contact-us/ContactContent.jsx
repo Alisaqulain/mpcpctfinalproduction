@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Phone, Mail, Globe } from "lucide-react";
+import Image from "next/image";
 import ContactFormModal from "./ContactFormModal";
 
 export default function ContactContent() {
@@ -25,12 +26,12 @@ export default function ContactContent() {
           <div className="space-y-1.5 sm:space-y-3 text-left">
             <div className="flex items-center bg-gray-50 border border-gray-300 rounded-md px-3 py-2 w-full">
               <Phone className="text-green-600 w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3 shrink-0" />
-              <span className="text-gray-800 font-medium text-sm">8989966753</span>
+              <span className="text-gray-800 font-bold text-sm">8989966753</span>
             </div>
 
             <div className="flex items-center bg-gray-50 border border-gray-300 rounded-md px-3 py-2 w-full">
               <Mail className="text-green-600 w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3 shrink-0" />
-              <span className="text-gray-800 font-medium text-xs sm:text-base break-all">
+              <span className="text-gray-800 font-bold text-xs sm:text-base break-all">
                 Mpcpct111@gmail.com
               </span>
             </div>
@@ -67,13 +68,15 @@ export default function ContactContent() {
           </div>
 
           <div className="bg-white rounded-md border border-gray-300 px-3 py-2.5 sm:py-4 flex flex-col items-center">
-            <img
-              src="/lo.jpg"
-              alt="MPCPCT Support"
-              className="w-14 h-14 sm:w-20 sm:h-20 rounded-full mb-1.5 sm:mb-2 object-cover border border-gray-200"
+            <Image
+              src="/support.png"
+              alt="Customer Support"
+              width={120}
+              height={120}
+              className="w-24 h-24 sm:w-28 sm:h-28 mb-1.5 sm:mb-2 object-contain"
             />
             <h3 className="font-semibold text-gray-900 mb-1.5 sm:mb-2 text-sm sm:text-base">
-              MPCPCT Support Team
+              Customer Support
             </h3>
             <button
               onClick={() => setIsModalOpen(true)}

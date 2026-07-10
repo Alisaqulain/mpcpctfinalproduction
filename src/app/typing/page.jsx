@@ -5,6 +5,7 @@ import { getLearningData, getLessonContent } from "@/lib/learningData";
 import { useHindiTyping } from "@/hooks/useHindiTyping";
 import ReplaceNavLink from "@/components/common/ReplaceNavLink";
 import { resolveUserProfileUrl, readExamUserDataFromStorage } from "@/lib/userProfile";
+import { formatResultDateDDMM } from "@/lib/formatResultDate";
 
 const MIN_NET_SPEED_LEARNING = 10;
 const TYPING_FONT_MIN = 12;
@@ -1099,6 +1100,7 @@ function TypingTutorForm() {
   const [loading, setLoading] = useState(true);
   const [learningData, setLearningData] = useState(null);
   const [lessonTitle, setLessonTitle] = useState("");
+  const [sectionName, setSectionName] = useState("");
   const [lessonPassed, setLessonPassed] = useState(false);
   const [netSpeedLearning, setNetSpeedLearning] = useState(0);
 
@@ -1122,6 +1124,7 @@ function TypingTutorForm() {
         const found = section?.lessons?.find((l) => l.id === lessonId);
         if (found) {
           setLessonTitle(found.title || "");
+          setSectionName(section?.name || "");
           let contentKey = "english";
           if (language === "hindi") {
             contentKey = subLanguage.toLowerCase().includes("inscript") ? "hindi_inscript" : "hindi_ramington";
@@ -1496,9 +1499,10 @@ function TypingTutorForm() {
         const resultForPage = {
           userName: userName && userName !== "User" ? userName : (userData.name || "User"),
           lessonTitle: lessonTitle || "Word Lesson",
+          sectionName: sectionName || "",
           language: language === "hindi" ? "Hindi" : "English",
           subLanguage: subLanguage || "",
-          resultDate: new Date().toLocaleString(),
+          resultDate: formatResultDateDDMM(null),
           timeTaken,
           grossSpeed: grossWpm,
           netSpeed,

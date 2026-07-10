@@ -23,6 +23,16 @@ export function resolveUserProfileUrl(user) {
   return DEFAULT_PROFILE_AVATAR;
 }
 
+/** Mobile number shown as Roll No on score cards */
+export function resolveUserRollNo(user) {
+  if (!user || typeof user !== "object") return "-------";
+  const mobile = user.phoneNumber || user.mobile;
+  if (mobile && String(mobile).trim()) {
+    return String(mobile).trim();
+  }
+  return "-------";
+}
+
 export async function fetchUserProfileFromApi() {
   try {
     const res = await fetch("/api/profile", { credentials: "include" });

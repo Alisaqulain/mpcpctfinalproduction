@@ -291,6 +291,15 @@ export default function DynamicResultCertificate({ data }) {
                   </tr>
                 </tbody>
               </table>
+              {errors.length > 0 && (
+                <div className="p-3 border border-gray-300 m-2 text-xs">
+                  <p className="font-bold mb-1">
+                    Total Errors: {errors.length} Typed [Record]
+                    {remarks ? ` — Remarks: ${remarks}` : ""}
+                  </p>
+                  <p className="break-words">{errors.slice(0, 20).join(", ")}</p>
+                </div>
+              )}
             </div>
           )}
 

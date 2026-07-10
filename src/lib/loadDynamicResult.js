@@ -1,9 +1,11 @@
 import { normalizePassingConfig } from "@/lib/examPassingCriteria";
+import { formatResultDateDDMM } from "@/lib/formatResultDate";
 import {
   fetchUserProfileFromApi,
   mergeExamUserProfile,
   readExamUserDataFromStorage,
   resolveUserProfileUrl,
+  resolveUserRollNo,
 } from "@/lib/userProfile";
 
 function calculateGrade(percentage) {
@@ -29,6 +31,13 @@ function scoreFromAnswers(questions, loadedAnswers) {
   return { obtained, maximum };
 }
 
+const EXAM_FOOTER_LEFT = [
+  "INCHARGE Examination",
+  "Website MPCPCT.Com",
+  "Add:A.B Road SJR 465001(M.P.)",
+  "Email:mpcpct111@gmail.com",
+];
+
 function buildMcqPayload({
   userName,
   userProfileUrl,
@@ -44,6 +53,8 @@ function buildMcqPayload({
   grade,
   resultDate,
   timeDuration,
+  testLanguage,
+  homeLink,
 }) {
   return {
     userName,
@@ -52,6 +63,7 @@ function buildMcqPayload({
     examSubtitle,
     resultDate: resultDate || new Date().toLocaleDateString(),
     timeDuration: timeDuration || "",
+    testLanguage: testLanguage || "",
     mode: "mcq",
     resultRows: [
       {
@@ -67,17 +79,66 @@ function buildMcqPayload({
     grade,
     footerQueryTitle: footerQueryTitle || `For Queries about ${subjectName} Result`,
     footerCriteriaTitle: `${subjectName} Qualifying Criteria`,
-    footerLeftLines: [
-      "INCHARGE Examination",
-      "Website MPCPCT.Com",
-      "Add:A.B Road SJR 465001(M.P.)",
-      "Email:mpcpct111@gmail.com",
-    ],
+    footerLeftLines: EXAM_FOOTER_LEFT,
     footerRightLines: footerCriteriaLines || [
       `Total Questions: ${totalMax}`,
       "Minimum Passing Marks: 50% of total marks",
     ],
     pdfFilePrefix: subjectName.replace(/\s+/g, "-"),
+    homeLink: homeLink || "/",
+  };
+}
+
+/** CPCT-style score card for Learning & Skill results */
+function buildScoreCardPayload({
+  userName,
+  userProfileUrl,
+  rollNo,
+  subjectName,
+  resultDate,
+  columns,
+  totalScore,
+  totalMax,
+  isPassed,
+  pdfFilePrefix,
+  homeLink,
+  learningReData,
+  variant,
+  typingSimpleMetrics,
+  typingMetrics,
+  finalResultNote,
+  footerQueryTitle,
+  footerCriteriaTitle,
+  footerLeftLines,
+  footerRightLines,
+  errors,
+  remarks,
+}) {
+  return {
+    layout: "score-card",
+    userName,
+    userProfileUrl,
+    rollNo: rollNo || "-------",
+    subjectName,
+    resultDate: formatResultDateDDMM(resultDate),
+    publicationDate: formatResultDateDDMM(null),
+    columns,
+    totalScore,
+    totalMax,
+    isPassed,
+    pdfFilePrefix: pdfFilePrefix || subjectName.replace(/\s+/g, "-"),
+    homeLink: homeLink || "/",
+    learningReData,
+    variant: variant || (learningReData ? "learning-re" : "score-card"),
+    typingSimpleMetrics: typingSimpleMetrics || [],
+    typingMetrics: typingMetrics || [],
+    finalResultNote: finalResultNote || "",
+    footerQueryTitle,
+    footerCriteriaTitle,
+    footerLeftLines: footerLeftLines || [],
+    footerRightLines: footerRightLines || [],
+    errors: errors || [],
+    remarks: remarks || "",
   };
 }
 
@@ -93,7 +154,8 @@ async function loadUserBasics() {
   const userName =
     mergedUser.name || userData?.name || apiUser?.name || "User";
   const userProfileUrl = resolveUserProfileUrl(mergedUser);
-  return { userName, userProfileUrl };
+  const rollNo = resolveUserRollNo(mergedUser);
+  return { userName, userProfileUrl, rollNo };
 }
 
 async function loadFromProfileResult(profileResult) {
@@ -398,39 +460,66 @@ async function loadFromSkillResult(resultId) {
   const id = resultId || localStorage.getItem("lastTypingResultId");
   if (!id) return { ok: false, error: "No skill test result found", homeLink: "/skill_test" };
 
-  const res = await fetch(`/api/typing-results?resultId=${id}`);
-  if (!res.ok) return { ok: false, error: "Failed to load skill test result" };
-
-  const data = await res.json();
-  if (!data.success || !data.result) {
-    return { ok: false, error: "Result not found", homeLink: "/skill_test" };
+  let data;
+  try {
+    const res = await fetch(`/api/typing-results?resultId=${encodeURIComponent(id)}`);
+    data = await res.json();
+    if (!res.ok || !data.success || !data.result) {
+      return {
+        ok: false,
+        error: data.error || "Result not found",
+        homeLink: "/skill_test",
+      };
+    }
+  } catch {
+    return { ok: false, error: "Failed to load skill test result", homeLink: "/skill_test" };
   }
 
   const result = data.result;
-  const { userName, userProfileUrl } = await loadUserBasics();
-  const displayName =
-    result.userName && result.userName !== "User"
-      ? result.userName
-      : userName;
+  const { userName, userProfileUrl, rollNo } = await loadUserBasics();
+
+  const netSpeed = result.netSpeed || 0;
+  const isPassed = String(result.finalResult || "").toLowerCase().includes("pass");
+  const grossSpeed = result.grossSpeed || 0;
+  const accuracy = Number(result.accuracy) || 0;
 
   return {
     ok: true,
-    data: {
-      userName: displayName,
+    data: buildScoreCardPayload({
+      userName,
       userProfileUrl,
+      rollNo,
       subjectName: result.exerciseName || "Skill Test",
-      examSubtitle: "Skill Test Examination 2025-26",
-      resultDate: new Date(result.submittedAt).toLocaleDateString(),
-      timeDuration: `${result.duration} minutes`,
-      testLanguage: `${result.language}${result.subLanguage ? ` (${result.subLanguage})` : ""}`,
-      mode: "typing",
+      resultDate: result.submittedAt || null,
+      variant: "skill",
       typingMetrics: [
-        { label: "Gross Speed", value: `${result.grossSpeed || 0}wpm`, label2: "Total Type Word", value2: String(result.totalWords || 0) },
-        { label: "Correct Word", value: String(result.correctWords || 0), label2: "Wrong Words", value2: String(result.wrongWords || 0) },
-        { label: "Net Speed", value: `${result.netSpeed || 0}wpm`, label2: "Accuracy", value2: `${result.accuracy || 0}%` },
+        {
+          label: "Gross Speed",
+          value: `${grossSpeed}wpm`,
+          label2: "Total Type Word",
+          value2: result.totalWords || 0,
+        },
+        {
+          label: "Correct Word",
+          value: result.correctWords || 0,
+          label2: "Wrong Words",
+          value2: result.wrongWords || 0,
+        },
+        {
+          label: "Net Speed",
+          value: `${netSpeed}wpm`,
+          label2: "Accuracy",
+          value2: `${accuracy}%`,
+        },
       ],
-      finalResultNote: `${result.finalResult || "Fail"} (Minimum Passing Net Speed of 30 Word per Minute)`,
-      isPassed: String(result.finalResult || "").toLowerCase().includes("pass"),
+      finalResultNote: isPassed
+        ? "PASS"
+        : "FAIL (Minimum Passing Net Speed of 30 Word per Minute)",
+      totalScore: netSpeed,
+      totalMax: 30,
+      isPassed,
+      pdfFilePrefix: "Skill-Test",
+      homeLink: "/skill_test",
       errors: result.errors || [],
       remarks: result.remarks || "",
       footerQueryTitle: "For Queries about Skill Test Result",
@@ -444,9 +533,7 @@ async function loadFromSkillResult(resultId) {
         "Minimum Net Speed: 30 WPM",
         "Accuracy is calculated from typed words",
       ],
-      pdfFilePrefix: "Skill-Test",
-      homeLink: "/skill_test",
-    },
+    }),
   };
 }
 
@@ -460,41 +547,66 @@ async function loadFromLearningWord() {
   }
 
   const result = JSON.parse(raw);
-  const { userName, userProfileUrl } = await loadUserBasics();
-  const displayName =
-    result.userName && result.userName !== "User" ? result.userName : userName;
+  const { userName, userProfileUrl, rollNo } = await loadUserBasics();
+
+  const netSpeed = result.netSpeed || 0;
+  const isPassed = String(result.finalResult || "").toLowerCase().includes("pass");
+  const grossSpeed = result.grossSpeed || 0;
+  const accuracy = Number(result.accuracy) || 0;
+  const minNetSpeed = 10;
 
   return {
     ok: true,
-    data: {
-      userName: displayName,
+    data: buildScoreCardPayload({
+      userName,
       userProfileUrl,
-      subjectName: result.lessonTitle || "Word Typing Lesson",
-      examSubtitle: "Learning - Word Typing Lesson",
-      resultDate: result.resultDate || new Date().toLocaleString(),
-      testLanguage: `${result.language || "English"}${result.subLanguage ? ` (${result.subLanguage})` : ""}`,
-      mode: "typing",
+      rollNo,
+      subjectName: result.sectionName || result.lessonTitle || "Word Typing Lesson",
+      resultDate: result.resultDate || null,
+      variant: "skill",
       typingMetrics: [
-        { label: "Gross Speed", value: `${result.grossSpeed || 0}wpm`, label2: "Total Type Word", value2: String(result.totalWords || 0) },
-        { label: "Correct Word", value: String(result.correctWords || 0), label2: "Wrong Words", value2: String(result.wrongWords || 0) },
-        { label: "Net Speed", value: `${result.netSpeed || 0}wpm`, label2: "Accuracy", value2: `${result.accuracy || 0}%` },
+        {
+          label: "Gross Speed",
+          value: `${grossSpeed}wpm`,
+          label2: "Total Type Word",
+          value2: result.totalWords || 0,
+        },
+        {
+          label: "Correct Word",
+          value: result.correctWords || 0,
+          label2: "Wrong Words",
+          value2: result.wrongWords || 0,
+        },
+        {
+          label: "Net Speed",
+          value: `${netSpeed}wpm`,
+          label2: "Accuracy",
+          value2: `${accuracy}%`,
+        },
       ],
-      finalResultNote: `${result.finalResult || "Fail"} (Minimum Net Speed of 10 WPM to unlock next word lesson)`,
-      isPassed: String(result.finalResult || "").toLowerCase().includes("pass"),
-      footerQueryTitle: "For Queries about Learning Result",
-      footerCriteriaTitle: "Learning Qualifying Criteria",
+      finalResultNote: isPassed
+        ? "PASS"
+        : `FAIL (Minimum Passing Net Speed of ${minNetSpeed} Word per Minute)`,
+      totalScore: netSpeed,
+      totalMax: minNetSpeed,
+      isPassed,
+      pdfFilePrefix: "Learning-Word",
+      homeLink: "/learning",
+      errors: result.errors || [],
+      remarks: result.remarks || "",
+      footerQueryTitle: "For Queries about Learning Word Result",
+      footerCriteriaTitle: "Learning Word Qualifying Criteria",
       footerLeftLines: [
         "INCHARGE Learning Section",
         "Website MPCPCT.Com",
         "Email:mpcpct111@gmail.com",
       ],
       footerRightLines: [
-        "Minimum Net Speed: 10 WPM",
+        `Minimum Net Speed: ${minNetSpeed} WPM`,
+        "Accuracy is calculated from typed words",
         "Complete lesson to unlock next level",
       ],
-      pdfFilePrefix: "Learning-Word",
-      homeLink: "/learning",
-    },
+    }),
   };
 }
 
@@ -508,30 +620,32 @@ async function loadFromLearningRe() {
   }
 
   const result = JSON.parse(raw);
-  const { userName, userProfileUrl } = await loadUserBasics();
-  const durationMin = result.timeDuration
-    ? `${Math.floor(result.timeDuration / 60)}:${String(result.timeDuration % 60).padStart(2, "0")}`
-    : "";
+  const { userName, userProfileUrl, rollNo } = await loadUserBasics();
+
+  const netSpeed = result.netSpeed || 0;
+  const isPassed = netSpeed >= 10;
+  const grossSpeed = result.grossSpeed || 0;
+  const accuracy = result.accuracy || 0;
 
   return {
     ok: true,
-    data: {
-      userName: result.userName || userName,
+    data: buildScoreCardPayload({
+      userName,
       userProfileUrl,
-      subjectName: result.exerciseName || "Learning Exercise",
-      examSubtitle: "Learning Section",
-      resultDate: result.resultDate
-        ? `${result.resultDate} ${result.resultTime || ""}`.trim()
-        : new Date().toLocaleDateString(),
-      timeDuration: durationMin,
-      testLanguage: result.language || "English/Hindi",
-      mode: "typing-simple",
+      rollNo,
+      subjectName: result.sectionName || result.exerciseName || "Learning Exercise",
+      resultDate: result.resultDate || null,
+      variant: "learning-re",
       typingSimpleMetrics: [
-        { label: "Gross Speed", value: `${result.grossSpeed || 0}wpm` },
-        { label: "Accuracy", value: `${result.accuracy || 0}%` },
-        { label: "Net Speed", value: `${result.netSpeed || 0}wpm` },
+        { label: "Gross Speed", value: `${grossSpeed}wpm` },
+        { label: "Accuracy", value: `${accuracy}%` },
+        { label: "Net Speed", value: `${netSpeed}wpm` },
       ],
-      isPassed: (result.netSpeed || 0) >= 10,
+      totalScore: netSpeed,
+      totalMax: 10,
+      isPassed,
+      pdfFilePrefix: "Learning",
+      homeLink: "/keyboard",
       learningReData: result,
       footerQueryTitle: "For Queries about Learning Result",
       footerCriteriaTitle: "Learning Qualifying Criteria",
@@ -544,9 +658,7 @@ async function loadFromLearningRe() {
         "Practice difficult keys to improve speed",
         "Minimum Net Speed: 10 WPM recommended",
       ],
-      pdfFilePrefix: "Learning",
-      homeLink: "/keyboard",
-    },
+    }),
   };
 }
 

@@ -1,11 +1,39 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useEffect, useState, Suspense } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+
+function resolveTabFromQuery(subList, tabParam) {
+  if (!tabParam || subList.length === 0) return null;
+  const normalized = String(tabParam).toLowerCase();
+  const match = subList.find(
+    (s) =>
+      (s.isTopicWise && normalized === "topicwise") ||
+      String(s.legacyExamTypeKey || "").toLowerCase() === normalized ||
+      String(s.slug || "").toLowerCase() === normalized
+  );
+  if (!match) return null;
+  return match.isTopicWise ? "topicwise" : match.legacyExamTypeKey || match.slug;
+}
 
 export default function ExamCategoryPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      }
+    >
+      <ExamCategoryContent />
+    </Suspense>
+  );
+}
+
+function ExamCategoryContent() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const categorySlug = params?.categorySlug;
 
   const [category, setCategory] = useState(null);
@@ -47,8 +75,12 @@ export default function ExamCategoryPage() {
         if (!cancelled) {
           setSubs(subList);
           if (subList.length > 0) {
+            const tabFromUrl = resolveTabFromQuery(subList, searchParams.get("tab"));
             const first = subList[0];
-            setActiveTab(first.isTopicWise ? "topicwise" : first.legacyExamTypeKey || first.slug);
+            setActiveTab(
+              tabFromUrl ||
+                (first.isTopicWise ? "topicwise" : first.legacyExamTypeKey || first.slug)
+            );
           }
         }
       } catch (e) {
@@ -62,7 +94,7 @@ export default function ExamCategoryPage() {
     return () => {
       cancelled = true;
     };
-  }, [categorySlug, router]);
+  }, [categorySlug, router, searchParams]);
 
   useEffect(() => {
     if (subs.length === 0) return;

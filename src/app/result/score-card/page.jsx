@@ -7,15 +7,18 @@ import {
   formatPublicationDate,
   getOfficialResultPath,
 } from "@/lib/examPassingCriteria";
+import { formatResultDateDDMM } from "@/lib/formatResultDate";
 import {
   fetchUserProfileFromApi,
   mergeExamUserProfile,
   readExamUserDataFromStorage,
   resolveUserProfileUrl,
+  resolveUserRollNo,
 } from "@/lib/userProfile";
 
 export default function CpctScoreCard() {
   const [userName, setUserName] = useState("User");
+  const [rollNo, setRollNo] = useState("-------");
   const [examData, setExamData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mcqScore, setMcqScore] = useState(0);
@@ -89,6 +92,7 @@ export default function CpctScoreCard() {
           setUserName(apiUser.name);
         }
         setUserProfileUrl(resolveUserProfileUrl(mergedUser));
+        setRollNo(resolveUserRollNo(mergedUser));
 
         let config = normalizePassingConfig({ key: "CPCT" });
 
@@ -260,22 +264,16 @@ export default function CpctScoreCard() {
     pdf.setFont('helvetica', 'bold');
     pdf.text('Result Date', 10 + colWidths[0] + colWidths[1] + colWidths[2]/2, yPos + 5, { align: 'center' });
     pdf.setFont('helvetica', 'normal');
-    pdf.text(new Date().toLocaleDateString(), 10 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, yPos + 5, { align: 'center' });
+    pdf.text(formatResultDateDDMM(null), 10 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, yPos + 5, { align: 'center' });
     yPos += rowHeight;
     
-    // Roll No and Exam Time
+    // Roll No
     pdf.rect(10, yPos, colWidths[0], rowHeight);
-    pdf.rect(10 + colWidths[0], yPos, colWidths[1], rowHeight);
-    pdf.rect(10 + colWidths[0] + colWidths[1], yPos, colWidths[2], rowHeight);
-    pdf.rect(10 + colWidths[0] + colWidths[1] + colWidths[2], yPos, colWidths[3], rowHeight);
+    pdf.rect(10 + colWidths[0], yPos, colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
     pdf.setFont('helvetica', 'bold');
     pdf.text('Roll No', 10 + colWidths[0]/2, yPos + 5, { align: 'center' });
     pdf.setFont('helvetica', 'normal');
-    pdf.text('-------', 10 + colWidths[0] + colWidths[1]/2, yPos + 5, { align: 'center' });
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Exam Time', 10 + colWidths[0] + colWidths[1] + colWidths[2]/2, yPos + 5, { align: 'center' });
-    pdf.setFont('helvetica', 'normal');
-    pdf.text('', 10 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]/2, yPos + 5, { align: 'center' });
+    pdf.text(rollNo, 10 + colWidths[0] + (colWidths[1] + colWidths[2] + colWidths[3])/2, yPos + 5, { align: 'center' });
     yPos += rowHeight;
     
     // Subject Name
@@ -486,13 +484,13 @@ export default function CpctScoreCard() {
                 <td className="border border-black px-1 sm:px-2 py-1 font-semibold">Name of Student</td>
                 <td className="border border-black px-1 sm:px-2 py-1">{userName}</td>
                 <td className="border border-black px-1 sm:px-2 py-1 font-semibold">Result Date</td>
-                <td className="border border-black px-1 sm:px-2 py-1">{new Date().toLocaleDateString()}</td>
+                <td className="border border-black px-1 sm:px-2 py-1">{formatResultDateDDMM(null)}</td>
               </tr>
               <tr className="border border-black">
                 <td className="border border-black px-1 sm:px-2 py-1 font-semibold">Roll No</td>
-                <td className="border border-black px-1 sm:px-2 py-1">-------</td>
-                <td className="border border-black px-1 sm:px-2 py-1 font-semibold">Exam Time</td>
-                <td className="border border-black px-1 sm:px-2 py-1"></td>
+                <td className="border border-black px-1 sm:px-2 py-1" colSpan={3}>
+                  {rollNo}
+                </td>
               </tr>
               <tr className="border border-black">
                 <td className="border border-black px-1 sm:px-2 py-1 font-semibold">Subject Name</td>
@@ -585,7 +583,7 @@ export default function CpctScoreCard() {
         <div className="grid grid-cols-3 items-end gap-1 text-[10px] sm:text-xs border-t border-[#290c52] py-2 px-2 sm:px-3 font-semibold min-h-[5rem]">
           <p className="text-left self-end pb-1">
             Date of Publication of Result:<br />
-            <span>{publicationDate || formatPublicationDate(null)}</span>
+            <span>{formatResultDateDDMM(publicationDate || null)}</span>
           </p>
           <div className="flex justify-center self-end">
             <img src="/seal.png" alt="Seal" className="h-12 sm:h-16 md:h-20 object-contain" />
