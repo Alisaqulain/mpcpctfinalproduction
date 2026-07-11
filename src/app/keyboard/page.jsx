@@ -4,6 +4,7 @@ import { flushSync } from "react-dom";
 import { useSearchParams } from "next/navigation";
 import { Sun, Moon, RotateCw, X, Settings } from "lucide-react";
 import { getLearningData, getLessonContent } from "@/lib/learningData";
+import { resolveUserProfileUrl, DEFAULT_PROFILE_AVATAR } from "@/lib/userProfile";
 
 // Debug: add ?debug=1 to keyboard URL to show alerts for mobile keyboard testing.
 // Without ?debug=1, only console.log("[Keyboard]", ...) runs (no alerts).
@@ -150,21 +151,21 @@ function DesktopView({
               <div
                 key={`${currentRowIndex}-${displayIdx}`}
                 className={`
-                  rounded flex items-center justify-center text-2xl font-bold
-                  ${isSpace ? "min-w-0" : "shrink-0"}
+                  rounded flex items-center justify-center font-bold leading-none
+                  ${isSpace ? "min-w-0 text-2xl" : "shrink-0 text-4xl"}
                   transition-all duration-150
                   ${isRowAnimating ? "animate-slide-in-right-key" : ""}
                   ${
                     isCurrentKey && keyStatusForThisKey !== "wrong"
-                      ? "bg-blue-600 border-blue-400 border-2 text-white"
+                      ? "bg-white border-blue-500 border-2 text-blue-600"
                       : keyStatusForThisKey === "wrong"
-                      ? "bg-red-600 border-red-600 text-white"
+                      ? "bg-white border-red-600 border-2 text-red-600"
                       : keyStatusForThisKey === "correct"
-                      ? "bg-green-300 border-green-600 text-green-800"
+                      ? "bg-white border-green-600 border-2 text-green-700"
                       : isPressed && isSpace
-                      ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
+                      ? "bg-white text-black border-gray-500 border-2 scale-95"
                       : isPressed
-                      ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
+                      ? "bg-white text-black border-gray-500 border-2 scale-95"
                       : isDarkMode
                       ? "bg-white text-black border-white"
                       : "bg-white text-black border-black"
@@ -327,7 +328,7 @@ function DesktopView({
             alt="User"
             className="w-30 h-25 rounded-md border-2 border-white mobile-scale user-profile-image"
             onError={(e) => {
-              e.target.src = "/lo.jpg";
+              e.target.src = DEFAULT_PROFILE_AVATAR;
             }}
           />
           <p className="font-semibold text-xs md:text-sm mt-2 user-profile-name">{userName}</p>
@@ -556,21 +557,21 @@ function PortraitMobileView({
               <div
                 key={`${currentRowIndex}-${displayIdx}`}
                 className={`
-                  ${key === "Space" ? "w-12 h-8 min-w-[36px] space-key-box portrait-space-key" : "w-8 h-10 min-w-[24px]"}
-                  rounded flex items-center justify-center text-xs font-semibold
+                  ${key === "Space" ? "w-12 h-8 min-w-[36px] space-key-box portrait-space-key text-xs" : "w-8 h-10 min-w-[24px] text-base"}
+                  rounded flex items-center justify-center font-semibold leading-none
                   transition-all duration-200 ease-out flex-shrink-0 portrait-char-box
                   ${isRowAnimating ? 'animate-slide-in-right-key' : ''}
                   ${
                     (isCurrentKey && keyStatusForThisKey !== "wrong")
-                      ? "bg-blue-600 border-blue-400 border-2 text-white"
+                      ? "bg-white border-blue-500 border-2 text-blue-600"
                       : keyStatusForThisKey === "wrong"
-                      ? "bg-red-600 border-red-600 text-white"
+                      ? "bg-white border-red-600 border-2 text-red-600"
                       : keyStatusForThisKey === "correct"
-                      ? "bg-green-300 border-green-600 text-green-800"
+                      ? "bg-white border-green-600 border-2 text-green-700"
                       : isPressed && key === "Space"
-                      ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
+                      ? "bg-white text-black border-gray-500 border-2 scale-95"
                       : isPressed
-                      ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
+                      ? "bg-white text-black border-gray-500 border-2 scale-95"
                       : "bg-white text-black border-gray-300"
                   }
                   border
@@ -1010,20 +1011,20 @@ function LandscapeMobileView({
                     : { width: "24px", minWidth: "24px", maxWidth: "24px", height: "36px", flexShrink: 0 }
                 }
                 className={`
-                  ${key === "Space" ? "h-8 text-xl space-key-box landscape-space-key" : "h-9 landscape-letter-box"}
-                  rounded flex items-center justify-center text-xl font-semibold
+                  ${key === "Space" ? "h-8 text-xl space-key-box landscape-space-key" : "h-9 landscape-letter-box text-2xl"}
+                  rounded flex items-center justify-center font-semibold leading-none
                   transition-all duration-200 ease-out flex-shrink-0 landscape-char-box
                     ${
                       (isCurrentKey && keyStatusForThisKey !== "wrong")
-                        ? "bg-blue-600 border-blue-400 border-2 text-white"
+                        ? "bg-white border-blue-500 border-2 text-blue-600"
                         : keyStatusForThisKey === "wrong"
-                        ? "bg-red-600 border-red-600 text-white"
+                        ? "bg-white border-red-600 border-2 text-red-600"
                         : keyStatusForThisKey === "correct"
-                        ? "bg-green-300 border-green-600 text-green-800"
+                        ? "bg-white border-green-600 border-2 text-green-700"
                         : isPressed && key === "Space"
-                        ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
+                        ? "bg-white text-black border-gray-500 border-2 scale-95"
                         : isPressed
-                        ? "bg-gray-400 text-white border-gray-500 border-2 scale-95"
+                        ? "bg-white text-black border-gray-500 border-2 scale-95"
                         : "bg-white text-black border-gray-300"
                     }
                   border
@@ -1125,7 +1126,7 @@ function LandscapeMobileView({
                 margin-right: 0 !important;
               }
               
-              /* LANDSCAPE: Character boxes (asdf jkl;) */
+              /* LANDSCAPE: Character boxes (asdf jkl;) — larger text, same box */
               .landscape-typing-prompt > div.landscape-letter-box,
               .landscape-typing-prompt > div.landscape-char-box:not([class*="space-key"]),
               .landscape-typing-prompt > div[class*="w-12"]:not([class*="space-key"]),
@@ -1135,12 +1136,13 @@ function LandscapeMobileView({
                 max-width: 24px !important;
                 height: 36px !important;
                 min-height: 36px !important;
-                font-size: 1rem !important;
+                font-size: 1.25rem !important;
+                line-height: 1 !important;
                 flex-shrink: 0 !important;
                 box-sizing: border-box !important;
               }
               
-              /* LANDSCAPE: Space box size */
+              /* LANDSCAPE: Space box size — keep original Space font */
               .landscape-typing-prompt > div.landscape-space-key,
               .landscape-typing-prompt > div.space-key-box,
               .landscape-typing-prompt > div[class*="w-32"] {
@@ -1435,7 +1437,7 @@ function KeyboardApp() {
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
   const [userName, setUserName] = useState("User");
-  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+  const [userProfileUrl, setUserProfileUrl] = useState(DEFAULT_PROFILE_AVATAR);
   const [currentSectionName, setCurrentSectionName] = useState("");
   const [currentRowIndex, setCurrentRowIndex] = useState(0);
   const [isRowAnimating, setIsRowAnimating] = useState(false);
@@ -1693,7 +1695,7 @@ function KeyboardApp() {
           const data = await res.json();
           if (data.user) {
             setUserName(data.user.name || "User");
-            setUserProfileUrl(data.user.profileUrl || "/lo.jpg");
+            setUserProfileUrl(resolveUserProfileUrl(data.user));
           }
         }
       } catch (error) {
@@ -2944,18 +2946,19 @@ function KeyboardApp() {
             }
           }
           
-          /* PORTRAIT: Letter boxes - 24px wide so 8 fit on narrow screens */
+          /* PORTRAIT: Letter boxes - 24px wide so 8 fit on narrow screens; larger text, same box */
           .portrait-typing-prompt .portrait-char-box:not([class*="w-14"]):not([class*="w-16"]):not([class*="w-12"]) {
             width: 24px !important;
             height: 40px !important;
             min-width: 24px !important;
             max-width: 24px !important;
             min-height: 40px !important;
-            font-size: 0.75rem !important;
+            font-size: 1.05rem !important;
+            line-height: 1 !important;
             flex-shrink: 0 !important;
           }
           
-          /* PORTRAIT: Space box - reduced height so row is compact */
+          /* PORTRAIT: Space box - reduced height so row is compact; keep original Space font */
           .portrait-typing-prompt > div[class*="w-12"]:not([class*="w-8"]) {
             width: 36px !important;
             min-width: 36px !important;
@@ -3342,7 +3345,7 @@ function KeyboardApp() {
             margin-right: 0 !important;
           }
           
-          /* LANDSCAPE: Character boxes size (asdf jkl;) */
+          /* LANDSCAPE: Character boxes size (asdf jkl;) — larger text, same box */
           .landscape-typing-prompt > div.landscape-letter-box,
           .landscape-typing-prompt > div.landscape-char-box:not([class*="space-key"]),
           .landscape-typing-prompt > div[class*="w-12"]:not([class*="space-key"]),
@@ -3352,11 +3355,12 @@ function KeyboardApp() {
             max-width: 24px !important;
             height: 36px !important;
             min-height: 36px !important;
-            font-size: 1rem !important;
+            font-size: 1.25rem !important;
+            line-height: 1 !important;
             flex-shrink: 0 !important;
           }
           
-          /* LANDSCAPE: Space key in typing prompt */
+          /* LANDSCAPE: Space key in typing prompt — keep original Space font */
           .landscape-typing-prompt > div.landscape-space-key,
           .landscape-typing-prompt > div.space-key-box,
           .landscape-typing-prompt > div[class*="w-32"],

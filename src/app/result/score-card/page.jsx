@@ -9,6 +9,7 @@ import {
 } from "@/lib/examPassingCriteria";
 import { formatResultDateDDMM } from "@/lib/formatResultDate";
 import {
+  DEFAULT_PROFILE_AVATAR,
   fetchUserProfileFromApi,
   mergeExamUserProfile,
   readExamUserDataFromStorage,
@@ -31,12 +32,32 @@ export default function CpctScoreCard() {
   const [isPassed, setIsPassed] = useState(false);
   const [passConfig, setPassConfig] = useState(null);
   const [publicationDate, setPublicationDate] = useState("");
-  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+  const [userProfileUrl, setUserProfileUrl] = useState(DEFAULT_PROFILE_AVATAR);
 
   useEffect(() => {
     const loadResultData = async () => {
       try {
         setLoading(true);
+
+        const userData = readExamUserDataFromStorage();
+        let apiUser = null;
+        try {
+          apiUser = await fetchUserProfileFromApi();
+        } catch {
+          /* ignore */
+        }
+        const mergedUser = mergeExamUserProfile(userData, apiUser);
+        const resolvedProfileUrl = resolveUserProfileUrl(mergedUser);
+        const resolvedRollNo = resolveUserRollNo(mergedUser);
+        setUserProfileUrl(resolvedProfileUrl);
+        setRollNo(resolvedRollNo);
+        if (mergedUser.name) {
+          setUserName(mergedUser.name);
+        } else if (userData?.name) {
+          setUserName(userData.name);
+        } else if (apiUser?.name) {
+          setUserName(apiUser.name);
+        }
         
         // Check if data is coming from profile
         const profileResultDataStr = localStorage.getItem('profileResultData');
@@ -50,7 +71,15 @@ export default function CpctScoreCard() {
               return;
             }
 
-            setUserName(profileResult.userName || "User");
+            setUserName(profileResult.userName || mergedUser.name || "User");
+            const fromProfileResult = resolveUserProfileUrl(profileResult);
+            setUserProfileUrl(
+              fromProfileResult !== DEFAULT_PROFILE_AVATAR
+                ? fromProfileResult
+                : resolvedProfileUrl
+            );
+            const fromProfileRoll = resolveUserRollNo(profileResult);
+            setRollNo(fromProfileRoll !== "-------" ? fromProfileRoll : resolvedRollNo);
             
             // Get MCQ score from sectionStats
             if (profileResult.sectionStats && profileResult.sectionStats.length > 0) {
@@ -75,24 +104,6 @@ export default function CpctScoreCard() {
             console.error('Error parsing profile result data:', error);
           }
         }
-
-        const userData = readExamUserDataFromStorage();
-        let apiUser = null;
-        try {
-          apiUser = await fetchUserProfileFromApi();
-        } catch {
-          /* ignore */
-        }
-        const mergedUser = mergeExamUserProfile(userData, apiUser);
-        if (mergedUser.name) {
-          setUserName(mergedUser.name);
-        } else if (userData?.name) {
-          setUserName(userData.name);
-        } else if (apiUser?.name) {
-          setUserName(apiUser.name);
-        }
-        setUserProfileUrl(resolveUserProfileUrl(mergedUser));
-        setRollNo(resolveUserRollNo(mergedUser));
 
         let config = normalizePassingConfig({ key: "CPCT" });
 
@@ -449,7 +460,7 @@ export default function CpctScoreCard() {
             className="absolute left-0 bottom-0 w-[6.75rem] h-[6.5rem] border-2 border-black border-l-0 border-b-0 object-cover bg-white"
             onError={(e) => {
               e.currentTarget.onerror = null;
-              e.currentTarget.src = "/lo.jpg";
+              e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
             }}
           />
           <div className="text-center pl-[7.25rem] pr-3 py-3 min-w-0">
@@ -467,7 +478,7 @@ export default function CpctScoreCard() {
             className="absolute left-3 bottom-0 w-[5.5rem] h-[4.25rem] border-2 border-[#290c52] object-cover bg-white"
             onError={(e) => {
               e.currentTarget.onerror = null;
-              e.currentTarget.src = "/lo.jpg";
+              e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
             }}
           />
           <div className="text-center pl-[6.5rem] pr-2">

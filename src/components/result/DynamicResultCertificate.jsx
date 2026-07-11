@@ -4,13 +4,14 @@ import React from "react";
 import Link from "next/link";
 import jsPDF from "jspdf";
 import LearningReChart from "@/components/result/LearningReChart";
+import { DEFAULT_PROFILE_AVATAR } from "@/lib/userProfile";
 
 export default function DynamicResultCertificate({ data }) {
   if (!data) return null;
 
   const {
     userName,
-    userProfileUrl = "/lo.jpg",
+    userProfileUrl = DEFAULT_PROFILE_AVATAR,
     subjectName,
     examSubtitle,
     resultDate,
@@ -169,7 +170,7 @@ export default function DynamicResultCertificate({ data }) {
               className="w-16 sm:w-24 h-12 sm:h-20 border ml-2 absolute left-0 top-[19] md:top-1/2 transform -translate-y-1/2 object-cover bg-white"
               onError={(e) => {
                 e.currentTarget.onerror = null;
-                e.currentTarget.src = "/lo.jpg";
+                e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
               }}
             />
             <p className="uppercase font-semibold text-xl sm:text-2xl">Result</p>

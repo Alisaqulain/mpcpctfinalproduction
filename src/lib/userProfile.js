@@ -1,4 +1,17 @@
-export const DEFAULT_PROFILE_AVATAR = "/lo.jpg";
+/** Neutral avatar — same as Profile page (not Contact Us /support.png or brand /lo.jpg) */
+export const DEFAULT_PROFILE_AVATAR = "/user.jpg";
+
+/** Brand / support assets must never be treated as a student profile photo */
+const NON_PROFILE_IMAGE_PATHS = new Set([
+  "/support.png",
+  "/lo.jpg",
+  "/logor.png",
+  "/logo2.png",
+  "/LOGO.png",
+  "/log.png",
+  "/plogo.png",
+  "/mpc.png",
+]);
 
 const PROFILE_URL_KEYS = [
   "profileImage",
@@ -7,15 +20,29 @@ const PROFILE_URL_KEYS = [
   "photoURL",
   "profileUrl",
   "profilePicture",
-  "image",
 ];
+
+function isUsableProfileUrl(value) {
+  if (!value || typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  try {
+    const path = trimmed.startsWith("http")
+      ? new URL(trimmed).pathname
+      : trimmed.split("?")[0];
+    if (NON_PROFILE_IMAGE_PATHS.has(path)) return false;
+  } catch {
+    /* keep url */
+  }
+  return true;
+}
 
 export function resolveUserProfileUrl(user) {
   if (!user || typeof user !== "object") return DEFAULT_PROFILE_AVATAR;
 
   for (const key of PROFILE_URL_KEYS) {
     const value = user[key];
-    if (value && String(value).trim()) {
+    if (isUsableProfileUrl(value)) {
       return String(value).trim();
     }
   }

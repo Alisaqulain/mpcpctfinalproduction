@@ -78,7 +78,7 @@ export default function ExamCategoriesPage() {
             </p>
           </div>
 
-          <div className="p-4 md:p-6 bg-[#290c52]/5">
+          <div className="px-4 pt-12 pb-12 md:p-6 bg-[#290c52]/5">
             {loading && (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#290c52] mx-auto mb-2" />
@@ -103,7 +103,7 @@ export default function ExamCategoriesPage() {
               <p className="text-center text-gray-600 py-8">No categories yet.</p>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-5 md:space-y-4">
               {categories.map((c, index) => (
                 <Link
                   key={c._id}
@@ -116,7 +116,7 @@ export default function ExamCategoriesPage() {
                     </span>
                     <span className="text-sm md:text-base font-medium truncate">{c.name}</span>
                   </div>
-                  <span className="text-xs md:text-sm font-semibold bg-[#290c52] text-white group-hover:bg-yellow-400 group-hover:text-[#290c52] px-3 py-1.5 rounded-md shrink-0 transition-colors">
+                  <span className="text-xs md:text-sm font-semibold bg-[#290c52] text-yellow-400 group-hover:bg-yellow-400 group-hover:text-[#290c52] px-3 py-1.5 rounded-md shrink-0 transition-colors">
                     Open →
                   </span>
                 </Link>

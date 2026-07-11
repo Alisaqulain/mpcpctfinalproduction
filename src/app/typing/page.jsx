@@ -13,7 +13,7 @@ const TYPING_FONT_MAX = 28;
 const TYPING_FONT_STEP = 2;
 const TYPING_FONT_DEFAULT = 19;
 const TYPING_FONT_PORTRAIT_BONUS = 2;
-const TYPING_FONT_LANDSCAPE_BONUS = 2;
+const TYPING_FONT_LANDSCAPE_BONUS = -2.7; // default ~13px — slightly smaller than image 2
 const LANDSCAPE_RIGHT_SIDEBAR_VW = 14;
 const LANDSCAPE_RIGHT_SIDEBAR_MIN_PX = 72;
 const LANDSCAPE_RIGHT_SIDEBAR_MAX_PX = 92;
@@ -187,6 +187,7 @@ function DesktopView({
             ) : (
               <>
                   <div
+                    ref={containerRef}
                     className="typing-passage-font leading-relaxed overflow-y-auto min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px] mt-0 pt-0 break-words font-sans w-full"
                     style={{
                       ...typingFontStyle(fontSize),
@@ -506,7 +507,7 @@ function PortraitView({
             )}
 
             {/* Right: speedometer + A+ (same top as profile column) */}
-            <div className="absolute top-10 right-2 z-50 flex flex-col items-center w-20 pointer-events-auto">
+            <div className="absolute top-8 right-2 z-50 flex flex-col items-center w-20 pointer-events-auto">
               <div
                 className="flex flex-col items-center justify-center w-full"
                 style={{ minHeight: "6.25rem" }}
@@ -650,11 +651,13 @@ function PortraitView({
             ) : (
               <div className="portrait-typing-content flex flex-col flex-1 min-h-0">
                 <div
+                  ref={containerRef}
                   className="typing-passage-font portrait-passage-scroll leading-relaxed overflow-y-auto mt-0 pt-0 break-words font-sans w-full flex-1 min-h-0"
                   style={{
                     ...typingFontStyle(fontSize + TYPING_FONT_PORTRAIT_BONUS),
                     width: "100%",
                     maxWidth: "100%",
+                    overscrollBehavior: "contain",
                   }}
                 >
                   {renderColoredWords()}
@@ -718,6 +721,9 @@ function PortraitView({
                     ...typingFontStyle(fontSize + TYPING_FONT_PORTRAIT_BONUS),
                     width: "100%",
                     maxWidth: "100%",
+                    overflowY: "auto",
+                    resize: "none",
+                    lineHeight: 1.4,
                   }}
                   autoFocus
                 />
@@ -870,14 +876,14 @@ function LandscapeView({
             <img
               src={userProfileUrl}
               alt={userName}
-              className="rounded-md border-2 border-white object-cover"
+              className="rounded-md border-2 border-white object-cover landscape-profile-img"
               style={{ width: "clamp(52px, 11vw, 72px)", height: "clamp(52px, 11vw, 72px)" }}
               onError={(e) => {
                 e.target.src = "/lo.jpg";
               }}
             />
             <p
-              className="font-semibold text-center text-white leading-tight"
+              className="font-semibold text-center text-white leading-tight landscape-profile-name"
               style={{ fontSize: "clamp(8px, 1.2vw, 10px)" }}
             >
               {userName}
@@ -893,8 +899,8 @@ function LandscapeView({
           {/* Center — typing box + action buttons */}
           <div className="landscape-center-col landscape-mobile-typing-area flex flex-1 flex-col items-center min-w-0 min-h-0 px-2 bg-transparent">
             <div
-              className="landscape-typing-white-box bg-white rounded-xl shadow-lg w-[92%] max-w-full mx-auto flex flex-col min-h-0 flex-1"
-              style={{ padding: "0.15rem 0.65rem 0.5rem" }}
+              className="landscape-typing-white-box bg-white rounded-xl shadow-lg w-[92%] max-w-full mx-auto flex flex-col min-h-0 overflow-hidden flex-1"
+              style={{ padding: "0.15rem 0.65rem 0.35rem" }}
             >
               {isCompleted && (
                 <div className="mb-2 bg-green-50 p-2 rounded-lg border-2 border-green-500 shrink-0">
@@ -944,14 +950,14 @@ function LandscapeView({
                   <p>No content available for this exercise.</p>
                 </div>
               ) : (
-                <>
+                <div className="landscape-typing-split flex flex-col flex-1 min-h-0 w-full">
                   <div
-                    className="typing-passage-font landscape-typing-passage leading-tight overflow-y-auto break-words font-sans w-full flex-1 min-h-0 mt-0 pt-0"
+                    ref={containerRef}
+                    className="typing-passage-font landscape-typing-passage leading-tight overflow-y-auto break-words font-sans w-full min-h-0 mt-0 pt-0"
                     style={{
-                      ...typingFontStyle(fontSize + TYPING_FONT_LANDSCAPE_BONUS, 1.2),
-                      minHeight: "18vh",
-                      maxHeight: "22vh",
+                      ...typingFontStyle(fontSize + TYPING_FONT_LANDSCAPE_BONUS, 1.25),
                       width: "100%",
+                      overscrollBehavior: "contain",
                     }}
                   >
                     {renderColoredWords(true)}
@@ -962,17 +968,17 @@ function LandscapeView({
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     disabled={isPaused || isCompleted}
-                    className="typing-input-font landscape-typing-input-field w-full p-2 border-t border-gray-400 rounded-md focus:outline-none mt-1 disabled:opacity-50 shrink-0"
+                    className="typing-input-font landscape-typing-input-field w-full p-1.5 border-t border-gray-400 rounded-md focus:outline-none mt-1 disabled:opacity-50 min-h-0"
                     placeholder="Type Here..."
                     style={{
-                      ...typingFontStyle(fontSize + TYPING_FONT_LANDSCAPE_BONUS, 1.2),
-                      minHeight: "10vh",
-                      maxHeight: "12vh",
+                      ...typingFontStyle(fontSize + TYPING_FONT_LANDSCAPE_BONUS, 1.35),
                       width: "100%",
+                      overflowY: "auto",
+                      resize: "none",
                     }}
                     autoFocus
                   />
-                </>
+                </div>
               )}
             </div>
 
@@ -1053,8 +1059,8 @@ function LandscapeView({
               </div>
             </div>
 
-            <p className="text-white text-[10px] font-semibold mt-0.5 mb-0">Font size</p>
-            <div className="flex flex-col items-center gap-1 w-full px-1">
+            <p className="text-white text-[10px] font-semibold mt-3 mb-0 landscape-font-label">Font size</p>
+            <div className="flex flex-col items-center gap-1 w-full px-1 landscape-font-controls mt-1">
               <button
                 type="button"
                 onClick={increaseFont}
@@ -1735,6 +1741,12 @@ function TypingTutorForm() {
     }
     setTypedText(newValue);
 
+    // Keep typed text visible inside the compact landscape input
+    requestAnimationFrame(() => {
+      const ta = textareaRef.current;
+      if (ta) ta.scrollTop = ta.scrollHeight;
+    });
+
     // Calculate which word should be highlighted/scrolled to
     // If text ends with space, the next word (not yet typed) should be highlighted
     // Otherwise, the current word being typed should be highlighted
@@ -1746,11 +1758,22 @@ function TypingTutorForm() {
         ? wordsArray.length  // Next word to type (not yet in wordsArray)
         : wordsArray.length > 0 ? wordsArray.length - 1 : 0; // Current word being typed
     
-    // Use setTimeout to ensure DOM is updated after state change
+    // Scroll current word inside the passage box only — never the page (stops portrait jump)
     setTimeout(() => {
       const wordEl = wordRefs.current[currentWordIndex];
-      if (wordEl && containerRef.current) {
-        wordEl.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+      const container = containerRef.current;
+      if (!wordEl || !container) return;
+
+      const cRect = container.getBoundingClientRect();
+      const wRect = wordEl.getBoundingClientRect();
+      const delta =
+        wRect.top - cRect.top - cRect.height / 2 + wRect.height / 2;
+      if (Math.abs(delta) < 2) return;
+      container.scrollTop += delta;
+
+      // Keep window pinned so mobile keyboard / focus cannot bounce the page
+      if (typeof window !== "undefined") {
+        window.scrollTo(0, 0);
       }
     }, 0);
   };
@@ -1838,7 +1861,6 @@ function TypingTutorForm() {
                   maxWidth: "100%",
                 }
           }
-          ref={lineIndex === 0 ? containerRef : null}
         >
           {lineWords.map((word, i) => {
             const index = pointer++;
@@ -2009,15 +2031,21 @@ function TypingTutorForm() {
         @media (max-width: 767px) and (orientation: portrait) {
           html, body {
             overflow: hidden !important;
+            overscroll-behavior: none !important;
             min-height: 100vh !important;
             width: 100% !important;
             height: 100dvh !important;
+            position: fixed !important;
+            left: 0 !important;
+            right: 0 !important;
+            top: 0 !important;
           }
           .typing-background-container {
             min-height: 100dvh !important;
             max-height: 100dvh !important;
             height: 100dvh !important;
             overflow: hidden !important;
+            overscroll-behavior: none !important;
             position: relative !important;
             width: 100vw !important;
             padding-top: 0.75rem !important;
@@ -2027,6 +2055,7 @@ function TypingTutorForm() {
             margin-top: 0 !important;
             overflow: hidden !important;
             height: 100dvh !important;
+            overscroll-behavior: none !important;
           }
           .portrait-top-panel {
             overflow: hidden !important;
@@ -2062,16 +2091,23 @@ function TypingTutorForm() {
             height: 0 !important;
           }
           .portrait-passage-scroll {
-            flex: 1 1 55%;
-            min-height: 6.5rem;
+            flex: 1 1 40%;
+            min-height: 5rem;
             max-height: none !important;
             scrollbar-width: none !important;
             -ms-overflow-style: none !important;
+            overscroll-behavior: contain !important;
+            overflow-anchor: none !important;
           }
           .portrait-typing-input {
-            flex: 1 1 45%;
-            min-height: 5rem;
+            flex: 1 1 55% !important;
+            min-height: 8.5rem !important;
             max-height: none !important;
+            height: auto !important;
+            overflow-y: auto !important;
+            overflow-anchor: none !important;
+            line-height: 1.4 !important;
+            box-sizing: border-box !important;
           }
           .w-full.text-white::-webkit-scrollbar {
             display: none !important;
@@ -2111,10 +2147,10 @@ function TypingTutorForm() {
             max-height: calc(100dvh - 18rem);
           }
           .portrait-passage-scroll {
-            min-height: 6rem;
+            min-height: 5rem;
           }
           .portrait-typing-input {
-            min-height: 4.75rem;
+            min-height: 7.5rem !important;
           }
           .max-w-7xl.mx-auto {
             overflow: hidden !important;
@@ -2204,29 +2240,66 @@ function TypingTutorForm() {
             min-height: 0 !important;
             overflow: hidden !important;
           }
+          .landscape-left-col {
+            padding-left: 0.55rem !important;
+            margin-left: 0.35rem !important;
+            transform: translateX(0.35rem);
+          }
           .landscape-center-col.landscape-mobile-typing-area {
             flex: 1 !important;
             min-width: 0 !important;
             min-height: 0 !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            -webkit-overflow-scrolling: touch !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
             background: transparent !important;
             background-color: transparent !important;
             background-image: none !important;
           }
+          .landscape-typing-white-box {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            height: 100% !important;
+            max-height: calc(100% - 2.4rem) !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          .landscape-typing-split {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+          }
           .landscape-typing-input-field {
-            scroll-margin-bottom: 16vh !important;
+            scroll-margin-bottom: 0 !important;
           }
+          /* Passage uses top ~55%; only scrolls if text is taller than its area */
           .landscape-mobile-typing-area .landscape-typing-passage {
-            min-height: 18vh !important;
-            max-height: 22vh !important;
+            flex: 1 1 55% !important;
+            min-height: 0 !important;
+            max-height: none !important;
             width: 100% !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
           }
+          /* Type box fills remaining white space (~45%) — no empty gap, scroll only when needed */
           .landscape-mobile-typing-area textarea.landscape-typing-input-field {
-            min-height: 10vh !important;
-            max-height: 12vh !important;
+            flex: 1 1 45% !important;
+            min-height: 4rem !important;
+            max-height: none !important;
+            height: auto !important;
             width: 100% !important;
+            overflow-y: auto !important;
+            line-height: 1.35 !important;
+            box-sizing: border-box !important;
+          }
+          .landscape-font-label {
+            margin-top: 0.85rem !important;
+          }
+          .landscape-font-controls {
+            margin-top: 0.35rem !important;
           }
           .landscape-font-btn {
             max-width: 4.5rem !important;

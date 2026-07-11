@@ -5,13 +5,14 @@ import Link from "next/link";
 import jsPDF from "jspdf";
 import LearningReChart from "@/components/result/LearningReChart";
 import { formatResultDateDDMM } from "@/lib/formatResultDate";
+import { DEFAULT_PROFILE_AVATAR } from "@/lib/userProfile";
 
 export default function ScoreCardCertificate({ data }) {
   if (!data) return null;
 
   const {
     userName,
-    userProfileUrl = "/lo.jpg",
+    userProfileUrl = DEFAULT_PROFILE_AVATAR,
     rollNo = "-------",
     subjectName,
     resultDate,
@@ -133,7 +134,7 @@ export default function ScoreCardCertificate({ data }) {
               className="absolute left-0 bottom-0 w-[6.75rem] h-[6.5rem] border-2 border-black border-l-0 border-b-0 object-cover bg-white"
               onError={(e) => {
                 e.currentTarget.onerror = null;
-                e.currentTarget.src = "/lo.jpg";
+                e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
               }}
             />
             <div className="text-center pl-[7.25rem] pr-3 py-3 min-w-0">
@@ -151,7 +152,7 @@ export default function ScoreCardCertificate({ data }) {
               className="absolute left-3 bottom-0 w-[5.5rem] h-[4.25rem] border-2 border-[#290c52] object-cover bg-white"
               onError={(e) => {
                 e.currentTarget.onerror = null;
-                e.currentTarget.src = "/lo.jpg";
+                e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
               }}
             />
             <div className="text-center pl-[6.5rem] pr-2">

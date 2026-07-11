@@ -32,7 +32,7 @@ function ExamModeContent() {
       /* Section parts row — mobile + desktop */
       .exam-section-parts-row .exam-section-parts-label {
         font-weight: 700 !important;
-        color: #000 !important;
+        color: #290c52 !important;
       }
       .exam-section-parts-row button.exam-section-part-active {
         background: #dc2626 !important;
@@ -780,10 +780,14 @@ function ExamModeContent() {
         }
         .exam-mobile-timer-row {
           order: 0 !important;
-          padding: 0.2rem 0.75rem !important;
+          padding: 0.45rem 0.75rem !important;
           min-height: auto !important;
           border-top: none !important;
           border-bottom: 1px solid #e5e7eb !important;
+        }
+        .exam-mobile-timer-row button {
+          font-size: 1.5rem !important;
+          line-height: 1 !important;
         }
         .exam-mobile-tabs-row {
           order: 1 !important;
@@ -804,7 +808,7 @@ function ExamModeContent() {
         .exam-mobile-exam-title h2 {
           font-size: 0.95rem !important;
           font-weight: 600 !important;
-          color: #290c52 !important;
+          color: #000 !important;
         }
         body:has([data-exam-mode="mcq"]) .exam-mobile-menu-btn {
           display: none !important;
@@ -812,8 +816,12 @@ function ExamModeContent() {
         [data-exam-mode="mcq"] .exam-portrait-header-menu {
           display: inline-flex !important;
         }
-        [data-exam-mode="mcq"] .landscape-reduce-header .max-md\\:pl-9 {
-          padding-left: 0.25rem !important;
+        [data-exam-mode="mcq"] .landscape-reduce-header .max-md\\:pl-9,
+        [data-exam-mode="mcq"] .landscape-reduce-header .exam-typing-header-left {
+          padding-left: 3rem !important;
+        }
+        [data-exam-mode="mcq"] .landscape-reduce-header {
+          padding-left: 0.5rem !important;
         }
         [data-exam-mode="mcq"] .exam-portrait-hide-home {
           display: none !important;
@@ -1030,7 +1038,7 @@ function ExamModeContent() {
         .exam-mobile-question-text {
           font-size: 0.82rem !important;
           line-height: 1.3 !important;
-          margin-bottom: 0.75rem !important;
+          margin-bottom: 1.5rem !important;
           font-weight: 700 !important;
         }
         [data-exam-mode="mcq"] .exam-mobile-question-meta > span:first-child {
@@ -1039,7 +1047,7 @@ function ExamModeContent() {
         }
         [data-exam-mode="mcq"] .exam-mobile-question-body .exam-mobile-options:first-of-type,
         [data-exam-mode="mcq"] .exam-mobile-options-col .exam-mobile-options:first-of-type {
-          margin-top: 0.75rem !important;
+          margin-top: 1.25rem !important;
         }
         label.exam-mobile-options,
         .exam-mobile-options label {
@@ -1243,7 +1251,7 @@ function ExamModeContent() {
           display: inline-flex !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-left {
-          padding-left: 0.25rem !important;
+          padding-left: 0 !important;
         }
         body:has([data-exam-mode="typing"]) .exam-mobile-menu-btn {
           display: none !important;
@@ -1265,21 +1273,33 @@ function ExamModeContent() {
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
-          margin-top: 2.5rem !important;
-          padding-top: 0.35rem !important;
-          padding-bottom: 0.25rem !important;
+          margin-top: 3rem !important;
+          padding-top: 0.65rem !important;
+          padding-bottom: 0.5rem !important;
           margin-bottom: 0 !important;
           background: #fff !important;
           border-bottom: 1px solid #d1d5db !important;
           flex-shrink: 0 !important;
+          min-height: 2.75rem !important;
         }
         [data-exam-mode="typing"] .exam-mobile-exam-title h2 {
           font-size: 0.95rem !important;
           font-weight: 600 !important;
-          color: #290c52 !important;
+          color: #000 !important;
+          line-height: 1.3 !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-profile-portrait {
           display: flex !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-sound {
+          display: none !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-title-sound {
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          font-size: 1.35rem !important;
+          line-height: 1 !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-links {
           display: none !important;
@@ -1327,8 +1347,8 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .exam-typing-portrait-avatar,
         [data-exam-mode="typing"] .exam-typing-profile-col img {
-          width: 4rem !important;
-          height: 4rem !important;
+          width: 5rem !important;
+          height: 5rem !important;
           border-radius: 0.375rem !important;
           border: 2px solid #d1d5db !important;
         }
@@ -1396,6 +1416,11 @@ function ExamModeContent() {
           align-items: center !important;
           justify-content: center !important;
         }
+        [data-exam-mode="typing"] .exam-typing-stat-time .exam-typing-stat-time-label,
+        [data-exam-mode="typing"] .exam-typing-stat-time > .bg-black {
+          font-size: 0.75rem !important;
+          font-weight: 700 !important;
+        }
         [data-exam-mode="typing"] .exam-typing-stat-value,
         [data-exam-mode="typing"] .exam-typing-stat-card > .bg-white {
           font-size: 0.75rem !important;
@@ -1407,9 +1432,17 @@ function ExamModeContent() {
           justify-content: center !important;
         }
         [data-exam-mode="typing"] .exam-typing-stat-time {
-          max-width: 8.25rem !important;
-          width: 8.25rem !important;
+          max-width: 8.5rem !important;
+          width: 8.5rem !important;
           margin-top: 0.375rem !important;
+          height: 2.65rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-stat-time .exam-typing-stat-time-value,
+        [data-exam-mode="typing"] .exam-typing-stat-time .exam-typing-stat-value {
+          color: #2563eb !important;
+          font-size: 0.85rem !important;
+          font-weight: 700 !important;
+          line-height: 1.15 !important;
         }
         [data-exam-mode="typing"] .speedometer-container,
         [data-exam-mode="typing"] .exam-typing-meter-top {
@@ -1660,8 +1693,8 @@ function ExamModeContent() {
           align-items: center !important;
           justify-content: center !important;
           top: 0.35rem !important;
-          left: 0.35rem !important;
-          padding: 0.25rem 0.45rem !important;
+          left: 0 !important;
+          padding: 0.25rem 0.35rem !important;
           font-size: 1rem !important;
           line-height: 1 !important;
           min-width: 2rem !important;
@@ -1700,18 +1733,26 @@ function ExamModeContent() {
           font-size: 0.75rem !important;
           line-height: 1.2 !important;
         }
-        [data-exam-mode="typing"] .landscape-reduce-header .max-md\\:pl-9 {
-          padding-left: 2rem !important;
-          gap: 0.25rem !important;
+        [data-exam-mode="typing"] .landscape-reduce-header .max-md\\:pl-9,
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-left {
+          padding-left: 3rem !important;
+          gap: 0.35rem !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header {
+          padding-left: 0.5rem !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header > div:first-child {
-          gap: 0.25rem !important;
+          gap: 0.35rem !important;
           min-width: 0 !important;
           flex-wrap: nowrap !important;
-          overflow: hidden !important;
+          overflow: visible !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-title {
           font-size: 0.8rem !important;
+          overflow: visible !important;
+          text-overflow: clip !important;
+          max-width: none !important;
+          flex-shrink: 0 !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header a[href="/"] {
           padding: 0.15rem 0.45rem !important;
@@ -1861,8 +1902,8 @@ function ExamModeContent() {
           gap: 0.08rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-sidebar-avatar {
-          width: 1.75rem !important;
-          height: 1.75rem !important;
+          width: 2rem !important;
+          height: 2rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-sidebar-profile-block .exam-typing-landscape-username {
           margin-top: 0.05rem !important;
@@ -2077,8 +2118,8 @@ function ExamModeContent() {
           margin-bottom: 0.2rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-avatar {
-          width: 2rem !important;
-          height: 2rem !important;
+          width: 2.25rem !important;
+          height: 2.25rem !important;
           border-radius: 0.375rem !important;
           object-fit: cover !important;
         }
@@ -2174,8 +2215,8 @@ function ExamModeContent() {
           max-width: 46% !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-profile img {
-          width: 2rem !important;
-          height: 2rem !important;
+          width: 2.25rem !important;
+          height: 2.25rem !important;
           object-fit: cover !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-landscape-username {
@@ -2332,6 +2373,14 @@ function ExamModeContent() {
         [data-exam-mode="typing"] .exam-typing-header-title {
           color: #facc15 !important;
         }
+        [data-exam-mode="typing"] .exam-typing-header-sound {
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          flex-shrink: 0 !important;
+          font-size: 1.25rem !important;
+          line-height: 1 !important;
+        }
         [data-exam-mode="typing"] .exam-typing-header-profile {
           display: none !important;
         }
@@ -2396,8 +2445,8 @@ function ExamModeContent() {
           align-items: center !important;
           justify-content: center !important;
           top: 0.35rem !important;
-          left: 0.35rem !important;
-          padding: 0.25rem 0.45rem !important;
+          left: 0 !important;
+          padding: 0.25rem 0.35rem !important;
           font-size: 1rem !important;
           line-height: 1 !important;
           min-width: 2rem !important;
@@ -4521,7 +4570,7 @@ function ExamModeContent() {
       {/* Mobile Menu Button */}
       <button
         type="button"
-        className={`lg:hidden fixed top-1 left-2 z-[60] p-2 rounded font-bold text-lg leading-none exam-mobile-menu-btn ${
+        className={`lg:hidden fixed top-1 left-0 z-[60] p-1.5 rounded font-bold text-lg leading-none exam-mobile-menu-btn ${
           isMobileMenuOpen ? "bg-red-600 text-white shadow-md" : "bg-[#290c52] text-white"
         }`}
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -4649,11 +4698,14 @@ function ExamModeContent() {
                 <p>Not Visited</p>
               </div>
               <div className="flex items-center">
-                <span className="inline-block w-12 h-8 bg-purple-600 mr-2 rounded-sm text-center items-center justify-center pt-1 text-white text-[20px]">{stats.totalMarkedForReview}</span>
+                <span className="inline-block w-12 h-8 bg-[#4c2483] mr-2 rounded-sm text-center items-center justify-center pt-1 text-white text-[20px]">{stats.totalMarkedForReview}</span>
                 <p>Marked for Review</p>
               </div>
               <div className="flex items-center col-span-2">
-                <span className="inline-block w-8 h-8 bg-indigo-600 mr-2 rounded-sm text-center items-center justify-center pt-1 text-white text-[20px]">{stats.totalAnsweredAndMarked}</span>
+                <span className="relative inline-block w-8 h-8 bg-[#4c2483] mr-2 rounded-sm text-center items-center justify-center pt-1 text-white text-[20px]">
+                  {stats.totalAnsweredAndMarked}
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-blue-500 border border-white" aria-hidden />
+                </span>
                 <p>Answered & Marked for Review</p>
               </div>
             </div>
@@ -4666,7 +4718,7 @@ function ExamModeContent() {
               {currentSectionParts.length > 0 && (
                 <div className="mb-3 exam-section-parts-row">
                   <div className="flex flex-wrap gap-2">
-                    <span className="text-xs font-bold text-black w-full exam-section-parts-label">Section:</span>
+                    <span className="text-xs font-bold text-[#290c52] w-full exam-section-parts-label">Section:</span>
                     {currentSectionParts.map((part) => (
                       <button
                         key={part._id}
@@ -4691,15 +4743,19 @@ function ExamModeContent() {
               <div className="grid grid-cols-4 gap-2 mb-4 landscape-reduce-question-grid">
                 {currentQuestions && currentQuestions.length > 0 ? (
                   currentQuestions.map((q, i) => {
-                      const isAnswered = selectedAnswers[q._id] !== undefined;
+                      const isAnswered = selectedAnswers[q._id] !== undefined && selectedAnswers[q._id] !== null;
                       const isCurrent = i === currentQuestionIndex;
                       const isVisited = visitedQuestions.has(q._id);
+                      const isMarked = markedForReview.has(q._id);
+                      let cellClass = "bg-gray-300 text-black"; // not visited
+                      if (isMarked) cellClass = "bg-[#4c2483] text-white";
+                      else if (isAnswered) cellClass = "bg-green-400 text-black";
+                      else if (isVisited && !isCurrent) cellClass = "bg-red-500 text-white";
+                      else if (isCurrent) cellClass = "bg-sky-300 text-black ring-2 ring-sky-500";
                       return (
                         <div
                           key={q._id}
-                          className={`w-8 h-8 flex items-center justify-center text-black text-sm font-semibold border border-black cursor-pointer ${
-                            isCurrent ? "bg-red-600 text-white" : isAnswered ? "bg-green-400" : isVisited ? "bg-red-500 text-white" : "bg-gray-300"
-                          }`}
+                          className={`relative w-8 h-8 flex items-center justify-center text-sm font-semibold border border-black cursor-pointer ${cellClass}`}
                           onClick={() => {
                             setCurrentQuestionIndex(i);
                             setIsMobileMenuOpen(false);
@@ -4714,6 +4770,9 @@ function ExamModeContent() {
                           }}
                         >
                           {i + 1}
+                          {isMarked && isAnswered && (
+                            <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-blue-500 border border-white" aria-hidden />
+                          )}
                         </div>
                       );
                     })
@@ -4745,8 +4804,8 @@ function ExamModeContent() {
 
       <div className="flex-1 flex flex-col h-full overflow-hidden exam-mobile-mcq-column" data-exam-mode={currentQuestion?.questionType !== "TYPING" ? "mcq" : "typing"}>
         {/* Header with User Info */}
-        <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30 landscape-reduce-header">
-          <div className="flex items-center gap-2 max-md:pl-9 exam-typing-header-left">
+        <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center pl-1 pr-4 py-2 text-sm z-30 landscape-reduce-header md:px-4">
+          <div className="flex items-center gap-1 max-md:pl-0 exam-typing-header-left">
             {currentQuestion?.questionType === "TYPING" && (
               <button
                 type="button"
@@ -4767,11 +4826,7 @@ function ExamModeContent() {
                 {isMobileMenuOpen ? "✕" : "☰"}
               </button>
             )}
-            <span
-              className={`font-semibold whitespace-nowrap exam-typing-header-title ${
-                currentQuestion?.questionType === "TYPING" ? "max-md:text-yellow-400" : ""
-              }`}
-            >
+            <span className="font-semibold whitespace-nowrap exam-typing-header-title text-yellow-400">
               {examData?.key ? `${examData.key} 2025` : "MPCPCT 2025"}
             </span>
             <Link href="/" className="hidden md:inline-flex exam-portrait-hide-home cursor-pointer items-center justify-center text-[12px] font-medium px-3 py-1.5 rounded bg-white/20 hover:bg-white/30 text-white border border-white/40">
@@ -4804,24 +4859,13 @@ function ExamModeContent() {
                 ✕
               </button>
             )}
-            {/* Sound Icon - Show in mobile and landscape mode for questions only */}
-            {currentQuestion?.questionType !== "TYPING" && (
-              <button 
-                onClick={() => setIsSoundOn(!isSoundOn)} 
-                title={isSoundOn ? "Mute" : "Unmute"}
-                className="hidden md:flex lg:hidden items-center justify-center text-lg exam-mcq-header-sound"
-                style={{ order: -2, flexShrink: 0 }}
-              >
-                {isSoundOn ? "🔊" : "🔇"}
-              </button>
-            )}
-            {/* Sound Icon - Show in mobile portrait, landscape mode for typing only (not desktop) */}
+            {/* Sound in purple header — typing landscape only (portrait uses exam name row) */}
             {currentQuestion?.questionType === "TYPING" && (
-              <button 
-                onClick={() => setIsSoundOn(!isSoundOn)} 
+              <button
+                type="button"
+                onClick={() => setIsSoundOn(!isSoundOn)}
                 title={isSoundOn ? "Mute" : "Unmute"}
-                className="flex md:flex lg:hidden items-center justify-center text-lg exam-typing-header-sound"
-                style={{ order: -2, flexShrink: 0 }}
+                className="exam-typing-header-sound hidden max-[900px]:landscape:inline-flex md:inline-flex lg:hidden items-center justify-center text-xl leading-none shrink-0"
               >
                 {isSoundOn ? "🔊" : "🔇"}
               </button>
@@ -4857,7 +4901,9 @@ function ExamModeContent() {
               <img
                 src={profileSrc}
                 alt="Profile"
-                className="w-8 h-8 rounded-full border exam-mobile-profile-img object-cover bg-white"
+                className={`${
+                  currentQuestion?.questionType === "TYPING" ? "w-9 h-9" : "w-8 h-8"
+                } rounded-full border exam-mobile-profile-img object-cover bg-white`}
                 onError={handleProfileImgError}
               />
             </div>
@@ -4878,10 +4924,25 @@ function ExamModeContent() {
 
         {/* Exam Title (Mobile & Desktop) - Hidden in landscape for typing */}
         {examData && (
-          <div className={`bg-white-50 border-b border-gray-300 px-2 md:px-4 py-2 md:py-4 mt-10 flex-shrink-0 landscape-reduce-title exam-mobile-exam-title ${currentQuestion?.questionType === "TYPING" ? "landscape-hide" : ""}`}>
-            <h2 className="text-sm md:text-lg lg:text-xl font-semibold text-[#290c52] text-center">
-              {examData.title || 'Exam'}
-            </h2>
+          <div className={`bg-white-50 border-b border-gray-300 px-2 md:px-4 py-2.5 md:py-4 mt-12 flex-shrink-0 landscape-reduce-title exam-mobile-exam-title ${currentQuestion?.questionType === "TYPING" ? "landscape-hide" : ""}`}>
+            <div className="w-full flex items-center justify-between gap-2 pt-0.5">
+              <span className="w-9 shrink-0" aria-hidden />
+              <h2 className="text-sm md:text-lg lg:text-xl font-semibold text-black text-center flex-1 min-w-0 leading-snug">
+                {examData.title || 'Exam'}
+              </h2>
+              {currentQuestion?.questionType === "TYPING" ? (
+                <button
+                  type="button"
+                  onClick={() => setIsSoundOn(!isSoundOn)}
+                  title={isSoundOn ? "Mute" : "Unmute"}
+                  className="exam-typing-title-sound w-9 shrink-0 inline-flex items-center justify-center text-xl leading-none"
+                >
+                  {isSoundOn ? "🔊" : "🔇"}
+                </button>
+              ) : (
+                <span className="w-9 shrink-0" aria-hidden />
+              )}
+            </div>
           </div>
         )}
 
@@ -4891,7 +4952,7 @@ function ExamModeContent() {
             className="hidden exam-typing-portrait-section-row exam-section-parts-row flex items-center overflow-x-auto border-b border-gray-200 bg-gray-50 px-2 py-1.5 scroll-smooth"
             style={{ scrollBehavior: "smooth", WebkitOverflowScrolling: "touch" }}
           >
-            <span className="px-1 py-0.5 font-bold text-black whitespace-nowrap text-xs exam-section-parts-label shrink-0">
+            <span className="px-1 py-0.5 font-bold text-[#290c52] whitespace-nowrap text-xs exam-section-parts-label shrink-0">
               Section:
             </span>
             {currentSectionParts.length > 0 ? (
@@ -5023,7 +5084,7 @@ function ExamModeContent() {
               className="lg:hidden flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 px-2 py-2 scroll-smooth landscape-reduce-subject-tabs landscape-hide-parts exam-mobile-parts-row exam-section-parts-row"
               style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
             >
-              <span className="px-2 py-1 font-bold text-black whitespace-nowrap text-xs exam-section-parts-label">Section:</span>
+              <span className="px-2 py-1 font-bold text-[#290c52] whitespace-nowrap text-xs exam-section-parts-label">Section:</span>
               {currentSectionParts.map((part, partIndex) => (
                 <button
                   key={part._id}
@@ -5074,20 +5135,21 @@ function ExamModeContent() {
               className="lg:hidden exam-portrait-question-grid exam-mobile-question-grid landscape-reduce-question-grid flex overflow-x-auto gap-1.5 px-2 py-1.5 border-t border-gray-200 bg-white scroll-smooth"
             >
               {currentQuestions.map((q, i) => {
-                const isAnswered = selectedAnswers[q._id] !== undefined;
+                const isAnswered = selectedAnswers[q._id] !== undefined && selectedAnswers[q._id] !== null;
                 const isCurrent = i === currentQuestionIndex;
+                const isVisited = visitedQuestions.has(q._id);
+                const isMarked = markedForReview.has(q._id);
+                let cellClass = "bg-gray-300 text-black border-gray-400";
+                if (isMarked) cellClass = "bg-[#4c2483] text-white border-[#3a1a66]";
+                else if (isAnswered) cellClass = "bg-green-400 text-black border-green-600";
+                else if (isVisited && !isCurrent) cellClass = "bg-red-500 text-white border-red-600";
+                else if (isCurrent) cellClass = "bg-sky-300 text-black border-sky-500 ring-2 ring-sky-500";
                 return (
                   <button
                     key={q._id}
                     type="button"
                     data-question-index={i}
-                    className={`flex-shrink-0 w-9 h-9 flex items-center justify-center text-sm font-semibold border exam-palette-cell exam-portrait-palette-cell ${
-                      isCurrent
-                        ? "bg-red-600 text-white border-red-700"
-                        : isAnswered
-                        ? "bg-green-400 text-black border-green-600"
-                        : "bg-gray-300 text-black border-gray-400"
-                    }`}
+                    className={`relative flex-shrink-0 w-9 h-9 flex items-center justify-center text-sm font-semibold border exam-palette-cell exam-portrait-palette-cell ${cellClass}`}
                     onClick={() => {
                       setCurrentQuestionIndex(i);
                       if (q._id) {
@@ -5101,6 +5163,9 @@ function ExamModeContent() {
                     }}
                   >
                     {i + 1}
+                    {isMarked && isAnswered && (
+                      <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-blue-500 border border-white" aria-hidden />
+                    )}
                   </button>
                 );
               })}
@@ -5205,7 +5270,7 @@ function ExamModeContent() {
               className="flex text-xs overflow-x-auto border-t border-gray-200 bg-gray-50 landscape-reduce-subject-tabs landscape-hide-parts exam-section-parts-row scroll-smooth"
               style={{ scrollBehavior: "smooth", WebkitOverflowScrolling: "touch" }}
             >
-              <span className="px-4 py-2 font-bold text-black whitespace-nowrap exam-section-parts-label">Section:</span>
+              <span className="px-4 py-2 font-bold text-[#290c52] whitespace-nowrap exam-section-parts-label">Section:</span>
               {currentSectionParts.map((part, partIndex) => (
                 <button
                   key={part._id}
@@ -5462,7 +5527,7 @@ function ExamModeContent() {
                   : currentQuestion?.question_en || currentQuestion?.question_hi || 'No question text available';
                 const questionText = formatMobileQuestionText(rawQuestionText);
                 return (
-                  <p className="mb-4 md:mb-6 text-base md:text-lg font-bold landscape-reduce-question-text exam-mobile-question-text">
+                  <p className="mb-8 md:mb-8 text-base md:text-lg font-bold landscape-reduce-question-text exam-mobile-question-text">
                     {questionText}
                   </p>
                 );
@@ -5535,7 +5600,7 @@ function ExamModeContent() {
               {(viewLanguage === "हिन्दी" && currentQuestion.options_hi && currentQuestion.options_hi.length > 0
                 ? currentQuestion.options_hi 
                 : currentQuestion.options_en || currentQuestion.options_hi || []).map((opt, i) => (
-                <label key={i} className="flex items-start gap-x-3 gap-y-3 mb-4 md:mb-5 max-md:mb-1 landscape-reduce-options exam-mobile-options">
+                <label key={i} className="flex items-start gap-x-3 gap-y-3 mb-4 md:mb-5 max-md:mb-3 landscape-reduce-options exam-mobile-options">
                   <input 
                     type="radio" 
                     name={`q-${currentQuestion._id}`}
@@ -5587,7 +5652,7 @@ function ExamModeContent() {
                   : currentQuestion?.question_en || currentQuestion?.question_hi || 'No question text available';
                 const questionText = formatMobileQuestionText(rawQuestionText);
                 return (
-                  <p className="mb-4 md:mb-6 text-base md:text-lg font-bold landscape-reduce-question-text exam-mobile-question-text">
+                  <p className="mb-8 md:mb-8 text-base md:text-lg font-bold landscape-reduce-question-text exam-mobile-question-text">
                     {questionText}
                   </p>
                 );
@@ -5660,7 +5725,7 @@ function ExamModeContent() {
             {(viewLanguage === "हिन्दी" && currentQuestion.options_hi && currentQuestion.options_hi.length > 0
               ? currentQuestion.options_hi 
               : currentQuestion.options_en || currentQuestion.options_hi || []).map((opt, i) => (
-              <label key={i} className="flex items-start gap-3 mb-4 md:mb-5 max-md:mb-1 exam-mobile-options">
+              <label key={i} className="flex items-start gap-3 mb-4 md:mb-5 max-md:mb-3 exam-mobile-options">
                 <input 
                   type="radio" 
                   name={`q-${currentQuestion._id}`}
@@ -5939,11 +6004,14 @@ function ExamModeContent() {
               <p>Not Visited</p>
             </div>
             <div className="flex items-center">
-              <span className="inline-block w-14 h-8 bg-purple-600 mr-2 rounded-sm text-center items-center justify-center pt-1 text-white text-[20px]">{stats.totalMarkedForReview}</span>
+              <span className="inline-block w-14 h-8 bg-[#4c2483] mr-2 rounded-sm text-center items-center justify-center pt-1 text-white text-[20px]">{stats.totalMarkedForReview}</span>
               <p>Marked for Review</p>
             </div>
             <div className="flex items-center col-span-2">
-              <span className="inline-block w-8 h-8 bg-indigo-600 mr-2 rounded-sm text-center items-center justify-center pt-1 text-white text-[20px]">{stats.totalAnsweredAndMarked}</span>
+              <span className="relative inline-block w-8 h-8 bg-[#4c2483] mr-2 rounded-sm text-center items-center justify-center pt-1 text-white text-[20px]">
+                {stats.totalAnsweredAndMarked}
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-blue-500 border border-white" aria-hidden />
+              </span>
               <p>Answered & Marked for Review</p>
             </div>
           </div>
@@ -5958,23 +6026,23 @@ function ExamModeContent() {
                     const isVisited = visitedQuestions.has(q._id);
                     const isMarked = markedForReview.has(q._id);
                     
-                    // Priority: Current > Marked for Review > Answered > Visited > Not Visited
-                    let bgColor = "bg-gray-300"; // Not visited
-                    if (isCurrent) {
-                      bgColor = "bg-red-600 text-white";
-                    } else if (isMarked) {
-                      bgColor = "bg-purple-600 text-white";
+                    // Same as mobile: gray default; sky only for current; green answered; red visited unanswered; purple marked
+                    let bgColor = "bg-gray-300 text-black";
+                    if (isMarked) {
+                      bgColor = "bg-[#4c2483] text-white";
                     } else if (isAnswered) {
-                      bgColor = "bg-green-400";
-                    } else if (isVisited) {
+                      bgColor = "bg-green-400 text-black";
+                    } else if (isVisited && !isCurrent) {
                       bgColor = "bg-red-500 text-white";
+                    } else if (isCurrent) {
+                      bgColor = "bg-sky-300 text-black ring-2 ring-sky-500";
                     }
                     
                       return (
                         <div
                           key={q._id}
                         data-question-index={i}
-                        className={`w-8 h-8 flex items-center justify-center text-black text-sm font-semibold border border-black cursor-pointer ${bgColor}`}
+                        className={`relative w-8 h-8 flex items-center justify-center text-black text-sm font-semibold border border-black cursor-pointer ${bgColor}`}
                           onClick={() => {
                             setCurrentQuestionIndex(i);
                             // Mark question as visited when clicked
@@ -5988,6 +6056,9 @@ function ExamModeContent() {
                           }}
                         >
                           {i + 1}
+                          {isMarked && isAnswered && (
+                            <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-blue-500 border border-white" aria-hidden />
+                          )}
                         </div>
                       );
                   })
@@ -6024,16 +6095,6 @@ function ExamModeContent() {
               <button
                 type="button"
                 onClick={() => {
-                  setShowSectionSubmitModal(false);
-                  setPendingSectionNav(null);
-                }}
-                className="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium text-sm"
-              >
-                No
-              </button>
-              <button
-                type="button"
-                onClick={() => {
                   const submitCurrent = pendingSectionNav?.submitCurrent;
                   const target = submitCurrent ? null : pendingSectionNav?.name || null;
                   setShowSectionSubmitModal(false);
@@ -6041,9 +6102,19 @@ function ExamModeContent() {
                   setIsMobileMenuOpen(false);
                   handleSubmitSection(target);
                 }}
-                className="px-5 py-2 rounded-lg bg-[#290c52] text-white font-medium text-sm"
+                className="px-5 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium text-sm"
               >
                 Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSectionSubmitModal(false);
+                  setPendingSectionNav(null);
+                }}
+                className="px-5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium text-sm"
+              >
+                No
               </button>
             </div>
           </div>
@@ -6072,19 +6143,19 @@ function ExamModeContent() {
               </p>
               <div className="flex gap-4 justify-center">
                 <button
-                  onClick={() => {
-                    setShowNotEligibleModal(false);
-                    setSectionAScore(0);
-                  }}
-                  className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors font-medium"
-                >
-                  No
-                </button>
-                <button
                   onClick={handleResetExam}
                   className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
                 >
                   Yes
+                </button>
+                <button
+                  onClick={() => {
+                    setShowNotEligibleModal(false);
+                    setSectionAScore(0);
+                  }}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                >
+                  No
                 </button>
               </div>
             </div>
@@ -6140,7 +6211,13 @@ function ExamModeContent() {
                     <p className="mt-8"><span className="text-white bg-orange-600 border py-1 md:py-2 px-3 md:px-4">2</span>  आपने इस प्रश्न के लिए कोई उत्तर नहीं चुना है।</p>
                     <p className="mt-8"><span className="text-white bg-green-500 border py-1 md:py-2 px-3 md:px-4">3</span>  आपने इस प्रश्न के लिए उत्तर चुन लिया है।</p>
                     <p className="mt-8"><span className="text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">4</span>  आपने इस प्रश्न का उत्तर नहीं दिया है, पर इसे समीक्षा के लिए रखा है।</p>
-                    <p className="mt-8"><span className="text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">5</span>  "उत्तर दिया गया और समीक्षा के लिए चिह्नित" प्रश्नों पर मूल्यांकन हेतु विचार किया जाएगा।</p>
+                    <p className="mt-8">
+                      <span className="relative inline-block text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">
+                        5
+                        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-blue-500 border border-white" aria-hidden />
+                      </span>{" "}
+                      &quot;उत्तर दिया गया और समीक्षा के लिए चिह्नित&quot; प्रश्नों पर मूल्यांकन हेतु विचार किया जाएगा।
+                    </p>
                     <p className="mt-8 text-[12px] font-semibold">1. परीक्षा प्रश्नों की भाषा बदलने के लिए, अपने सेक्शन बार के ऊपरी दाएं कोने में "View in" ढूंढें और पूरी प्रश्न-पत्रिका की भाषा बदलने के लिए उस पर क्लिक करें।</p>
                     <h2 className="font-bold mt-6 text-base md:text-lg">प्रश्न पर नेविगेट करना:</h2>
                     <p className="mt-4 text-[12px]">2. किसी प्रश्न का उत्तर देने के लिए, निम्न कार्य करें:</p>
@@ -6168,7 +6245,13 @@ function ExamModeContent() {
                     <p className="mt-8"><span className="text-white bg-orange-600 border py-1 md:py-2 px-3 md:px-4">2</span> You have not chosen any answer for this question.</p>
                     <p className="mt-8"><span className="text-white bg-green-500 border py-1 md:py-2 px-3 md:px-4">3</span> You have chosen an answer for this question.</p>
                     <p className="mt-8"><span className="text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">4</span> You have not answered this question, but have kept it for review.</p>
-                    <p className="mt-8"><span className="text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">5</span> Questions marked as "Answered & Marked for Review" will be considered for evaluation.</p>
+                    <p className="mt-8">
+                      <span className="relative inline-block text-white bg-[#4c2483] border py-1 md:py-2 px-3 md:px-4">
+                        5
+                        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-blue-500 border border-white" aria-hidden />
+                      </span>{" "}
+                      Questions marked as &quot;Answered &amp; Marked for Review&quot; will be considered for evaluation.
+                    </p>
                     <p className="mt-8 text-[12px] font-semibold">1. To change the language of exam questions, find "View in" in the top right corner of your section bar and click on it to change the language of the entire question paper.</p>
                     <h2 className="font-bold mt-6 text-base md:text-lg">Navigating Questions:</h2>
                     <p className="mt-4 text-[12px]">2. To answer a question, do the following:</p>

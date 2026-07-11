@@ -552,7 +552,7 @@ export default function ExamTypingInterface({
             <img
               src={userProfileUrl}
               alt={userName}
-              className="w-16 h-16 rounded-md border-2 border-gray-300 flex-shrink-0 object-cover exam-typing-portrait-avatar"
+              className="w-[5rem] h-[5rem] rounded-md border-2 border-gray-300 flex-shrink-0 object-cover exam-typing-portrait-avatar"
               onError={(e) => {
                 e.target.src = "/lo.jpg";
               }}
@@ -582,9 +582,9 @@ export default function ExamTypingInterface({
               </div>
             </div>
             {timeRemainingToUse !== null && (
-              <div className="w-[8.25rem] h-8 rounded-lg overflow-hidden text-center mt-1.5 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card exam-typing-stat-time">
-                <div className="bg-black text-white text-[9px] font-semibold exam-typing-stat-label">Time</div>
-                <div className="bg-white text-black text-xs font-bold exam-typing-stat-value">{formatTime(timeRemainingToUse)}</div>
+              <div className="w-[8.5rem] h-10 rounded-lg overflow-hidden text-center mt-1.5 shadow-[0_1px_8px_white,0_2px_6px_silver,0_4px_10px_rgba(0,0,0,0.7)] exam-typing-stat-card exam-typing-stat-time">
+                <div className="bg-black text-white text-[11px] font-semibold exam-typing-stat-label exam-typing-stat-time-label">Time</div>
+                <div className="bg-white text-blue-600 text-sm font-bold exam-typing-stat-value exam-typing-stat-time-value">{formatTime(timeRemainingToUse)}</div>
               </div>
             )}
           </div>
@@ -747,7 +747,7 @@ export default function ExamTypingInterface({
                 <img
                   src={userProfileUrl}
                   alt={userName}
-                  className="w-8 h-8 rounded-md border-2 border-gray-300 flex-shrink-0 object-cover exam-typing-landscape-sidebar-avatar"
+                  className="w-9 h-9 rounded-md border-2 border-gray-300 flex-shrink-0 object-cover exam-typing-landscape-sidebar-avatar"
                   onError={(e) => {
                     e.currentTarget.onerror = null;
                     e.currentTarget.src = "/lo.jpg";

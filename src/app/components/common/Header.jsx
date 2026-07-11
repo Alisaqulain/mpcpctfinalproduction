@@ -174,11 +174,16 @@ function HeaderInner() {
 
       {/* Mobile Nav Toggle */}
       <div className="md:hidden bg-[#290c52] flex justify-between items-center px-4 py-2">
-        <span className="text-white font-medium"><a href="/">Home </a></span>
+        <a
+          href="/"
+          className="inline-flex items-center justify-center min-w-[2.75rem] h-8 px-3 rounded-md border-2 border-yellow-400 bg-white/10 text-yellow-400 text-sm font-semibold shadow-[0_2px_10px_rgba(0,0,0,0.15)] active:scale-95 transition-transform"
+        >
+          Home
+        </a>
         <button
           type="button"
           onClick={toggleMobileNav}
-          className="text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded p-1"
+          className="text-yellow-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 rounded p-1"
           aria-expanded={mobileNavOpen}
           aria-controls="site-mobile-nav"
           aria-label={mobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
