@@ -31,29 +31,22 @@ function ExamModeContent() {
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
-      html,
-      body,
-      #__next {
-        width: 100% !important;
-        height: 100% !important;
-        margin: 0 !important;
-      }
-
-      .exam-mode-root.exam-page {
-        min-height: 100dvh !important;
-        display: flex !important;
-        flex-direction: column !important;
-      }
-
       @media screen and (max-width: 1023px) {
-        .exam-mode-root.exam-page {
+        html,
+        body,
+        #__next {
+          width: 100% !important;
+          height: 100% !important;
+          margin: 0 !important;
+        }
+
+        .exam-mode-root {
+          flex-direction: column !important;
           height: 100dvh !important;
           max-height: 100dvh !important;
           overflow: hidden !important;
         }
-      }
 
-      @media screen and (max-width: 1023px) {
         [data-exam-mode="typing"].exam-mobile-mcq-column {
           flex: 1 1 0 !important;
           min-height: 0 !important;
@@ -1022,14 +1015,14 @@ function ExamModeContent() {
           overflow-x: auto !important;
           -webkit-overflow-scrolling: touch !important;
           scroll-behavior: smooth !important;
-          min-height: 3reem !important;
+          min-height: 3rem !important;
           max-height: 3rem !important;
           background: #fff !important;
           order: 3 !important;
           margin-top: 0.35rem !important;
-          margin-bottom: 0.35rem !important;
+          margin-bottom: 0.1rem !important;
           padding-top: 0.25rem !important;
-          padding-bottom: 0.25rem !important;
+          padding-bottom: 0.2rem !important;
           border-top: 1px solid #e5e7eb !important;
           border-bottom: 1px solid #e5e7eb !important;
         }
@@ -1040,8 +1033,9 @@ function ExamModeContent() {
           width: 100% !important;
           flex-shrink: 0 !important;
           z-index: 5 !important;
-          padding-top: 0.35rem !important;
-          padding-bottom: 0.35rem !important;
+          margin-top: -0.2rem !important;
+          padding-top: 0.3rem !important;
+          padding-bottom: 0.3rem !important;
           min-height: 2rem !important;
           max-height: 2.15rem !important;
           font-size: 0.7rem !important;
@@ -1049,9 +1043,10 @@ function ExamModeContent() {
         }
         [data-exam-mode="mcq"] .exam-portrait-mcq-type-bar select {
           font-size: 0.675rem !important;
-          padding: 0.15rem 0.3rem !important;
-          min-height: 1.25rem !important;
+          padding: 0.12rem 0.3rem !important;
+          min-height: 1.2rem !important;
           line-height: 1.2 !important;
+          transform: translateY(-1px) !important;
         }
         [data-exam-mode="mcq"] .exam-mobile-question-panel > .exam-mobile-top-bar {
           display: none !important;
@@ -2284,12 +2279,12 @@ function ExamModeContent() {
           gap: 0.15rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge-portrait {
-          width: min(4.15rem, 100%) !important;
-          height: min(4.15rem, 100%) !important;
-          min-width: 0 !important;
-          min-height: 0 !important;
-          max-width: 100% !important;
-          max-height: 100% !important;
+          width: 4.15rem !important;
+          height: 4.15rem !important;
+          min-width: 4.15rem !important;
+          min-height: 4.15rem !important;
+          max-width: 4.15rem !important;
+          max-height: 4.15rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-submit-wrap,
         [data-exam-mode="typing"] .submit-section {
@@ -2347,13 +2342,13 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .exam-typing-landscape-meter-block {
           background-color: #ffffff !important;
-          flex: 1 1 0 !important;
-          flex-shrink: 1 !important;
+          flex: 0 0 auto !important;
+          flex-shrink: 0 !important;
           min-height: 0 !important;
           max-height: none !important;
           padding: 0 !important;
           margin-bottom: 0.1rem !important;
-          overflow: hidden !important;
+          overflow: visible !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
@@ -2374,10 +2369,15 @@ function ExamModeContent() {
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
-          flex-shrink: 1 !important;
-          line-height: 0 !important;
+          flex-shrink: 0 !important;
+          width: fit-content !important;
+          height: fit-content !important;
           max-width: 92% !important;
-          max-height: 100% !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          line-height: 0 !important;
+          aspect-ratio: 1 / 1 !important;
+          box-sizing: border-box !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge {
           background: #000 !important;
@@ -2393,12 +2393,12 @@ function ExamModeContent() {
           max-height: 100% !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge-portrait {
-          width: min(4.15rem, 100%) !important;
-          height: min(4.15rem, 100%) !important;
-          min-width: 0 !important;
-          min-height: 0 !important;
-          max-width: 100% !important;
-          max-height: 100% !important;
+          width: 4.15rem !important;
+          height: 4.15rem !important;
+          min-width: 4.15rem !important;
+          min-height: 4.15rem !important;
+          max-width: 4.15rem !important;
+          max-height: 4.15rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge-portrait .speedometer-value {
           bottom: 0.9rem !important;
@@ -2896,15 +2896,9 @@ function ExamModeContent() {
       }
 
       .exam-mode-root {
-        min-height: 100dvh !important;
-      }
-
-      @media screen and (max-width: 1023px) {
-        .exam-mode-root.exam-page {
-          height: 100dvh !important;
-          max-height: 100dvh !important;
-          overflow: hidden !important;
-        }
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
       }
 
       [data-exam-mode="mcq"] .exam-mobile-mcq-column {
@@ -2915,6 +2909,46 @@ function ExamModeContent() {
       [data-exam-mode="mcq"] .exam-mobile-question-panel {
         min-height: 0 !important;
         overflow: hidden !important;
+      }
+
+      @media screen and (min-width: 1024px) {
+        [data-exam-mode="mcq"] .exam-mobile-mcq-column {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          height: 100% !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+
+        [data-exam-mode="mcq"] .exam-mobile-question-panel {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+
+        [data-exam-mode="mcq"] .exam-mobile-question-content.mcq-question-body {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+        }
+
+        [data-exam-mode="mcq"] .mcq-landscape-scroll-box {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          overflow-y: auto !important;
+        }
+
+        [data-exam-mode="mcq"] .exam-mobile-btn-footer,
+        [data-exam-mode="mcq"] .mcq-bottom-buttons {
+          position: relative !important;
+          left: auto !important;
+          right: auto !important;
+          bottom: auto !important;
+          z-index: auto !important;
+          flex-shrink: 0 !important;
+        }
       }
 
       [data-exam-mode="mcq"] .mcq-question-body.landscape-question-content,
@@ -4790,7 +4824,7 @@ function ExamModeContent() {
   };
 
   return (
-    <div className="exam-mode-root exam-page flex flex-col lg:flex-row lg:h-screen bg-white relative overflow-hidden">
+    <div className="exam-mode-root h-screen flex flex-col lg:flex-row bg-white relative overflow-hidden">
       {/* Sidebar - Mobile */}
       {isMobileMenuOpen && (
         <>
