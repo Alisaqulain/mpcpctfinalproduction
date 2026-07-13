@@ -27,9 +27,8 @@ export default function ExamTypingInterface({
   const [isActive, setIsActive] = useState(false);
   const [internalTimeRemaining, setInternalTimeRemaining] = useState(duration ? duration * 60 : null);
   const [wpm, setWpm] = useState(0);
-  const PORTRAIT_DEFAULT_FONT = 16;
-  const LANDSCAPE_DEFAULT_FONT = 12;
-  const LANDSCAPE_VISIBLE_LINES = 3;
+  const PORTRAIT_DEFAULT_FONT = 18;
+  const LANDSCAPE_DEFAULT_FONT = 16;
   const PORTRAIT_VISIBLE_LINES = 6;
 
   const getLayoutDefaultFont = (layout) =>
@@ -446,7 +445,6 @@ export default function ExamTypingInterface({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const landscapeLineBoxHeight = `calc(${fontSize}px * 1.5 * ${LANDSCAPE_VISIBLE_LINES} + 0.75rem)`;
   const portraitPassageHeight = `calc(${fontSize}px * 1.5 * ${PORTRAIT_VISIBLE_LINES} + 1rem)`;
 
   const adjustFontSize = (delta) => {
@@ -636,10 +634,9 @@ export default function ExamTypingInterface({
             placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
             lang={isHindiTyping ? "hi" : undefined}
             inputMode={isHindiTyping ? "text" : undefined}
-            className="w-full flex-1 min-h-[4.25rem] h-full p-2 border-2 border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono resize-none"
+            className="w-full flex-1 min-h-0 h-full p-2 border-2 border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono resize-none exam-typing-portrait-textarea"
             spellCheck={false}
             autoFocus
-            rows={4}
           />
         </div>
 
@@ -658,10 +655,7 @@ export default function ExamTypingInterface({
 
       {/* Mobile landscape typing (≤900px landscape) — stats in left column, sidebar stacked */}
       {typingLayout === "landscape" && (
-      <div
-        className="flex flex-col min-h-0 overflow-hidden exam-typing-landscape-mobile-view"
-        style={{ "--exam-typing-line-box-h": landscapeLineBoxHeight }}
-      >
+      <div className="flex flex-col min-h-0 overflow-hidden exam-typing-landscape-mobile-view">
         <div className="flex flex-row flex-1 min-h-0 overflow-hidden exam-typing-landscape-body typing-landscape-main">
           {/* Left: stats + typing — 72% */}
           <div className="w-[72%] flex flex-col min-h-0 overflow-hidden exam-typing-landscape-left typing-left-panel">
@@ -689,24 +683,12 @@ export default function ExamTypingInterface({
             <div className="flex flex-col flex-1 min-h-0 overflow-hidden exam-typing-landscape-typing-area">
               <div
                 ref={containerRef}
-                className="flex-shrink-0 bg-white border-2 border-gray-300 rounded-lg p-1.5 overflow-y-auto exam-typing-landscape-passage typing-passage-box"
-                style={{
-                  height: landscapeLineBoxHeight,
-                  maxHeight: landscapeLineBoxHeight,
-                  minHeight: landscapeLineBoxHeight,
-                  lineHeight: 1.5,
-                }}
+                className="flex-1 min-h-0 bg-white border-2 border-gray-300 rounded-lg p-1.5 overflow-y-auto exam-typing-landscape-passage typing-passage-box"
+                style={{ lineHeight: 1.5 }}
               >
                 {renderTextContent()}
               </div>
-              <div
-                className="flex-shrink-0 exam-typing-landscape-input-wrap typing-textarea-wrap flex flex-col overflow-hidden mt-1 border-2 border-gray-300 rounded-lg bg-white box-border"
-                style={{
-                  height: landscapeLineBoxHeight,
-                  maxHeight: landscapeLineBoxHeight,
-                  minHeight: landscapeLineBoxHeight,
-                }}
-              >
+              <div className="flex-1 min-h-0 exam-typing-landscape-input-wrap typing-textarea-wrap flex flex-col overflow-hidden mt-1 border-2 border-gray-300 rounded-lg bg-white box-border">
                 <textarea
                   ref={inputRef}
                   value={typedText}
@@ -718,7 +700,7 @@ export default function ExamTypingInterface({
                   lang={isHindiTyping ? "hi" : undefined}
                   inputMode={isHindiTyping ? "text" : undefined}
                   style={{ fontSize: `${fontSize}px`, lineHeight: 1.5 }}
-                  className="w-full h-full p-1.5 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono resize-none overflow-y-auto exam-typing-landscape-input typing-textarea box-border"
+                  className="w-full h-full min-h-0 p-1.5 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono resize-none overflow-y-auto exam-typing-landscape-input typing-textarea box-border"
                   spellCheck={false}
                   autoFocus
                 />
@@ -726,9 +708,9 @@ export default function ExamTypingInterface({
             </div>
           </div>
 
-          {/* Right sidebar — profile, meter, font, submit stacked */}
+          {/* Right sidebar — profile, meter, font, submit */}
           <div className="w-[28%] flex-shrink-0 flex flex-col border-l border-gray-200 bg-white overflow-hidden exam-typing-landscape-sidebar typing-right-panel">
-            <div className="w-full flex-1 min-h-0 flex flex-col overflow-hidden exam-typing-landscape-sidebar-main typing-right-panel-main">
+            <div className="w-full flex-1 min-h-0 h-full flex flex-col overflow-hidden exam-typing-landscape-sidebar-main typing-right-panel-main">
               {isHindiTyping && (
                 <div className="flex-shrink-0 flex flex-row items-center gap-1 w-full px-1 py-0.5 border-b border-gray-200 exam-typing-landscape-keyboard exam-typing-landscape-keyboard-sidebar landscape-keyboard-dropdown">
                   <label className="bg-blue-600 text-white px-1 py-0.5 rounded text-[8px] font-semibold whitespace-nowrap shrink-0 leading-none">
@@ -786,11 +768,11 @@ export default function ExamTypingInterface({
                 </div>
               </div>
 
-              <div className="flex-shrink-0 w-full exam-typing-landscape-submit-wrap submit-section flex justify-center">
+              <div className="flex-shrink-0 w-full exam-typing-landscape-submit-wrap submit-section flex justify-center box-border">
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  className="w-full bg-blue-600 text-white rounded-md text-[8px] font-bold hover:bg-blue-700 transition-colors exam-typing-landscape-submit py-1.5 px-1"
+                  className="w-full max-w-full bg-blue-600 text-white rounded-md text-[8px] font-bold hover:bg-blue-700 transition-colors exam-typing-landscape-submit py-1.5 px-1 box-border"
                 >
                   Submit Section
                 </button>

@@ -31,6 +31,127 @@ function ExamModeContent() {
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
+      html,
+      body,
+      #__next {
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+      }
+
+      .exam-mode-root.exam-page {
+        min-height: 100dvh !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+
+      @media screen and (max-width: 1023px) {
+        .exam-mode-root.exam-page {
+          height: 100dvh !important;
+          max-height: 100dvh !important;
+          overflow: hidden !important;
+        }
+      }
+
+      @media screen and (max-width: 1023px) {
+        [data-exam-mode="typing"].exam-mobile-mcq-column {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          height: auto !important;
+          max-height: none !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+          padding-bottom: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-mobile-question-panel {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+          margin-top: 0 !important;
+          padding-bottom: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-mobile-question-content {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        [data-exam-mode="typing"] .landscape-typing-container,
+        [data-exam-mode="typing"] .exam-typing-root-wrapper,
+        [data-exam-mode="typing"] .exam-typing-landscape-mobile-view,
+        [data-exam-mode="typing"] .exam-typing-landscape-body,
+        [data-exam-mode="typing"] .exam-typing-portrait-view {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          height: auto !important;
+          max-height: none !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-body {
+          flex-direction: row !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-left,
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar {
+          height: 100% !important;
+          min-height: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-typing-area {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-passage,
+        [data-exam-mode="typing"] .exam-typing-landscape-input-wrap {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          height: auto !important;
+          max-height: none !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-input-mobile {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-input-mobile textarea,
+        [data-exam-mode="typing"] .exam-typing-portrait-textarea {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          height: auto !important;
+          max-height: none !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-left-submit {
+          display: none !important;
+        }
+      }
+
+      @media screen and (max-width: 900px) and (orientation: landscape) {
+        [data-exam-mode="typing"].exam-mobile-mcq-column {
+          padding-top: var(--exam-landscape-header-h, 2.25rem) !important;
+        }
+        [data-exam-mode="typing"] .landscape-typing-container {
+          padding-top: 0 !important;
+          height: auto !important;
+          max-height: none !important;
+        }
+      }
+
+      @media screen and (max-width: 768px) and (orientation: portrait) {
+        [data-exam-mode="typing"].exam-mobile-mcq-column {
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          padding-top: 0 !important;
+        }
+        [data-exam-mode="typing"] .landscape-typing-container {
+          padding-top: 0 !important;
+          height: auto !important;
+          max-height: none !important;
+        }
+      }
+
       /* Section parts row — mobile + desktop */
       .exam-section-parts-row .exam-section-parts-label {
         font-weight: 700 !important;
@@ -68,7 +189,6 @@ function ExamModeContent() {
         }
       }
       .exam-sound-icon-btn {
-        display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         width: 2.25rem !important;
@@ -78,6 +198,26 @@ function ExamModeContent() {
         background: transparent !important;
         border: none !important;
         cursor: pointer !important;
+      }
+      .exam-sound-icon-btn:not(.hidden) {
+        display: inline-flex !important;
+      }
+      .exam-sound-icon-btn.hidden {
+        display: none !important;
+      }
+      @media screen and (min-width: 768px) {
+        [data-exam-mode="typing"] .exam-typing-title-sound {
+          display: none !important;
+        }
+      }
+      @media screen and (min-width: 1024px) {
+        .exam-sound-icon-btn.lg\\:hidden {
+          display: none !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-timer .exam-typing-timer-sound,
+        [data-exam-mode="typing"] .exam-typing-title-sound {
+          display: none !important;
+        }
       }
       .exam-sound-icon-svg {
         width: 1.75rem !important;
@@ -882,8 +1022,8 @@ function ExamModeContent() {
           overflow-x: auto !important;
           -webkit-overflow-scrolling: touch !important;
           scroll-behavior: smooth !important;
-          min-height: 2.85rem !important;
-          max-height: 2.85rem !important;
+          min-height: 3reem !important;
+          max-height: 3rem !important;
           background: #fff !important;
           order: 3 !important;
           margin-top: 0.35rem !important;
@@ -1255,8 +1395,8 @@ function ExamModeContent() {
       @media screen and (max-width: 768px) and (orientation: portrait) {
         [data-exam-mode="typing"].exam-mobile-mcq-column {
           padding-bottom: 0 !important;
-          height: 100dvh !important;
-          max-height: 100dvh !important;
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
           overflow: hidden !important;
           width: 100% !important;
           max-width: 100% !important;
@@ -1570,8 +1710,8 @@ function ExamModeContent() {
         }
         .exam-typing-input-mobile textarea {
           flex: 1 1 0 !important;
-          min-height: 4.25rem !important;
-          max-height: 100% !important;
+          min-height: 0 !important;
+          max-height: none !important;
           height: auto !important;
         }
         .exam-typing-stats-mobile {
@@ -1591,22 +1731,24 @@ function ExamModeContent() {
       /* Typing on phones in landscape (769px–1023px): fill screen, use portrait typing UI */
       @media screen and (min-width: 769px) and (max-width: 1023px) {
         [data-exam-mode="typing"] .landscape-typing-container {
-          padding-top: 2.5rem !important;
-          flex: 1 1 auto !important;
+          padding-top: 0 !important;
+          flex: 1 1 0 !important;
           min-height: 0 !important;
-          height: calc(100dvh - 2.5rem) !important;
+          height: auto !important;
+          max-height: none !important;
         }
         [data-exam-mode="typing"] .exam-mobile-question-panel,
         [data-exam-mode="typing"] .exam-mobile-question-content {
-          flex: 1 1 auto !important;
+          flex: 1 1 0 !important;
           min-height: 0 !important;
           overflow: hidden !important;
           max-height: none !important;
         }
         [data-exam-mode="typing"].exam-mobile-mcq-column {
           padding-bottom: 0 !important;
+          flex: 1 1 0 !important;
           min-height: 0 !important;
-          height: calc(100dvh - 2.5rem) !important;
+          padding-top: 2.5rem !important;
         }
         .landscape-keyboard-dropdown {
           display: flex !important;
@@ -1630,8 +1772,8 @@ function ExamModeContent() {
         }
         .exam-typing-input-mobile textarea {
           flex: 1 1 0 !important;
-          min-height: 4.25rem !important;
-          max-height: 100% !important;
+          min-height: 0 !important;
+          max-height: none !important;
           height: auto !important;
         }
         .exam-typing-profile-col {
@@ -1666,7 +1808,7 @@ function ExamModeContent() {
       /* Mobile landscape typing only (≤900px landscape) — fixed dvh layout for real phones */
       @media screen and (max-width: 900px) and (orientation: landscape) {
         [data-exam-mode="typing"] {
-          --exam-landscape-header-h: 2.75rem;
+          --exam-landscape-header-h: 2.25rem;
           --exam-landscape-stats-h: 1.75rem;
           --exam-landscape-sidebar-w: 28%;
           --exam-landscape-left-w: 72%;
@@ -1738,18 +1880,23 @@ function ExamModeContent() {
         [data-exam-mode="typing"].exam-mobile-mcq-column {
           padding: 0 !important;
           margin: 0 !important;
-          height: 100dvh !important;
-          height: 100svh !important;
-          max-height: 100dvh !important;
-          max-height: 100svh !important;
+          flex: 1 1 0 !important;
+          min-height: 0 !important;
+          height: auto !important;
+          max-height: none !important;
           overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+          padding-top: var(--exam-landscape-header-h) !important;
+          padding-bottom: 0 !important;
+          box-sizing: border-box !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header.fixed {
-          padding: 0.3rem 0.5rem !important;
+          padding: 0.15rem 0.45rem !important;
           min-height: var(--exam-landscape-header-h) !important;
           max-height: var(--exam-landscape-header-h) !important;
-          font-size: 0.75rem !important;
-          line-height: 1.2 !important;
+          font-size: 0.7rem !important;
+          line-height: 1.1 !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header,
         [data-exam-mode="mcq"] .landscape-reduce-header {
@@ -1763,7 +1910,7 @@ function ExamModeContent() {
           overflow: visible !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-title {
-          font-size: 0.8rem !important;
+          font-size: 0.72rem !important;
           overflow: visible !important;
           text-overflow: clip !important;
           max-width: none !important;
@@ -1779,9 +1926,23 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer span,
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer b {
-          font-size: 0.65rem !important;
-          padding: 0.1rem 0.35rem !important;
-          line-height: 1.2 !important;
+          font-size: 0.6rem !important;
+          padding: 0.06rem 0.3rem !important;
+          line-height: 1.1 !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer .exam-typing-timer-sound {
+          width: 1.65rem !important;
+          height: 1.65rem !important;
+          margin-left: 0.35rem !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer .exam-typing-timer-sound .exam-sound-icon-svg {
+          width: 1.35rem !important;
+          height: 0.85rem !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-header-menu-btn {
+          width: 1.65rem !important;
+          height: 1.65rem !important;
+          font-size: 1.1rem !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-links {
           font-size: 0.6rem !important;
@@ -1798,10 +1959,10 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .exam-mobile-question-panel,
         [data-exam-mode="typing"] .exam-mobile-question-content {
-          flex: 1 1 auto !important;
+          flex: 1 1 0 !important;
           min-height: 0 !important;
-          height: auto !important;
-          max-height: none !important;
+          height: 100% !important;
+          max-height: 100% !important;
           margin: 0 !important;
           padding: 0 !important;
           overflow: hidden !important;
@@ -1811,11 +1972,11 @@ function ExamModeContent() {
         [data-exam-mode="typing"] .landscape-typing-container,
         [data-exam-mode="typing"] .typing-landscape-wrapper {
           margin: 0 !important;
-          padding-top: var(--exam-landscape-header-h) !important;
+          padding-top: 0 !important;
           min-height: 0 !important;
-          flex: 1 1 auto !important;
-          height: calc(var(--exam-landscape-vh, 100dvh) - var(--exam-landscape-header-h)) !important;
-          max-height: calc(var(--exam-landscape-vh, 100dvh) - var(--exam-landscape-header-h)) !important;
+          flex: 1 1 0 !important;
+          height: auto !important;
+          max-height: none !important;
           overflow: hidden !important;
           display: flex !important;
           flex-direction: column !important;
@@ -1917,22 +2078,22 @@ function ExamModeContent() {
           gap: 0.08rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-sidebar-avatar {
-          width: 2rem !important;
-          height: 2rem !important;
+          width: 3.85rem !important;
+          height: 3.85rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-sidebar-profile-block .exam-typing-landscape-username {
           margin-top: 0.05rem !important;
           font-size: 7px !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-meter-gauge-portrait {
-          width: 2.55rem !important;
-          height: 2.55rem !important;
-          max-width: 2.55rem !important;
-          max-height: 2.55rem !important;
+          width: 3.25rem !important;
+          height: 3.25rem !important;
+          max-width: 3.25rem !important;
+          max-height: 3.25rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-meter-gauge-portrait .speedometer-value {
-          bottom: 0.55rem !important;
-          font-size: 0.5rem !important;
+          bottom: 0.7rem !important;
+          font-size: 0.55rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-bottom-panel {
           padding-top: 0 !important;
@@ -1943,14 +2104,19 @@ function ExamModeContent() {
           margin-bottom: 0.05rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-font-btn {
-          min-height: 1.2rem !important;
-          height: 1.2rem !important;
-          max-height: 1.2rem !important;
-          padding: 0.2rem 0.1rem !important;
-          font-size: 8px !important;
+          flex: 1 1 0 !important;
+          min-width: 0 !important;
+          width: auto !important;
+          max-width: none !important;
+          min-height: 0.95rem !important;
+          height: 0.95rem !important;
+          max-height: 0.95rem !important;
+          padding: 0.1rem 0.08rem !important;
+          font-size: 7px !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-submit-wrap {
-          margin-top: 0.12rem !important;
+          margin-top: 0.55rem !important;
+          padding-top: 0.2rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-submit {
           min-height: 1.15rem !important;
@@ -1960,10 +2126,10 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .exam-typing-landscape-passage,
         [data-exam-mode="typing"] .typing-passage-box {
-          flex: 0 0 var(--exam-typing-line-box-h, auto) !important;
-          height: var(--exam-typing-line-box-h, auto) !important;
-          max-height: var(--exam-typing-line-box-h, auto) !important;
-          min-height: var(--exam-typing-line-box-h, auto) !important;
+          flex: 1 1 0 !important;
+          height: auto !important;
+          max-height: none !important;
+          min-height: 0 !important;
           min-width: 0 !important;
           overflow-y: auto !important;
           overflow-x: hidden !important;
@@ -1976,10 +2142,10 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .exam-typing-landscape-input-wrap,
         [data-exam-mode="typing"] .typing-textarea-wrap {
-          flex: 0 0 var(--exam-typing-line-box-h, auto) !important;
-          height: var(--exam-typing-line-box-h, auto) !important;
-          max-height: var(--exam-typing-line-box-h, auto) !important;
-          min-height: var(--exam-typing-line-box-h, auto) !important;
+          flex: 1 1 0 !important;
+          height: auto !important;
+          max-height: none !important;
+          min-height: 0 !important;
           display: flex !important;
           flex-direction: column !important;
           overflow: hidden !important;
@@ -2014,17 +2180,15 @@ function ExamModeContent() {
           border-radius: 0.375rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-typing-area {
-          flex: 1 1 auto !important;
+          flex: 1 1 0 !important;
           min-height: 0 !important;
           display: flex !important;
           flex-direction: column !important;
-          justify-content: flex-start !important;
-          overflow-x: hidden !important;
-          overflow-y: auto !important;
-          padding: 0.1rem 0.15rem 0.4rem !important;
-          gap: 0.15rem !important;
+          justify-content: stretch !important;
+          overflow: hidden !important;
+          padding: 0.1rem 0.15rem 0 !important;
+          gap: 0.25rem !important;
           box-sizing: border-box !important;
-          -webkit-overflow-scrolling: touch !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-stat-card {
           height: 100% !important;
@@ -2048,11 +2212,11 @@ function ExamModeContent() {
         [data-exam-mode="typing"] .typing-landscape-main {
           display: flex !important;
           flex-direction: row !important;
-          flex: 1 1 auto !important;
+          flex: 1 1 0 !important;
           width: 100% !important;
           max-width: 100% !important;
-          height: calc(var(--exam-landscape-vh, 100dvh) - var(--exam-landscape-header-h)) !important;
-          max-height: calc(var(--exam-landscape-vh, 100dvh) - var(--exam-landscape-header-h)) !important;
+          height: auto !important;
+          max-height: none !important;
           min-height: 0 !important;
           overflow: hidden !important;
           overflow-x: hidden !important;
@@ -2072,12 +2236,15 @@ function ExamModeContent() {
           display: flex !important;
           flex-direction: column !important;
           overflow: hidden !important;
-          padding: 0 0 0.35rem 0 !important;
+          padding: 0 !important;
           gap: 0 !important;
           box-sizing: border-box !important;
           background: #fff !important;
           opacity: 1 !important;
           visibility: visible !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-left-submit {
+          display: none !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar,
         [data-exam-mode="typing"] .typing-right-panel {
@@ -2089,28 +2256,51 @@ function ExamModeContent() {
           display: flex !important;
           flex-direction: column !important;
           justify-content: flex-start !important;
-          overflow-x: hidden !important;
-          overflow-y: auto !important;
+          overflow: hidden !important;
           padding: 0.15rem 0.25rem max(0.35rem, env(safe-area-inset-bottom)) !important;
           gap: 0 !important;
           box-sizing: border-box !important;
           background: #fff !important;
           opacity: 1 !important;
           visibility: visible !important;
-          -webkit-overflow-scrolling: touch !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main,
         [data-exam-mode="typing"] .typing-right-panel-main {
-          flex: 1 1 auto !important;
+          flex: 1 1 0 !important;
           width: 100% !important;
           min-height: 0 !important;
-          height: auto !important;
-          max-height: none !important;
-          overflow: visible !important;
+          height: 100% !important;
+          max-height: 100% !important;
+          overflow-x: hidden !important;
+          overflow-y: hidden !important;
           display: flex !important;
           flex-direction: column !important;
           justify-content: flex-start !important;
-          gap: 0.2rem !important;
+          gap: 0.15rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge-portrait {
+          width: min(3.85rem, 100%) !important;
+          height: min(3.85rem, 100%) !important;
+          min-width: 0 !important;
+          min-height: 0 !important;
+          max-width: 100% !important;
+          max-height: 100% !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-landscape-submit-wrap,
+        [data-exam-mode="typing"] .submit-section {
+          display: flex !important;
+          flex: 0 0 auto !important;
+          flex-shrink: 0 !important;
+          width: 72% !important;
+          max-width: 72% !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          margin-top: 0.35rem !important;
+          padding-top: 0.15rem !important;
+          box-sizing: border-box !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          justify-content: center !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-footer {
           flex: 0 0 auto !important;
@@ -2119,9 +2309,11 @@ function ExamModeContent() {
           max-width: 100% !important;
           margin-top: auto !important;
           padding-top: 0.15rem !important;
-          padding-bottom: max(0.2rem, env(safe-area-inset-bottom)) !important;
+          padding-bottom: max(0.25rem, env(safe-area-inset-bottom)) !important;
           box-sizing: border-box !important;
           overflow: visible !important;
+          position: relative !important;
+          z-index: 2 !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-profile-block {
           display: flex !important;
@@ -2133,8 +2325,8 @@ function ExamModeContent() {
           margin-bottom: 0.2rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-avatar {
-          width: 2.25rem !important;
-          height: 2.25rem !important;
+          width: 4.5rem !important;
+          height: 4.5rem !important;
           border-radius: 0.375rem !important;
           object-fit: cover !important;
         }
@@ -2150,13 +2342,13 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .exam-typing-landscape-meter-block {
           background-color: #ffffff !important;
-          flex: 0 0 auto !important;
-          flex-shrink: 0 !important;
+          flex: 1 1 0 !important;
+          flex-shrink: 1 !important;
           min-height: 0 !important;
           max-height: none !important;
           padding: 0 !important;
-          margin-bottom: 0.15rem !important;
-          overflow: visible !important;
+          margin-bottom: 0.1rem !important;
+          overflow: hidden !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
@@ -2196,21 +2388,21 @@ function ExamModeContent() {
           max-height: 100% !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge-portrait {
-          width: 3rem !important;
-          height: 3rem !important;
+          width: min(3.85rem, 100%) !important;
+          height: min(3.85rem, 100%) !important;
           min-width: 0 !important;
           min-height: 0 !important;
-          max-width: 3rem !important;
-          max-height: 3rem !important;
+          max-width: 100% !important;
+          max-height: 100% !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge-portrait .speedometer-value {
-          bottom: 0.65rem !important;
-          font-size: 0.55rem !important;
+          bottom: 0.85rem !important;
+          font-size: 0.65rem !important;
           line-height: 1 !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .speedometer-label {
-          font-size: 6px !important;
-          left: 0.15rem !important;
+          font-size: 7px !important;
+          left: 0.2rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-top,
         [data-exam-mode="typing"] .profile-meter-row {
@@ -2230,8 +2422,8 @@ function ExamModeContent() {
           max-width: 46% !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-profile img {
-          width: 2.25rem !important;
-          height: 2.25rem !important;
+          width: 4.5rem !important;
+          height: 4.5rem !important;
           object-fit: cover !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-landscape-username {
@@ -2272,8 +2464,8 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .exam-typing-landscape-font-block {
           flex: 0 0 auto !important;
-          width: 100% !important;
-          max-width: 100% !important;
+          width: 66% !important;
+          max-width: 66% !important;
           margin-left: auto !important;
           margin-right: auto !important;
           display: flex !important;
@@ -2284,25 +2476,23 @@ function ExamModeContent() {
           overflow: visible !important;
           position: relative !important;
           z-index: 1 !important;
+          box-sizing: border-box !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-submit-wrap,
         [data-exam-mode="typing"] .submit-section {
           display: flex !important;
-          justify-content: center !important;
-          align-items: center !important;
-          width: 100% !important;
-          max-width: 100% !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
           flex: 0 0 auto !important;
           flex-shrink: 0 !important;
-          margin-top: 0 !important;
-          padding-top: 0 !important;
-          padding-bottom: 0 !important;
-          position: relative !important;
-          z-index: 2 !important;
+          width: 72% !important;
+          max-width: 72% !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          margin-top: 0.35rem !important;
+          padding-top: 0.15rem !important;
           box-sizing: border-box !important;
-          overflow: visible !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          justify-content: center !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-font-label {
           font-size: 8px !important;
@@ -2314,7 +2504,8 @@ function ExamModeContent() {
           display: flex !important;
           flex-direction: row !important;
           align-items: stretch !important;
-          gap: 0.25rem !important;
+          justify-content: stretch !important;
+          gap: 0.35rem !important;
           width: 100% !important;
           max-width: 100% !important;
           margin-left: auto !important;
@@ -2327,16 +2518,16 @@ function ExamModeContent() {
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-font-btn {
           flex: 1 1 0 !important;
           min-width: 0 !important;
-          max-width: none !important;
           width: auto !important;
+          max-width: none !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
-          padding: 0.2rem 0.1rem !important;
-          font-size: 8px !important;
-          min-height: 1.25rem !important;
-          height: 1.25rem !important;
-          max-height: 1.25rem !important;
+          padding: 0.08rem 0.1rem !important;
+          font-size: 7px !important;
+          min-height: 0.95rem !important;
+          height: 0.95rem !important;
+          max-height: 0.95rem !important;
           line-height: 1 !important;
           cursor: pointer !important;
           touch-action: manipulation !important;
@@ -2348,7 +2539,7 @@ function ExamModeContent() {
           position: relative !important;
           margin-top: 0 !important;
           transform: none !important;
-          border-radius: 0.25rem !important;
+          border-radius: 0.2rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-font-btn-minus {
           color: #dc2626 !important;
@@ -2356,14 +2547,14 @@ function ExamModeContent() {
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-font-btn-plus {
           color: #16a34a !important;
         }
-        [data-exam-mode="typing"] .exam-typing-landscape-submit {
+        [data-exam-mode="typing"] .exam-typing-landscape-submit-wrap .exam-typing-landscape-submit {
           width: 100% !important;
           max-width: 100% !important;
           flex: 0 0 auto !important;
-          padding: 0.35rem 0.2rem !important;
+          padding: 0.22rem 0.12rem !important;
           font-size: 8px !important;
-          line-height: 1.2 !important;
-          min-height: 1.35rem !important;
+          line-height: 1.15 !important;
+          min-height: 1.2rem !important;
           height: auto !important;
           border-radius: 0.375rem !important;
           font-weight: 700 !important;
@@ -2385,10 +2576,13 @@ function ExamModeContent() {
           z-index: auto !important;
           overflow: visible !important;
         }
+        [data-exam-mode="typing"] .exam-typing-landscape-left-submit .exam-typing-landscape-submit {
+          display: none !important;
+        }
         [data-exam-mode="typing"] .exam-typing-header-title {
           color: #facc15 !important;
         }
-        [data-exam-mode="typing"] .exam-typing-header-sound {
+        [data-exam-mode="typing"] .exam-typing-header-timer .exam-typing-timer-sound {
           display: inline-flex !important;
           align-items: center !important;
           justify-content: center !important;
@@ -2397,9 +2591,12 @@ function ExamModeContent() {
           height: 2rem !important;
           padding: 0 !important;
         }
-        [data-exam-mode="typing"] .exam-typing-header-sound .exam-sound-icon-svg {
+        [data-exam-mode="typing"] .exam-typing-header-timer .exam-typing-timer-sound .exam-sound-icon-svg {
           width: 1.55rem !important;
           height: 1rem !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-sound {
+          display: none !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-profile {
           display: none !important;
@@ -2409,10 +2606,14 @@ function ExamModeContent() {
           align-items: center !important;
           flex-shrink: 0 !important;
         }
-        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-sound {
-          display: flex !important;
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer .exam-typing-timer-sound {
+          display: inline-flex !important;
           align-items: center !important;
           flex-shrink: 0 !important;
+          margin-left: 0.35rem !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-sound {
+          display: none !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-links {
           display: inline !important;
@@ -2690,9 +2891,15 @@ function ExamModeContent() {
       }
 
       .exam-mode-root {
-        height: 100dvh !important;
-        max-height: 100dvh !important;
-        overflow: hidden !important;
+        min-height: 100dvh !important;
+      }
+
+      @media screen and (max-width: 1023px) {
+        .exam-mode-root.exam-page {
+          height: 100dvh !important;
+          max-height: 100dvh !important;
+          overflow: hidden !important;
+        }
       }
 
       [data-exam-mode="mcq"] .exam-mobile-mcq-column {
@@ -4578,7 +4785,7 @@ function ExamModeContent() {
   };
 
   return (
-    <div className="exam-mode-root h-screen flex flex-col lg:flex-row bg-white relative overflow-hidden">
+    <div className="exam-mode-root exam-page flex flex-col lg:flex-row lg:h-screen bg-white relative overflow-hidden">
       {/* Sidebar - Mobile */}
       {isMobileMenuOpen && (
         <>
@@ -4847,17 +5054,7 @@ function ExamModeContent() {
                 ✕
               </button>
             )}
-            {/* Sound in purple header — typing landscape only (portrait uses exam name row) */}
-            {currentQuestion?.questionType === "TYPING" && (
-              <button
-                type="button"
-                onClick={() => setIsSoundOn(!isSoundOn)}
-                title={isSoundOn ? "Mute" : "Unmute"}
-                className="exam-sound-icon-btn exam-typing-header-sound hidden max-[900px]:landscape:inline-flex md:inline-flex lg:hidden items-center justify-center shrink-0"
-              >
-                <ExamSoundIcon active={isSoundOn} className="exam-sound-icon-svg" />
-              </button>
-            )}
+            {/* Sound removed from purple header for typing — use section timer row only on desktop; landscape uses header via CSS */}
             {/* Timer - Show in landscape mode for questions only, positioned before View Instructions */}
             {currentQuestion?.questionType !== "TYPING" && (
               <div className="hidden md:flex lg:hidden items-center gap-1 exam-mcq-header-timer" style={{ order: -1, flexShrink: 0 }}>
@@ -4865,9 +5062,17 @@ function ExamModeContent() {
                 <b className="bg-blue-400 text-black px-1.5 py-0.5 rounded text-[10px] font-bold whitespace-nowrap">{formatTime(timeLeft)}</b>
               </div>
             )}
-            {/* Timer for typing - landscape/tablet header (text only, no icon; portrait uses stats row) */}
+            {/* Timer for typing — sound + timer (tablet/landscape); desktop uses section nav row */}
             {currentQuestion?.questionType === "TYPING" && (
               <div className="hidden max-[900px]:landscape:flex md:flex lg:hidden items-center gap-1.5 exam-typing-header-timer" style={{ order: -1 }}>
+                <button
+                  type="button"
+                  onClick={() => setIsSoundOn(!isSoundOn)}
+                  title={isSoundOn ? "Mute" : "Unmute"}
+                  className="exam-sound-icon-btn exam-typing-timer-sound shrink-0"
+                >
+                  <ExamSoundIcon active={isSoundOn} className="exam-sound-icon-svg" />
+                </button>
                 {isTypingSection && typingTimeLeft !== null ? (
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-semibold text-pink-300">Section Timer:</span>
@@ -4923,7 +5128,7 @@ function ExamModeContent() {
                   type="button"
                   onClick={() => setIsSoundOn(!isSoundOn)}
                   title={isSoundOn ? "Mute" : "Unmute"}
-                  className="exam-sound-icon-btn exam-typing-title-sound w-9 shrink-0 inline-flex items-center justify-center"
+                  className="exam-sound-icon-btn exam-typing-title-sound w-9 shrink-0 inline-flex lg:hidden items-center justify-center"
                 >
                   <ExamSoundIcon active={isSoundOn} className="exam-sound-icon-svg" />
                 </button>
@@ -5232,12 +5437,12 @@ function ExamModeContent() {
                 </button>
               );
             })}
-            <div className="ml-auto flex items-center gap-2 whitespace-nowrap">
+            <div className="ml-auto flex items-center gap-2 whitespace-nowrap exam-typing-section-timer-row">
               <button
                 type="button"
                 onClick={() => setIsSoundOn(!isSoundOn)}
                 title={isSoundOn ? "Mute" : "Unmute"}
-                className="exam-sound-icon-btn"
+                className="exam-sound-icon-btn exam-typing-timer-sound"
               >
                 <ExamSoundIcon active={isSoundOn} className="exam-sound-icon-svg" />
               </button>
