@@ -213,9 +213,10 @@ function ExamModeContent() {
         }
       }
       .exam-sound-icon-svg {
-        width: 1.75rem !important;
-        height: 1.15rem !important;
+        width: 1.875rem !important;
+        height: 1.25rem !important;
         display: block !important;
+        flex-shrink: 0 !important;
       }
 
       /* Mobile Landscape ONLY - Fix UI breaking issues for MCQ QUESTIONS ONLY */
@@ -951,18 +952,40 @@ function ExamModeContent() {
         }
         .exam-mobile-timer-row {
           order: 0 !important;
-          padding: 0.45rem 0.75rem !important;
+          padding: 0.4rem 1rem !important;
           min-height: auto !important;
           border-top: none !important;
           border-bottom: 1px solid #e5e7eb !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: space-between !important;
+          background: #fff !important;
         }
         .exam-mobile-timer-row .exam-sound-icon-btn {
-          width: 2.25rem !important;
-          height: 2.25rem !important;
+          width: auto !important;
+          height: auto !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 0 !important;
+          margin: 0 !important;
         }
         .exam-mobile-timer-row .exam-sound-icon-svg {
-          width: 1.75rem !important;
-          height: 1.15rem !important;
+          width: 1.875rem !important;
+          height: 1.25rem !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-timer-row .exam-portrait-timer-label {
+          font-size: 1rem !important;
+          font-weight: 400 !important;
+          color: #2563eb !important;
+        }
+        [data-exam-mode="mcq"] .exam-mobile-timer-row .exam-portrait-timer-value {
+          font-size: 1rem !important;
+          font-weight: 700 !important;
+          background: #60a5fa !important;
+          color: #000 !important;
+          padding: 0.1rem 0.75rem !important;
+          border-radius: 0.25rem !important;
         }
         .exam-mobile-tabs-row {
           order: 1 !important;
@@ -1470,8 +1493,8 @@ function ExamModeContent() {
           padding: 0 !important;
         }
         [data-exam-mode="typing"] .exam-typing-title-sound .exam-sound-icon-svg {
-          width: 1.75rem !important;
-          height: 1.15rem !important;
+          width: 1.875rem !important;
+          height: 1.25rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-links {
           display: none !important;
@@ -1917,7 +1940,8 @@ function ExamModeContent() {
           line-height: 1.2 !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer {
-          gap: 0.25rem !important;
+          gap: 0 !important;
+          margin-left: 0.85rem !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer span,
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer b {
@@ -1931,13 +1955,22 @@ function ExamModeContent() {
           padding: 0.1rem 0.45rem !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer .exam-typing-timer-sound {
-          width: 1.65rem !important;
-          height: 1.65rem !important;
-          margin-left: 0.35rem !important;
+          width: auto !important;
+          height: auto !important;
+          margin-left: 0.75rem !important;
+          margin-right: 0.05rem !important;
+          padding: 0 !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer .exam-typing-timer-sound .exam-sound-icon-svg {
-          width: 1.35rem !important;
-          height: 0.85rem !important;
+          width: 1.5rem !important;
+          height: 1rem !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-landscape-timer-row > div {
+          gap: 0.15rem !important;
+          margin-left: 0 !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-header-menu-btn {
           width: 1.65rem !important;
@@ -2598,7 +2631,7 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .exam-typing-header-timer .exam-typing-timer-sound .exam-sound-icon-svg {
           width: 1.55rem !important;
-          height: 1rem !important;
+          height: 1.05rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-sound {
           display: none !important;
@@ -2615,7 +2648,8 @@ function ExamModeContent() {
           display: inline-flex !important;
           align-items: center !important;
           flex-shrink: 0 !important;
-          margin-left: 0.35rem !important;
+          margin-left: 0.75rem !important;
+          margin-right: 0.05rem !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-sound {
           display: none !important;
@@ -2677,7 +2711,7 @@ function ExamModeContent() {
         }
         [data-exam-mode="mcq"] .exam-mcq-header-sound .exam-sound-icon-svg {
           width: 1.55rem !important;
-          height: 1rem !important;
+          height: 1.05rem !important;
         }
         [data-exam-mode="mcq"] .exam-mcq-header-timer {
           display: flex !important;
@@ -5103,22 +5137,22 @@ function ExamModeContent() {
             )}
             {/* Timer for typing — sound + timer (tablet/landscape); desktop uses section nav row */}
             {currentQuestion?.questionType === "TYPING" && (
-              <div className="hidden max-[900px]:landscape:flex md:flex lg:hidden items-center gap-1.5 exam-typing-header-timer" style={{ order: -1 }}>
+              <div className="hidden max-[900px]:landscape:flex md:flex lg:hidden items-center gap-0 exam-typing-header-timer exam-typing-landscape-timer-row" style={{ order: -1 }}>
                 <button
                   type="button"
                   onClick={() => setIsSoundOn(!isSoundOn)}
                   title={isSoundOn ? "Mute" : "Unmute"}
                   className="exam-sound-icon-btn exam-typing-timer-sound shrink-0"
                 >
-                  <ExamSoundIcon active={isSoundOn} className="exam-sound-icon-svg" />
+                  <ExamSoundIcon active={isSoundOn} variant="onDark" className="exam-sound-icon-svg" />
                 </button>
                 {isTypingSection && typingTimeLeft !== null ? (
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <span className="text-xs font-semibold text-pink-300">Section Timer:</span>
                     <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(typingTimeLeft)}</b>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <span className="text-xs font-semibold text-pink-300">Time Left:</span>
                     <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold">{formatTime(timeLeft)}</b>
                   </div>
@@ -5240,16 +5274,14 @@ function ExamModeContent() {
         {/* Section Nav (Mobile) - Timer row first, then section tabs - Hidden in mobile for typing */}
         <div className={`lg:hidden flex flex-col border-b border-y-gray-200 bg-[#fff] sticky top-[40px] z-20 shadow-sm landscape-reduce-section-nav landscape-hide-sections exam-mobile-section-nav ${currentQuestion?.questionType === "TYPING" ? "hidden" : ""}`}>
           <div className="exam-mobile-timer-row flex items-center justify-between px-4 py-2 border-b border-gray-200 landscape-hide-status-bar">
-            <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setIsSoundOn(!isSoundOn)}
               title={isSoundOn ? "Mute" : "Unmute"}
-              className="exam-sound-icon-btn"
+              className="exam-sound-icon-btn exam-mcq-portrait-sound"
             >
               <ExamSoundIcon active={isSoundOn} className="exam-sound-icon-svg" />
             </button>
-            </div>
             <div className="flex items-center gap-2">
             {isTypingSection && typingTimeLeft !== null ? (
               <div className="flex items-center gap-2 landscape-reduce-timer">
@@ -5257,9 +5289,9 @@ function ExamModeContent() {
                   <b className="bg-pink-300 text-black px-2 py-1 rounded text-sm font-bold landscape-reduce-timer">{formatTime(typingTimeLeft)}</b>
               </div>
             ) : (
-              <div className="flex items-center gap-2 landscape-reduce-timer">
-                  <span className="text-xs font-semibold text-blue-600 landscape-reduce-timer exam-portrait-timer-label">Time Left:</span>
-                  <b className="bg-blue-400 text-black px-2 py-0.5 rounded text-sm font-bold landscape-reduce-timer exam-portrait-timer-value">{formatTime(timeLeft)}</b>
+              <div className="flex items-center gap-1 landscape-reduce-timer exam-portrait-timer-wrap">
+                  <span className="text-base text-blue-600 landscape-reduce-timer exam-portrait-timer-label">Time Left:</span>
+                  <b className="bg-blue-400 text-black px-3 py-0.5 rounded text-base font-bold landscape-reduce-timer exam-portrait-timer-value">{formatTime(timeLeft)}</b>
               </div>
             )}
           </div>
