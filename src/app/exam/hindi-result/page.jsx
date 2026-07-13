@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { getExamInfo, getExamSections } from "@/lib/examQuestions";
+import { EXAM_HEADER_BRAND } from "@/lib/examBranding";
 
 export default function ExamSummary() {
   const [examData, setExamData] = useState(null);
@@ -69,13 +70,13 @@ export default function ExamSummary() {
     <div className="min-h-screen bg-white text-sm" id="exam-summary-root">
       {/* Header */}
       <div className="bg-[#290c52] text-yellow-400 p-2 text-lg font-bold">
-        MPCPCT 2025 - Exam Results
+        {EXAM_HEADER_BRAND} - Exam Results
       </div>
 
       {/* Title */}
       <div className="text-center font-semibold py-4 text-gray-800 text-base border-b border-gray-300">
         <img
-          src="/lo.jpg"
+          src="/user.jpg"
           alt="avatar"
           className="w-20 h-20 rounded-full mx-auto"
         />

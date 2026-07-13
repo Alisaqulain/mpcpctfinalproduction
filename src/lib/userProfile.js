@@ -22,6 +22,20 @@ const PROFILE_URL_KEYS = [
   "profilePicture",
 ];
 
+function normalizeProfilePath(value) {
+  const withoutQuery = String(value).trim().split("?")[0];
+  try {
+    const pathname = withoutQuery.startsWith("http")
+      ? new URL(withoutQuery).pathname
+      : withoutQuery;
+    const normalized = pathname.startsWith("/") ? pathname : `/${pathname}`;
+    return normalized.split("/").pop()?.toLowerCase() || "";
+  } catch {
+    const parts = withoutQuery.split("/");
+    return parts[parts.length - 1]?.toLowerCase() || "";
+  }
+}
+
 function isUsableProfileUrl(value) {
   if (!value || typeof value !== "string") return false;
   const trimmed = value.trim();
@@ -30,9 +44,22 @@ function isUsableProfileUrl(value) {
     const path = trimmed.startsWith("http")
       ? new URL(trimmed).pathname
       : trimmed.split("?")[0];
-    if (NON_PROFILE_IMAGE_PATHS.has(path)) return false;
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    if (NON_PROFILE_IMAGE_PATHS.has(normalizedPath)) return false;
   } catch {
     /* keep url */
+  }
+  const basename = normalizeProfilePath(trimmed);
+  if (
+    basename === "support.png" ||
+    basename === "lo.jpg" ||
+    basename === "logor.png" ||
+    basename === "logo2.png" ||
+    basename === "log.png" ||
+    basename === "plogo.png" ||
+    basename === "mpc.png"
+  ) {
+    return false;
   }
   return true;
 }

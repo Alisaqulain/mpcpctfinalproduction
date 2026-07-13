@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { EXAM_HEADER_BRAND } from "@/lib/examBranding";
 
 export default function BreakScreen() {
   const [seconds, setSeconds] = useState(60);
@@ -14,12 +15,12 @@ export default function BreakScreen() {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center mt-[-110]">
       <div className="w-full bg-[#290c52] text-yellow-400 text-left px-4 py-2 font-bold text-lg">
-        MPCPCT 2025
+        {EXAM_HEADER_BRAND}
       </div>
 
       <div className="flex flex-col items-center py-10 space-y-2 w-full">
         <img
-          src="/lo.jpg"
+          src="/user.jpg"
           alt="avatar"
           className="w-20 h-20 rounded-full"
         />

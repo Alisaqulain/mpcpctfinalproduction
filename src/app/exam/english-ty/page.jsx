@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import { EXAM_HEADER_BRAND } from "@/lib/examBranding";
 
 export default function EnglishTypingPage() {
   const fullText = `One Lorem ipsumur dolor sitae amet consectetur adipisicing eliture Auture commodi beatae laboriosam voluptatem molestiae fuga error velit autem quam labore sunt ipsa provident eaque Doloribus tenetur explicabo alias architecto minus Maxime adipisci ipsa at iure ut sapiente odit dolor dolore expedita`;
@@ -119,7 +120,7 @@ export default function EnglishTypingPage() {
 
   return (
     <div className="min-h-screen bg-white p-2">
-      <div className="bg-[#290c52] text-yellow-400 p-2 text-lg font-bold">MPCPCT 2025</div>
+      <div className="bg-[#290c52] text-yellow-400 p-2 text-lg font-bold">{EXAM_HEADER_BRAND}</div>
 
       <div className="bg-white flex flex-col sm:flex-row items-center justify-between p-2 border-b">
         <div className="bg-white-50 border-gray-300 px-4 py-4 flex gap-2 text-xs flex-wrap justify-center sm:justify-start">
@@ -194,7 +195,7 @@ export default function EnglishTypingPage() {
         <div className="w-full lg:w-60 bg-blue-50 p-4 border-l h-auto lg:h-[520px] order-1 lg:order-2">
           <div className="flex flex-col items-center">
             <div className="w-16 h-16 bg-gray-300 rounded-full mb-2 overflow-hidden">
-              <img src="/lo.jpg" alt="avatar" className="w-full h-full object-cover" />
+              <img src="/user.jpg" alt="avatar" className="w-full h-full object-cover" />
             </div>
             <div className="text-gray-700 font-semibold">Anas</div>
             <span className="border w-full border-black mt-2"></span>

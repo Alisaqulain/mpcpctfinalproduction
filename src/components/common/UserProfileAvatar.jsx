@@ -11,7 +11,9 @@ export default function UserProfileAvatar({
   fallbackSrc = DEFAULT_PROFILE_AVATAR,
   ...props
 }) {
-  const imageSrc = src || resolveUserProfileUrl(user);
+  const imageSrc = src
+    ? resolveUserProfileUrl({ profileUrl: src, avatar: src })
+    : resolveUserProfileUrl(user);
 
   return (
     <img

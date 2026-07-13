@@ -9,7 +9,7 @@ export default function ComingSoon() {
         {/* Logo / App Icon */}
         <div className="flex justify-center mb-6">
           <img
-            src="/lo.jpg"
+            src="/user.jpg"
             alt="App Logo"
             className="w-24 h-24 rounded-2xl border-4 border-white shadow-lg"
           />

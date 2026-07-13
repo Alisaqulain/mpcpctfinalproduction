@@ -7,6 +7,7 @@ import {
   matchesTestBypass,
   findOrCreateTestBypassUser,
 } from "@/lib/auth/testBypassLogin";
+import { resolveUserProfileUrl } from "@/lib/userProfile";
 
 async function loginSuccessResponse(user, req) {
   const { createUserToken, attachAuthCookie } = await import("@/lib/auth/jwtCookie");
@@ -19,7 +20,7 @@ async function loginSuccessResponse(user, req) {
       name: user.name,
       email: user.email,
       phoneNumber: user.phoneNumber,
-      profileUrl: user.profileUrl || user.avatar,
+      profileUrl: resolveUserProfileUrl(user),
       role: user.role || "user",
       isPhoneVerified: !!(user.isPhoneVerified || user.isMobileVerified),
     },

@@ -1,13 +1,14 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useHindiTyping } from "@/hooks/useHindiTyping";
+import { DEFAULT_PROFILE_AVATAR } from "@/lib/userProfile";
 
 export default function ExamTypingInterface({
   content,
   onComplete,
   onProgress,
   userName = "User",
-  userProfileUrl = "/lo.jpg",
+  userProfileUrl = DEFAULT_PROFILE_AVATAR,
   language = "English",
   scriptType = null,
   allowBackspace = true,
@@ -554,7 +555,7 @@ export default function ExamTypingInterface({
               alt={userName}
               className="w-[5rem] h-[5rem] rounded-md border-2 border-gray-300 flex-shrink-0 object-cover exam-typing-portrait-avatar"
               onError={(e) => {
-                e.target.src = "/lo.jpg";
+                e.target.src = DEFAULT_PROFILE_AVATAR;
               }}
             />
             <p className="font-semibold text-xs text-center mt-0.5 leading-tight text-gray-900 whitespace-nowrap exam-typing-portrait-username">
@@ -750,7 +751,7 @@ export default function ExamTypingInterface({
                   className="w-9 h-9 rounded-md border-2 border-gray-300 flex-shrink-0 object-cover exam-typing-landscape-sidebar-avatar"
                   onError={(e) => {
                     e.currentTarget.onerror = null;
-                    e.currentTarget.src = "/lo.jpg";
+                    e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
                   }}
                 />
                 <p className="text-[8px] text-center font-semibold text-gray-900 whitespace-nowrap max-w-full truncate mt-1 leading-tight exam-typing-landscape-username">
@@ -842,7 +843,7 @@ export default function ExamTypingInterface({
                 alt={userName}
                 className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-gray-300"
                 onError={(e) => {
-                  e.target.src = "/lo.jpg";
+                  e.target.src = DEFAULT_PROFILE_AVATAR;
                 }}
               />
               <p className="text-xs mt-1 text-center font-semibold text-gray-700 whitespace-nowrap">{userName}</p>

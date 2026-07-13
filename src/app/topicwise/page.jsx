@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import jsPDF from "jspdf";
+import { EXAM_HEADER_BRAND } from "@/lib/examBranding";
+import { DEFAULT_PROFILE_AVATAR, resolveUserProfileUrl, readExamUserDataFromStorage } from "@/lib/userProfile";
 
 function TopicWiseMCQPageContent() {
   const router = useRouter();
@@ -22,7 +23,7 @@ function TopicWiseMCQPageContent() {
   const [visitedQuestions, setVisitedQuestions] = useState(new Set());
   const [markedForReview, setMarkedForReview] = useState(new Set());
   const [userName, setUserName] = useState("User");
-  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+  const [userProfileUrl, setUserProfileUrl] = useState(DEFAULT_PROFILE_AVATAR);
   const [isSoundOn, setIsSoundOn] = useState(true);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [showQuestionPaperModal, setShowQuestionPaperModal] = useState(false);
@@ -327,7 +328,7 @@ function TopicWiseMCQPageContent() {
     pdf.rect(0, 0, pageWidth, 30, 'F');
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(20);
-    pdf.text('MPCPCT 2025', pageWidth / 2, 15, { align: 'center' });
+    pdf.text(EXAM_HEADER_BRAND, pageWidth / 2, 15, { align: 'center' });
     
     // User Info
     pdf.setTextColor(0, 0, 0);
@@ -415,7 +416,7 @@ function TopicWiseMCQPageContent() {
       <div className="min-h-screen bg-white text-sm">
         {/* Header */}
         <div className="bg-[#290c52] text-yellow-400 p-2 text-lg font-bold">
-          MPCPCT 2025
+          {EXAM_HEADER_BRAND}
         </div>
 
         {/* Title */}
@@ -425,7 +426,7 @@ function TopicWiseMCQPageContent() {
             alt="avatar"
             className="w-20 h-20 rounded-full mx-auto"
             onError={(e) => {
-              e.target.src = "/lo.jpg";
+              e.target.src = DEFAULT_PROFILE_AVATAR;
             }}
           />
           <p className="mt-2">{userName}</p>
@@ -704,7 +705,7 @@ function TopicWiseMCQPageContent() {
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
         <div className="fixed top-0 left-64 right-0 w-[calc(100%-16rem)] bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30">
-          <div className="font-semibold">MPCPCT 2025</div>
+          <div className="font-semibold">{EXAM_HEADER_BRAND}</div>
           <div className="flex gap-2 items-center">
             <div className="flex items-center gap-2 pr-4">
               <img 
@@ -712,7 +713,7 @@ function TopicWiseMCQPageContent() {
                 className="w-8 h-8 rounded-full border" 
                 alt={userName}
                 onError={(e) => {
-                  e.target.src = "/lo.jpg";
+                  e.target.src = DEFAULT_PROFILE_AVATAR;
                 }}
               />
             </div>

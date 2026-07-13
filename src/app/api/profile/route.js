@@ -6,6 +6,7 @@ import dbConnect from "@/lib/db";
 import User from "@/lib/models/User";
 import cloudinary from "@/lib/cloudinary";
 import { getJwtSecretBytes } from "@/lib/jwtSecret";
+import { resolveUserProfileUrl } from "@/lib/userProfile";
 
 async function uploadProfilePhoto(file) {
   const hasCloudinaryConfig = !!(
@@ -98,7 +99,7 @@ export async function GET(request) {
         name: user.name,
         email: user.email,
         phoneNumber: user.phoneNumber,
-        profileUrl: user.profileUrl,
+        profileUrl: resolveUserProfileUrl(user),
         states: user.states,
         city: user.city,
         role: user.role || "user",
@@ -108,7 +109,7 @@ export async function GET(request) {
         isEmailVerified: !!user.isEmailVerified,
         isPhoneVerified: !!(user.isPhoneVerified || user.isMobileVerified),
         isMobileVerified: !!(user.isMobileVerified || user.isPhoneVerified),
-        avatar: user.avatar || user.profileUrl,
+        avatar: resolveUserProfileUrl(user),
       },
       subscription: activeSubscription ? {
         _id: activeSubscription._id,
@@ -190,10 +191,10 @@ export async function PATCH(request) {
         name: user.name,
         email: user.email,
         phoneNumber: user.phoneNumber,
-        profileUrl: user.profileUrl,
+        profileUrl: resolveUserProfileUrl(user),
         states: user.states,
         city: user.city,
-        avatar: user.avatar || user.profileUrl,
+        avatar: resolveUserProfileUrl(user),
       },
     });
   } catch (err) {

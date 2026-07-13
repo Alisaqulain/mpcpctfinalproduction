@@ -46,7 +46,7 @@ export default function CpctScoreCard() {
       <div className="text-center mb-4 font-semibold text-lg mt-2 py-3">
           {/* Student Photo */}
           <img
-            src="/lo.jpg"
+            src="/user.jpg"
             alt="Student"
             className="w-24 h-20 border ml-2 absolute top-29"
           />

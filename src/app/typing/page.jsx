@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { getLearningData, getLessonContent } from "@/lib/learningData";
 import { useHindiTyping } from "@/hooks/useHindiTyping";
 import ReplaceNavLink from "@/components/common/ReplaceNavLink";
-import { resolveUserProfileUrl, readExamUserDataFromStorage } from "@/lib/userProfile";
+import { resolveUserProfileUrl, readExamUserDataFromStorage, DEFAULT_PROFILE_AVATAR } from "@/lib/userProfile";
 import { formatResultDateDDMM } from "@/lib/formatResultDate";
 
 const MIN_NET_SPEED_LEARNING = 10;
@@ -297,7 +297,7 @@ function DesktopView({
                 alt={userName}
                 className="w-20 h-20 md:w-30 md:h-25 rounded-md border-2 border-white"
                 onError={(e) => {
-                  e.target.src = "/lo.jpg";
+                  e.target.src = DEFAULT_PROFILE_AVATAR;
                 }}
               />
               <p className="font-semibold text-xs text-center">{userName}</p>
@@ -457,7 +457,7 @@ function PortraitView({
                   alt={userName}
                   className="w-20 h-20 md:w-30 md:h-25 rounded-md border-2 border-white"
                   onError={(e) => {
-                    e.target.src = "/lo.jpg";
+                    e.target.src = DEFAULT_PROFILE_AVATAR;
                   }}
                 />
                 <p className="font-semibold text-xs text-center mt-0.5 leading-tight">
@@ -879,7 +879,7 @@ function LandscapeView({
               className="rounded-md border-2 border-white object-cover landscape-profile-img"
               style={{ width: "clamp(52px, 11vw, 72px)", height: "clamp(52px, 11vw, 72px)" }}
               onError={(e) => {
-                e.target.src = "/lo.jpg";
+                e.target.src = DEFAULT_PROFILE_AVATAR;
               }}
             />
             <p
@@ -1359,7 +1359,7 @@ function TypingTutorForm() {
     return /[\u0900-\u097F]/.test(text);
   };
   const [userName, setUserName] = useState("User");
-  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+  const [userProfileUrl, setUserProfileUrl] = useState(DEFAULT_PROFILE_AVATAR);
   const [backspaceLimit, setBackspaceLimit] = useState(null); // null = unlimited
   const [backspaceSettings, setBackspaceSettings] = useState([]);
   const [isMobile, setIsMobile] = useState(false);

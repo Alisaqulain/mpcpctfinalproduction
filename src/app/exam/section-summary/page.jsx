@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { EXAM_HEADER_BRAND } from "@/lib/examBranding";
 
 function SectionSummaryContent() {
   const [section, setSection] = useState("");
@@ -173,7 +174,7 @@ function SectionSummaryContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-[#290c52] text-white px-4 py-3">
-        <h1 className="text-xl font-bold">MPCPCT 2025 - Section Summary</h1>
+        <h1 className="text-xl font-bold">{EXAM_HEADER_BRAND} - Section Summary</h1>
       </div>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">

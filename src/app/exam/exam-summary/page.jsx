@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { EXAM_HEADER_BRAND } from "@/lib/examBranding";
 
 export default function ExamSummary() {
   const router = useRouter();
@@ -143,13 +144,13 @@ export default function ExamSummary() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-[#290c52] text-white px-4 py-3">
-        <h1 className="text-xl font-bold">MPCPCT 2025</h1>
+        <h1 className="text-xl font-bold">{EXAM_HEADER_BRAND}</h1>
       </div>
 
       <div className="max-w-4xl mx-auto p-6">
         {/* User Info */}
         <div className="text-center mb-6">
-          <img src="/lo.jpg" alt="User" className="w-20 h-20 rounded-full mx-auto mb-2" />
+          <img src="/user.jpg" alt="User" className="w-20 h-20 rounded-full mx-auto mb-2" />
           <p className="text-xl font-semibold">{userName}</p>
           <p className="text-lg font-semibold text-[#290c52] mt-2">Exam Summary</p>
         </div>

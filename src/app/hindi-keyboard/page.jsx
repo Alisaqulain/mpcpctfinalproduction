@@ -374,7 +374,7 @@ export default function App() {
       <div className={`flex flex-col items-center space-y-1 ${isMobile ? 'mt-4' : 'mt-15'} mobile-stack`}>
         <div className="flex flex-col items-center">
           <img
-            src="/lo.jpg"
+            src="/user.jpg"
             alt="User"
             className={`${isMobile ? 'w-20 h-16' : 'w-30 h-25'} rounded-md border-2 border-white mobile-scale`}
           />

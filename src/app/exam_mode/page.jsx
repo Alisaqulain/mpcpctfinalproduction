@@ -4,6 +4,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import TypingArea from "@/components/typing/TypingArea";
 import ExamTypingInterface from "@/components/typing/ExamTypingInterface";
+import ExamSoundIcon from "@/components/common/ExamSoundIcon";
+import { EXAM_HEADER_BRAND } from "@/lib/examBranding";
 import {
   DEFAULT_PROFILE_AVATAR,
   fetchUserProfileFromApi,
@@ -45,6 +47,42 @@ function ExamModeContent() {
         color: #000 !important;
         border-color: #d1d5db !important;
         font-weight: 700 !important;
+      }
+
+      .exam-mobile-menu-btn {
+        display: none !important;
+      }
+      .exam-header-menu-btn {
+        display: none !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 2rem !important;
+        height: 2rem !important;
+        flex-shrink: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+      }
+      @media screen and (max-width: 1023px) {
+        .exam-header-menu-btn {
+          display: inline-flex !important;
+        }
+      }
+      .exam-sound-icon-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 2.25rem !important;
+        height: 2.25rem !important;
+        padding: 0 !important;
+        flex-shrink: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        cursor: pointer !important;
+      }
+      .exam-sound-icon-svg {
+        width: 1.75rem !important;
+        height: 1.15rem !important;
+        display: block !important;
       }
 
       /* Mobile Landscape ONLY - Fix UI breaking issues for MCQ QUESTIONS ONLY */
@@ -785,9 +823,13 @@ function ExamModeContent() {
           border-top: none !important;
           border-bottom: 1px solid #e5e7eb !important;
         }
-        .exam-mobile-timer-row button {
-          font-size: 1.5rem !important;
-          line-height: 1 !important;
+        .exam-mobile-timer-row .exam-sound-icon-btn {
+          width: 2.25rem !important;
+          height: 2.25rem !important;
+        }
+        .exam-mobile-timer-row .exam-sound-icon-svg {
+          width: 1.75rem !important;
+          height: 1.15rem !important;
         }
         .exam-mobile-tabs-row {
           order: 1 !important;
@@ -810,18 +852,13 @@ function ExamModeContent() {
           font-weight: 600 !important;
           color: #000 !important;
         }
-        body:has([data-exam-mode="mcq"]) .exam-mobile-menu-btn {
-          display: none !important;
-        }
-        [data-exam-mode="mcq"] .exam-portrait-header-menu {
-          display: inline-flex !important;
-        }
-        [data-exam-mode="mcq"] .landscape-reduce-header .max-md\\:pl-9,
         [data-exam-mode="mcq"] .landscape-reduce-header .exam-typing-header-left {
-          padding-left: 3rem !important;
+          padding-left: 0 !important;
+          gap: 0.5rem !important;
         }
         [data-exam-mode="mcq"] .landscape-reduce-header {
           padding-left: 0.5rem !important;
+          padding-right: 0.75rem !important;
         }
         [data-exam-mode="mcq"] .exam-portrait-hide-home {
           display: none !important;
@@ -1244,17 +1281,12 @@ function ExamModeContent() {
           max-height: none !important;
           overflow: hidden !important;
         }
-        [data-exam-mode="typing"] .exam-typing-portrait-menu {
-          display: inline-flex !important;
-        }
         [data-exam-mode="typing"] .exam-typing-portrait-menu-close {
           display: inline-flex !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-left {
           padding-left: 0 !important;
-        }
-        body:has([data-exam-mode="typing"]) .exam-mobile-menu-btn {
-          display: none !important;
+          gap: 0.5rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-portrait-section-row {
           display: flex !important;
@@ -1298,8 +1330,13 @@ function ExamModeContent() {
           display: inline-flex !important;
           align-items: center !important;
           justify-content: center !important;
-          font-size: 1.35rem !important;
-          line-height: 1 !important;
+          width: 2.25rem !important;
+          height: 2.25rem !important;
+          padding: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-title-sound .exam-sound-icon-svg {
+          width: 1.75rem !important;
+          height: 1.15rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-links {
           display: none !important;
@@ -1640,7 +1677,6 @@ function ExamModeContent() {
         }
 
         /* Landscape-only restore (reference layout) — portrait/desktop UI unchanged */
-        [data-exam-mode="typing"] .exam-typing-portrait-menu,
         [data-exam-mode="typing"] .exam-typing-portrait-menu-close,
         [data-exam-mode="typing"] .exam-typing-portrait-section-row {
           display: none !important;
@@ -1656,18 +1692,13 @@ function ExamModeContent() {
         [data-exam-mode="typing"] .exam-typing-header-profile-portrait {
           display: none !important;
         }
-        [data-exam-mode="typing"] .exam-typing-header-left {
-          gap: 0.75rem !important;
+        [data-exam-mode="typing"] .exam-typing-header-left,
+        [data-exam-mode="mcq"] .exam-typing-header-left {
+          gap: 0.5rem !important;
+          padding-left: 0 !important;
         }
         [data-exam-mode="mcq"] .exam-mobile-exam-title {
           display: none !important;
-        }
-        [data-exam-mode="mcq"] .exam-portrait-header-menu {
-          display: none !important;
-        }
-        body:has([data-exam-mode="typing"]) .exam-mobile-menu-btn,
-        body:has([data-exam-mode="mcq"]) .exam-mobile-menu-btn {
-          display: flex !important;
         }
 
         html:has([data-exam-mode="typing"]),
@@ -1687,19 +1718,6 @@ function ExamModeContent() {
           overflow: hidden !important;
           max-height: 100dvh !important;
           max-height: 100svh !important;
-        }
-        body:has([data-exam-mode="typing"]) .exam-mobile-menu-btn {
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          top: 0.35rem !important;
-          left: 0 !important;
-          padding: 0.25rem 0.35rem !important;
-          font-size: 1rem !important;
-          line-height: 1 !important;
-          min-width: 2rem !important;
-          min-height: 1.75rem !important;
-          z-index: 110 !important;
         }
         body:has([data-exam-mode="typing"]) .exam-mobile-drawer-backdrop {
           display: block !important;
@@ -1733,13 +1751,10 @@ function ExamModeContent() {
           font-size: 0.75rem !important;
           line-height: 1.2 !important;
         }
-        [data-exam-mode="typing"] .landscape-reduce-header .max-md\\:pl-9,
-        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-left {
-          padding-left: 3rem !important;
-          gap: 0.35rem !important;
-        }
-        [data-exam-mode="typing"] .landscape-reduce-header {
+        [data-exam-mode="typing"] .landscape-reduce-header,
+        [data-exam-mode="mcq"] .landscape-reduce-header {
           padding-left: 0.5rem !important;
+          padding-right: 0.75rem !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header > div:first-child {
           gap: 0.35rem !important;
@@ -2378,8 +2393,13 @@ function ExamModeContent() {
           align-items: center !important;
           justify-content: center !important;
           flex-shrink: 0 !important;
-          font-size: 1.25rem !important;
-          line-height: 1 !important;
+          width: 2rem !important;
+          height: 2rem !important;
+          padding: 0 !important;
+        }
+        [data-exam-mode="typing"] .exam-typing-header-sound .exam-sound-icon-svg {
+          width: 1.55rem !important;
+          height: 1rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-profile {
           display: none !important;
@@ -2440,26 +2460,18 @@ function ExamModeContent() {
           max-height: none !important;
           overflow: visible !important;
         }
-        body:has([data-exam-mode="mcq"]) .exam-mobile-menu-btn {
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          top: 0.35rem !important;
-          left: 0 !important;
-          padding: 0.25rem 0.35rem !important;
-          font-size: 1rem !important;
-          line-height: 1 !important;
-          min-width: 2rem !important;
-          min-height: 1.75rem !important;
-          z-index: 110 !important;
-        }
         [data-exam-mode="mcq"] .exam-mcq-header-sound {
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
           flex-shrink: 0 !important;
-          font-size: 1rem !important;
-          padding: 0 0.15rem !important;
+          width: 2rem !important;
+          height: 2rem !important;
+          padding: 0 !important;
+        }
+        [data-exam-mode="mcq"] .exam-mcq-header-sound .exam-sound-icon-svg {
+          width: 1.55rem !important;
+          height: 1rem !important;
         }
         [data-exam-mode="mcq"] .exam-mcq-header-timer {
           display: flex !important;
@@ -4567,18 +4579,6 @@ function ExamModeContent() {
 
   return (
     <div className="exam-mode-root h-screen flex flex-col lg:flex-row bg-white relative overflow-hidden">
-      {/* Mobile Menu Button */}
-      <button
-        type="button"
-        className={`lg:hidden fixed top-1 left-0 z-[60] p-1.5 rounded font-bold text-lg leading-none exam-mobile-menu-btn ${
-          isMobileMenuOpen ? "bg-red-600 text-white shadow-md" : "bg-[#290c52] text-white"
-        }`}
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-      >
-        {isMobileMenuOpen ? "✕" : "☰"}
-      </button>
-
       {/* Sidebar - Mobile */}
       {isMobileMenuOpen && (
         <>
@@ -4804,30 +4804,18 @@ function ExamModeContent() {
 
       <div className="flex-1 flex flex-col h-full overflow-hidden exam-mobile-mcq-column" data-exam-mode={currentQuestion?.questionType !== "TYPING" ? "mcq" : "typing"}>
         {/* Header with User Info */}
-        <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center pl-1 pr-4 py-2 text-sm z-30 landscape-reduce-header md:px-4">
-          <div className="flex items-center gap-1 max-md:pl-0 exam-typing-header-left">
-            {currentQuestion?.questionType === "TYPING" && (
-              <button
-                type="button"
-                className="exam-typing-portrait-menu hidden items-center justify-center text-white text-xl font-bold w-8 h-8 shrink-0 leading-none"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                aria-label="Open menu"
-              >
-                ☰
-              </button>
-            )}
-            {currentQuestion?.questionType !== "TYPING" && (
-              <button
-                type="button"
-                className="exam-portrait-header-menu hidden items-center justify-center text-white text-xl font-bold w-8 h-8 shrink-0 leading-none"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-              >
-                {isMobileMenuOpen ? "✕" : "☰"}
-              </button>
-            )}
-            <span className="font-semibold whitespace-nowrap exam-typing-header-title text-yellow-400">
-              {examData?.key ? `${examData.key} 2025` : "MPCPCT 2025"}
+        <div className="fixed top-0 left-0 right-0 w-full bg-[#290c52] text-white flex justify-between items-center px-2 py-1.5 text-sm z-30 landscape-reduce-header md:px-4 min-h-[2.5rem]">
+          <div className="flex items-center gap-1.5 exam-typing-header-left min-w-0">
+            <button
+              type="button"
+              className="exam-header-menu-btn items-center justify-center text-white text-[1.35rem] font-bold w-8 h-8 shrink-0 leading-none"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {isMobileMenuOpen ? "✕" : "☰"}
+            </button>
+            <span className="font-semibold whitespace-nowrap exam-typing-header-title text-yellow-400 text-sm sm:text-base">
+              {EXAM_HEADER_BRAND}
             </span>
             <Link href="/" className="hidden md:inline-flex exam-portrait-hide-home cursor-pointer items-center justify-center text-[12px] font-medium px-3 py-1.5 rounded bg-white/20 hover:bg-white/30 text-white border border-white/40">
               Home
@@ -4865,9 +4853,9 @@ function ExamModeContent() {
                 type="button"
                 onClick={() => setIsSoundOn(!isSoundOn)}
                 title={isSoundOn ? "Mute" : "Unmute"}
-                className="exam-typing-header-sound hidden max-[900px]:landscape:inline-flex md:inline-flex lg:hidden items-center justify-center text-xl leading-none shrink-0"
+                className="exam-sound-icon-btn exam-typing-header-sound hidden max-[900px]:landscape:inline-flex md:inline-flex lg:hidden items-center justify-center shrink-0"
               >
-                {isSoundOn ? "🔊" : "🔇"}
+                <ExamSoundIcon active={isSoundOn} className="exam-sound-icon-svg" />
               </button>
             )}
             {/* Timer - Show in landscape mode for questions only, positioned before View Instructions */}
@@ -4935,9 +4923,9 @@ function ExamModeContent() {
                   type="button"
                   onClick={() => setIsSoundOn(!isSoundOn)}
                   title={isSoundOn ? "Mute" : "Unmute"}
-                  className="exam-typing-title-sound w-9 shrink-0 inline-flex items-center justify-center text-xl leading-none"
+                  className="exam-sound-icon-btn exam-typing-title-sound w-9 shrink-0 inline-flex items-center justify-center"
                 >
-                  {isSoundOn ? "🔊" : "🔇"}
+                  <ExamSoundIcon active={isSoundOn} className="exam-sound-icon-svg" />
                 </button>
               ) : (
                 <span className="w-9 shrink-0" aria-hidden />
@@ -5009,8 +4997,13 @@ function ExamModeContent() {
         <div className={`lg:hidden flex flex-col border-b border-y-gray-200 bg-[#fff] sticky top-[40px] z-20 shadow-sm landscape-reduce-section-nav landscape-hide-sections exam-mobile-section-nav ${currentQuestion?.questionType === "TYPING" ? "hidden" : ""}`}>
           <div className="exam-mobile-timer-row flex items-center justify-between px-4 py-2 border-b border-gray-200 landscape-hide-status-bar">
             <div className="flex items-center gap-2">
-            <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
-              {isSoundOn ? "🔊" : "🔇"}
+            <button
+              type="button"
+              onClick={() => setIsSoundOn(!isSoundOn)}
+              title={isSoundOn ? "Mute" : "Unmute"}
+              className="exam-sound-icon-btn"
+            >
+              <ExamSoundIcon active={isSoundOn} className="exam-sound-icon-svg" />
             </button>
             </div>
             <div className="flex items-center gap-2">
@@ -5240,8 +5233,13 @@ function ExamModeContent() {
               );
             })}
             <div className="ml-auto flex items-center gap-2 whitespace-nowrap">
-              <button onClick={() => setIsSoundOn(!isSoundOn)} title={isSoundOn ? "Mute" : "Unmute"}>
-                {isSoundOn ? "🔊" : "🔇"}
+              <button
+                type="button"
+                onClick={() => setIsSoundOn(!isSoundOn)}
+                title={isSoundOn ? "Mute" : "Unmute"}
+                className="exam-sound-icon-btn"
+              >
+                <ExamSoundIcon active={isSoundOn} className="exam-sound-icon-svg" />
               </button>
               {/* For RSCIT Section A: Show typing timer, for others show main timer */}
               {examData?.key === 'RSCIT' && section === 'Section A' && typingTimeLeft !== null ? (

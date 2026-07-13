@@ -13,8 +13,9 @@ import {
   mergeExamUserProfile,
   readExamUserDataFromStorage,
   resolveUserProfileUrl,
+  DEFAULT_PROFILE_AVATAR,
 } from "@/lib/userProfile";
-import UserProfileAvatar from "@/components/common/UserProfileAvatar";
+import { EXAM_HEADER_BRAND } from "@/lib/examBranding";
 
 function isTypingSectionName(name) {
   if (!name) return false;
@@ -49,7 +50,7 @@ function ExamResultContent() {
   const [isPassed, setIsPassed] = useState(false);
   const [typingResults, setTypingResults] = useState([]);
   const [showCriteriaModal, setShowCriteriaModal] = useState(false);
-  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+  const [userProfileUrl, setUserProfileUrl] = useState(DEFAULT_PROFILE_AVATAR);
   const [criteriaLines, setCriteriaLines] = useState([]);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -477,7 +478,7 @@ function ExamResultContent() {
     pdf.rect(0, 0, pageWidth, 20, 'F');
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(18);
-    pdf.text('MPCPCT 2025', pageWidth / 2, 12, { align: 'center' });
+    pdf.text(EXAM_HEADER_BRAND, pageWidth / 2, 12, { align: 'center' });
     
     // User Info
     pdf.setTextColor(0, 0, 0);
@@ -585,7 +586,7 @@ function ExamResultContent() {
     <div className="min-h-screen bg-white text-sm">
       {/* Header with profile */}
       <div className="bg-[#290c52] text-white px-3 py-2 flex items-center justify-between gap-2 border-b border-[#1a0835]">
-        <span className="text-yellow-400 text-base sm:text-lg font-bold whitespace-nowrap">MPCPCT 2025</span>
+        <span className="text-yellow-400 text-base sm:text-lg font-bold whitespace-nowrap">{EXAM_HEADER_BRAND}</span>
         <div className="flex items-center gap-2 min-w-0">
           <UserProfileAvatar
             src={userProfileUrl}

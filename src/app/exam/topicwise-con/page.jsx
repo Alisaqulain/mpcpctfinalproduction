@@ -221,7 +221,7 @@ function TopicWiseInstructionsContent() {
         {/* Right Side Profile */}
         <div className="hidden lg:flex lg:w-[15%] border-l border-gray-300 flex-col items-center justify-start py-6 bg-white-100">
           <img
-            src="/lo.jpg"
+            src="/user.jpg"
             alt="User"
             className="w-24 h-24 rounded-full border-2 border-gray-400"
           />

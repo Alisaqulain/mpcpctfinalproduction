@@ -8,6 +8,7 @@ import {
   mergeExamUserProfile,
   readExamUserDataFromStorage,
   resolveUserProfileUrl,
+  DEFAULT_PROFILE_AVATAR,
 } from "@/lib/userProfile";
 
 function StartTestPageContent() {
@@ -22,7 +23,7 @@ function StartTestPageContent() {
   const [accessChecked, setAccessChecked] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
   const [accessError, setAccessError] = useState(null);
-  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+  const [userProfileUrl, setUserProfileUrl] = useState(DEFAULT_PROFILE_AVATAR);
 
   useEffect(() => {
     const loadProfile = async () => {

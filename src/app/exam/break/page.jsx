@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { EXAM_HEADER_BRAND } from "@/lib/examBranding";
 
 function BreakScreenContent() {
   const [seconds, setSeconds] = useState(60);
@@ -134,12 +135,12 @@ function BreakScreenContent() {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center mt-[-110]">
       <div className="w-full bg-[#290c52] text-yellow-400 text-left px-4 max-md:pl-12 py-2 font-bold text-lg">
-        MPCPCT 2025
+        {EXAM_HEADER_BRAND}
       </div>
 
       <div className="flex flex-col items-center py-10 space-y-2 w-full">
         <img
-          src="/lo.jpg"
+          src="/user.jpg"
           alt="avatar"
           className="w-20 h-20 rounded-full"
         />

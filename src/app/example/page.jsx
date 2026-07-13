@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef, Suspense } from "react
 import { useSearchParams } from "next/navigation";
 import { Sun, Moon } from "lucide-react";
 import { getLearningData, getLessonContent } from "@/lib/learningData";
+import { DEFAULT_PROFILE_AVATAR, resolveUserProfileUrl } from "@/lib/userProfile";
 
 function KeyboardApp() {
   const searchParams = useSearchParams();
@@ -31,7 +32,7 @@ function KeyboardApp() {
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
   const [userName, setUserName] = useState("User");
-  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+  const [userProfileUrl, setUserProfileUrl] = useState(DEFAULT_PROFILE_AVATAR);
   const [currentRowIndex, setCurrentRowIndex] = useState(0);
   const [isRowAnimating, setIsRowAnimating] = useState(false);
   const [keyDifficulties, setKeyDifficulties] = useState({}); // Track wrong attempts per key
@@ -278,7 +279,7 @@ function KeyboardApp() {
           const data = await res.json();
           if (data.user) {
             setUserName(data.user.name || "User");
-            setUserProfileUrl(data.user.profileUrl || "/lo.jpg");
+            setUserProfileUrl(resolveUserProfileUrl(data.user));
           }
         }
       } catch (error) {
@@ -1284,7 +1285,7 @@ function KeyboardApp() {
             alt="User"
             className="w-30 h-25 rounded-md border-2 border-white mobile-scale"
             onError={(e) => {
-              e.target.src = "/lo.jpg";
+              e.target.src = DEFAULT_PROFILE_AVATAR;
             }}
           />
           <p className="font-semibold text-xs md:text-sm mt-1">{userName}</p>

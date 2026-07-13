@@ -6,6 +6,7 @@ import {
   mergeExamUserProfile,
   readExamUserDataFromStorage,
   resolveUserProfileUrl,
+  DEFAULT_PROFILE_AVATAR,
 } from "@/lib/userProfile";
 
 export default function ExamInstructions() {
@@ -15,7 +16,7 @@ export default function ExamInstructions() {
   const [questionLanguage, setQuestionLanguage] = useState("हिन्दी");
   const [isAgreed, setIsAgreed] = useState(true);
   const [showError, setShowError] = useState(false);
-  const [userProfileUrl, setUserProfileUrl] = useState("/lo.jpg");
+  const [userProfileUrl, setUserProfileUrl] = useState(DEFAULT_PROFILE_AVATAR);
 
   const isHindi = language === "हिन्दी" || language === "Hindi";
   const brandName = "MPCPCT";

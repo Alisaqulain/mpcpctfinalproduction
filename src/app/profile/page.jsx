@@ -2,6 +2,8 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import jsPDF from "jspdf";
+import { EXAM_HEADER_BRAND } from "@/lib/examBranding";
+import { DEFAULT_PROFILE_AVATAR, resolveUserProfileUrl } from "@/lib/userProfile";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -130,7 +132,7 @@ export default function ProfilePage() {
     setEditName(user.name || "");
     setEditCity(user.city || "");
     setEditState(user.states || "");
-    setPhotoPreview(user.profileUrl || "/user.jpg");
+    setPhotoPreview(resolveUserProfileUrl(user));
     setPhotoFile(null);
     setEditError(null);
     setIsEditing(true);
@@ -376,7 +378,7 @@ export default function ProfilePage() {
       pdf.rect(0, 0, pageWidth, 20, 'F');
       pdf.setTextColor(255, 255, 255);
       pdf.setFontSize(18);
-      pdf.text('MPCPCT 2025', pageWidth / 2, 12, { align: 'center' });
+      pdf.text(EXAM_HEADER_BRAND, pageWidth / 2, 12, { align: 'center' });
       
       // User Info
       pdf.setTextColor(0, 0, 0);
@@ -530,11 +532,11 @@ export default function ProfilePage() {
         <div className="bg-white shadow-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-8 mb-4 sm:mb-6">
           <div className="group">
             <img
-              src={user.profileUrl || "/user.jpg"}
+              src={resolveUserProfileUrl(user)}
               alt="User"
               className="w-24 h-24 sm:w-28 sm:h-28 rounded-full mx-auto border-4 border-purple-500 shadow-lg transform transition-transform duration-300 group-hover:scale-105 object-cover"
               onError={(e) => {
-                e.target.src = "/user.jpg";
+                e.target.src = DEFAULT_PROFILE_AVATAR;
               }}
             />
           </div>
@@ -586,11 +588,11 @@ export default function ProfilePage() {
                 >
                 <div className="text-center">
                   <img
-                    src={photoPreview || "/user.jpg"}
+                    src={photoPreview || DEFAULT_PROFILE_AVATAR}
                     alt="Profile preview"
                     className="w-20 h-20 sm:w-24 sm:h-24 rounded-full mx-auto border-4 border-purple-500 object-cover"
                     onError={(e) => {
-                      e.target.src = "/user.jpg";
+                      e.target.src = DEFAULT_PROFILE_AVATAR;
                     }}
                   />
                   <label className="mt-3 inline-block cursor-pointer text-sm text-purple-600 hover:text-purple-700 font-semibold">
