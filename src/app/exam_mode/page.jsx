@@ -1926,9 +1926,14 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer span,
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer b {
-          font-size: 0.6rem !important;
-          padding: 0.06rem 0.3rem !important;
-          line-height: 1.1 !important;
+          font-size: 0.72rem !important;
+          padding: 0.08rem 0.35rem !important;
+          line-height: 1.15 !important;
+        }
+        [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer b {
+          font-size: 0.9rem !important;
+          font-weight: 700 !important;
+          padding: 0.1rem 0.45rem !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer .exam-typing-timer-sound {
           width: 1.65rem !important;
@@ -2078,18 +2083,18 @@ function ExamModeContent() {
           gap: 0.08rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-sidebar-avatar {
-          width: 3.85rem !important;
-          height: 3.85rem !important;
+          width: 3.55rem !important;
+          height: 3.55rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-landscape-sidebar-profile-block .exam-typing-landscape-username {
           margin-top: 0.05rem !important;
           font-size: 7px !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-meter-gauge-portrait {
-          width: 3.25rem !important;
-          height: 3.25rem !important;
-          max-width: 3.25rem !important;
-          max-height: 3.25rem !important;
+          width: 3.55rem !important;
+          height: 3.55rem !important;
+          max-width: 3.55rem !important;
+          max-height: 3.55rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-main:has(.exam-typing-landscape-keyboard-sidebar) .exam-typing-meter-gauge-portrait .speedometer-value {
           bottom: 0.7rem !important;
@@ -2279,8 +2284,8 @@ function ExamModeContent() {
           gap: 0.15rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge-portrait {
-          width: min(3.85rem, 100%) !important;
-          height: min(3.85rem, 100%) !important;
+          width: min(4.15rem, 100%) !important;
+          height: min(4.15rem, 100%) !important;
           min-width: 0 !important;
           min-height: 0 !important;
           max-width: 100% !important;
@@ -2325,8 +2330,8 @@ function ExamModeContent() {
           margin-bottom: 0.2rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-avatar {
-          width: 4.5rem !important;
-          height: 4.5rem !important;
+          width: 4.1rem !important;
+          height: 4.1rem !important;
           border-radius: 0.375rem !important;
           object-fit: cover !important;
         }
@@ -2388,16 +2393,16 @@ function ExamModeContent() {
           max-height: 100% !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge-portrait {
-          width: min(3.85rem, 100%) !important;
-          height: min(3.85rem, 100%) !important;
+          width: min(4.15rem, 100%) !important;
+          height: min(4.15rem, 100%) !important;
           min-width: 0 !important;
           min-height: 0 !important;
           max-width: 100% !important;
           max-height: 100% !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-meter-gauge-portrait .speedometer-value {
-          bottom: 0.85rem !important;
-          font-size: 0.65rem !important;
+          bottom: 0.9rem !important;
+          font-size: 0.68rem !important;
           line-height: 1 !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .speedometer-label {
@@ -2422,8 +2427,8 @@ function ExamModeContent() {
           max-width: 46% !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar-profile img {
-          width: 4.5rem !important;
-          height: 4.5rem !important;
+          width: 4.1rem !important;
+          height: 4.1rem !important;
           object-fit: cover !important;
         }
         [data-exam-mode="typing"] .exam-typing-landscape-sidebar .exam-typing-landscape-username {
