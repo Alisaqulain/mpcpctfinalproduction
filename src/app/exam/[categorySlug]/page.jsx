@@ -184,8 +184,8 @@ function ExamCategoryContent() {
   return (
     <div className="min-h-screen bg-[#fff] flex flex-col">
       <div className="sticky top-0 z-50 bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="max-w-4xl mx-auto px-4 py-3 sm:py-4">
+          <div className="flex items-center gap-4 mb-3 sm:mb-4">
           <button
             type="button"
             onClick={() => router.push("/exam")}
@@ -199,16 +199,16 @@ function ExamCategoryContent() {
           </div>
 
           {tabs.length > 0 && (
-            <div className="flex border border-gray-300 rounded-full overflow-hidden shadow-sm flex-wrap">
+            <div className="flex flex-nowrap w-full border border-gray-300 rounded-full overflow-hidden shadow-sm">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 min-w-0 py-4 text-[10px] md:text-[16px] font-bold transition-colors duration-300 border-l border-gray-300 first:border-l-0 ${
+                  className={`flex-1 basis-0 min-w-0 py-3 md:py-4 px-0.5 sm:px-1 md:px-2 text-[9px] sm:text-[11px] md:text-sm font-bold whitespace-nowrap transition-colors duration-300 border-l border-gray-300 first:border-l-0 flex items-center justify-center ${
                     activeTab === tab.id
                       ? "bg-[#290c52] text-white"
-                      : "bg-transparent text-gray-700 hover:bg-gray-100"
+                      : "bg-white text-gray-700 hover:bg-gray-100"
                   }`}
                 >
                   {tab.label}
@@ -219,8 +219,8 @@ function ExamCategoryContent() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 py-4 sm:py-6">
           {loading && (
             <div className="text-center py-8">
               <p className="text-gray-600">Loading...</p>
@@ -234,7 +234,7 @@ function ExamCategoryContent() {
           )}
 
           {!loading && subs.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[calc(100dvh-11.5rem)] sm:max-h-[calc(100dvh-12.5rem)] md:max-h-none overflow-y-auto overscroll-y-contain pr-1">
               {activeTab === "topicwise" ? (
                 <>
                   {topicsLoading ? (

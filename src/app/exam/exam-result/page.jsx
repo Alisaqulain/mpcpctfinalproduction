@@ -16,6 +16,7 @@ import {
   DEFAULT_PROFILE_AVATAR,
 } from "@/lib/userProfile";
 import { EXAM_HEADER_BRAND } from "@/lib/examBranding";
+import UserProfileAvatar from "@/components/common/UserProfileAvatar";
 
 function isTypingSectionName(name) {
   if (!name) return false;
@@ -1002,7 +1003,7 @@ function ExamResultContent() {
                       return (
                         <div 
                           key={q._id || qIndex}
-                          className={`border-2 rounded-lg p-4 ${
+                          className={`border-2 rounded-lg p-4 overflow-hidden min-w-0 ${
                             showAnswers && isCorrect 
                               ? 'border-green-500 bg-green-50' 
                               : isAnswered 
@@ -1138,18 +1139,20 @@ function ExamResultContent() {
                               : null;
                             
                             return explanationText ? (
-                              <div className="mt-4 p-4 bg-white border border-gray-200 rounded-lg">
+                              <div className="mt-4 p-4 bg-white border border-gray-200 rounded-lg overflow-hidden">
                                 <div className="flex items-center gap-2 mb-2">
-                                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-5 h-5 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
                                   <span className="text-sm font-semibold text-gray-800">
                                     {viewLanguage === "हिन्दी" ? "व्याख्या:" : "Explanation:"}
                                   </span>
                                 </div>
-                                <p className="text-sm md:text-base text-gray-800 leading-relaxed">
-                                  {explanationText}
-                                </p>
+                                <div className="max-h-32 sm:max-h-40 overflow-y-auto overflow-x-hidden overscroll-y-contain">
+                                  <p className="text-sm md:text-base text-gray-800 leading-relaxed break-words whitespace-pre-wrap [overflow-wrap:anywhere]">
+                                    {explanationText}
+                                  </p>
+                                </div>
                               </div>
                             ) : null;
                           })()}

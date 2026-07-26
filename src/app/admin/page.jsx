@@ -531,6 +531,11 @@ export default function AdminPanel() {
       alert('Please select an exam, section, and part first');
       return;
     }
+    const parseImageDimension = (val) => {
+      if (val === null || val === undefined || val === '') return undefined;
+      const n = parseInt(String(val).trim(), 10);
+      return Number.isFinite(n) && n > 0 ? n : undefined;
+    };
     setSaving(true);
     try {
       const method = editingQuestion ? 'PUT' : 'POST';
@@ -581,9 +586,9 @@ export default function AdminPanel() {
             setSaving(false);
             return;
           }
-          // Image question - save imageUrl and set placeholder text
-          body.question_en = '[Image Question]';
-          body.question_hi = '';
+          // Image question - save imageUrl; optional caption shows above image in exam
+          body.question_en = formData.question?.trim() || '[Image Question]';
+          body.question_hi = formData.question_hi?.trim() || '';
           
           // CRITICAL: Ensure imageUrl is included
           const imageUrlToSave = formData.imageUrl ? formData.imageUrl.trim() : '';
@@ -599,13 +604,10 @@ export default function AdminPanel() {
           }
           
           body.imageUrl = imageUrlToSave;
-          // Add imageWidth and imageHeight if provided
-          if (formData.imageWidth && formData.imageWidth.trim() !== '') {
-            body.imageWidth = parseInt(formData.imageWidth) || undefined;
-          }
-          if (formData.imageHeight && formData.imageHeight.trim() !== '') {
-            body.imageHeight = parseInt(formData.imageHeight) || undefined;
-          }
+          const imageWidth = parseImageDimension(formData.imageWidth);
+          const imageHeight = parseImageDimension(formData.imageHeight);
+          if (imageWidth) body.imageWidth = imageWidth;
+          if (imageHeight) body.imageHeight = imageHeight;
           console.log('💾 Saving image question with imageUrl:', body.imageUrl);
           console.log('💾 Image dimensions:', { width: body.imageWidth, height: body.imageHeight });
           console.log('💾 Full body being saved:', JSON.stringify(body, null, 2));
@@ -625,22 +627,18 @@ export default function AdminPanel() {
             body.imageUrl = formData.imageUrl || ''; // Use formData value (might be empty if user removed it)
             // Also preserve imageWidth and imageHeight if imageUrl exists
             if (formData.imageUrl && formData.imageUrl.trim() !== '') {
-              if (formData.imageWidth && formData.imageWidth.trim() !== '') {
-                body.imageWidth = parseInt(formData.imageWidth) || undefined;
-              }
-              if (formData.imageHeight && formData.imageHeight.trim() !== '') {
-                body.imageHeight = parseInt(formData.imageHeight) || undefined;
-              }
+              const imageWidth = parseImageDimension(formData.imageWidth);
+              const imageHeight = parseImageDimension(formData.imageHeight);
+              if (imageWidth) body.imageWidth = imageWidth;
+              if (imageHeight) body.imageHeight = imageHeight;
             }
           } else if (formData.imageUrl && formData.imageUrl.trim() !== '') {
             // Optional image for text question
             body.imageUrl = formData.imageUrl.trim();
-            if (formData.imageWidth && formData.imageWidth.trim() !== '') {
-              body.imageWidth = parseInt(formData.imageWidth) || undefined;
-            }
-            if (formData.imageHeight && formData.imageHeight.trim() !== '') {
-              body.imageHeight = parseInt(formData.imageHeight) || undefined;
-            }
+            const imageWidth = parseImageDimension(formData.imageWidth);
+            const imageHeight = parseImageDimension(formData.imageHeight);
+            if (imageWidth) body.imageWidth = imageWidth;
+            if (imageHeight) body.imageHeight = imageHeight;
           } else {
             body.imageUrl = '';
           }
@@ -654,6 +652,10 @@ export default function AdminPanel() {
         body.solutionVideoLink = formData.solutionVideoLink?.trim() || '';
         body.explanation_en = formData.explanation_en?.trim() || '';
         body.explanation_hi = formData.explanation_hi?.trim() || '';
+        if (formData.passage_en?.trim() || formData.passage_hi?.trim()) {
+          body.passage_en = formData.passage_en?.trim() || '';
+          body.passage_hi = formData.passage_hi?.trim() || '';
+        }
       } else if (formData.questionType === 'TYPING') {
         body.typingLanguage = formData.typingLanguage || 'English';
         body.typingScriptType = formData.typingScriptType || '';
@@ -694,6 +696,43 @@ export default function AdminPanel() {
         if (data.question) {
           console.log('✅ Saved question imageUrl:', data.question.imageUrl);
         }
+
+        if (
+          formData.updatePassageForAll &&
+          (formData.passage_en?.trim() || formData.passage_hi?.trim()) &&
+          selectedPart
+        ) {
+          try {
+            const allRes = await fetch(
+              `/api/admin/questions?examId=${encodeURIComponent(selectedExam)}&sectionId=${encodeURIComponent(selectedSection)}&partId=${encodeURIComponent(selectedPart)}`,
+              { credentials: 'include' }
+            );
+            const allData = await allRes.json();
+            const oldPassageEn = (editingQuestion?.passage_en || '').trim();
+            const siblings = (allData.questions || []).filter((q) => {
+              if (String(q._id) === String(editingQuestion?._id || data.question?._id)) return false;
+              if (oldPassageEn) return (q.passage_en || '').trim() === oldPassageEn;
+              return !!(q.passage_en || q.passage_hi);
+            });
+
+            for (const sib of siblings) {
+              await fetch('/api/admin/questions', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                  ...sib,
+                  _id: sib._id,
+                  passage_en: formData.passage_en?.trim() || '',
+                  passage_hi: formData.passage_hi?.trim() || '',
+                }),
+              });
+            }
+          } catch (syncErr) {
+            console.error('Failed to sync passage to sibling questions:', syncErr);
+          }
+        }
+
         await fetchQuestions(selectedExam, selectedSection, selectedPart);
         setShowQuestionForm(false);
         setEditingQuestion(null); // Clear editing state
@@ -3670,6 +3709,30 @@ What has enabled cashless transactions? A. Barter B. Digital payments C. Physica
                 ) : questions.length === 0 ? (
                   <p className="text-gray-500 text-center py-8">No questions yet. Click "+ Add Question" to create one.</p>
                 ) : (
+                  <>
+                  {(() => {
+                    const part = parts.find((p) => String(p._id) === String(selectedPart));
+                    const name = (part?.name || '').toUpperCase();
+                    const isReading = name.includes('READING') || name.includes('COMPREHENSION');
+                    if (!isReading) return null;
+                    const samplePassage = questions.find((q) => q.passage_en || q.passage_hi);
+                    return (
+                      <div className="mb-4 p-3 bg-purple-50 border-2 border-purple-300 rounded-lg text-sm text-purple-900">
+                        <strong>📖 Reading Comprehension:</strong> Click <strong>Edit</strong> on any question below.
+                        The form opens with a purple <strong>Reading Comprehension Passage</strong> box at the top
+                        (English + Hindi). That is the long passage — not the short lines like &quot;Trees give:&quot;.
+                        {samplePassage ? (
+                          <p className="mt-2 text-xs text-purple-800">
+                            Current passage preview: {(samplePassage.passage_en || samplePassage.passage_hi || '').slice(0, 160)}…
+                          </p>
+                        ) : (
+                          <p className="mt-2 text-xs text-amber-800 font-medium">
+                            No passage saved yet — open Edit and fill the purple passage box, then save.
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                   <ul className="space-y-3 max-h-[60vh] overflow-y-auto">
                     {questions.map(q => {
                       const questionType = q.questionType || 'MCQ';
@@ -3720,6 +3783,14 @@ What has enabled cashless transactions? A. Barter B. Digital payments C. Physica
                             </>
                           ) : (
                             <>
+                              {(q.passage_en || q.passage_hi) && (
+                                <div className="text-xs text-purple-800 bg-purple-50 border border-purple-200 rounded p-2 mb-2">
+                                  <strong>📖 Reading passage:</strong>{' '}
+                                  {(q.passage_en || q.passage_hi || '').slice(0, 120)}
+                                  {(q.passage_en || q.passage_hi || '').length > 120 ? '…' : ''}
+                                  <span className="block text-purple-600 mt-1">Edit any question below → scroll to &quot;Reading Comprehension Passage&quot;</span>
+                                </div>
+                              )}
                               <div className="font-medium text-gray-800 mb-2">{questionText}</div>
                               {questionTextHi && <div className="text-sm text-gray-600 mb-2">{questionTextHi}</div>}
                               <div className="text-sm text-gray-700 mb-2">
@@ -3810,6 +3881,7 @@ What has enabled cashless transactions? A. Barter B. Digital payments C. Physica
                       );
                     })}
           </ul>
+                  </>
                 )}
         </div>
       </div>
@@ -3855,6 +3927,20 @@ What has enabled cashless transactions? A. Barter B. Digital payments C. Physica
           {showQuestionForm && (
             <QuestionFormModal 
               question={editingQuestion}
+              isReadingComprehensionPart={(() => {
+                const part = parts.find((p) => String(p._id) === String(selectedPart));
+                const name = (part?.name || '').toUpperCase();
+                return name.includes('READING') || name.includes('COMPREHENSION');
+              })()}
+              sharedPassage={(() => {
+                const withPassage = questions.find((q) => q.passage_en || q.passage_hi);
+                return withPassage
+                  ? {
+                      passage_en: withPassage.passage_en || '',
+                      passage_hi: withPassage.passage_hi || '',
+                    }
+                  : null;
+              })()}
               onSave={handleSaveQuestion} 
               onClose={() => { setShowQuestionForm(false); setEditingQuestion(null); }} 
               saving={saving}
@@ -5723,7 +5809,7 @@ function SectionFormModal({ onSave, onClose, saving }) {
   );
 }
 
-function QuestionFormModal({ question, onSave, onClose, saving }) {
+function QuestionFormModal({ question, onSave, onClose, saving, isReadingComprehensionPart = false, sharedPassage = null }) {
   const numberOfMcqOptions = (typeof window !== 'undefined' && (v => (v >= 2 && v <= 10) ? v : 4)(parseInt(localStorage.getItem('admin_mcq_options_count'), 10))) || 4;
   console.log('📋 QuestionFormModal rendered with question:', {
     _id: question?._id,
@@ -5734,6 +5820,18 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
     allKeys: question ? Object.keys(question) : []
   });
   
+  const resolvePassageFields = (q) => {
+    const passage_en = q?.passage_en || sharedPassage?.passage_en || '';
+    const passage_hi = q?.passage_hi || sharedPassage?.passage_hi || '';
+    const hasPassage = !!(passage_en || passage_hi || isReadingComprehensionPart);
+    return {
+      passage_en,
+      passage_hi,
+      updatePassageForAll: hasPassage,
+      showPassageFields: hasPassage,
+    };
+  };
+
   // Initialize formData - will be updated by useEffect when question prop changes
   const [formData, setFormData] = useState({
     questionType: question?.questionType || 'MCQ',
@@ -5760,7 +5858,8 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
     isFree: question?.isFree || false,
     solutionVideoLink: question?.solutionVideoLink || '',
     explanation_en: question?.explanation_en || '',
-    explanation_hi: question?.explanation_hi || ''
+    explanation_hi: question?.explanation_hi || '',
+    ...resolvePassageFields(question),
   });
 
   // Update formData when question prop changes (for editing)
@@ -5807,7 +5906,8 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
         isFree: question.isFree || false,
         solutionVideoLink: question.solutionVideoLink || '',
         explanation_en: question.explanation_en || '',
-        explanation_hi: question.explanation_hi || ''
+        explanation_hi: question.explanation_hi || '',
+        ...resolvePassageFields(question),
       });
     } else {
       // Reset form when creating new question
@@ -5834,10 +5934,11 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
     isFree: false,
     solutionVideoLink: '',
     explanation_en: '',
-    explanation_hi: ''
+    explanation_hi: '',
+    ...resolvePassageFields(null),
   });
     }
-  }, [question]);
+  }, [question, isReadingComprehensionPart, sharedPassage?.passage_en, sharedPassage?.passage_hi]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -5848,7 +5949,7 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto py-8" onClick={onClose}>
       <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="border-b px-6 py-4 flex justify-between items-center sticky top-0 bg-white z-10">
-          <h3 className="text-lg font-semibold">Add New Question</h3>
+          <h3 className="text-lg font-semibold">{question ? 'Edit Question' : 'Add New Question'}</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -5892,6 +5993,64 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
           {/* MCQ Fields */}
           {formData.questionType === 'MCQ' && (
             <>
+              {/* Reading Comprehension Passage */}
+              {formData.showPassageFields ? (
+                <div className="bg-purple-50 p-4 rounded-lg border-2 border-purple-300 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="block text-sm font-semibold text-purple-900">📖 Reading Comprehension Passage</label>
+                    {!isReadingComprehensionPart && !question?.passage_en && !question?.passage_hi && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, showPassageFields: false, passage_en: '', passage_hi: '' })}
+                        className="text-xs text-purple-700 hover:underline"
+                      >
+                        Remove passage
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-purple-800">
+                    This is the long passage shown on the left during the exam. All 5 sub-questions share the same passage.
+                  </p>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Passage (English)</label>
+                    <textarea
+                      value={formData.passage_en}
+                      onChange={(e) => setFormData({ ...formData, passage_en: e.target.value })}
+                      className="w-full border rounded-lg px-4 py-2 text-sm"
+                      rows="5"
+                      placeholder="Enter the reading passage in English"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Passage (Hindi)</label>
+                    <textarea
+                      value={formData.passage_hi}
+                      onChange={(e) => setFormData({ ...formData, passage_hi: e.target.value })}
+                      className="w-full border rounded-lg px-4 py-2 text-sm"
+                      rows="5"
+                      placeholder="Enter the reading passage in Hindi"
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 text-sm text-purple-900">
+                    <input
+                      type="checkbox"
+                      checked={formData.updatePassageForAll}
+                      onChange={(e) => setFormData({ ...formData, updatePassageForAll: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    Apply passage change to all questions in this reading set
+                  </label>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, showPassageFields: true })}
+                  className="text-sm text-purple-700 border border-purple-300 bg-purple-50 hover:bg-purple-100 rounded-lg px-4 py-2 w-full text-left"
+                >
+                  + Add reading comprehension passage (English / Hindi)
+                </button>
+              )}
+
               {/* Question Format Selection: Text or Image */}
               <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-200">
                 <label className="block text-sm font-semibold mb-2 text-gray-800">Question Format *</label>
@@ -5919,7 +6078,7 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
                       type="radio"
                       name="questionFormat"
                       checked={formData.useImageForQuestion}
-                      onChange={() => setFormData({...formData, useImageForQuestion: true, question: '', question_hi: ''})}
+                      onChange={() => setFormData({...formData, useImageForQuestion: true})}
                       className="w-4 h-4"
                     />
                     <span className="font-medium">Image Question</span>
@@ -5956,9 +6115,31 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
 
               {/* Image Question Field */}
               {formData.useImageForQuestion && (
+                <>
+              <div>
+                <label className="block text-sm font-medium mb-2">Question caption (English) — Optional</label>
+                <textarea
+                  value={formData.question}
+                  onChange={(e) => setFormData({ ...formData, question: e.target.value })}
+                  className="w-full border rounded-lg px-4 py-2"
+                  rows="2"
+                  placeholder="Optional text shown above the image in the exam (e.g. Q.1 Find the correct figure)"
+                />
+                <p className="text-xs text-gray-500 mt-1">Leave empty if the full question is only inside the image.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Question caption (Hindi) — Optional</label>
+                <textarea
+                  value={formData.question_hi}
+                  onChange={(e) => setFormData({ ...formData, question_hi: e.target.value })}
+                  className="w-full border rounded-lg px-4 py-2"
+                  rows="2"
+                  placeholder="परीक्षा में छवि के ऊपर दिखने वाला वैकल्पिक टेक्स्ट"
+                />
+              </div>
                 <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
                   <label className="block text-sm font-semibold mb-2 text-gray-800">Upload Question Image *</label>
-                  <p className="text-xs text-gray-600 mb-3">Upload an image that contains the question. The question text will be in the image.</p>
+                  <p className="text-xs text-gray-600 mb-3">Upload the question image. Order in exam: caption (if any) → image → options.</p>
                   <input
                     type="file"
                     accept="image/*"
@@ -6001,19 +6182,11 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
                       }
                     }}
                     className="w-full border rounded-lg px-4 py-2"
-                    required={formData.useImageForQuestion}
+                    required={formData.useImageForQuestion && !formData.imageUrl}
                   />
-                  {/* Always show current imageUrl value for debugging */}
-                  <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
-                    <strong>Debug Info:</strong> formData.imageUrl = <code>"{formData.imageUrl || '(empty)'}"</code> 
-                    <br />
-                    <strong>Type:</strong> {typeof formData.imageUrl} | 
-                    <strong> Length:</strong> {formData.imageUrl ? formData.imageUrl.length : 0}
-                  </div>
                   
                   {formData.imageUrl && formData.imageUrl.trim() !== '' ? (
                     <div className="mt-3">
-                      <p className="text-xs text-gray-600 mb-2">Current Image URL: <code className="bg-gray-100 px-2 py-1 rounded">{formData.imageUrl}</code></p>
                       <img 
                         src={formData.imageUrl} 
                         alt="Question preview" 
@@ -6079,6 +6252,7 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
                     <p className="mt-2 text-xs text-yellow-600">⚠️ No image uploaded yet. Please upload an image.</p>
                   ) : null}
                 </div>
+                </>
               )}
 
               {/* Options (same for both text and image questions) */}
@@ -6309,7 +6483,7 @@ function QuestionFormModal({ question, onSave, onClose, saving }) {
               disabled={saving}
               className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium disabled:bg-gray-400"
             >
-              {saving ? 'Saving...' : 'Create Question'}
+              {saving ? 'Saving...' : question ? 'Update Question' : 'Create Question'}
             </button>
             <button
               type="button"

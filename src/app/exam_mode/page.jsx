@@ -213,8 +213,8 @@ function ExamModeContent() {
         }
       }
       .exam-sound-icon-svg {
-        width: 1.875rem !important;
-        height: 1.25rem !important;
+        width: 1.5rem !important;
+        height: 1.5rem !important;
         display: block !important;
         flex-shrink: 0 !important;
       }
@@ -493,7 +493,7 @@ function ExamModeContent() {
         /* Reduce passage height significantly */
         .landscape-reduce-passage {
           max-height: 10vh !important;
-          font-size: 0.55rem !important;
+          font-size: 0.62rem !important;
           padding: 0.1rem !important;
         }
         
@@ -971,8 +971,8 @@ function ExamModeContent() {
           margin: 0 !important;
         }
         .exam-mobile-timer-row .exam-sound-icon-svg {
-          width: 1.875rem !important;
-          height: 1.25rem !important;
+          width: 1.5rem !important;
+          height: 1.5rem !important;
         }
         [data-exam-mode="mcq"] .exam-mobile-timer-row .exam-portrait-timer-label {
           font-size: 1rem !important;
@@ -1223,11 +1223,11 @@ function ExamModeContent() {
           max-height: 11vh !important;
           min-height: 0 !important;
           padding: 0.15rem !important;
-          font-size: 0.7rem !important;
-          line-height: 1.2 !important;
+          font-size: 0.8rem !important;
+          line-height: 1.25 !important;
         }
         .exam-mobile-passage h3 {
-          font-size: 0.7rem !important;
+          font-size: 0.8rem !important;
           margin-bottom: 0.15rem !important;
         }
         .exam-mobile-question-text {
@@ -1493,8 +1493,8 @@ function ExamModeContent() {
           padding: 0 !important;
         }
         [data-exam-mode="typing"] .exam-typing-title-sound .exam-sound-icon-svg {
-          width: 1.875rem !important;
-          height: 1.25rem !important;
+          width: 1.5rem !important;
+          height: 1.5rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-links {
           display: none !important;
@@ -1966,7 +1966,7 @@ function ExamModeContent() {
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-header-timer .exam-typing-timer-sound .exam-sound-icon-svg {
           width: 1.5rem !important;
-          height: 1rem !important;
+          height: 1.5rem !important;
         }
         [data-exam-mode="typing"] .landscape-reduce-header .exam-typing-landscape-timer-row > div {
           gap: 0.15rem !important;
@@ -2630,8 +2630,8 @@ function ExamModeContent() {
           padding: 0 !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-timer .exam-typing-timer-sound .exam-sound-icon-svg {
-          width: 1.55rem !important;
-          height: 1.05rem !important;
+          width: 1.5rem !important;
+          height: 1.5rem !important;
         }
         [data-exam-mode="typing"] .exam-typing-header-sound {
           display: none !important;
@@ -2710,8 +2710,8 @@ function ExamModeContent() {
           padding: 0 !important;
         }
         [data-exam-mode="mcq"] .exam-mcq-header-sound .exam-sound-icon-svg {
-          width: 1.55rem !important;
-          height: 1.05rem !important;
+          width: 1.5rem !important;
+          height: 1.5rem !important;
         }
         [data-exam-mode="mcq"] .exam-mcq-header-timer {
           display: flex !important;
@@ -2871,8 +2871,8 @@ function ExamModeContent() {
           max-height: 28vh !important;
           overflow-y: auto !important;
           -webkit-overflow-scrolling: touch !important;
-          font-size: 0.7rem !important;
-          line-height: 1.3 !important;
+          font-size: 0.8rem !important;
+          line-height: 1.35 !important;
         }
         [data-exam-mode="mcq"] .mcq-question-body .exam-mobile-options-col {
           overflow: visible !important;
@@ -5753,7 +5753,7 @@ function ExamModeContent() {
 
         {currentQuestion.passage_en || currentQuestion.passage_hi ? (
           <div className="flex flex-col lg:flex-row p-2 md:p-4 gap-x-6 gap-y-4 md:gap-y-10 landscape-reduce-padding exam-mobile-passage-layout">
-            <div className="lg:w-2/3 text-xs md:text-sm border-r pr-2 md:pr-4 max-h-32 md:max-h-72 overflow-y-auto landscape-reduce-passage exam-mobile-passage">
+            <div className="lg:w-2/3 text-sm md:text-base border-r pr-2 md:pr-4 max-h-32 md:max-h-72 overflow-y-auto landscape-reduce-passage exam-mobile-passage">
               {/* Show title if available */}
               {(currentQuestion.title_en || currentQuestion.title_hi) && (
                 <h3 className="font-bold mb-2 text-purple-700">
@@ -5807,16 +5807,18 @@ function ExamModeContent() {
                 );
               }
               
-              // Has imageUrl - render the image
-              // Ensure imageUrl is a valid string (handle null/undefined)
+              // Has imageUrl - optional caption above image, then options below
               const imageUrl = String(currentQuestion.imageUrl || '').trim();
               const encodedUrl = encodeURI(imageUrl);
-              
-              console.log('🖼️ Rendering image:', {
-                originalUrl: imageUrl,
-                encodedUrl: encodedUrl,
-                questionId: currentQuestion._id
-              });
+              const rawCaption =
+                viewLanguage === "हिन्दी" && currentQuestion?.question_hi?.trim()
+                  ? currentQuestion.question_hi
+                  : currentQuestion?.question_en && currentQuestion.question_en !== '[Image Question]'
+                  ? currentQuestion.question_en
+                  : viewLanguage === "हिन्दी" && currentQuestion?.question_hi
+                  ? currentQuestion.question_hi
+                  : '';
+              const captionText = rawCaption ? formatMobileQuestionText(rawCaption) : '';
               
               // Get image dimensions if set
               const imageWidth = currentQuestion?.imageWidth;
@@ -5837,6 +5839,12 @@ function ExamModeContent() {
               };
               
               return (
+                <>
+                  {captionText ? (
+                    <p className="mb-3 md:mb-4 text-base md:text-lg font-bold landscape-reduce-question-text exam-mobile-question-text">
+                      {captionText}
+                    </p>
+                  ) : null}
                 <div className="mb-2 md:mb-4 w-full overflow-hidden landscape-reduce-padding" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                   <img 
                     src={encodedUrl} 
@@ -5852,7 +5860,6 @@ function ExamModeContent() {
                       });
                       e.target.style.border = '2px solid red';
                       e.target.alt = 'Image failed to load: ' + imageUrl;
-                      // Show error message
                       const errorDiv = document.createElement('div');
                       errorDiv.className = 'text-red-600 text-sm mt-2 p-2 bg-red-50 rounded';
                       errorDiv.innerHTML = `<strong>Image failed to load!</strong><br/>URL: ${imageUrl}<br/>Please check if the file exists at: <code>public${imageUrl}</code>`;
@@ -5869,6 +5876,7 @@ function ExamModeContent() {
                     }}
                   />
                 </div>
+                </>
               );
             })()}
               {(viewLanguage === "हिन्दी" && currentQuestion.options_hi && currentQuestion.options_hi.length > 0
@@ -5932,22 +5940,22 @@ function ExamModeContent() {
                 );
               }
               
-              // Has imageUrl - render the image
-              // Ensure imageUrl is a valid string (handle null/undefined)
+              // Has imageUrl - optional caption above image, then options below
               const imageUrl = String(currentQuestion.imageUrl || '').trim();
               const encodedUrl = encodeURI(imageUrl);
+              const rawCaption =
+                viewLanguage === "हिन्दी" && currentQuestion?.question_hi?.trim()
+                  ? currentQuestion.question_hi
+                  : currentQuestion?.question_en && currentQuestion.question_en !== '[Image Question]'
+                  ? currentQuestion.question_en
+                  : viewLanguage === "हिन्दी" && currentQuestion?.question_hi
+                  ? currentQuestion.question_hi
+                  : '';
+              const captionText = rawCaption ? formatMobileQuestionText(rawCaption) : '';
               
-              console.log('🖼️ Rendering image:', {
-                originalUrl: imageUrl,
-                encodedUrl: encodedUrl,
-                questionId: currentQuestion._id
-              });
-              
-              // Get image dimensions if set
               const imageWidth = currentQuestion?.imageWidth;
               const imageHeight = currentQuestion?.imageHeight;
               
-              // Build style object for responsive image
               const imageStyle = {
                 display: 'block',
                 maxWidth: '100%',
@@ -5962,6 +5970,12 @@ function ExamModeContent() {
               };
               
               return (
+                <>
+                  {captionText ? (
+                    <p className="mb-3 md:mb-4 text-base md:text-lg font-bold landscape-reduce-question-text exam-mobile-question-text">
+                      {captionText}
+                    </p>
+                  ) : null}
                 <div className="mb-2 md:mb-4 w-full overflow-hidden landscape-reduce-padding" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                   <img 
                     src={encodedUrl} 
@@ -5977,7 +5991,6 @@ function ExamModeContent() {
                       });
                       e.target.style.border = '2px solid red';
                       e.target.alt = 'Image failed to load: ' + imageUrl;
-                      // Show error message
                       const errorDiv = document.createElement('div');
                       errorDiv.className = 'text-red-600 text-sm mt-2 p-2 bg-red-50 rounded';
                       errorDiv.innerHTML = `<strong>Image failed to load!</strong><br/>URL: ${imageUrl}<br/>Please check if the file exists at: <code>public${imageUrl}</code>`;
@@ -5994,6 +6007,7 @@ function ExamModeContent() {
                     }}
                   />
                 </div>
+                </>
               );
             })()}
             {(viewLanguage === "हिन्दी" && currentQuestion.options_hi && currentQuestion.options_hi.length > 0

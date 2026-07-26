@@ -3,8 +3,8 @@
 import React, { useId } from "react";
 
 /**
- * Inline SVG speaker icon — filled blue body + sound waves.
- * Use variant="onDark" on purple headers (landscape typing).
+ * Modern volume icon — Lucide-style shape with glossy blue speaker (reference colors)
+ * and dark navy sound waves. variant="onDark" for purple exam headers.
  */
 export default function ExamSoundIcon({
   active = true,
@@ -13,65 +13,59 @@ export default function ExamSoundIcon({
   ...props
 }) {
   const uid = useId().replace(/:/g, "");
-  const bodyGrad = `examSpeakerBody-${uid}`;
-  const highlightGrad = `examSpeakerHighlight-${uid}`;
+  const gradId = `examSoundGrad-${uid}`;
   const onDark = variant === "onDark";
-  const waveStroke = onDark ? "#FFFFFF" : "#152238";
-  const edgeFill = onDark ? "#FFFFFF" : "#1A3F66";
+
+  const speakerFill = onDark ? "#4da6ff" : `url(#${gradId})`;
+  const speakerStroke = onDark ? "#4da6ff" : "#004a99";
+  const waveColor = onDark ? "#FFFFFF" : "#1a1a1a";
 
   return (
     <svg
-      viewBox="0 0 36 24"
+      viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
       className={className}
       {...props}
     >
-      <defs>
-        <linearGradient id={bodyGrad} x1="4" y1="4" x2="4" y2="20" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#A8DDF5" />
-          <stop offset="0.35" stopColor="#6DB8E8" />
-          <stop offset="0.7" stopColor="#3D96D4" />
-          <stop offset="1" stopColor="#1E6FA8" />
-        </linearGradient>
-        <linearGradient id={highlightGrad} x1="6" y1="6" x2="15" y2="6" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#C8EBFA" />
-          <stop offset="1" stopColor="#5AADD9" />
-        </linearGradient>
-      </defs>
+      {!onDark && (
+        <defs>
+          <linearGradient id={gradId} x1="3" y1="5" x2="3" y2="19" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#4da6ff" />
+            <stop offset="0.5" stopColor="#2088DC" />
+            <stop offset="1" stopColor="#004a99" />
+          </linearGradient>
+        </defs>
+      )}
 
-      <rect x="1.5" y="8.5" width="4.5" height="7" rx="0.4" fill="#3D96D4" />
-
-      <path d="M6 6.75 L6 17.25 L14.75 19.85 L14.75 4.15 Z" fill={`url(#${bodyGrad})`} />
-      <path d="M6.2 7.1 L6.2 11.2 L14.2 12.8 L14.2 8.7 Z" fill={`url(#${highlightGrad})`} opacity="0.95" />
-      <rect x="14.35" y="4.15" width="1.35" height="15.7" fill={edgeFill} />
+      <path
+        d="M11 5.082A.712.712 0 0 0 9.702 4.5L6.3 7.902A1.43 1.43 0 0 1 5.25 8.25H3a1 1 0 0 0-1 1v5.5a1 1 0 0 0 1 1h2.25c.398 0 .78.158 1.05.439l3.402 3.402A.712.712 0 0 0 11 18.918V5.082Z"
+        fill={speakerFill}
+        stroke={speakerStroke}
+        strokeWidth="1.15"
+        strokeLinejoin="round"
+      />
 
       {active ? (
         <>
           <path
-            d="M18.2 9.1 C20.1 10.95 20.1 13.05 18.2 14.9"
-            stroke={waveStroke}
-            strokeWidth="2.15"
+            d="M15.54 8.46a5 5 0 0 1 0 7.07"
+            stroke={waveColor}
+            strokeWidth="2"
             strokeLinecap="round"
           />
           <path
-            d="M21.2 7.05 C24.55 10.35 24.55 13.65 21.2 16.95"
-            stroke={waveStroke}
-            strokeWidth="2.15"
-            strokeLinecap="round"
-          />
-          <path
-            d="M24.2 4.95 C29.15 10.05 29.15 13.95 24.2 19.05"
-            stroke={waveStroke}
-            strokeWidth="2.15"
+            d="M18.36 5.64a9 9 0 0 1 0 12.72"
+            stroke={waveColor}
+            strokeWidth="2"
             strokeLinecap="round"
           />
         </>
       ) : (
         <>
-          <path d="M18.5 8.2 L27.8 17.5" stroke={waveStroke} strokeWidth="2.1" strokeLinecap="round" />
-          <path d="M27.8 8.2 L18.5 17.5" stroke={waveStroke} strokeWidth="2.1" strokeLinecap="round" />
+          <path d="m16 9 5 5" stroke={waveColor} strokeWidth="2" strokeLinecap="round" />
+          <path d="m21 9-5 5" stroke={waveColor} strokeWidth="2" strokeLinecap="round" />
         </>
       )}
     </svg>
