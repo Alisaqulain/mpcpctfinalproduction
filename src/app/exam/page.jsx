@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { normalizeSlug } from "@/lib/slug";
 
 export default function ExamCategoriesPage() {
   const router = useRouter();
@@ -107,7 +108,7 @@ export default function ExamCategoriesPage() {
               {categories.map((c, index) => (
                 <Link
                   key={c._id}
-                  href={`/exam/${c.slug}`}
+                  href={`/exam/${normalizeSlug(c.slug)}`}
                   className="flex items-center justify-between gap-3 p-3 md:p-4 rounded-lg transition-all bg-white hover:bg-[#290c52] hover:text-white border border-gray-200 hover:border-[#290c52] shadow-sm group"
                 >
                   <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">

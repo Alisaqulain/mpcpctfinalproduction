@@ -3,6 +3,7 @@ import dbConnect from "@/lib/db";
 import ExamSubCategory from "@/lib/models/ExamSubCategory";
 import MainCategory from "@/lib/models/MainCategory";
 import { requireAdmin, getAuth } from "@/lib/apiAuth";
+import { normalizeSlug, slugsMatch } from "@/lib/slug";
 
 export async function GET(req) {
   try {
@@ -15,8 +16,9 @@ export async function GET(req) {
     const admin = user?.role === "admin";
 
     if (categorySlug && !categoryId) {
-      const catQ = admin ? { slug: categorySlug } : { slug: categorySlug, isActive: true };
-      const cat = await MainCategory.findOne(catQ).lean();
+      const catFilter = admin ? {} : { isActive: true };
+      const cats = await MainCategory.find(catFilter).lean();
+      const cat = cats.find((c) => slugsMatch(c.slug, categorySlug));
       if (cat) categoryId = String(cat._id);
     }
 
@@ -60,9 +62,13 @@ export async function POST(req) {
     if (!parent) {
       return NextResponse.json({ error: "Category not found" }, { status: 404 });
     }
+    const safeSlug = normalizeSlug(slug);
+    if (!safeSlug) {
+      return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
+    }
     const sub = await ExamSubCategory.create({
       name: String(name).trim(),
-      slug: String(slug).trim().toLowerCase(),
+      slug: safeSlug,
       categoryId,
       order: order ?? 0,
       isActive: isActive !== false,

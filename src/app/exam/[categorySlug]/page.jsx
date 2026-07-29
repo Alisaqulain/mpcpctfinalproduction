@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { slugsMatch } from "@/lib/slug";
 
 function resolveTabFromQuery(subList, tabParam) {
   if (!tabParam || subList.length === 0) return null;
@@ -60,7 +61,7 @@ function ExamCategoryContent() {
       try {
         const catRes = await fetch("/api/categories");
         const catData = await catRes.json();
-        const c = (catData.categories || []).find((x) => x.slug === categorySlug);
+        const c = (catData.categories || []).find((x) => slugsMatch(x.slug, categorySlug));
         if (!c) {
           if (!cancelled) router.replace("/exam");
           return;
@@ -68,7 +69,7 @@ function ExamCategoryContent() {
         if (!cancelled) setCategory(c);
 
         const subRes = await fetch(
-          `/api/subcategories?categorySlug=${encodeURIComponent(categorySlug)}`
+          `/api/subcategories?categorySlug=${encodeURIComponent(c.slug)}`
         );
         const subData = await subRes.json();
         const subList = subData.subcategories || [];
@@ -199,21 +200,30 @@ function ExamCategoryContent() {
           </div>
 
           {tabs.length > 0 && (
-            <div className="flex flex-nowrap w-full border border-gray-300 rounded-full overflow-hidden shadow-sm">
-              {tabs.map((tab) => (
+            <div className="grid grid-cols-4 w-full border border-gray-300 rounded-xl overflow-hidden shadow-sm">
+              {tabs.map((tab, index) => {
+                const col = index % 4;
+                const row = Math.floor(index / 4);
+                const totalRows = Math.ceil(tabs.length / 4);
+                const isLastCol = col === 3 || index === tabs.length - 1;
+                const isLastRow = row === totalRows - 1;
+                return (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 basis-0 min-w-0 py-3 md:py-4 px-0.5 sm:px-1 md:px-2 text-[9px] sm:text-[11px] md:text-sm font-bold whitespace-nowrap transition-colors duration-300 border-l border-gray-300 first:border-l-0 flex items-center justify-center ${
+                  className={`min-w-0 py-3 md:py-4 px-0.5 sm:px-1 md:px-2 text-[9px] sm:text-[11px] md:text-sm font-bold whitespace-nowrap transition-colors duration-300 flex items-center justify-center border-gray-300 ${
+                    !isLastCol ? "border-r" : ""
+                  } ${!isLastRow ? "border-b" : ""} ${
                     activeTab === tab.id
                       ? "bg-[#290c52] text-white"
                       : "bg-white text-gray-700 hover:bg-gray-100"
                   }`}
                 >
-                  {tab.label}
+                  <span className="truncate max-w-full px-0.5">{tab.label}</span>
                 </button>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

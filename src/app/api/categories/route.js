@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import MainCategory from "@/lib/models/MainCategory";
 import { requireAdmin, getAuth } from "@/lib/apiAuth";
+import { normalizeSlug, slugsMatch } from "@/lib/slug";
 import { ensureDefaultExamHierarchy } from "@/lib/seedExamHierarchy";
 
 export async function GET(req) {
@@ -31,9 +32,13 @@ export async function POST(req) {
     if (!name || !slug) {
       return NextResponse.json({ error: "name and slug required" }, { status: 400 });
     }
+    const safeSlug = normalizeSlug(slug);
+    if (!safeSlug) {
+      return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
+    }
     const cat = await MainCategory.create({
       name: String(name).trim(),
-      slug: String(slug).trim().toLowerCase(),
+      slug: safeSlug,
       description: description || "",
       order: order ?? 0,
       isActive: isActive !== false,
