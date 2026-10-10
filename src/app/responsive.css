@@ -1,0 +1,293 @@
+/**
+ * Mobile & tablet responsive layout only.
+ * Modern widescreen desktop (1024px+, aspect > 4:3) is intentionally untouched.
+ * Legacy 4:3 small desktops: see legacy-small-desktop.css
+ */
+
+:root {
+  --landscape-stats-panel-width: clamp(88px, 22vw, 140px);
+  --page-gutter: clamp(0.5rem, 2vw, 1rem);
+}
+
+/* Safe global: box-sizing only — no visual desktop impact */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mobile + tablet only (max-width: 1023px)                            */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 1023px) {
+  html {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  #main-content,
+  .site-main-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  header,
+  footer {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  img,
+  video,
+  canvas,
+  iframe,
+  embed,
+  object {
+    max-width: 100%;
+    height: auto;
+  }
+
+  table {
+    max-width: 100%;
+  }
+
+  .overflow-x-auto,
+  .overflow-x-scroll {
+    max-width: 100%;
+  }
+
+  .home-container,
+  .home-hero,
+  .home-card-container {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  .home-card {
+    max-width: 100%;
+  }
+
+  .exam-mode-root {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .exam-mobile-mcq-column,
+  .exam-mobile-question-panel,
+  .exam-mobile-question-content {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .typing-background-container,
+  .portrait-typing-main.landscape-mobile-container {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Keyboard / typing — landscape mobile & tablet only                  */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 1023px) and (orientation: landscape) {
+  .landscape-typing-prompt,
+  .practice-row.landscape-typing-prompt,
+  .keyboard-container.landscape-keyboard-small {
+    width: calc(100% - var(--landscape-stats-panel-width)) !important;
+    max-width: calc(100% - var(--landscape-stats-panel-width)) !important;
+  }
+
+  html:has(.typing-background-container),
+  body:has(.typing-background-container) {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .typing-background-container {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 767px) and (orientation: portrait) {
+  .mobile-scale {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    overflow: hidden !important;
+  }
+
+  .portrait-typing-prompt,
+  .portrait-keyboard,
+  .keyboard-container {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Small phone breakpoints (320–430px)                                 */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 430px) {
+  .home-hero-line1,
+  .home-title-tagline {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .home-card-container {
+    gap: 0.5rem;
+  }
+
+  header .header-mobile-title {
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
+  }
+}
+
+@media (max-width: 390px) {
+  .portrait-typing-prompt .portrait-char-box:not([class*="space-key"]),
+  .portrait-typing-prompt > div[class*="w-12"]:not([class*="space-key-box"]) {
+    width: clamp(20px, 6.5vw, 24px) !important;
+    min-width: clamp(20px, 6.5vw, 24px) !important;
+    max-width: clamp(20px, 6.5vw, 24px) !important;
+  }
+
+  .portrait-typing-prompt > div[class*="w-12"]:not([class*="w-8"]),
+  .portrait-typing-prompt > div[class*="space-key-box"] {
+    width: clamp(30px, 10vw, 36px) !important;
+    min-width: clamp(30px, 10vw, 36px) !important;
+    max-width: clamp(30px, 10vw, 36px) !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .landscape-mobile-stats > div {
+    width: clamp(68px, 18vw, 78px) !important;
+    min-width: clamp(68px, 18vw, 78px) !important;
+    max-width: clamp(68px, 18vw, 78px) !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .home-login-box {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .exam-typing-header-title {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 320px) {
+  .home-container > .p-4 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .portrait-typing-prompt {
+    gap: 0.1rem !important;
+    padding-left: 0.1rem !important;
+    padding-right: 0.1rem !important;
+  }
+
+  .landscape-typing-prompt > div.landscape-char-box,
+  .landscape-typing-prompt > div.landscape-letter-box,
+  .landscape-mobile-view-container .landscape-typing-prompt > div:not(.landscape-space-key):not([class*="space-key-box"]) {
+    width: clamp(18px, 5.5vw, 24px) !important;
+    min-width: clamp(18px, 5.5vw, 24px) !important;
+    max-width: clamp(18px, 5.5vw, 24px) !important;
+  }
+
+  .landscape-typing-prompt > div.landscape-space-key,
+  .landscape-typing-prompt > div[class*="space-key-box"],
+  .landscape-mobile-view-container .landscape-typing-prompt > div[class*="space-key-box"] {
+    width: clamp(72px, 28vw, 96px) !important;
+    min-width: clamp(72px, 28vw, 96px) !important;
+    max-width: clamp(72px, 28vw, 96px) !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Landscape phones — short height only                                */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 1023px) and (orientation: landscape) and (max-height: 500px) {
+  .landscape-mobile-view-container,
+  .landscape-mobile-view,
+  .landscape-main-row,
+  .landscape-center-col {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .keyboard-container.mobile-scale {
+    max-width: min(85%, calc(100% - var(--landscape-stats-panel-width))) !important;
+    overflow-x: hidden !important;
+  }
+
+  .right-section-stats,
+  .landscape-mobile-sidebar {
+    flex-shrink: 0;
+  }
+
+  .landscape-center-col,
+  .landscape-mobile-typing-area {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 932px) and (orientation: landscape) {
+  .landscape-typing-prompt > div.landscape-char-box,
+  .landscape-typing-prompt > div.landscape-letter-box {
+    width: clamp(20px, 4.5vw, 24px) !important;
+    min-width: clamp(20px, 4.5vw, 24px) !important;
+    max-width: clamp(20px, 4.5vw, 24px) !important;
+  }
+
+  .landscape-typing-prompt > div.landscape-space-key,
+  .landscape-typing-prompt > div[class*="space-key-box"] {
+    width: clamp(72px, 22vw, 96px) !important;
+    min-width: clamp(72px, 22vw, 96px) !important;
+    max-width: clamp(72px, 22vw, 96px) !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Admin tables — mobile scroll only                                   */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 767px) {
+  .overflow-x-auto table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

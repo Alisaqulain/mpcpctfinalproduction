@@ -884,8 +884,11 @@ function KeyboardApp() {
           .mobile-scale {
             transform: scale(0.8);
             transform-origin: top center;
-            width: 125%;
-            margin-left: 1%;
+            width: 100%;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            overflow: hidden;
           }
           .mobile-stack {
             flex-direction: column;

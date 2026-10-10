@@ -479,9 +479,68 @@ export default function HomePageClient() {
 
           @media (max-width: 380px) {
             .home-hero-line1,
-            .home-title-tagline {Empower Your Future with MPCPCT
+            .home-title-tagline {
               font-size: 0.95rem !important;
             }
+          }
+        }
+
+        /* Legacy small desktop (4:3 monitors) — overrides desktop fixed layout above */
+        @media (min-width: 769px) and (max-width: 1319px) and (max-aspect-ratio: 4/3) {
+          .home-hero {
+            padding-right: 0 !important;
+          }
+
+          .home-card-container {
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+            margin-left: 0 !important;
+            margin-top: 1.5rem !important;
+            gap: 0.75rem !important;
+          }
+
+          .home-card {
+            width: min(100%, 11.5rem) !important;
+            max-width: 11.5rem !important;
+            height: auto !important;
+          }
+
+          .home-card-image {
+            height: 7.5rem !important;
+          }
+
+          .home-login-box {
+            position: relative !important;
+            right: auto !important;
+            top: auto !important;
+            margin-top: 0 !important;
+            width: 100% !important;
+            max-width: 16rem !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+          }
+
+          .home-hero-line1,
+          .home-title-tagline {
+            white-space: normal !important;
+            transform: none !important;
+            margin-left: 0 !important;
+            width: 100% !important;
+            text-align: center !important;
+          }
+
+          .home-subtitle {
+            margin-left: 0 !important;
+            text-align: center !important;
+          }
+
+          .home-info-box {
+            margin-top: 2rem !important;
+          }
+
+          .home-info-tip {
+            padding-left: 0 !important;
+            text-align: center;
           }
         }
         //    .home-welcome-text {
@@ -540,7 +599,7 @@ export default function HomePageClient() {
             </p>
           </div>
 
-          <div className="flex flex-col lg:flex-row justify-between gap-4 md:gap-6 relative">
+          <div className="flex flex-col lg:flex-row justify-between gap-4 md:gap-6 relative legacy-home-auth-row">
             <div className="flex justify-center ml-0 md:ml-28 md:justify-start mt-10 md:mt-20 animate-fadeInUp gap-2 md:gap-8 lg:gap-x-8 lg:gap-y-6 w-full home-card-container">
               {items.map(({ label, img }, idx) => {
                 let colorClass = "bg-red-600";

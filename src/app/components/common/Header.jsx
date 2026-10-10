@@ -152,7 +152,7 @@ function HeaderInner() {
           </p>
         </div>
 
-        <div className="absolute inset-0 z-0 flex md:hidden flex-col justify-center items-center text-center pointer-events-none overflow-visible pb-1">
+        <div className="header-mobile-title absolute inset-0 z-0 flex md:hidden flex-col justify-center items-center text-center pointer-events-none overflow-visible pb-1">
           <div className="absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center w-max max-w-[calc(100vw-1rem)]">
             <p
               className="inline-block text-[1.75rem] sm:text-[2rem] font-extrabold uppercase leading-none whitespace-nowrap text-transparent bg-clip-text bg-center bg-cover px-0.5 translate-x-3 sm:translate-x-4"

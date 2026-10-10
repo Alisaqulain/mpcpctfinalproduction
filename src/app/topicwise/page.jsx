@@ -641,9 +641,9 @@ function TopicWiseMCQPageContent() {
   const isMarked = markedForReview.has(qId);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white">
+    <div className="flex h-screen overflow-hidden bg-white topicwise-exam-shell">
       {/* Left Sidebar - Question Palette */}
-      <div className="w-64 bg-white border-r border-gray-300 flex flex-col overflow-hidden">
+      <div className="w-64 bg-white border-r border-gray-300 flex flex-col overflow-hidden topicwise-exam-sidebar">
         <div className="p-4 border-b border-gray-300 bg-gray-50">
           <h3 className="font-semibold text-sm mb-2">Questions ({questions.length})</h3>
           {topic && (
@@ -704,7 +704,7 @@ function TopicWiseMCQPageContent() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <div className="fixed top-0 left-64 right-0 w-[calc(100%-16rem)] bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30">
+        <div className="fixed top-0 left-64 right-0 w-[calc(100%-16rem)] bg-[#290c52] text-white flex justify-between items-center px-4 py-2 text-sm z-30 topicwise-exam-topbar">
           <div className="font-semibold">{EXAM_HEADER_BRAND}</div>
           <div className="flex gap-2 items-center">
             <div className="flex items-center gap-2 pr-4">

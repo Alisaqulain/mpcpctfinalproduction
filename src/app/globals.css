@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./responsive.css";
+@import "./legacy-small-desktop.css";
 
 :root {
   --background: #ffffff;
@@ -29,6 +31,12 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
+}
+
+:lang(hi),
+[lang="hi"],
+.hindi-text {
+  font-family: "Nirmala UI", "Mangal", "Noto Sans Devanagari", "Arial Unicode MS", Arial, sans-serif;
 }
 
 .skip-link {

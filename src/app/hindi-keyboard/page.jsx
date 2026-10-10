@@ -1,7 +1,13 @@
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
+import { getHindiKeyboardRows } from "@/lib/hindiKeyboardDisplay";
 
-export default function App() {
+function HindiKeyboardApp() {
+  const searchParams = useSearchParams();
+  const layoutName = searchParams.get("layout")?.toLowerCase().includes("inscript")
+    ? "Inscript"
+    : "Remington Gail";
   const [hand, setHand] = useState(true);
   const [sound, setSound] = useState(true);
   const [keyboard, setKeyboard] = useState(true);
@@ -36,13 +42,7 @@ export default function App() {
     ";": "pinky-right"
   };
 
-  const keys = [
-    ["ञ", "१", "२", "३", "४", "५", "६", "७", "८", "९", "०", "-", "ृ", "Backspace"],
-    ["Tab", "ौ", "ै", "ा", "ी", "ू", "ब", "ह", "ग", "द", "ज", "ड", "़", "\\"],
-    ["Caps", "ो", "े", "्", "ि", "ु", "प", "र", "क", "त", "च", "ट", "Enter"],
-    ["Shift", "ं", "म", "न", "व", "ल", "स", "य", "श", "ष", "।", "Shift"],
-    ["Ctrl", "Win", "Alt", "Space", "Alt", "Win", "Menu", "Ctrl"]
-  ];
+  const keys = getHindiKeyboardRows(layoutName);
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -193,6 +193,10 @@ export default function App() {
             transform: scale(0.9);
             transform-origin: top center;
             width: 100%;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            overflow: hidden;
           }
           .mobile-stack {
             flex-direction: column;
@@ -455,4 +459,18 @@ function getFingerPosition(finger) {
     'pinky-right': 'bottom-20 right-4'
   };
   return positions[finger] || 'bottom-16 left-40';
+}
+
+export default function App() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+          Loading keyboard…
+        </div>
+      }
+    >
+      <HindiKeyboardApp />
+    </React.Suspense>
+  );
 }

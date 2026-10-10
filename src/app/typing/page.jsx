@@ -2047,7 +2047,7 @@ function TypingTutorForm() {
             overflow: hidden !important;
             overscroll-behavior: none !important;
             position: relative !important;
-            width: 100vw !important;
+            width: 100% !important;
             padding-top: 0.75rem !important;
             padding-bottom: 0 !important;
           }
@@ -2164,7 +2164,7 @@ function TypingTutorForm() {
                (max-height: 500px) and (min-aspect-ratio: 1/1) {
           html, body {
             height: 100vh !important;
-            width: 100vw !important;
+            width: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
             overflow: hidden !important;
@@ -2172,11 +2172,11 @@ function TypingTutorForm() {
           }
           .typing-background-container {
             border-radius: 0 !important;
-            width: 100vw !important;
+            width: 100% !important;
             height: 100vh !important;
             margin: 0 !important;
             padding: 0 !important;
-            max-width: 100vw !important;
+            max-width: 100% !important;
             min-height: 100vh !important;
           }
           .landscape-close-link {

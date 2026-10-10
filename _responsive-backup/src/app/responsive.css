@@ -1,0 +1,346 @@
+/**
+ * Site-wide responsive layout layer.
+ * Layout/view only — no colors, fonts, or behavior changes.
+ */
+
+:root {
+  --landscape-stats-panel-width: clamp(88px, 22vw, 140px);
+  --page-gutter: clamp(0.5rem, 2vw, 1rem);
+}
+
+/* ------------------------------------------------------------------ */
+/* Global box model & viewport containment                             */
+/* ------------------------------------------------------------------ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+#main-content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+img,
+video,
+canvas,
+svg:not(.speedometer-svg):not(.exam-sound-icon-svg),
+iframe,
+embed,
+object {
+  max-width: 100%;
+  height: auto;
+}
+
+table {
+  max-width: 100%;
+}
+
+/* Flex/grid children: allow shrink instead of forcing overflow */
+.flex,
+.grid,
+.inline-flex {
+  min-width: 0;
+}
+
+.flex > *,
+.grid > * {
+  min-width: 0;
+}
+
+/* Scrollable regions stay inside viewport */
+.overflow-x-auto,
+.overflow-x-scroll {
+  max-width: 100%;
+}
+
+/* ------------------------------------------------------------------ */
+/* Layout shell                                                        */
+/* ------------------------------------------------------------------ */
+
+header,
+footer {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.site-main-content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+/* ------------------------------------------------------------------ */
+/* Home page                                                           */
+/* ------------------------------------------------------------------ */
+
+.home-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.home-hero,
+.home-card-container {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.home-card {
+  max-width: 100%;
+}
+
+/* ------------------------------------------------------------------ */
+/* Exam mode root                                                      */
+/* ------------------------------------------------------------------ */
+
+.exam-mode-root {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.exam-mobile-mcq-column,
+.exam-mobile-question-panel,
+.exam-mobile-question-content {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* ------------------------------------------------------------------ */
+/* Keyboard / typing shared landscape panel offset                     */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 1024px) and (orientation: landscape) {
+  .landscape-typing-prompt,
+  .practice-row.landscape-typing-prompt,
+  .keyboard-container.landscape-keyboard-small {
+    width: calc(100% - var(--landscape-stats-panel-width)) !important;
+    max-width: calc(100% - var(--landscape-stats-panel-width)) !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Keyboard portrait: prevent scale trick from causing horizontal scroll */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 767px) and (orientation: portrait) {
+  .mobile-scale {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    overflow: hidden !important;
+  }
+
+  .portrait-typing-prompt,
+  .portrait-keyboard,
+  .keyboard-container {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Breakpoints: common mobile widths (320–430px)                       */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 430px) {
+  .home-hero-line1,
+  .home-title-tagline {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .home-card-container {
+    gap: 0.5rem;
+  }
+
+  header .absolute.inset-0.flex.md\\:hidden {
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
+  }
+}
+
+@media (max-width: 390px) {
+  .portrait-typing-prompt .portrait-char-box:not([class*="space-key"]),
+  .portrait-typing-prompt > div[class*="w-12"]:not([class*="space-key-box"]) {
+    width: clamp(20px, 6.5vw, 24px) !important;
+    min-width: clamp(20px, 6.5vw, 24px) !important;
+    max-width: clamp(20px, 6.5vw, 24px) !important;
+  }
+
+  .portrait-typing-prompt > div[class*="w-12"]:not([class*="w-8"]),
+  .portrait-typing-prompt > div[class*="space-key-box"] {
+    width: clamp(30px, 10vw, 36px) !important;
+    min-width: clamp(30px, 10vw, 36px) !important;
+    max-width: clamp(30px, 10vw, 36px) !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .landscape-mobile-stats > div {
+    width: clamp(68px, 18vw, 78px) !important;
+    min-width: clamp(68px, 18vw, 78px) !important;
+    max-width: clamp(68px, 18vw, 78px) !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .home-login-box {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .exam-typing-header-title {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 320px) {
+  .home-container > .p-4 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .portrait-typing-prompt {
+    gap: 0.1rem !important;
+    padding-left: 0.1rem !important;
+    padding-right: 0.1rem !important;
+  }
+
+  .landscape-typing-prompt > div.landscape-char-box,
+  .landscape-typing-prompt > div.landscape-letter-box,
+  .landscape-mobile-view-container .landscape-typing-prompt > div:not(.landscape-space-key):not([class*="space-key-box"]) {
+    width: clamp(18px, 5.5vw, 24px) !important;
+    min-width: clamp(18px, 5.5vw, 24px) !important;
+    max-width: clamp(18px, 5.5vw, 24px) !important;
+  }
+
+  .landscape-typing-prompt > div.landscape-space-key,
+  .landscape-typing-prompt > div[class*="space-key-box"],
+  .landscape-mobile-view-container .landscape-typing-prompt > div[class*="space-key-box"] {
+    width: clamp(72px, 28vw, 96px) !important;
+    min-width: clamp(72px, 28vw, 96px) !important;
+    max-width: clamp(72px, 28vw, 96px) !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Tablet (768px+)                                                     */
+/* ------------------------------------------------------------------ */
+
+@media (min-width: 768px) {
+  .home-card-container {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Landscape mobile (phones)                                           */
+/* ------------------------------------------------------------------ */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .landscape-mobile-view-container,
+  .landscape-mobile-view,
+  .landscape-main-row,
+  .landscape-center-col {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .keyboard-container.mobile-scale {
+    max-width: min(85%, calc(100% - var(--landscape-stats-panel-width))) !important;
+    overflow-x: hidden !important;
+  }
+
+  .right-section-stats,
+  .landscape-mobile-sidebar {
+    flex-shrink: 0;
+  }
+
+  .landscape-center-col,
+  .landscape-mobile-typing-area {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+@media (orientation: landscape) and (max-width: 932px) {
+  .landscape-typing-prompt > div.landscape-char-box,
+  .landscape-typing-prompt > div.landscape-letter-box {
+    width: clamp(20px, 4.5vw, 24px) !important;
+    min-width: clamp(20px, 4.5vw, 24px) !important;
+    max-width: clamp(20px, 4.5vw, 24px) !important;
+  }
+
+  .landscape-typing-prompt > div.landscape-space-key,
+  .landscape-typing-prompt > div[class*="space-key-box"] {
+    width: clamp(72px, 22vw, 96px) !important;
+    min-width: clamp(72px, 22vw, 96px) !important;
+    max-width: clamp(72px, 22vw, 96px) !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Replace 100vw overflow on typing pages (scrollbar-safe)           */
+/* ------------------------------------------------------------------ */
+
+.typing-background-container,
+.portrait-typing-main.landscape-mobile-container {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+@media (max-width: 1024px) and (orientation: landscape) {
+  html:has(.typing-background-container),
+  body:has(.typing-background-container) {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .typing-background-container {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Admin / tables: contain wide content                                */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 767px) {
+  .overflow-x-auto table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

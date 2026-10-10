@@ -93,13 +93,13 @@ const REMINGTON_MATRA_MAP = {
  * Shift+A and Shift+G = no mapping (user requested nothing on them).
  */
 const REMINGTON_SHIFT_CONSONANT_MAP = {
-  // Home row shift (no A, no G)
-  'S': 'ै', 'D': 'क्', 'F': 'थ', 'H': 'भ्', 'J': 'श्र', 'K': 'ज्ञ', 'L': 'स्',
+  // Home row shift (CPCT Remington Gail — half forms use halant ्)
+  'A': 'ा', 'S': 'ै', 'D': 'क्', 'F': 'थ्', 'G': 'ळ', 'H': 'भ्', 'J': 'श्र', 'K': 'ज्ञ', 'L': 'स्',
   ':': 'रु', '"': 'ष्', '|': ')',   // Shift+; = रु, Shift+' = ष्, Shift+\ = )
   
   // Upper row shift
   'Q': 'फ', 'W': 'ॅ', 'E': 'म्', 'R': 'त्', 'T': 'ज्', 'Y': 'ल्', 'U': 'न्', 'I': 'प्', 'O': 'व्', 'P': 'च्',
-  '{': 'क्ष', '}': 'द्व',
+  '{': 'क्ष्', '}': 'द्व',
   
   // Lower row shift
   'Z': 'र्', 'X': 'ग्', 'C': 'ब्', 'V': 'ट', 'B': 'ठ', 'N': 'छ', 'M': 'ड',
@@ -181,71 +181,58 @@ const CONJUNCT_MAP = {
 };
 
 /**
- * Complete InScript Hindi Keyboard Mapping
- * Standard InScript layout - fixed key positions
- * Based on official Devanagari - InScript Layout (KBDINDEV.DLL)
+ * Complete InScript Hindi Keyboard Mapping (CPCT / standard physical layout)
+ * Unshifted keys — matches CPCT Inscript chart (Nadeem / Mangal-style practice layout).
  */
 const INSCRIPT_MAP = {
-  // Top row (QWERTY) - Normal keys
-  'q': 'औ', 'w': 'ऐ', 'e': 'आ', 'r': 'ई', 't': 'ऊ',
+  // Top row (QWERTY)
+  'q': 'ौ', 'w': 'ै', 'e': 'ा', 'r': 'ी', 't': 'ू',
   'y': 'ब', 'u': 'ह', 'i': 'ग', 'o': 'द', 'p': 'ज',
-  '[': 'ड', ']': 'ञ', '\\': '?',
-  
-  // Second row (ASDF) - Normal keys
-  'a': 'अ', 's': 'स', 'd': 'द', 'f': 'ध', 'g': 'ग',
-  'h': 'ह', 'j': 'ज', 'k': 'क', 'l': 'ल',
-  ';': 'त', "'": 'च',
-  
-  // Third row (ZXCV) - Normal keys
-  'z': 'ज़', 'x': 'क्ष', 'c': 'च', 'v': 'व',
-  'b': 'ब', 'n': 'न', 'm': 'म',
-  ',': '्', '.': '।', '/': '?',
-  
-  // Numbers row
-  '1': '१', '2': '२', '3': '३', '4': '४', '5': '५',
-  '6': '६', '7': '७', '8': '८', '9': '९', '0': '०',
-  '-': 'ऋ', '=': 'ृ',
-  
-  // Special characters
-  '`': 'य', '~': 'य',
+  '[': 'ड', ']': '़', '\\': 'ॉ',
+
+  // Home row (ASDF)
+  'a': 'ो', 's': 'े', 'd': '्', 'f': 'ि', 'g': 'ु',
+  'h': 'प', 'j': 'र', 'k': 'क', 'l': 'त',
+  ';': 'च', "'": 'ट',
+
+  // Bottom row (ZXCV) — z has no output
+  'x': 'ं', 'c': 'म', 'v': 'न', 'b': 'व',
+  'n': 'ल', 'm': 'स',
+  ',': ',', '.': '.', '/': 'य',
+
+  // Number row (0–9 pass through when not listed)
+  '`': 'ो',
+  '-': '-',
+  '=': 'ृ',
 };
 
 /**
- * InScript Shift mappings for alternate characters
- * Shift + key produces different character
+ * InScript Shift mappings
  */
 const INSCRIPT_SHIFT_MAP = {
-  // Top row (QWERTY) - Shift keys
-  'Q': 'ौ', 'W': 'ै', 'E': 'ा', 'R': 'ी', 'T': 'ू',
-  'Y': 'भ', 'U': 'घ', 'I': 'ग़', 'O': 'ध', 'P': 'झ',
-  '{': '्र', '}': 'ञ', '|': '|',
-  
-  // Second row (ASDF) - Shift keys
-  'A': 'ओ', 'S': 'श', 'D': '्', // Shift+D = halant (्)
-  'F': 'ढ', 'G': 'घ', 'H': 'प', 'J': 'र',
-  'K': 'क़', 'L': 'थ', ':': 'छ', '"': 'ठ',
-  
-  // Third row (ZXCV) - Shift keys
-  'Z': 'ट', 'X': 'ष', 'C': 'व', 'V': 'ब',
-  'B': 'न', 'N': 'म', 'M': 'श',
-  '<': '्र', '>': 'ज्ञ', '?': '?',
-  
-  // Numbers row - Shift keys
-  '!': '१', '@': '२', '#': '३', '$': '४', '%': '५',
-  '^': '६', '&': '७', '*': '८', '(': '९', ')': '०',
-  '_': 'ऋ', '+': 'ृ',
-  
-  // Special keys
-  '~': 'य',
+  // Top row
+  'Q': 'औ', 'W': 'ऐ', 'E': 'आ', 'R': 'ई', 'T': 'ऊ',
+  'Y': 'भ', 'U': 'ङ', 'I': 'घ', 'O': 'ध', 'P': 'झ',
+  '{': 'ड', '}': 'ञ',
+
+  // Home row
+  'A': 'ओ', 'S': 'ए', 'D': 'अ', 'F': 'इ', 'G': 'उ',
+  'H': 'फ', 'K': 'ख', 'L': 'थ',
+  ':': 'च', '"': 'ट',
+
+  // Bottom row — Z, V, B have no output
+  'X': 'ँ', 'C': 'ण', 'N': 'ळ', 'M': 'श',
+  '<': ',', '>': '.', '?': 'य',
+
+  // Shift + number row
+  '~': 'ओ',
+  '@': 'ॅ', '#': '्र', '$': 'र्', '%': 'ज्ञ', '^': 'त्र', '&': 'क्ष', '*': 'श्र',
+  '(': '(', ')': ')',
+  '_': 'ः', '+': 'ऋ',
 };
 
-// Conjunct keys (direct mapping)
-const INSCRIPT_CONJUNCT_KEYS = {
-  '5': 'ज्ञ',    // Number 5 = ज्ञ
-  '6': 'त्र',    // Number 6 = त्र
-  '7': 'क्ष',    // Number 7 = क्ष
-  '8': 'श्र',    // Number 8 = श्र
-};
+/** Keys that produce no character in InScript (still consume the keypress). */
+const INSCRIPT_SILENT_KEYS = new Set(['z', 'Z', 'v', 'V', 'b', 'B', 'J']);
 
 /**
  * Utility: Check if character is a Hindi consonant
@@ -384,11 +371,7 @@ class RemingtonConverter {
     const lowerKey = key.toLowerCase();
     const upperKey = key.toUpperCase();
     
-    // Handle Shift: Remington Gail - Shift+A and Shift+G = no output
     if (shiftKey) {
-      if (upperKey === 'A' || upperKey === 'G') {
-        return null; // User: "A aur G mene chod diya h us pr kuch nhi dena"
-      }
       if (REMINGTON_SHIFT_CONSONANT_MAP[upperKey]) {
         const shiftChar = REMINGTON_SHIFT_CONSONANT_MAP[upperKey];
         return {
@@ -568,28 +551,45 @@ class RemingtonConverter {
  */
 class InScriptConverter {
   /**
-   * Convert a keypress to Hindi character
+   * Convert a keypress to Hindi character.
+   * @returns {string|null|undefined} Hindi char, null = silent key, undefined = pass through
    */
   convertKey(key, shift = false) {
-    const lookupKey = shift ? key.toUpperCase() : key;
-    
-    // Check shift map first
-    if (shift && INSCRIPT_SHIFT_MAP[lookupKey]) {
-      return INSCRIPT_SHIFT_MAP[lookupKey];
+    if (INSCRIPT_SILENT_KEYS.has(key)) {
+      return null;
     }
-    
-    // Check regular map
-    if (INSCRIPT_MAP[lookupKey]) {
-      return INSCRIPT_MAP[lookupKey];
+
+    const resolve = (map, k) => {
+      if (Object.prototype.hasOwnProperty.call(map, k)) {
+        return map[k];
+      }
+      if (k.length === 1 && /[a-z]/i.test(k)) {
+        const alt = k === k.toLowerCase() ? k.toUpperCase() : k.toLowerCase();
+        if (Object.prototype.hasOwnProperty.call(map, alt)) {
+          return map[alt];
+        }
+      }
+      return undefined;
+    };
+
+    if (shift) {
+      const shifted = resolve(INSCRIPT_SHIFT_MAP, key);
+      if (shifted !== undefined) {
+        return shifted;
+      }
+      const upper = key.length === 1 ? key.toUpperCase() : key;
+      const shiftedUpper = resolve(INSCRIPT_SHIFT_MAP, upper);
+      if (shiftedUpper !== undefined) {
+        return shiftedUpper;
+      }
     }
-    
-    // Check if lowercase version exists
-    if (INSCRIPT_MAP[key.toLowerCase()]) {
-      return INSCRIPT_MAP[key.toLowerCase()];
+
+    const normal = resolve(INSCRIPT_MAP, key.toLowerCase());
+    if (normal !== undefined) {
+      return normal;
     }
-    
-    // No mapping - return original
-    return key;
+
+    return undefined;
   }
 
   /**
@@ -600,7 +600,8 @@ class InScriptConverter {
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
       const hindiChar = this.convertKey(char, false);
-      result += hindiChar;
+      if (hindiChar === null) continue;
+      result += hindiChar !== undefined ? hindiChar : char;
     }
     return result;
   }
@@ -920,7 +921,16 @@ export class HindiTypingConverter {
     // Convert based on layout
     if (this.layout === 'inscript') {
       const hindiChar = this.inscript.convertKey(key, shift);
-      if (hindiChar !== key) {
+      if (hindiChar === null) {
+        event.preventDefault();
+        return {
+          char: '',
+          replaceStart: cursorPos,
+          replaceLength: cursorEnd - cursorPos,
+          cursorOffset: 0
+        };
+      }
+      if (hindiChar !== undefined) {
         event.preventDefault();
         return {
           char: hindiChar,

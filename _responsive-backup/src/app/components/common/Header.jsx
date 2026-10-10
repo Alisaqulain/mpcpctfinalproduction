@@ -1,0 +1,512 @@
+import React, { useState, useEffect, Suspense } from "react";
+import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
+import { useRouter, usePathname } from "next/navigation";
+import Image from "next/image";
+import UserProfileAvatar from "@/components/common/UserProfileAvatar";
+import { resolveUserProfileUrl } from "@/lib/userProfile";
+
+export default function Header() {
+  return (
+    <Suspense fallback={null}>
+      <HeaderInner />
+    </Suspense>
+  );
+}
+
+const TOPIC_WISE_EXAM_URL = "/exam/computer-exams?tab=topicwise";
+
+/** Mobile: hide logo + MPCPCT title block only; keep purple Home bar */
+const HIDE_BRANDING_TOP_ON_MOBILE = [
+  "/contact-us",
+  "/payment-app",
+  "/faq",
+  "/about-us",
+  "/notes",
+];
+
+function hideBrandingTopOnMobile(pathname) {
+  if (!pathname) return false;
+  return HIDE_BRANDING_TOP_ON_MOBILE.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`)
+  );
+}
+
+function HeaderInner() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const hideBrandingTop = hideBrandingTopOnMobile(pathname);
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userProfile, setUserProfile] = useState(null); // { name, profileUrl }
+
+  const checkAuthStatus = React.useCallback(async () => {
+    try {
+      const response = await fetch('/api/profile');
+      if (response.ok) {
+        const data = await response.json();
+        setIsAuthenticated(true);
+        setUserProfile(data.user ? { ...data.user } : null);
+      } else {
+        setIsAuthenticated(false);
+        setUserProfile(null);
+      }
+    } catch (error) {
+      console.error('Auth check error:', error);
+      setIsAuthenticated(false);
+      setUserProfile(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkAuthStatus();
+    const interval = setInterval(checkAuthStatus, 45000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(interval);
+  }, [checkAuthStatus]);
+
+  // Listen for storage events (when login/logout happens)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      checkAuthStatus();
+    };
+
+    const handleAuthStateChanged = (event) => {
+      setIsAuthenticated(event.detail.isAuthenticated);
+      if (!event.detail.isAuthenticated) setUserProfile(null);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('authStateChanged', handleAuthStateChanged);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('authStateChanged', handleAuthStateChanged);
+    };
+  }, [checkAuthStatus]);
+
+  const toggleDropdown = (name) => {
+    setOpenDropdown((prev) => (prev === name ? null : name));
+  };
+
+  const toggleMobileNav = () => {
+    setMobileNavOpen(!mobileNavOpen);
+    setOpenDropdown(null);
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setIsAuthenticated(false);
+        // Dispatch custom event to notify other components about logout
+        window.dispatchEvent(new CustomEvent('authStateChanged', { detail: { isAuthenticated: false } }));
+        router.push('/');
+        router.refresh();
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  return (
+    <header className="border-b shadow-sm relative z-50">
+      {/* Top Section - logo + title; hidden on mobile for info/download pages */}
+      <div
+        className={`bg-white flex-row items-center justify-between px-2 py-3 pb-4 sm:pb-5 relative min-h-[128px] sm:min-h-[148px] md:min-h-[168px] md:px-4 md:py-4 overflow-visible ${
+          hideBrandingTop ? "hidden md:flex" : "flex"
+        }`}
+      >
+        <div className="z-10 flex-shrink-0 w-[130px] sm:w-[150px] md:w-auto">
+          <a href="/" className="block relative h-16 w-[130px] sm:h-[4.5rem] sm:w-[150px] md:h-20 md:w-[300px] lg:h-24 lg:w-[340px] md:ml-35">
+            <Image
+              src="/logor.png"
+              alt="MPCPCT — CPCT, CCC and typing exam practice"
+              fill
+              className="object-contain object-left"
+              sizes="(max-width: 640px) 130px, (max-width: 768px) 150px, 340px"
+              priority
+            />
+          </a>
+        </div>
+
+        {/* Centered title — mobile: true viewport center; desktop: unchanged */}
+        <div className="absolute inset-0 z-0 hidden md:flex flex-col justify-center items-center text-center px-4 pointer-events-none overflow-visible pb-1">
+          <p
+            className="inline-block text-7xl font-extrabold uppercase leading-none whitespace-nowrap text-transparent bg-clip-text bg-center bg-cover px-0.5"
+            style={{
+              backgroundImage: "url('/bg.jpg')",
+            }}
+          >
+            MPCPCT
+          </p>
+          <p className="text-2xl lg:text-3xl text-gray-600 font-semibold mx-auto leading-snug mt-1.5 whitespace-nowrap">
+            To Help in typing &amp; computer proficiency
+          </p>
+        </div>
+
+        <div className="absolute inset-0 z-0 flex md:hidden flex-col justify-center items-center text-center pointer-events-none overflow-visible pb-1">
+          <div className="absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center w-max max-w-[calc(100vw-1rem)]">
+            <p
+              className="inline-block text-[1.75rem] sm:text-[2rem] font-extrabold uppercase leading-none whitespace-nowrap text-transparent bg-clip-text bg-center bg-cover px-0.5 translate-x-3 sm:translate-x-4"
+              style={{
+                backgroundImage: "url('/bg.jpg')",
+              }}
+            >
+              MPCPCT
+            </p>
+            <p className="text-[10px] sm:text-sm text-gray-600 font-semibold leading-snug mt-1 sm:mt-1.5 whitespace-nowrap translate-x-5 sm:translate-x-7">
+              To Help in typing &amp; computer proficiency
+            </p>
+          </div>
+        </div>
+
+        <div className="z-10 w-[130px] sm:w-[150px] flex-shrink-0 md:hidden" aria-hidden="true" />
+        <div className="z-10 text-right text-sm hidden md:block" />
+      </div>
+
+      {/* Mobile Nav Toggle */}
+      <div className="md:hidden bg-[#290c52] flex justify-between items-center px-4 py-2">
+        <a
+          href="/"
+          className="inline-flex items-center justify-center min-w-[2.75rem] h-8 px-3 rounded-md border-2 border-yellow-400 bg-white/10 text-yellow-400 text-sm font-semibold shadow-[0_2px_10px_rgba(0,0,0,0.15)] active:scale-95 transition-transform"
+        >
+          Home
+        </a>
+        <button
+          type="button"
+          onClick={toggleMobileNav}
+          className="text-yellow-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 rounded p-1"
+          aria-expanded={mobileNavOpen}
+          aria-controls="site-mobile-nav"
+          aria-label={mobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
+        >
+          {mobileNavOpen ? <FaTimes size={24} aria-hidden /> : <FaBars size={24} aria-hidden />}
+        </button>
+      </div>
+
+      {/* Desktop Navigation */}
+      <nav className="hidden md:block bg-[#290c52] text-white">
+        <div className="flex items-center justify-between px-2 md:px-4 py-2 md:py-5 relative">
+          <ul className="flex flex-nowrap justify-start items-center space-x-1 md:space-x-4 lg:space-x-8 xl:space-x-12">
+            <li className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded ml-0 md:ml-10 md:justify-start">
+              <a href="/" className="text-xs md:text-sm lg:text-base">Home</a>
+            </li>
+            <li className="relative">
+              <button
+                type="button"
+                onClick={() => toggleDropdown("course")}
+                className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded flex items-center gap-1 text-xs md:text-sm lg:text-base"
+                aria-expanded={openDropdown === "course"}
+                aria-haspopup="true"
+              >
+                Course
+                <span
+                  className={`transform transition-all duration-300 text-xs md:text-sm lg:text-base ${
+                    openDropdown === "course" ? "rotate-180 text-yellow-400" : "rotate-0 text-inherit"
+                  }`}
+                >
+                  ▾
+                </span>
+              </button>
+              <ul
+                className={`absolute left-0 top-full mt-2 bg-white text-black rounded shadow-md min-w-[140px] md:min-w-[160px] lg:min-w-[180px] z-50 transition-all duration-300 origin-top ${
+                  openDropdown === "course" ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
+              >
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/learning" className="text-xs md:text-sm lg:text-base">Learning</a>
+                </li>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/skill_test" className="text-xs md:text-sm lg:text-base">Skill Test</a>
+                </li>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/exam" className="text-xs md:text-sm lg:text-base">Exam Mode</a>
+                </li>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href={TOPIC_WISE_EXAM_URL} className="text-xs md:text-sm lg:text-base">Topic Wise MCQ</a>
+                </li>
+              </ul>
+            </li>
+            <li className="relative">
+              <button
+                onClick={() => toggleDropdown("download")}
+                className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded flex items-center gap-1 text-xs md:text-sm lg:text-base"
+              >
+                Download
+                <span
+                  className={`transform transition-all duration-300 text-xs md:text-sm lg:text-base ${
+                    openDropdown === "download" ? "rotate-180 text-yellow-400" : "rotate-0 text-inherit"
+                  }`}
+                >
+                  ▾
+                </span>
+              </button>
+              <ul
+                className={`absolute left-0 top-full mt-2 bg-white text-black rounded shadow-md min-w-[140px] md:min-w-[160px] lg:min-w-[180px] z-50 transition-all duration-300 origin-top ${
+                  openDropdown === "download" ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
+              >
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/notes?type=video_notes" className="text-xs md:text-sm lg:text-base">Video Notes</a>
+                </li>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/notes?type=pdf_notes" className="text-xs md:text-sm lg:text-base">Pdf Notes</a>
+                </li>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/notes?type=syllabus_pdf" className="text-xs md:text-sm lg:text-base">Syllabus PDF</a>
+                </li>
+              </ul>
+            </li>
+            <li className="relative">
+              <button
+                onClick={() => toggleDropdown("ourApp")}
+                className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded flex items-center gap-1 text-xs md:text-sm lg:text-base"
+              >
+                Our App
+                <span
+                  className={`transform transition-all duration-300 text-xs md:text-sm lg:text-base ${
+                    openDropdown === "ourApp" ? "rotate-180 text-yellow-400" : "rotate-0 text-inherit"
+                  }`}
+                >
+                  ▾
+                </span>
+              </button>
+              <ul
+                className={`absolute left-0 top-full mt-2 bg-white text-black rounded shadow-md min-w-[140px] md:min-w-[160px] lg:min-w-[180px] z-50 transition-all duration-300 origin-top ${
+                  openDropdown === "ourApp" ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
+              >
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/android" className="text-xs md:text-sm lg:text-base">Android App</a>
+                </li>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/android" className="text-xs md:text-sm lg:text-base">iOS App</a>
+                </li>
+                <li className="px-3 md:px-4 py-1.5 md:py-2 hover:bg-gray-200 cursor-pointer">
+                  <a href="/android" className="text-xs md:text-sm lg:text-base">App Features</a>
+                </li>
+              </ul>
+            </li>
+            <li className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded">
+              <a href="/about-us" className="text-xs md:text-sm lg:text-base">About us</a>
+            </li>
+            <li className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded">
+              <a href="/payment-app" className="text-xs md:text-sm lg:text-base">Payment</a>
+            </li>
+            <li className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded">
+              <a href="/contact-us" className="text-xs md:text-sm lg:text-base">Contact Us</a>
+            </li>
+            <li className="hover:bg-blue-700 px-2 md:px-3 py-1 rounded">
+              <a href="/faq" className="text-xs md:text-sm lg:text-base">FAQ</a>
+            </li>
+          </ul>
+          <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-4 ml-2 md:ml-4">
+            {isAuthenticated ? (
+              <>
+                <a href="/profile" className="flex items-center gap-2 text-white hover:text-blue-300 transition-colors" title="Profile">
+                  <UserProfileAvatar
+                    user={userProfile}
+                    alt={userProfile?.name || "Profile"}
+                    className="w-8 h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-full border-2 border-white object-cover"
+                  />
+                  {userProfile?.name && (
+                    <span className="hidden sm:inline text-xs md:text-sm lg:text-base font-medium truncate max-w-[100px] lg:max-w-[120px]">{userProfile.name}</span>
+                  )}
+                </a>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="bg-red-500 text-white px-2 md:px-3 py-1 rounded hover:bg-red-600 transition-colors text-xs md:text-sm lg:text-base"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <a href="/login" className="bg-white text-black px-2 md:px-3 py-1 rounded hover:bg-gray-100 transition-colors text-xs md:text-sm lg:text-base">Login</a>
+                <a href="/signup" className="bg-blue-500 text-white px-2 md:px-3 py-1 rounded hover:bg-blue-600 transition-colors text-xs md:text-sm lg:text-base">Signup</a>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile: backdrop - click outside to close */}
+      {mobileNavOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={() => setMobileNavOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Sidebar Navigation */}
+      <div
+        id="site-mobile-nav"
+        className={`fixed top-0 right-0 h-full w-[80%] max-w-[320px] bg-[#290c52] text-white z-50 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
+          mobileNavOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+        role="navigation"
+        aria-label="Primary navigation"
+        aria-hidden={!mobileNavOpen}
+      >
+        <div className="flex justify-end p-3">
+          <button onClick={toggleMobileNav} className="p-1 text-red-500 hover:text-red-400" aria-label="Close menu">
+            <FaTimes size={24} />
+          </button>
+        </div>
+        <a
+          href={isAuthenticated ? "/profile" : "/login"}
+          onClick={() => setMobileNavOpen(false)}
+          className="flex flex-col items-center pb-3 no-underline text-white hover:opacity-90"
+        >
+          <UserProfileAvatar
+            user={userProfile}
+            alt={userProfile?.name || "User"}
+            className="w-16 h-16 rounded-full border-2 border-white mb-2 object-cover"
+          />
+          <p className="text-sm font-semibold">{isAuthenticated && userProfile?.name ? userProfile.name : "User"}</p>
+        </a>
+        <ul className="mt-3 space-y-1 px-3">
+          <li className="border-b border-white/20 py-2">
+            <a href="/" onClick={() => setMobileNavOpen(false)} className="text-sm">
+              HOME <span className="text-gray-300">(होम)</span>
+            </a>
+          </li>
+          <li>
+            <button
+              onClick={() => toggleDropdown("mobileCourse")}
+              className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm text-white"
+            >
+              <span>COURSE <span className="text-gray-300">(कोर्स)</span></span>
+              <span
+                className={`text-2xl transition-colors ${
+                  openDropdown === "mobileCourse" ? "text-yellow-400" : "text-white"
+                }`}
+              >
+                ▾
+              </span>
+            </button>
+            {openDropdown === "mobileCourse" && (
+              <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-yellow-400">
+                <li><a href="/learning" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Learning</a></li>
+                <li><a href="/skill_test" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Skill Test</a></li>
+                <li><a href="/exam" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Exam Mode</a></li>
+                <li><a href={TOPIC_WISE_EXAM_URL} onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Topic Wise MCQ</a></li>
+              </ul>
+            )}
+          </li>
+          <li>
+            <button
+              onClick={() => toggleDropdown("mobileDownload")}
+              className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm text-white"
+            >
+              <span>DOWNLOAD <span className="text-gray-300">(डाउनलोड)</span></span>
+              <span
+                className={`text-2xl transition-colors ${
+                  openDropdown === "mobileDownload" ? "text-yellow-400" : "text-white"
+                }`}
+              >
+                ▾
+              </span>
+            </button>
+            {openDropdown === "mobileDownload" && (
+              <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-yellow-400">
+                <li><a href="/notes?type=video_notes" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Video Notes</a></li>
+                <li><a href="/notes?type=pdf_notes" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Pdf Notes</a></li>
+                <li><a href="/notes?type=syllabus_pdf" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Syllabus PDF</a></li>
+              </ul>
+            )}
+          </li>
+          <li>
+            <button
+              onClick={() => toggleDropdown("mobileOurApp")}
+              className="w-full border-b border-white/20 py-2 text-left flex justify-between items-center text-sm text-white"
+            >
+              <span>OUR APP <span className="text-gray-300">(हमारा ऐप)</span></span>
+              <span
+                className={`text-2xl transition-colors ${
+                  openDropdown === "mobileOurApp" ? "text-yellow-400" : "text-white"
+                }`}
+              >
+                ▾
+              </span>
+            </button>
+            {openDropdown === "mobileOurApp" && (
+              <ul className="pl-3 space-y-1 pt-1.5 pb-1.5 text-sm text-yellow-400">
+                <li><a href="/android" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">Android App</a></li>
+                <li><a href="/android" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">iOS App</a></li>
+                <li><a href="/android" onClick={() => setMobileNavOpen(false)} className="text-yellow-400">App Features</a></li>
+              </ul>
+            )}
+          </li>
+          <li className="border-b border-white/20 py-2">
+            <a href="/about-us" onClick={() => setMobileNavOpen(false)} className="text-sm">
+              ABOUT US <span className="text-gray-300">(हमारे बारे में)</span>
+            </a>
+          </li>
+          <li className="border-b border-white/20 py-2">
+            <a href="/payment-app" onClick={() => setMobileNavOpen(false)} className="text-sm">
+              PAYMENT <span className="text-gray-300">(भुगतान)</span>
+            </a>
+          </li>
+          <li className="border-b border-white/20 py-2">
+            <a href="/contact-us" onClick={() => setMobileNavOpen(false)} className="text-sm">
+              CONTACT US <span className="text-gray-300">(संपर्क करें)</span>
+            </a>
+          </li>
+          <li className="border-b border-white/20 py-2">
+            <a href="/faq" onClick={() => setMobileNavOpen(false)} className="text-sm">
+              FAQ <span className="text-gray-300">(सामान्य प्रश्न)</span>
+            </a>
+          </li>
+        </ul>
+
+        <div className="flex justify-center items-center mt-4 px-3 space-x-2 py-3">
+          {isAuthenticated ? (
+            <>
+              <a href="/profile" className="text-white hover:text-blue-300 transition-colors" title="Profile">
+                <FaUserCircle size={28} />
+              </a>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors text-sm"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <a href="/login" className="bg-white text-black px-4 py-2 rounded hover:bg-gray-100 transition-colors text-sm">Login</a>
+              <a href="/signup" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors text-sm">Signup</a>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Highlight Bar */}
+      <div className="bg-pink-200 relative overflow-hidden h-14">
+        <div className="absolute left-0 md:left-4  top-1/2 transform -translate-y-1/2 z-10">
+          <span className="bg-black text-white text-xs px-2 py-2 rounded">HIGHLIGHTS</span>
+        </div>
+        <div className="flex items-center whitespace-nowrap text-md font-semibold text-gray-800">
+          <div className="w-full md:w-[85%] py-4 mx-auto">
+            <span className="w-full md:w-[50%] py-2">
+              <marquee behavior="scroll" direction="left">
+                • CPCT Scorecard is valid for 07 years from the date of exam <span className="pl-15">• Basic Computer & Typing skill are important for data entry</span> <span className="">\ IT Operator</span> <span className="">\ Assistant Grade 3</span> <span className="">\ Shorthand</span> <span className="">\ Typist</span> and other similar positions in the departments <span className="">\ corporation and agencies under government of India.</span>
+              </marquee>
+            </span>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}

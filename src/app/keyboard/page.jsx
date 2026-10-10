@@ -1407,6 +1407,8 @@ function KeyboardApp() {
   const MOBILE_DEDUPE_MS = 120;
   // Ensure only one keypress updates state (avoids double fire from beforeinput+input on mobile)
   const processingLockRef = useRef(false);
+  const correctAudioRef = useRef(null);
+  const wrongAudioRef = useRef(null);
   const isMobileUserAgentRef = useRef(
     typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(navigator.userAgent)
   );
@@ -1444,6 +1446,14 @@ function KeyboardApp() {
   const [showRotatePrompt, setShowRotatePrompt] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
   const [keyDifficulties, setKeyDifficulties] = useState({}); // Track wrong attempts per key
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    correctAudioRef.current = new Audio("/correct.mp3");
+    wrongAudioRef.current = new Audio("/wrong.mp3");
+    correctAudioRef.current.preload = "auto";
+    wrongAudioRef.current.preload = "auto";
+  }, []);
 
   // Default home row keys if no lesson
   const defaultKeys = ["A", "S", "D", "F", "Space", "J", "K", "L", ";"];
@@ -1543,7 +1553,7 @@ function KeyboardApp() {
       setLoading(true);
       try {
         // Fetch learning data
-        const res = await fetch('/api/learning?' + new Date().getTime());
+        const res = await fetch('/api/learning', { cache: 'force-cache' });
         if (res.ok) {
           const data = await res.json();
           // Find the lesson
@@ -2178,8 +2188,11 @@ function KeyboardApp() {
     const newAccuracy = Math.round(((indexToUpdate + (isCorrect ? 1 : 0)) / totalAttempts) * 100);
     setAccuracy(newAccuracy);
     if (sound) {
-      const audio = new Audio(isCorrect ? '/correct.mp3' : '/wrong.mp3');
-      audio.play().catch(e => console.log("Audio play failed:", e));
+      const audio = isCorrect ? correctAudioRef.current : wrongAudioRef.current;
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      }
     }
   }, [wrongCount, sound, highlightedKeys, startTime]);
 
@@ -2484,7 +2497,7 @@ function KeyboardApp() {
         let exerciseName = currentSectionName;
         if (!exerciseName && lessonId) {
           try {
-            const res = await fetch('/api/learning?' + new Date().getTime());
+            const res = await fetch('/api/learning', { cache: 'force-cache' });
             if (res.ok) {
               const data = await res.json();
               for (const section of data.sections || []) {
@@ -2893,8 +2906,11 @@ function KeyboardApp() {
           .mobile-scale {
             transform: scale(0.8);
             transform-origin: top center;
-            width: 125%;
-            margin-left: 1%;
+            width: 100%;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            overflow: hidden;
           }
           
           /* PORTRAIT: Stack elements vertically in mobile portrait */
