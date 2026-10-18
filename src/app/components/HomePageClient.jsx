@@ -134,9 +134,16 @@ export default function HomePageClient() {
         
         /* Base desktop styles - maintain fixed layout */
         @media (min-width: 1024px) {
+          .home-page-background {
+            /* /b.jpg may be unavailable; keep the desktop two-column UI readable. */
+            background-color: #f6eddc;
+          }
+
           .home-container {
             max-width: 100%;
             margin: 0 auto;
+            opacity: 1;
+            isolation: isolate;
           }
           
           .home-hero {
@@ -177,6 +184,8 @@ export default function HomePageClient() {
           .home-card-text {
             font-size: 1.125rem !important;
             padding: 1rem !important;
+            opacity: 1 !important;
+            filter: none !important;
           }
           
           .home-login-box {
@@ -579,7 +588,7 @@ export default function HomePageClient() {
       `}</style>
       
       <div
-        className="min-h-screen bg-cover bg-center bg-no-repeat"
+        className="min-h-screen bg-cover bg-center bg-no-repeat home-page-background"
         style={backgroundImageStyle}
       >
       <div className="min-h-screen bg-opacity-60 home-container">

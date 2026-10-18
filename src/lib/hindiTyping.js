@@ -1,7 +1,7 @@
 /**
  * Professional Hindi IME Engine
  * CPCTMaster-style Hindi Typing Conversion Library
- * Supports Remington (phonetic) and InScript (fixed layout) Hindi typing
+ * Supports Remington Gail and InScript fixed keyboard layouts
  *
  * SINGLE SOURCE: This Remington layout is used everywhere Hindi Remington is enabled:
  * - Admin (HindiTextarea for CPCT/lesson/exercise Hindi content)
@@ -11,20 +11,16 @@
  * - Mobile keyboard (same conversion via handleInputChange when keydown is Unidentified)
  *
  * Features:
- * - Real-time phonetic conversion (Remington)
- * - Fixed keyboard layout (InScript)
- * - Halant support (Shift + consonant = half consonant)
- * - Automatic conjunct formation
- * - Proper matra handling
+ * - Exact physical-key conversion for both layouts
+ * - Shift-row and number-row mappings
  * - Unicode cluster-aware backspace
  * - Smart cursor management
  * - Works in middle of text
  */
 
 /**
- * Complete Remington Gail (Phonetic) Hindi Mapping
- * Matches Gyanians.com / standard Remington Gail chart exactly.
- * Shift + consonant = halant (half form); Shift+A and Shift+G = no output (per user).
+ * Complete Remington Gail Hindi Mapping.
+ * Every physical key maps independently; Unicode shaping forms the visible syllable.
  */
 const REMINGTON_MAP = {
   // Home row (no shift)
@@ -74,18 +70,6 @@ const REMINGTON_MAP = {
   '-': ';',      // minus = semicolon
   '=': 'ृ',      // equals = ri matra
   
-  // Multi-character sequences (phonetic typing)
-  'aa': 'आ', 'ee': 'ई', 'oo': 'ऊ', 'ai': 'ऐ', 'au': 'औ',
-  'kh': 'ख', 'gh': 'घ', 'ch': 'छ', 'jh': 'झ', 'th': 'थ', 'dh': 'ध',
-  'ph': 'फ', 'bh': 'भ', 'sh': 'श', 'gya': 'ज्ञ', 'ksh': 'क्ष',
-  'tr': 'त्र', 'shra': 'श्र',
-};
-
-/**
- * Remington Matra (Vowel Signs) - for attach-to-consonant logic when buffer matches
- */
-const REMINGTON_MATRA_MAP = {
-  'ि': 'ि', 'ी': 'ी', 'ा': 'ा', 'े': 'े', 'ै': 'ै', 'ु': 'ु', 'ू': 'ू', 'ृ': 'ृ', '्र': '्र',
 };
 
 /**
@@ -108,76 +92,6 @@ const REMINGTON_SHIFT_CONSONANT_MAP = {
   // Number row shift (key = shifted character: ~!@#$%^&*()_+)
   '~': 'द्य', '!': '।', '@': '/', '#': 'ः', '$': '*', '%': '-', '^': "'", '&': "'",
   '*': 'द्ध', '(': 'त्र', ')': 'ऋ', '_': '.', '+': '्',
-};
-
-/**
- * Consonant to Halant (Half Form) Mapping
- * Maps consonants to their half forms with halant
- */
-const CONSONANT_HALANT_MAP = {
-  'क': 'क्', 'ख': 'ख्', 'ग': 'ग्', 'घ': 'घ्', 'ङ': 'ङ्',
-  'च': 'च्', 'छ': 'छ्', 'ज': 'ज्', 'झ': 'झ्', 'ञ': 'ञ्',
-  'ट': 'ट्', 'ठ': 'ठ्', 'ड': 'ड्', 'ढ': 'ढ्', 'ण': 'ण्',
-  'त': 'त्', 'थ': 'थ्', 'द': 'द्', 'ध': 'ध्', 'न': 'न्',
-  'प': 'प्', 'फ': 'फ्', 'ब': 'ब्', 'भ': 'भ्', 'म': 'म्',
-  'य': 'य्', 'र': 'र्', 'ल': 'ल्', 'व': 'व्',
-  'श': 'श्', 'ष': 'ष्', 'स': 'स्', 'ह': 'ह्',
-  'क्ष': 'क्ष्', 'ज्ञ': 'ज्ञ्', 'त्र': 'त्र्', 'श्र': 'श्र्',
-};
-
-/**
- * Common Conjunct Formations
- * Maps consonant + halant + consonant to conjunct
- * Important for Remington: Shift+D (क्) + R (त) = क्त
- */
-const CONJUNCT_MAP = {
-  'क्+ष': 'क्ष',
-  'ज्+ञ': 'ज्ञ',
-  'त्+र': 'त्र',
-  'श्+र': 'श्र',
-  'क्+त': 'क्त',    // Shift+D + R = क्त
-  'क्+य': 'क्य',
-  'क्+र': 'क्र',
-  'क्+ल': 'क्ल',
-  'क्+व': 'क्व',
-  'ग्+य': 'ग्य',
-  'ग्+र': 'ग्र',
-  'ग्+न': 'ग्न',
-  'च्+छ': 'च्छ',
-  'च्+च': 'च्च',
-  'ज्+ज': 'ज्ज',
-  'ज्+ञ': 'ज्ञ',
-  'ज्+य': 'ज्य',
-  'त्+त': 'त्त',
-  'त्+य': 'त्य',
-  'त्+र': 'त्र',
-  'त्+म': 'त्म',
-  'द्+य': 'द्य',
-  'द्+ध': 'द्ध',
-  'द्+र': 'द्र',
-  'द्+व': 'द्व',
-  'न्+त': 'न्त',
-  'न्+द': 'न्द',
-  'न्+य': 'न्य',
-  'प्+त': 'प्त',
-  'प्+र': 'प्र',
-  'ब्+द': 'ब्द',
-  'म्+प': 'म्प',
-  'म्+ब': 'म्ब',
-  'य्+य': 'य्य',
-  'र्+य': 'र्य',
-  'ल्+ल': 'ल्ल',
-  'ल्+य': 'ल्य',
-  'व्+य': 'व्य',
-  'श्+र': 'श्र',
-  'श्+च': 'श्च',
-  'स्+त': 'स्त',
-  'स्+थ': 'स्थ',
-  'स्+न': 'स्न',
-  'स्+म': 'स्म',
-  'ह्+म': 'ह्म',
-  'ह्+य': 'ह्य',
-  'ह्+र': 'ह्र',
 };
 
 /**
@@ -232,59 +146,7 @@ const INSCRIPT_SHIFT_MAP = {
 };
 
 /** Keys that produce no character in InScript (still consume the keypress). */
-const INSCRIPT_SILENT_KEYS = new Set(['z', 'Z', 'v', 'V', 'b', 'B', 'J']);
-
-/**
- * Utility: Check if character is a Hindi consonant
- */
-function isHindiConsonant(char) {
-  return /[\u0915-\u0939]/.test(char);
-}
-
-/**
- * Utility: Check if character is a Hindi vowel sign (matra)
- */
-function isHindiMatra(char) {
-  return /[\u093E-\u094C\u0955-\u0957]/.test(char);
-}
-
-/**
- * Utility: Check if character is halant (्)
- */
-function isHalant(char) {
-  return char === '\u094D';
-}
-
-/**
- * Utility: Get last consonant before cursor
- * Returns {consonant, position} or null
- */
-function getLastConsonant(text, cursorPos) {
-  let pos = cursorPos - 1;
-  while (pos >= 0) {
-    const char = text[pos];
-    if (isHindiConsonant(char)) {
-      return { consonant: char, position: pos };
-    }
-    if (!isHindiMatra(char) && !isHalant(char) && char !== ' ') {
-      break;
-    }
-    pos--;
-  }
-  return null;
-}
-
-/**
- * Utility: Check if we can form a conjunct
- * Returns conjunct character or null
- */
-function tryFormConjunct(lastConsonant, newConsonant) {
-  const halantForm = CONSONANT_HALANT_MAP[lastConsonant];
-  if (!halantForm) return null;
-  
-  const key = halantForm + '+' + newConsonant;
-  return CONJUNCT_MAP[key] || null;
-}
+const INSCRIPT_SILENT_KEYS = new Set(['z', 'Z', 'V', 'B', 'J']);
 
 /**
  * Utility: Get Unicode cluster length at position
@@ -358,8 +220,7 @@ function getPreviousClusterStart(text, cursorPos) {
  */
 class RemingtonConverter {
   constructor() {
-    this.buffer = ''; // Buffer for multi-character sequences
-    this.maxBufferLength = 4; // Maximum sequence length (e.g., "gyaa")
+    this.buffer = '';
   }
 
   /**
@@ -368,134 +229,19 @@ class RemingtonConverter {
    * Based on Mangal Font Remington Layout
    */
   convertKey(key, currentText = '', cursorPos = 0, shiftKey = false) {
-    const lowerKey = key.toLowerCase();
-    const upperKey = key.toUpperCase();
-    
-    if (shiftKey) {
-      if (REMINGTON_SHIFT_CONSONANT_MAP[upperKey]) {
-        const shiftChar = REMINGTON_SHIFT_CONSONANT_MAP[upperKey];
-        return {
-          char: shiftChar,
-          replaceLength: 0,
-          cursorOffset: shiftChar.length
-        };
-      }
-      // Fallback: halant form only for keys that have a shift mapping
-      const consonant = REMINGTON_MAP[lowerKey];
-      if (consonant && isHindiConsonant(consonant)) {
-        const halantForm = CONSONANT_HALANT_MAP[consonant];
-        if (halantForm) {
-          return {
-            char: halantForm,
-            replaceLength: 0,
-            cursorOffset: halantForm.length
-          };
-        }
-      }
-    }
-    
-    // Get text before cursor for context
-    const textBefore = currentText.substring(0, cursorPos);
-    const textAfter = currentText.substring(cursorPos);
-    
-    // Build buffer from last few characters + new key
-    const bufferText = (textBefore.slice(-this.maxBufferLength) + lowerKey).toLowerCase();
-    
-    // Try sequences: 4-char, 3-char, 2-char, 1-char
-    for (let len = Math.min(4, bufferText.length); len >= 1; len--) {
-      const sequence = bufferText.slice(-len);
-      const mapped = REMINGTON_MAP[sequence];
-      
-      if (mapped) {
-        // Check if we can form a conjunct
-        if (isHindiConsonant(mapped) && textBefore.length > 0) {
-          const lastConsonantInfo = getLastConsonant(textBefore, textBefore.length);
-          if (lastConsonantInfo) {
-            const conjunct = tryFormConjunct(lastConsonantInfo.consonant, mapped);
-            if (conjunct) {
-              // Replace last consonant with conjunct
-              const replaceStart = lastConsonantInfo.position;
-              const replaceLength = textBefore.length - replaceStart;
-              return {
-                char: conjunct,
-                replaceStart: replaceStart,
-                replaceLength: replaceLength,
-                cursorOffset: conjunct.length
-              };
-            }
-          }
-        }
-        
-        // Check if last character is halant and new char is consonant
-        if (isHindiConsonant(mapped) && textBefore.length > 0) {
-          const lastChar = textBefore[textBefore.length - 1];
-          if (isHalant(lastChar)) {
-            // Try to form conjunct
-            const prevConsonantInfo = getLastConsonant(textBefore.slice(0, -1), textBefore.length - 1);
-            if (prevConsonantInfo) {
-              const conjunct = tryFormConjunct(prevConsonantInfo.consonant, mapped);
-              if (conjunct) {
-                const replaceStart = prevConsonantInfo.position;
-                const replaceLength = textBefore.length - replaceStart;
-                return {
-                  char: conjunct,
-                  replaceStart: replaceStart,
-                  replaceLength: replaceLength,
-                  cursorOffset: conjunct.length
-                };
-              }
-            }
-          }
-        }
-        
-        // Check if last character is consonant and new char is matra
-        if (isHindiMatra(mapped) && textBefore.length > 0) {
-          const lastConsonantInfo = getLastConsonant(textBefore, textBefore.length);
-          if (lastConsonantInfo) {
-            // Attach matra to consonant
-            const replaceStart = lastConsonantInfo.position;
-            const replaceLength = textBefore.length - replaceStart;
-            const consonant = textBefore.substring(replaceStart, textBefore.length);
-            return {
-              char: consonant + mapped,
-              replaceStart: replaceStart,
-              replaceLength: replaceLength,
-              cursorOffset: (consonant + mapped).length
-            };
-          }
-        }
-        
-        // Regular mapping
-        const replaceLength = Math.min(len, textBefore.length);
-        const replaceStart = Math.max(0, textBefore.length - (len - 1));
-        return {
-          char: mapped,
-          replaceStart: replaceStart,
-          replaceLength: replaceLength,
-          cursorOffset: mapped.length
-        };
-      }
-    }
-    
-    // No match - check if it's a matra that should attach
-    const matra = REMINGTON_MATRA_MAP[lowerKey] || REMINGTON_MATRA_MAP[key];
-    if (matra && textBefore.length > 0) {
-      const lastConsonantInfo = getLastConsonant(textBefore, textBefore.length);
-      if (lastConsonantInfo) {
-        const replaceStart = lastConsonantInfo.position;
-        const replaceLength = textBefore.length - replaceStart;
-        const consonant = textBefore.substring(replaceStart, textBefore.length);
-        return {
-          char: consonant + matra,
-          replaceStart: replaceStart,
-          replaceLength: replaceLength,
-          cursorOffset: (consonant + matra).length
-        };
-      }
-    }
-    
-    // No conversion
-    return null;
+    const shiftedKey = key.length === 1 && /[a-z]/i.test(key)
+      ? key.toUpperCase()
+      : key;
+    const mapped = shiftKey
+      ? REMINGTON_SHIFT_CONSONANT_MAP[shiftedKey]
+      : REMINGTON_MAP[key.toLowerCase()];
+
+    if (mapped === undefined) return null;
+
+    return {
+      char: mapped,
+      cursorOffset: mapped.length
+    };
   }
 
   /**
@@ -510,38 +256,15 @@ class RemingtonConverter {
    */
   convertText(text) {
     if (!text) return '';
-    
-    let result = '';
-    let i = 0;
-    
-    while (i < text.length) {
-      const char = text[i];
-      const nextChar = i + 1 < text.length ? text[i + 1] : '';
-      const twoChar = char + nextChar;
-      const threeChar = i + 2 < text.length ? text[i] + text[i + 1] + text[i + 2] : '';
-      const fourChar = i + 3 < text.length ? text[i] + text[i + 1] + text[i + 2] + text[i + 3] : '';
-      
-      // Try 4-char, then 3-char, then 2-char, then 1-char
-      if (fourChar && REMINGTON_MAP[fourChar.toLowerCase()]) {
-        result += REMINGTON_MAP[fourChar.toLowerCase()];
-        i += 4;
-      } else if (threeChar && REMINGTON_MAP[threeChar.toLowerCase()]) {
-        result += REMINGTON_MAP[threeChar.toLowerCase()];
-        i += 3;
-      } else if (twoChar && REMINGTON_MAP[twoChar.toLowerCase()]) {
-        result += REMINGTON_MAP[twoChar.toLowerCase()];
-        i += 2;
-      } else if (REMINGTON_MAP[char]) {
-        result += REMINGTON_MAP[char];
-        i += 1;
-      } else {
-        // No mapping - keep original
-        result += char;
-        i += 1;
-      }
-    }
-    
-    return result;
+
+    return Array.from(text, (char) => {
+      const shifted = (
+        (/[A-Z]/.test(char)) ||
+        Object.prototype.hasOwnProperty.call(REMINGTON_SHIFT_CONSONANT_MAP, char)
+      );
+      const result = this.convertKey(char, '', 0, shifted);
+      return result ? result.char : char;
+    }).join('');
   }
 }
 
@@ -597,9 +320,12 @@ class InScriptConverter {
    */
   convertText(text) {
     let result = '';
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      const hindiChar = this.convertKey(char, false);
+    for (const char of text) {
+      const shifted = (
+        /[A-Z]/.test(char) ||
+        Object.prototype.hasOwnProperty.call(INSCRIPT_SHIFT_MAP, char)
+      );
+      const hindiChar = this.convertKey(char, shifted);
       if (hindiChar === null) continue;
       result += hindiChar !== undefined ? hindiChar : char;
     }
@@ -926,7 +652,7 @@ export class HindiTypingConverter {
         return {
           char: '',
           replaceStart: cursorPos,
-          replaceLength: cursorEnd - cursorPos,
+          replaceLength: 0,
           cursorOffset: 0
         };
       }

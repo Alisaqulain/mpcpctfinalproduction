@@ -89,7 +89,12 @@ export function useHindiTyping(layout = 'remington', enabled = false, allowBacks
       selectionEnd
     );
 
-    if (result !== null && result.char) {
+    if (result !== null) {
+      // Silent layout keys are deliberately consumed without changing text.
+      if (result.char === '') {
+        return true;
+      }
+
       // Calculate replacement positions
       const replaceStart = result.replaceStart !== undefined 
         ? result.replaceStart 
