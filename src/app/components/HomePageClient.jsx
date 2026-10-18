@@ -134,11 +134,6 @@ export default function HomePageClient() {
         
         /* Base desktop styles - maintain fixed layout */
         @media (min-width: 1024px) {
-          .home-page-background {
-            /* /b.jpg may be unavailable; keep the desktop two-column UI readable. */
-            background-color: #f6eddc;
-          }
-
           .home-container {
             max-width: 100%;
             margin: 0 auto;
@@ -588,7 +583,7 @@ export default function HomePageClient() {
       `}</style>
       
       <div
-        className="min-h-screen bg-cover bg-center bg-no-repeat home-page-background"
+        className="min-h-screen bg-cover bg-center bg-no-repeat"
         style={backgroundImageStyle}
       >
       <div className="min-h-screen bg-opacity-60 home-container">
