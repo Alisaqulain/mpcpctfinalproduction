@@ -378,9 +378,9 @@ export default function ExamTypingInterface({
 
   const renderTextContent = () => {
     return (
-      <div className="whitespace-pre-wrap break-words" style={{ fontSize: `${fontSize}px`, lineHeight: 1.5 }}>
-        {words.map((word, index) => {
       <div className={`whitespace-pre-wrap break-words${language === "Hindi" ? " hindi-text" : ""}`} lang={language === "Hindi" ? "hi" : undefined} style={{ fontSize: `${fontSize}px`, lineHeight: language === "Hindi" ? 1.7 : 1.5 }}>
+        {words.map((word, index) => {
+          let className;
           if (index < highlightedIndex) {
             // Already typed words - green if correct, red if wrong
             className = typedWords[index] === word ? "text-green-600" : "text-red-600";
@@ -635,7 +635,6 @@ export default function ExamTypingInterface({
             placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
             lang={isHindiTyping ? "hi" : undefined}
             inputMode={isHindiTyping ? "text" : undefined}
-            className="w-full flex-1 min-h-0 h-full p-2 border-2 border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono resize-none exam-typing-portrait-textarea"
             spellCheck={false}
             className={`w-full flex-1 min-h-0 h-full p-2 border-2 border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none exam-typing-portrait-textarea${isHindiTyping ? " hindi-text" : " font-mono"}`}
           />
@@ -701,7 +700,6 @@ export default function ExamTypingInterface({
                   lang={isHindiTyping ? "hi" : undefined}
                   inputMode={isHindiTyping ? "text" : undefined}
                   style={{ fontSize: `${fontSize}px`, lineHeight: 1.5 }}
-                  className="w-full h-full min-h-0 p-1.5 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono resize-none overflow-y-auto exam-typing-landscape-input typing-textarea box-border"
                   spellCheck={false}
                   className={`w-full h-full min-h-0 p-1.5 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none overflow-y-auto exam-typing-landscape-input typing-textarea box-border${isHindiTyping ? " hindi-text" : " font-mono"}`}
                 />
@@ -809,7 +807,6 @@ export default function ExamTypingInterface({
             placeholder={isHindiTyping ? `Type Here in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout) ...` : "Type Here ..."}
             lang={isHindiTyping ? "hi" : undefined}
             inputMode={isHindiTyping ? "text" : undefined}
-            className="w-full h-28 md:h-24 lg:h-36 p-3 md:p-2 lg:p-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-sm lg:text-base font-mono resize-none flex-shrink-0 landscape-input"
             spellCheck={false}
             className={`w-full h-28 md:h-24 lg:h-36 p-3 md:p-2 lg:p-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-sm lg:text-base resize-none flex-shrink-0 landscape-input${isHindiTyping ? " hindi-text" : " font-mono"}`}
             rows={2}
