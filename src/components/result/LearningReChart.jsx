@@ -29,12 +29,13 @@ export default function LearningReChart({ resultData }) {
   }, [resultData]);
 
   return (
-    <div className="bg-white p-4 w-full max-w-full text-sm mb-3">
-      <div className="flex justify-between items-center mb-2">
+    <div className="bg-white p-2 sm:p-4 w-full max-w-full text-[9px] sm:text-sm mb-1 sm:mb-3">
+      <div className="flex justify-between items-center mb-1 sm:mb-2">
         <h2 className="font-bold">Difficult Keys in this Exercise</h2>
+        <p className="text-[8px] sm:text-xs text-gray-600">Wrong presses on each key</p>
       </div>
       <div className="border border-black overflow-visible">
-        <div className="relative min-h-[125px]">
+        <div className="relative min-h-[90px] sm:min-h-[125px]">
           <div className="absolute top-0 left-0 w-full h-1/3 border-b border-green-300 flex items-center justify-end pr-2 text-xs text-gray-600 pointer-events-none">
             Problematic
           </div>
@@ -45,8 +46,8 @@ export default function LearningReChart({ resultData }) {
             OK
           </div>
           <div
-            className="flex flex-wrap gap-x-1 sm:gap-x-2 md:gap-x-3 gap-y-2 items-end justify-center px-2 sm:px-4 pt-1"
-            style={{ paddingBottom: "5px", minHeight: "125px" }}
+            className="flex flex-wrap gap-x-1 sm:gap-x-2 md:gap-x-3 gap-y-1 sm:gap-y-2 items-end justify-center px-1 sm:px-4 pt-1 min-h-[90px] sm:min-h-[125px]"
+            style={{ paddingBottom: "3px" }}
           >
             {difficultKeysData.length > 0 ? (
               difficultKeysData.map((item, index) => {
@@ -92,7 +93,7 @@ export default function LearningReChart({ resultData }) {
                     title={`${keyName}: ${difficultyValue} error(s) (appeared ${frequency} time(s))`}
                   >
                     <div
-                      className={`${barColor} ${barWidth} transition-all rounded-t mb-1`}
+                      className={`${barColor} ${barWidth} transition-all rounded-t mb-0.5 sm:mb-1 mobile-result-difficulty-bar`}
                       style={{
                         height: `${barHeight}px`,
                         minHeight: "10px",
@@ -102,14 +103,9 @@ export default function LearningReChart({ resultData }) {
                     <span className="text-[10px] sm:text-xs md:text-sm whitespace-nowrap font-semibold mb-0.5">
                       {keyName}
                     </span>
-                    <span className="text-[8px] sm:text-[10px] text-gray-500">
-                      {difficultyValue}
+                    <span className={`font-bold ${difficultyValue > 0 ? "text-red-600 text-[10px] sm:text-xs" : "text-[8px] sm:text-[10px] text-gray-500"}`}>
+                      {difficultyValue > 0 ? `${difficultyValue} times` : "0"}
                     </span>
-                    {frequency > 1 && (
-                      <span className="text-[7px] sm:text-[9px] text-blue-500">
-                        ({frequency}x)
-                      </span>
-                    )}
                   </div>
                 );
               })

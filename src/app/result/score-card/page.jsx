@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import useFitResultFrame from "@/components/result/useFitResultFrame";
 import jsPDF from "jspdf";
 import Link from "next/link";
 import {
@@ -18,6 +19,7 @@ import {
 } from "@/lib/userProfile";
 
 export default function CpctScoreCard() {
+  const pageRef = useRef(null);
   const [userName, setUserName] = useState("User");
   const [rollNo, setRollNo] = useState("-------");
   const [examData, setExamData] = useState(null);
@@ -209,6 +211,8 @@ export default function CpctScoreCard() {
   useEffect(() => {
     setIsPassed(mcqPassed && englishPassed && hindiPassed);
   }, [mcqPassed, englishPassed, hindiPassed]);
+
+  useFitResultFrame(pageRef, !loading);
 
   if (loading) {
     return (
@@ -409,25 +413,25 @@ export default function CpctScoreCard() {
   };
 
   return (
-    <div className="px-2 sm:px-0">
-      <div className="max-w-4xl mx-auto shadow-xl text-sm font-sans bg-white my-3 sm:my-5 border-2 border-[#290c52]">
+    <div ref={pageRef} className="score-card-page result-fit-page px-2 sm:px-0">
+      <div className="score-card-certificate result-fit-card w-full max-w-4xl mx-auto shadow-xl text-[9px] sm:text-sm font-sans bg-white my-3 sm:my-5 border-2 border-[#290c52]">
         <div className="border-x-2 border-[#290c52]">
 
         {/* Mobile header — logo left, title centered */}
         <div
-          className="sm:hidden relative w-full border-b border-[#290c52] min-h-[4.5rem]"
+          className="sm:hidden relative w-full border-b border-[#290c52] min-h-[2.25rem]"
           style={{ backgroundColor: "#290c52" }}
         >
           <img
             src="/logor.png"
             alt="MPCPCT Logo"
-            className="absolute left-1 top-1/2 -translate-y-1/2 h-14 w-auto object-contain"
+            className="absolute left-1 top-1/2 -translate-y-1/2 h-6 w-auto object-contain"
           />
-          <div className="text-center px-3 py-2.5 pl-16 pr-3">
-            <h1 className="text-xl font-extrabold uppercase text-white tracking-wide leading-tight">
+          <div className="text-center px-2 py-1 pl-12 pr-2">
+            <h1 className="text-base font-extrabold uppercase text-white tracking-wide leading-tight">
               MPCPCT
             </h1>
-            <p className="text-[11px] text-pink-200 font-medium mt-1 leading-snug">
+            <p className="text-[8px] text-pink-200 font-medium mt-0.5 leading-snug">
               To Help in typing &amp; computer proficiency
             </p>
           </div>
@@ -453,35 +457,39 @@ export default function CpctScoreCard() {
         </div>
 
         {/* Mobile: profile pic + Score Card / exam year / exam title */}
-        <div className="sm:hidden relative border-b border-gray-300 min-h-[6.5rem]">
-          <img
-            src={userProfileUrl}
-            alt="Student"
-            className="absolute left-0 bottom-0 w-[6.75rem] h-[6.5rem] border-2 border-black border-l-0 border-b-0 object-cover bg-white"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
-            }}
-          />
-          <div className="text-center pl-[7.25rem] pr-3 py-3 min-w-0">
-            <p className="uppercase font-bold text-lg leading-tight">Score Card</p>
-            <p className="text-sm mt-1 leading-tight">{subjectName}</p>
-            <p className="text-xs mt-1 leading-tight">Examination 2025-26</p>
+        <div className="sm:hidden grid grid-cols-[3.25rem_minmax(0,1fr)] items-stretch border-b border-gray-300">
+          <div className="relative min-h-[4.25rem] self-stretch">
+            <img
+              src={userProfileUrl}
+              alt="Student"
+              className="result-profile-photo absolute inset-0 h-full w-full border-r-2 border-black object-cover bg-white"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
+              }}
+            />
+          </div>
+          <div className="text-center px-1 py-1 min-w-0 self-center">
+            <p className="uppercase font-bold text-sm leading-tight">Score Card</p>
+            <p className="text-[10px] mt-0.5 leading-tight">{subjectName}</p>
+            <p className="text-[8px] mt-0.5 leading-tight">Examination 2025-26</p>
           </div>
         </div>
 
         {/* Desktop: title + profile */}
-        <div className="hidden sm:block relative border-b border-gray-300 pb-2 pt-1 px-3 min-h-[4.5rem]">
-          <img
-            src={userProfileUrl}
-            alt="Student"
-            className="absolute left-3 bottom-0 w-[5.5rem] h-[4.25rem] border-2 border-[#290c52] object-cover bg-white"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
-            }}
-          />
-          <div className="text-center pl-[6.5rem] pr-2">
+        <div className="hidden sm:grid grid-cols-[6rem_minmax(0,1fr)] items-stretch border-b border-gray-300 min-h-[5.5rem]">
+          <div className="relative self-stretch">
+            <img
+              src={userProfileUrl}
+              alt="Student"
+              className="result-profile-photo-desktop absolute inset-0 h-full w-full border-r-2 border-[#290c52] object-cover bg-white"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
+              }}
+            />
+          </div>
+          <div className="text-center px-2 py-1 self-center">
             <p className="uppercase font-semibold text-xl leading-tight">Score Card</p>
             <p className="text-lg leading-tight">{subjectName}</p>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useCallback } from 'react';
-import { HindiTypingConverter } from '@/lib/hindiTyping';
+import { HindiTypingConverter, normalizeDevanagariWithCursor } from '@/lib/hindiTyping';
 
 /**
  * React Hook for Hindi Typing
@@ -102,22 +102,26 @@ export function useHindiTyping(layout = 'remington', enabled = false, allowBacks
       const replaceEnd = replaceStart + (result.replaceLength || 0);
       
       // Replace text and insert Hindi character
-      const newValue = 
-        currentValue.substring(0, replaceStart) + 
-        result.char + 
+      let newValue =
+        currentValue.substring(0, replaceStart) +
+        result.char +
         currentValue.substring(replaceEnd);
-      
+
+      const cursorOffset = result.cursorOffset !== undefined
+        ? result.cursorOffset
+        : result.char.length;
+      let newCursorPos = replaceStart + cursorOffset;
+
+      // Attach short i-matra and join halant + next letter before React paints
+      const fixed = normalizeDevanagariWithCursor(newValue, newCursorPos);
+      newValue = fixed.text;
+      newCursorPos = fixed.cursor;
+
       // Update state
       setValue(newValue);
-      
+
       // Update textarea value directly for immediate synchronization
       textarea.value = newValue;
-      
-      // Calculate new cursor position
-      const cursorOffset = result.cursorOffset !== undefined 
-        ? result.cursorOffset 
-        : result.char.length;
-      const newCursorPos = replaceStart + cursorOffset;
       
       // Set cursor position after inserted character (rAF for stable cursor)
       requestAnimationFrame(() => {
@@ -154,15 +158,17 @@ export function useHindiTyping(layout = 'remington', enabled = false, allowBacks
       const replaceStart = selectionStart;
       const replaceEnd = selectionEnd;
       
-      const newValue = 
-        currentValue.substring(0, replaceStart) + 
-        altCodeResult.char + 
+      let newValue =
+        currentValue.substring(0, replaceStart) +
+        altCodeResult.char +
         currentValue.substring(replaceEnd);
-      
+      let newCursorPos = replaceStart + altCodeResult.char.length;
+      const fixed = normalizeDevanagariWithCursor(newValue, newCursorPos);
+      newValue = fixed.text;
+      newCursorPos = fixed.cursor;
+
       setValue(newValue);
       textarea.value = newValue;
-      
-      const newCursorPos = replaceStart + altCodeResult.char.length;
       requestAnimationFrame(() => {
         textarea.selectionStart = textarea.selectionEnd = newCursorPos;
       });
@@ -209,9 +215,15 @@ export function useHindiTyping(layout = 'remington', enabled = false, allowBacks
     if (newValue.startsWith(prevValue)) {
       const inserted = newValue.slice(prevValue.length);
       const converted = converterRef.current.convertText(inserted);
-      if (converted !== inserted) {
-        return prevValue + converted;
+      const combined = converted !== inserted ? prevValue + converted : newValue;
+      const fixed = normalizeDevanagariWithCursor(combined, combined.length);
+      if (fixed.text !== newValue) {
+        return { value: fixed.text, cursor: fixed.cursor };
       }
+    }
+    const fixedAll = normalizeDevanagariWithCursor(newValue, newValue.length);
+    if (fixedAll.text !== newValue) {
+      return { value: fixedAll.text, cursor: fixedAll.cursor };
     }
     return null;
   }, [enabled, allowBackspace]);

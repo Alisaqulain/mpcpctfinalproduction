@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { getLearningData, getLessonContent } from "@/lib/learningData";
 import { useHindiTyping } from "@/hooks/useHindiTyping";
+import { normalizeDevanagariOrder } from "@/lib/hindiTyping";
 import ReplaceNavLink from "@/components/common/ReplaceNavLink";
 import { resolveUserProfileUrl, readExamUserDataFromStorage, DEFAULT_PROFILE_AVATAR } from "@/lib/userProfile";
 import { formatResultDateDDMM } from "@/lib/formatResultDate";
@@ -188,7 +189,8 @@ function DesktopView({
               <>
                   <div
                     ref={containerRef}
-                    className="typing-passage-font leading-relaxed overflow-y-auto min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px] mt-0 pt-0 break-words font-sans w-full"
+                    className={`typing-passage-font leading-relaxed overflow-y-auto min-h-[100px] max-h-[100px] lg:min-h-[200px] lg:max-h-[250px] mt-0 pt-0 break-words w-full${isHindiTyping ? " hindi-text" : " font-sans"}`}
+                    lang={isHindiTyping ? "hi" : undefined}
                     style={{
                       ...typingFontStyle(fontSize),
                       width: "100%",
@@ -250,7 +252,7 @@ function DesktopView({
                     }
                   }}
                   disabled={isPaused || isCompleted}
-                  className="typing-input-font w-full min-h-[100px] max-h-[100px] lg:min-h-[180px] lg:max-h-[220px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-1 disabled:opacity-50"
+                  className={`typing-input-font w-full min-h-[100px] max-h-[100px] lg:min-h-[180px] lg:max-h-[220px] p-2 border-t border-gray-400 rounded-md focus:outline-none mt-1 disabled:opacity-50${isHindiTyping ? " hindi-text" : ""}`}
                   placeholder={isHindiTyping ? `Start typing in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout)...` : "Start typing here..."}
                   lang={isHindiTyping ? "hi" : undefined}
                   inputMode={isHindiTyping ? "text" : undefined}
@@ -652,7 +654,8 @@ function PortraitView({
               <div className="portrait-typing-content flex flex-col flex-1 min-h-0">
                 <div
                   ref={containerRef}
-                  className="typing-passage-font portrait-passage-scroll leading-relaxed overflow-y-auto mt-0 pt-0 break-words font-sans w-full flex-1 min-h-0"
+                  className={`typing-passage-font portrait-passage-scroll leading-relaxed overflow-y-auto mt-0 pt-0 break-words w-full flex-1 min-h-0${isHindiTyping ? " hindi-text" : " font-sans"}`}
+                  lang={isHindiTyping ? "hi" : undefined}
                   style={{
                     ...typingFontStyle(fontSize + TYPING_FONT_PORTRAIT_BONUS),
                     width: "100%",
@@ -713,7 +716,7 @@ function PortraitView({
                     }
                   }}
                   disabled={isPaused || isCompleted}
-                  className="typing-input-font portrait-typing-input w-full flex-1 min-h-0 p-2 border-t border-gray-400 rounded-md focus:outline-none mt-3 disabled:opacity-50"
+                  className={`typing-input-font portrait-typing-input w-full flex-1 min-h-0 p-2 border-t border-gray-400 rounded-md focus:outline-none mt-3 disabled:opacity-50${isHindiTyping ? " hindi-text" : ""}`}
                   placeholder={isHindiTyping ? "Start typing in Hindi (हिंदी में टाइप करें)..." : "Start typing here..."}
                   lang={isHindiTyping ? "hi" : undefined}
                   inputMode={isHindiTyping ? "text" : undefined}
@@ -953,7 +956,8 @@ function LandscapeView({
                 <div className="landscape-typing-split flex flex-col flex-1 min-h-0 w-full">
                   <div
                     ref={containerRef}
-                    className="typing-passage-font landscape-typing-passage leading-tight overflow-y-auto break-words font-sans w-full min-h-0 mt-0 pt-0"
+                    className={`typing-passage-font landscape-typing-passage overflow-y-auto break-words w-full min-h-0 mt-0 pt-0${isHindiTyping ? " hindi-text leading-relaxed" : " font-sans leading-tight"}`}
+                    lang={isHindiTyping ? "hi" : undefined}
                     style={{
                       ...typingFontStyle(fontSize + TYPING_FONT_LANDSCAPE_BONUS, 1.25),
                       width: "100%",
@@ -968,7 +972,7 @@ function LandscapeView({
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     disabled={isPaused || isCompleted}
-                    className="typing-input-font landscape-typing-input-field w-full p-1.5 border-t border-gray-400 rounded-md focus:outline-none mt-1 disabled:opacity-50 min-h-0"
+                    className={`typing-input-font landscape-typing-input-field w-full p-1.5 border-t border-gray-400 rounded-md focus:outline-none mt-1 disabled:opacity-50 min-h-0${isHindiTyping ? " hindi-text" : ""}`}
                     placeholder="Type Here..."
                     style={{
                       ...typingFontStyle(fontSize + TYPING_FONT_LANDSCAPE_BONUS, 1.35),
@@ -1318,9 +1322,7 @@ function TypingTutorForm() {
     fetchBackspaceSettings();
   }, [duration]);
 
-  const words = content.length > 0 && content.join(" ").trim() 
-    ? content.join(" ").trim().split(/\s+/).filter(w => w.length > 0)
-    : [];
+  const wordsSource = content;
 
   const [typedText, setTypedText] = useState("");
   const [startTime, setStartTime] = useState(null);
@@ -1338,6 +1340,12 @@ function TypingTutorForm() {
   
   // Detect if Hindi typing is required
   const isHindiTyping = language === "hindi";
+  const passageContent = isHindiTyping
+    ? wordsSource.map((line) => normalizeDevanagariOrder(line))
+    : wordsSource;
+  const words = passageContent.length > 0 && passageContent.join(" ").trim()
+    ? passageContent.join(" ").trim().split(/\s+/).filter(w => w.length > 0)
+    : [];
   
   // Determine Hindi layout from subLanguage
   const hindiLayout = subLanguage && (
@@ -1833,8 +1841,8 @@ function TypingTutorForm() {
       ? fontSize + TYPING_FONT_LANDSCAPE_BONUS
       : fontSize;
     const wordFontStyle = { fontSize: `${wordFontSize}px` };
-    const lineHeight = isLandscapeMode ? 1.2 : 1.5;
-    return content.map((line, lineIndex) => {
+    const lineHeight = isHindiTyping ? 1.7 : (isLandscapeMode ? 1.2 : 1.5);
+    return passageContent.map((line, lineIndex) => {
       const lineWords = line.trim().split(/\s+/);
       return (
         <p
@@ -1920,7 +1928,7 @@ function TypingTutorForm() {
 
   // Common props for all views
   const commonProps = {
-    content,
+    content: passageContent,
     loading,
     typedText,
     handleChange,

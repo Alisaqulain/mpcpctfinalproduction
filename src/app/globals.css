@@ -36,7 +36,9 @@ body {
 :lang(hi),
 [lang="hi"],
 .hindi-text {
-  font-family: "Nirmala UI", "Mangal", "Noto Sans Devanagari", "Arial Unicode MS", Arial, sans-serif;
+  font-family: "Nirmala UI", "Mangal", "Noto Sans Devanagari", "Arial Unicode MS", sans-serif !important;
+  font-variant-ligatures: normal !important;
+  font-feature-settings: normal !important;
 }
 
 .skip-link {
@@ -397,8 +399,8 @@ body {
     left: 0.5rem !important;
   }
   .keyboard-container.landscape-keyboard-small {
-    width: calc(100% - 140px) !important;
-    max-width: calc(100% - 140px) !important;
+    width: calc(100% - 152px) !important;
+    max-width: calc(100% - 152px) !important;
     left: 0.5rem !important;
   }
 }
@@ -448,6 +450,14 @@ body {
     transform: rotate(90deg);
   }
 }
+@keyframes wrongTargetBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+.wrong-target-blink {
+  animation: wrongTargetBlink 0.45s ease-in-out infinite;
+}
+
 @-webkit-keyframes rotatePhonePortraitToLandscape {
   0%, 100% {
     -webkit-transform: rotate(0deg);

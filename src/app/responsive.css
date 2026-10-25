@@ -24,6 +24,7 @@
   html {
     width: 100%;
     max-width: 100%;
+    overflow-x: hidden;
     overflow-x: clip;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
@@ -33,6 +34,7 @@
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    overflow-x: hidden;
     overflow-x: clip;
   }
 
@@ -109,11 +111,20 @@
 /* ------------------------------------------------------------------ */
 
 @media (max-width: 1023px) and (orientation: landscape) {
-  .landscape-typing-prompt,
-  .practice-row.landscape-typing-prompt,
+  .landscape-mobile-view-container .landscape-typing-prompt,
+  .landscape-mobile-view-container .practice-row.landscape-typing-prompt,
   .keyboard-container.landscape-keyboard-small {
-    width: calc(100% - var(--landscape-stats-panel-width)) !important;
-    max-width: calc(100% - var(--landscape-stats-panel-width)) !important;
+    width: calc(100% - var(--landscape-stats-panel-width) - 1rem) !important;
+    max-width: calc(100% - var(--landscape-stats-panel-width) - 1rem) !important;
+  }
+
+  .keyboard-container.landscape-keyboard-small {
+    transform: none !important;
+  }
+
+  .keyboard-container.landscape-keyboard-small .landscape-right-hand {
+    right: 0.5rem !important;
+    transform: translateY(calc(-50% - 0.25rem)) !important;
   }
 
   html:has(.typing-background-container),
@@ -289,5 +300,145 @@
     display: block;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Learning and skill score cards must fit as one certificate, not become
+     a horizontally scrolling collection of table fragments. */
+  .score-card-page {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+    overflow-x: hidden;
+  }
+
+  .score-card-certificate {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .score-card-certificate .overflow-x-auto {
+    overflow-x: visible !important;
+  }
+
+  .score-card-certificate table {
+    display: table !important;
+    width: 100% !important;
+    table-layout: fixed;
+    overflow: visible !important;
+    font-size: 0.58rem !important;
+    line-height: 0.85rem !important;
+  }
+
+  .score-card-certificate th,
+  .score-card-certificate td {
+    min-width: 0;
+    padding-left: 0.2rem !important;
+    padding-right: 0.2rem !important;
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .score-card-certificate img[alt="MPCPCT Logo"] {
+    width: 3.5rem !important;
+    height: 2rem !important;
+    max-width: 3.5rem !important;
+    object-fit: contain !important;
+  }
+
+  .score-card-certificate img.result-profile-photo {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: cover !important;
+  }
+
+  .score-card-certificate img[alt="Seal"],
+  .score-card-certificate img[alt="Controller"] {
+    width: auto !important;
+    height: 3.5rem !important;
+    max-height: 3.5rem !important;
+    object-fit: contain !important;
+  }
+
+  .score-card-certificate .grid.grid-cols-3 {
+    min-height: 3.75rem !important;
+    padding-top: 0.3rem !important;
+    padding-bottom: 0.3rem !important;
+  }
+
+  .score-card-certificate .bg-gray-50 {
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.4rem !important;
+  }
+
+  .score-card-certificate .bg-gray-50 a,
+  .score-card-certificate .bg-gray-50 button {
+    padding: 0.3rem 0.6rem !important;
+    font-size: 0.58rem !important;
+    line-height: 0.75rem !important;
+  }
+
+  .score-card-certificate .text-\[15px\] {
+    font-size: 0.7rem !important;
+    line-height: 1rem !important;
+  }
+
+  .score-card-certificate .mobile-result-difficulty-bar {
+    max-height: 65px !important;
+  }
+}
+
+/* Desktop score-card photo sits on the left edge and fills the title row. */
+@media (min-width: 640px) {
+  .score-card-certificate img.result-profile-photo-desktop {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: cover !important;
+  }
+}
+
+/* Desktop result cards: skill, learning, and exam fit in one screen. */
+@media (min-width: 640px) {
+  html.result-frame-lock,
+  html.result-frame-lock body {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  html.result-frame-lock #main-content {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  html.result-frame-lock .result-fit-page {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2px 0 !important;
+    box-sizing: border-box;
+  }
+
+  html.result-frame-lock .result-fit-card {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    flex: 0 0 auto;
+    transform-origin: top center;
   }
 }

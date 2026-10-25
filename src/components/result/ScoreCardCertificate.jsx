@@ -1,13 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import Link from "next/link";
 import jsPDF from "jspdf";
 import LearningReChart from "@/components/result/LearningReChart";
+import useFitResultFrame from "@/components/result/useFitResultFrame";
 import { formatResultDateDDMM } from "@/lib/formatResultDate";
 import { DEFAULT_PROFILE_AVATAR } from "@/lib/userProfile";
 
 export default function ScoreCardCertificate({ data }) {
+  const pageRef = useRef(null);
+  useFitResultFrame(pageRef, Boolean(data));
   if (!data) return null;
 
   const {
@@ -17,7 +20,6 @@ export default function ScoreCardCertificate({ data }) {
     subjectName,
     resultDate,
     publicationDate,
-    homeLink = "/",
     isPassed,
     totalScore,
     totalMax,
@@ -90,24 +92,24 @@ export default function ScoreCardCertificate({ data }) {
   };
 
   return (
-    <div className="px-2 sm:px-0">
-      <div className="max-w-4xl mx-auto shadow-xl text-sm font-sans bg-white my-3 sm:my-5 border-2 border-[#290c52]">
+    <div ref={pageRef} className="score-card-page result-fit-page px-2 sm:px-0">
+      <div className="score-card-certificate result-fit-card w-full max-w-4xl mx-auto shadow-xl text-[9px] sm:text-sm font-sans bg-white my-3 sm:my-5 border-2 border-[#290c52]">
         <div className="border-x-2 border-[#290c52]">
           {/* Mobile header */}
           <div
-            className="sm:hidden relative w-full border-b border-[#290c52] min-h-[4.5rem]"
+            className="sm:hidden relative w-full border-b border-[#290c52] min-h-[2.25rem]"
             style={{ backgroundColor: "#290c52" }}
           >
             <img
               src="/logor.png"
               alt="MPCPCT Logo"
-              className="absolute left-1 top-1/2 -translate-y-1/2 h-14 w-auto object-contain"
+              className="absolute left-1 top-1/2 -translate-y-1/2 h-6 w-auto object-contain"
             />
-            <div className="text-center px-3 py-2.5 pl-16 pr-3">
-              <h1 className="text-xl font-extrabold uppercase text-white tracking-wide leading-tight">
+            <div className="text-center px-2 py-1 pl-12 pr-2">
+              <h1 className="text-base font-extrabold uppercase text-white tracking-wide leading-tight">
                 MPCPCT
               </h1>
-              <p className="text-[11px] text-pink-200 font-medium mt-1 leading-snug">
+              <p className="text-[8px] text-pink-200 font-medium mt-0.5 leading-snug">
                 To Help in typing &amp; computer proficiency
               </p>
             </div>
@@ -127,42 +129,46 @@ export default function ScoreCardCertificate({ data }) {
           </div>
 
           {/* Mobile title */}
-          <div className="sm:hidden relative border-b border-gray-300 min-h-[6.5rem]">
-            <img
-              src={userProfileUrl}
-              alt="Student"
-              className="absolute left-0 bottom-0 w-[6.75rem] h-[6.5rem] border-2 border-black border-l-0 border-b-0 object-cover bg-white"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
-              }}
-            />
-            <div className="text-center pl-[7.25rem] pr-3 py-3 min-w-0">
-              <p className="uppercase font-bold text-lg leading-tight">Score Card</p>
-              <p className="text-sm mt-1 leading-tight">{subjectName}</p>
-              <p className="text-xs mt-1 leading-tight">Examination 2025-26</p>
+          <div className="sm:hidden grid grid-cols-[3.25rem_minmax(0,1fr)] items-stretch border-b border-gray-300">
+            <div className="relative min-h-[4.25rem] self-stretch">
+              <img
+                src={userProfileUrl}
+                alt="Student"
+                className="result-profile-photo absolute inset-0 h-full w-full border-r-2 border-black object-cover bg-white"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
+                }}
+              />
+            </div>
+            <div className="text-center px-1 py-1 min-w-0 self-center">
+              <p className="uppercase font-bold text-sm leading-tight">Score Card</p>
+              <p className="text-[10px] mt-0.5 leading-tight">{subjectName}</p>
+              <p className="text-[8px] mt-0.5 leading-tight">Examination 2025-26</p>
             </div>
           </div>
 
           {/* Desktop title */}
-          <div className="hidden sm:block relative border-b border-gray-300 pb-2 pt-1 px-3 min-h-[4.5rem]">
-            <img
-              src={userProfileUrl}
-              alt="Student"
-              className="absolute left-3 bottom-0 w-[5.5rem] h-[4.25rem] border-2 border-[#290c52] object-cover bg-white"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
-              }}
-            />
-            <div className="text-center pl-[6.5rem] pr-2">
+          <div className="hidden sm:grid grid-cols-[6rem_minmax(0,1fr)] items-stretch border-b border-gray-300 min-h-[5.5rem]">
+            <div className="relative self-stretch">
+              <img
+                src={userProfileUrl}
+                alt="Student"
+                className="result-profile-photo-desktop absolute inset-0 h-full w-full border-r-2 border-[#290c52] object-cover bg-white"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = DEFAULT_PROFILE_AVATAR;
+                }}
+              />
+            </div>
+            <div className="text-center px-2 py-1 self-center">
               <p className="uppercase font-semibold text-xl leading-tight">Score Card</p>
               <p className="text-lg leading-tight">{subjectName}</p>
             </div>
           </div>
 
           {/* Student details */}
-          <div className="overflow-x-auto text-xs sm:text-sm border border-gray-300 w-full max-w-full mx-auto">
+          <div className="overflow-x-auto text-[8px] sm:text-sm border border-gray-300 w-full max-w-full mx-auto">
             <table className="table-auto w-full border border-black">
               <tbody>
                 <tr className="border border-black">
@@ -200,7 +206,7 @@ export default function ScoreCardCertificate({ data }) {
 
           {/* Result metrics — learning RE / skill use custom tables; word uses CPCT sections */}
           {isLearningRe ? (
-            <table className="w-full border border-black border-collapse text-center font-semibold text-xs sm:text-sm">
+            <table className="w-full border border-black border-collapse text-center font-semibold text-[8px] sm:text-sm">
               <tbody>
                 {typingSimpleMetrics.map((row, idx) => (
                   <tr key={idx} className="font-bold">
@@ -212,7 +218,7 @@ export default function ScoreCardCertificate({ data }) {
             </table>
           ) : isSkill ? (
             <div className="overflow-x-auto">
-              <table className="w-full border border-black border-collapse text-center font-semibold text-xs sm:text-sm">
+              <table className="w-full border border-black border-collapse text-center font-semibold text-[8px] sm:text-sm">
                 <tbody>
                   {typingMetrics.map((row, idx) => (
                     <tr key={idx} className="font-bold">
@@ -334,11 +340,11 @@ export default function ScoreCardCertificate({ data }) {
           {isLearningRe && learningReData && <LearningReChart resultData={learningReData} />}
 
           {showFooter && (
-            <div className="text-xs">
+            <div className="text-[8px] sm:text-xs">
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse border border-black font-semibold">
                   <tbody>
-                    <tr className="text-sm sm:text-lg">
+                    <tr className="text-[9px] sm:text-lg">
                       <td className="border-b p-1 text-center px-2 sm:px-10" colSpan={2}>
                         {footerQueryTitle}
                       </td>
@@ -351,12 +357,12 @@ export default function ScoreCardCertificate({ data }) {
                     }).map((_, i) => (
                       <tr key={i}>
                         <td
-                          className="p-1 text-left text-xs sm:text-[15px] pl-1 sm:pl-2"
+                          className="p-1 text-left text-[8px] sm:text-[15px] pl-1 sm:pl-2"
                           colSpan={2}
                         >
                           {footerLeftLines[i] || ""}
                         </td>
-                        <td className="border-l p-1 text-[15px]" colSpan={2}>
+                        <td className="border-l p-1 text-[8px] sm:text-[15px]" colSpan={2}>
                           {footerRightLines[i] || ""}
                         </td>
                       </tr>
@@ -377,32 +383,32 @@ export default function ScoreCardCertificate({ data }) {
             </div>
           )}
 
-          <div className="grid grid-cols-3 items-end gap-1 text-[10px] sm:text-xs border-t border-[#290c52] py-2 px-2 sm:px-3 font-semibold min-h-[5rem]">
+          <div className="grid grid-cols-3 items-end gap-1 text-[8px] sm:text-xs border-t border-[#290c52] py-1 sm:py-2 px-2 sm:px-3 font-semibold min-h-[3rem] sm:min-h-[5rem]">
             <p className="text-left self-end pb-1">
               Date of Publication of Result :
               <br />
               <span>{pubDate}</span>
             </p>
             <div className="flex justify-center self-end">
-              <img src="/seal.png" alt="Seal" className="h-12 sm:h-16 md:h-20 object-contain" />
+              <img src="/seal.png" alt="Seal" className="h-8 sm:h-16 md:h-20 object-contain" />
             </div>
             <div className="text-right self-end">
-              <img src="/sing.png" alt="Controller" className="h-12 sm:h-16 md:h-20 ml-auto object-contain" />
-              <p className="italic text-gray-600 text-[9px] sm:text-xs mt-0.5">Head of Examinations</p>
+              <img src="/sing.png" alt="Controller" className="h-8 sm:h-16 md:h-20 ml-auto object-contain" />
+              <p className="italic text-gray-600 text-[7px] sm:text-xs mt-0.5">Head of Examinations</p>
             </div>
           </div>
 
-          <div className="flex flex-row justify-between items-center gap-2 px-3 py-3 border-t border-[#290c52] bg-gray-50">
+          <div className="flex flex-row justify-between items-center gap-2 px-2 sm:px-3 py-1 sm:py-3 border-t border-[#290c52] bg-gray-50">
             <Link
-              href={homeLink}
-              className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded text-xs sm:text-sm"
+              href="/"
+              className="bg-red-600 hover:bg-red-700 text-white font-medium px-2 sm:px-4 py-1 sm:py-2 rounded text-[8px] sm:text-sm"
             >
               Go To Home
             </Link>
             <button
               type="button"
               onClick={handleDownloadPDF}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded text-xs sm:text-sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-2 sm:px-4 py-1 sm:py-2 rounded text-[8px] sm:text-sm"
             >
               Download PDF
             </button>

@@ -458,7 +458,7 @@ async function loadFromTopicId(topicId) {
 
 async function loadFromSkillResult(resultId) {
   const id = resultId || localStorage.getItem("lastTypingResultId");
-  if (!id) return { ok: false, error: "No skill test result found", homeLink: "/skill_test" };
+  if (!id) return { ok: false, error: "No skill test result found", homeLink: "/" };
 
   let data;
   try {
@@ -468,11 +468,11 @@ async function loadFromSkillResult(resultId) {
       return {
         ok: false,
         error: data.error || "Result not found",
-        homeLink: "/skill_test",
+        homeLink: "/",
       };
     }
   } catch {
-    return { ok: false, error: "Failed to load skill test result", homeLink: "/skill_test" };
+    return { ok: false, error: "Failed to load skill test result", homeLink: "/" };
   }
 
   const result = data.result;
@@ -519,7 +519,7 @@ async function loadFromSkillResult(resultId) {
       totalMax: 30,
       isPassed,
       pdfFilePrefix: "Skill-Test",
-      homeLink: "/skill_test",
+      homeLink: "/",
       errors: result.errors || [],
       remarks: result.remarks || "",
       footerQueryTitle: "For Queries about Skill Test Result",
@@ -543,7 +543,7 @@ async function loadFromLearningWord() {
       ? sessionStorage.getItem("learningWordResult")
       : null;
   if (!raw) {
-    return { ok: false, error: "No learning result found", homeLink: "/learning" };
+    return { ok: false, error: "No learning result found", homeLink: "/" };
   }
 
   const result = JSON.parse(raw);
@@ -591,7 +591,7 @@ async function loadFromLearningWord() {
       totalMax: minNetSpeed,
       isPassed,
       pdfFilePrefix: "Learning-Word",
-      homeLink: "/learning",
+      homeLink: "/",
       errors: result.errors || [],
       remarks: result.remarks || "",
       footerQueryTitle: "For Queries about Learning Word Result",
@@ -616,7 +616,7 @@ async function loadFromLearningRe() {
       ? localStorage.getItem("learningResult")
       : null;
   if (!raw) {
-    return { ok: false, error: "No learning result found", homeLink: "/keyboard" };
+    return { ok: false, error: "No learning result found", homeLink: "/" };
   }
 
   const result = JSON.parse(raw);
@@ -645,7 +645,7 @@ async function loadFromLearningRe() {
       totalMax: 10,
       isPassed,
       pdfFilePrefix: "Learning",
-      homeLink: "/keyboard",
+      homeLink: "/",
       learningReData: result,
       footerQueryTitle: "For Queries about Learning Result",
       footerCriteriaTitle: "Learning Qualifying Criteria",

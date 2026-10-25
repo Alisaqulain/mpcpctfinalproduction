@@ -148,6 +148,184 @@ const INSCRIPT_SHIFT_MAP = {
 /** Keys that produce no character in InScript (still consume the keypress). */
 const INSCRIPT_SILENT_KEYS = new Set(['z', 'Z', 'V', 'B', 'J']);
 
+function isDevanagariConsonant(code) {
+  return code >= 0x0915 && code <= 0x0939;
+}
+
+/** अ + a following matra is one vowel (आ, ई, उ, …). ि is handled separately. */
+const A_WITH_MATRA = {
+  '\u093E': '\u0906', // ा आ
+  '\u0940': '\u0908', // ी ई
+  '\u0941': '\u0909', // ु उ
+  '\u0942': '\u090A', // ू ऊ
+  '\u0943': '\u090B', // ृ ऋ
+  '\u0944': '\u0960', // ॄ ॠ
+  '\u0945': '\u090D', // ॅ ऍ
+  '\u0947': '\u090F', // े ए
+  '\u0948': '\u0910', // ै ऐ
+  '\u0949': '\u0911', // ॉ ऑ
+  '\u094B': '\u0913', // ो ओ
+  '\u094C': '\u0914', // ौ औ
+};
+
+function composeAWithMatra(text, skipRightI = false) {
+  if (!text.includes('\u0905')) return text;
+  let out = '';
+  for (let i = 0; i < text.length; i++) {
+    const nextSign = text[i + 1];
+    const next = A_WITH_MATRA[nextSign];
+    // ी after अ is ई, except a short-i that is only parked on the right
+    // until its consonant is finished (अीध् must not become ईध्).
+    const parkedOnHalf =
+      nextSign === '\u0940' &&
+      (skipRightI || isDevanagariConsonant(text.charCodeAt(i + 2) || 0));
+    if (text[i] === '\u0905' && next && !parkedOnHalf) {
+      out += next;
+      i++;
+      continue;
+    }
+    out += text[i];
+  }
+  return out;
+}
+
+/** How far a consonant cluster extends, including a trailing halant. */
+function readConsonantCluster(s, j) {
+  const start = j;
+  let openHalant = false;
+  while (j < s.length && isDevanagariConsonant(s.charCodeAt(j))) {
+    j++;
+    if (s.charCodeAt(j) === 0x093C) j++;
+    if (s.charCodeAt(j) === 0x094D) {
+      if (isDevanagariConsonant(s.charCodeAt(j + 1) || 0)) {
+        j++;
+        continue;
+      }
+      openHalant = true;
+      j++;
+      break;
+    }
+    break;
+  }
+  return { start, end: j, openHalant };
+}
+
+/**
+ * Remington types several full letters as half-letter + ा (ध् + ा = ध).
+ * A short ि that already moved onto that half letter is kept: ध्ि + ा = धि.
+ */
+function completeHalantWithAa(text) {
+  if (!text.includes('\u094D')) return text;
+  return text.replace(/([\u0915-\u0939]\u093C?)\u094D(\u093F?)\u093E/g, '$1$2');
+}
+
+/**
+ * Put Hindi into Unicode order so the font can shape it.
+ * Remington lessons and Remington typing put ि before the consonant
+ * (typewriter order). Unicode needs the consonant first, then ि,
+ * otherwise the short i-matra stays on a dotted circle.
+ * Spaces typed between a halant and the next consonant are removed
+ * so half-letters join (क्त, ज्ञ).
+ */
+export function normalizeDevanagariOrder(text, keepIAfterVowel = false) {
+  if (!text) return text;
+
+  let s = text;
+  if (s.includes('\u094D')) {
+    s = s.replace(
+      /([\u0915-\u0939]\u093C?)[ \t\n\r]+(\u094D)[ \t\n\r]*([\u0915-\u0939])/g,
+      '$1$2$3'
+    );
+    s = s.replace(/(\u094D)[ \t\n\r]+([\u0915-\u0939])/g, '$1$2');
+  }
+
+  // ध् + ा is one letter ध, before ि is attached to it.
+  s = completeHalantWithAa(s);
+
+  // V+F parks ि as ी on the right of अ. Once the consonant is finished,
+  // that ी is the short ि and belongs on the consonant (अधि, not अीध).
+  if (keepIAfterVowel && s.includes('\u0940')) {
+    let restored = '';
+    for (let i = 0; i < s.length; i++) {
+      if (
+        s[i] === '\u0905' &&
+        s[i + 1] === '\u0940' &&
+        isDevanagariConsonant(s.charCodeAt(i + 2) || 0)
+      ) {
+        const cluster = readConsonantCluster(s, i + 2);
+        if (!cluster.openHalant) {
+          restored += '\u0905\u093F';
+          i++;
+          continue;
+        }
+      }
+      restored += s[i];
+    }
+    s = restored;
+  }
+
+  if (!s.includes('\u093F')) return composeAWithMatra(s);
+
+  let out = '';
+  let parkedShortI = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch !== '\u093F') {
+      out += ch;
+      continue;
+    }
+
+    const prev = i > 0 ? s.charCodeAt(i - 1) : 0;
+    const alreadyOnLetter = isDevanagariConsonant(prev) || prev === 0x093C;
+    const afterVowel = keepIAfterVowel && prev >= 0x0904 && prev <= 0x0914;
+    if (alreadyOnLetter) {
+      out += ch;
+      continue;
+    }
+
+    let j = i + 1;
+    if (!isDevanagariConsonant(s.charCodeAt(j) || 0)) {
+      // V then F, with no consonant yet: show the matra on the right of अ.
+      if (keepIAfterVowel && prev === 0x0905) {
+        out += '\u0940';
+        parkedShortI = true;
+        continue;
+      }
+      if (afterVowel) {
+        out += ch;
+        continue;
+      }
+      out += ch;
+      continue;
+    }
+
+    const cluster = readConsonantCluster(s, j);
+    // Half letter is not finished (ध्). Keep the matra on अ until ा completes it.
+    if (keepIAfterVowel && prev === 0x0905 && cluster.openHalant) {
+      out += '\u0940';
+      parkedShortI = true;
+      continue;
+    }
+
+    out += s.slice(cluster.start, cluster.end) + '\u093F';
+    i = cluster.end - 1;
+  }
+
+  return composeAWithMatra(out, parkedShortI);
+}
+
+/** Same as normalizeDevanagariOrder, keeping the caret with the typed syllable. */
+export function normalizeDevanagariWithCursor(text, cursor) {
+  const value = text || '';
+  const safeCursor = Math.max(0, Math.min(cursor || 0, value.length));
+  const normalized = normalizeDevanagariOrder(value, true);
+  if (safeCursor >= value.length) {
+    return { text: normalized, cursor: normalized.length };
+  }
+  const left = normalizeDevanagariOrder(value.slice(0, safeCursor), true);
+  return { text: normalized, cursor: Math.min(left.length, normalized.length) };
+}
+
 /**
  * Utility: Get Unicode cluster length at position
  * Hindi characters can be multi-code-unit clusters

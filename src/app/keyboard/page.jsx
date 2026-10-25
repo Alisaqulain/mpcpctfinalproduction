@@ -6,6 +6,22 @@ import { Sun, Moon, RotateCw, X, Settings } from "lucide-react";
 import { getLearningData, getLessonContent } from "@/lib/learningData";
 import { resolveUserProfileUrl, DEFAULT_PROFILE_AVATAR } from "@/lib/userProfile";
 
+function promptKeyClass({ isCurrentKey, status, passed, isPressed, idleClass }) {
+  if (status === "wrong") {
+    return `bg-white border-red-600 border-2 text-red-600${isCurrentKey ? " wrong-target-blink" : ""}`;
+  }
+  if (passed || status === "correct") {
+    return "bg-white border-green-600 border-2 text-green-700";
+  }
+  if (isCurrentKey) {
+    return "bg-white border-blue-500 border-2 text-blue-600";
+  }
+  if (isPressed) {
+    return "bg-white text-black border-gray-500 border-2 scale-95";
+  }
+  return idleClass;
+}
+
 // Debug: add ?debug=1 to keyboard URL to show alerts for mobile keyboard testing.
 // Without ?debug=1, only console.log("[Keyboard]", ...) runs (no alerts).
 function debugLog(...args) {
@@ -141,6 +157,7 @@ function DesktopView({
             const originalIndex = getOriginalIndex(displayIdx);
             const isCurrentKey = originalIndex === currentIndex;
             const keyStatusForThisKey = originalIndex >= 0 ? keyStatus[originalIndex] : null;
+            const passed = originalIndex >= 0 && originalIndex < currentIndex;
             const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
             const isSpace = key === "Space";
             const boxStyle = isSpace
@@ -155,21 +172,15 @@ function DesktopView({
                   ${isSpace ? "min-w-0 text-2xl" : "shrink-0 text-4xl"}
                   transition-all duration-150
                   ${isRowAnimating ? "animate-slide-in-right-key" : ""}
-                  ${
-                    isCurrentKey && keyStatusForThisKey !== "wrong"
-                      ? "bg-white border-blue-500 border-2 text-blue-600"
-                      : keyStatusForThisKey === "wrong"
-                      ? "bg-white border-red-600 border-2 text-red-600"
-                      : keyStatusForThisKey === "correct"
-                      ? "bg-white border-green-600 border-2 text-green-700"
-                      : isPressed && isSpace
-                      ? "bg-white text-black border-gray-500 border-2 scale-95"
-                      : isPressed
-                      ? "bg-white text-black border-gray-500 border-2 scale-95"
-                      : isDarkMode
+                  ${promptKeyClass({
+                    isCurrentKey,
+                    status: keyStatusForThisKey,
+                    passed,
+                    isPressed,
+                    idleClass: isDarkMode
                       ? "bg-white text-black border-white"
-                      : "bg-white text-black border-black"
-                  }
+                      : "bg-white text-black border-black",
+                  })}
                   border
                 `}
                 style={{
@@ -281,7 +292,9 @@ function DesktopView({
                   />
                 </div>
                 
-                {pressedKey && (
+                {pressedKey &&
+                  (pressedKey === highlightedKeys[currentIndex] ||
+                    (highlightedKeys[currentIndex] === "Space" && pressedKey === " ")) && (
                   <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
                     <div className="bg-yellow-400 text-black px-3 py-1 rounded-full text-lg font-bold shadow-lg animate-pulse">
                       {pressedKey}
@@ -297,6 +310,7 @@ function DesktopView({
                 {row.map((key, keyIndex) => {
                   const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
                   const isCurrentKey = highlightedKeys[currentIndex] === key;
+                  const shouldBlink = isCurrentKey && keyStatus[currentIndex] === "wrong";
                   return (
                     <div
                       key={keyIndex}
@@ -304,6 +318,7 @@ function DesktopView({
                         border transition-all duration-200 ease-out ${
                           isDarkMode ? "border-gray-600 text-white" : "border-gray-400 text-gray-800"
                         }
+                        ${shouldBlink ? "wrong-target-blink" : ""}
                         ${
                           isPressed ? (isDarkMode ? "bg-gray-600 text-white border-gray-500 border-2 scale-95" : "bg-gray-400 text-gray-900 border-gray-500 border-2 scale-95") :
                           isCurrentKey ? "bg-blue-500 text-white border-blue-400 border-2" :
@@ -551,6 +566,7 @@ function PortraitMobileView({
             const originalIndex = getOriginalIndex(displayIdx);
             const isCurrentKey = originalIndex === currentIndex;
             const keyStatusForThisKey = originalIndex >= 0 ? keyStatus[originalIndex] : null;
+            const passed = originalIndex >= 0 && originalIndex < currentIndex;
             const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
             
             return (
@@ -561,19 +577,13 @@ function PortraitMobileView({
                   rounded flex items-center justify-center font-semibold leading-none
                   transition-all duration-200 ease-out flex-shrink-0 portrait-char-box
                   ${isRowAnimating ? 'animate-slide-in-right-key' : ''}
-                  ${
-                    (isCurrentKey && keyStatusForThisKey !== "wrong")
-                      ? "bg-white border-blue-500 border-2 text-blue-600"
-                      : keyStatusForThisKey === "wrong"
-                      ? "bg-white border-red-600 border-2 text-red-600"
-                      : keyStatusForThisKey === "correct"
-                      ? "bg-white border-green-600 border-2 text-green-700"
-                      : isPressed && key === "Space"
-                      ? "bg-white text-black border-gray-500 border-2 scale-95"
-                      : isPressed
-                      ? "bg-white text-black border-gray-500 border-2 scale-95"
-                      : "bg-white text-black border-gray-300"
-                  }
+                  ${promptKeyClass({
+                    isCurrentKey,
+                    status: keyStatusForThisKey,
+                    passed,
+                    isPressed,
+                    idleClass: "bg-white text-black border-gray-300",
+                  })}
                   border
                 `}
                 style={isRowAnimating ? { animationDelay: `${displayIdx * 0.05}s` } : undefined}
@@ -696,6 +706,7 @@ function PortraitMobileView({
                 {row.map((key, keyIndex) => {
                   const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
                   const isCurrentKey = highlightedKeys[currentIndex] === key;
+                  const shouldBlink = isCurrentKey && keyStatus[currentIndex] === "wrong";
                   return (
                     <div
                       key={keyIndex}
@@ -703,6 +714,7 @@ function PortraitMobileView({
                         border transition-all duration-200 ease-out ${
                           isDarkMode ? "border-gray-600 text-white" : "border-gray-400 text-gray-800"
                         }
+                        ${shouldBlink ? "wrong-target-blink" : ""}
                         ${
                           isPressed ? (isDarkMode ? "bg-gray-600 text-white border-gray-500 border-2 scale-95" : "bg-gray-400 text-gray-900 border-gray-500 border-2 scale-95") :
                           isCurrentKey ? "bg-blue-500 text-white border-blue-400 border-2" :
@@ -991,12 +1003,13 @@ function LandscapeMobileView({
         {/* Typing Prompt Buttons - Landscape mobile row-based layout */}
         <div
           className="flex flex-nowrap typing-prompt-mobile justify-between items-center gap-0 absolute top-0 left-2 typing-prompt-container landscape-typing-prompt"
-          style={{ width: 'calc(100% - 94px)', maxWidth: 'calc(100% - 94px)', overflow: 'hidden', paddingRight: '0', marginRight: '0' }}
+          style={{ overflow: 'hidden', paddingRight: '0', marginRight: '0' }}
         >
           {currentRowKeys.map((key, displayIdx) => {
             const originalIndex = getOriginalIndex(displayIdx);
             const isCurrentKey = originalIndex === currentIndex;
             const keyStatusForThisKey = originalIndex >= 0 ? keyStatus[originalIndex] : null;
+            const passed = originalIndex >= 0 && originalIndex < currentIndex;
             const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
             
             // No margin classes for landscape - use gap instead
@@ -1014,19 +1027,13 @@ function LandscapeMobileView({
                   ${key === "Space" ? "h-8 text-xl space-key-box landscape-space-key" : "h-9 landscape-letter-box text-2xl"}
                   rounded flex items-center justify-center font-semibold leading-none
                   transition-all duration-200 ease-out flex-shrink-0 landscape-char-box
-                    ${
-                      (isCurrentKey && keyStatusForThisKey !== "wrong")
-                        ? "bg-white border-blue-500 border-2 text-blue-600"
-                        : keyStatusForThisKey === "wrong"
-                        ? "bg-white border-red-600 border-2 text-red-600"
-                        : keyStatusForThisKey === "correct"
-                        ? "bg-white border-green-600 border-2 text-green-700"
-                        : isPressed && key === "Space"
-                        ? "bg-white text-black border-gray-500 border-2 scale-95"
-                        : isPressed
-                        ? "bg-white text-black border-gray-500 border-2 scale-95"
-                        : "bg-white text-black border-gray-300"
-                    }
+                    ${promptKeyClass({
+                      isCurrentKey,
+                      status: keyStatusForThisKey,
+                      passed,
+                      isPressed,
+                      idleClass: "bg-white text-black border-gray-300",
+                    })}
                   border
                 `}
               >
@@ -1045,7 +1052,6 @@ function LandscapeMobileView({
             className={`absolute landscape-keyboard-top left-2 p-1 border border-gray-600 rounded-xl shadow-md keyboard-container landscape-keyboard-small ${
             isDarkMode ? "bg-[#403B3A]" : "bg-gray-200"
           }`}
-            style={{ width: "calc(100% - 94px)", maxWidth: "calc(100% - 94px)" }}
           >
             {/* Dual Hand Image Overlay */}
             {hand && (leftHandImage || rightHandImage) && (
@@ -1060,7 +1066,7 @@ function LandscapeMobileView({
                   />
                 </div>
                 {/* Right hand overlay - slightly up, moved right (landscape only) */}
-                <div className="absolute right-6 top-[14rem]" style={{ marginTop: "0px", transform: "translateY(calc(-50% - 0.25rem)) translateX(1rem)" }}>
+                <div className="absolute top-[14rem] landscape-right-hand" style={{ marginTop: "0px" }}>
                   <img 
                     src={rightHandImage} 
                     alt="Right hand finger position" 
@@ -1069,7 +1075,9 @@ function LandscapeMobileView({
                   />
                 </div>
                 
-                {pressedKey && (
+                {pressedKey &&
+                  (pressedKey === highlightedKeys[currentIndex] ||
+                    (highlightedKeys[currentIndex] === "Space" && pressedKey === " ")) && (
                   <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
                     <div className="bg-yellow-400 text-black px-3 py-1 rounded-full text-lg font-bold shadow-lg animate-pulse">
                       {pressedKey}
@@ -1268,24 +1276,24 @@ function LandscapeMobileView({
               @media (min-width: 800px) and (max-width: 999px) {
                 .landscape-keyboard-small {
                   transform: scale(0.88) !important;
-                  width: 99vw !important;
-                  max-width: 99vw !important;
+                  width: 97vw !important;
+                  max-width: 97vw !important;
                 }
               }
               
               @media (min-width: 600px) and (max-width: 799px) {
                 .landscape-keyboard-small {
                   transform: scale(0.78) !important;
-                  width: 99vw !important;
-                  max-width: 99vw !important;
+                  width: 97vw !important;
+                  max-width: 97vw !important;
                 }
               }
               
               @media (max-width: 599px) {
                 .landscape-keyboard-small {
                   transform: scale(0.73) !important;
-                  width: 99vw !important;
-                  max-width: 99vw !important;
+                  width: 97vw !important;
+                  max-width: 97vw !important;
                 }
               }
             `}</style>
@@ -1294,6 +1302,7 @@ function LandscapeMobileView({
                 {row.map((key, keyIndex) => {
                   const isPressed = pressedKey === key || (key === "Space" && (pressedKey === "Space" || pressedKey === " "));
                   const isCurrentKey = highlightedKeys[currentIndex] === key;
+                  const shouldBlink = isCurrentKey && keyStatus[currentIndex] === "wrong";
                   return (
                     <div
                       key={keyIndex}
@@ -1301,6 +1310,7 @@ function LandscapeMobileView({
                         border transition-all duration-200 ease-out ${
                           isDarkMode ? "border-gray-600 text-white" : "border-gray-400 text-gray-800"
                         }
+                        ${shouldBlink ? "wrong-target-blink" : ""}
                         ${
                           isPressed ? (isDarkMode ? "bg-gray-600 text-white border-gray-500 border-2 scale-95" : "bg-gray-400 text-gray-900 border-gray-500 border-2 scale-95") :
                           isCurrentKey ? "bg-blue-500 text-white border-blue-400 border-2" :
@@ -2159,7 +2169,11 @@ function KeyboardApp() {
     setKeyStatus(prev => {
       const next = [...prev];
       if (indexToUpdate >= 0 && indexToUpdate < next.length) {
-        next[indexToUpdate] = isCorrect ? 'correct' : 'wrong';
+        if (!isCorrect) {
+          next[indexToUpdate] = "wrong";
+        } else if (next[indexToUpdate] !== "wrong") {
+          next[indexToUpdate] = "correct";
+        }
       }
       return next;
     });

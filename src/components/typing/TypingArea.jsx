@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { useHindiTyping } from "@/hooks/useHindiTyping";
+import { normalizeDevanagariOrder } from "@/lib/hindiTyping";
 
 /**
  * TypingArea: Single source of input via controlled hidden input.
@@ -16,7 +17,7 @@ import { useHindiTyping } from "@/hooks/useHindiTyping";
  */
 
 export default function TypingArea({
-  content,
+  content: contentProp,
   onComplete,
   onProgress,
   showTimer = false,
@@ -46,6 +47,7 @@ export default function TypingArea({
   const containerRef = useRef(null);
 
   const isHindiTyping = language === "Hindi";
+  const content = isHindiTyping ? normalizeDevanagariOrder(contentProp || "") : (contentProp || "");
   const hindiLayout = scriptType && scriptType.toLowerCase().includes("inscript") ? "inscript" : "remington";
   const hindiTyping = useHindiTyping(hindiLayout || "remington", isHindiTyping, allowBackspace);
 

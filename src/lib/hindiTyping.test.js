@@ -1,4 +1,4 @@
-import { HindiTypingConverter } from './hindiTyping';
+import { HindiTypingConverter, normalizeDevanagariOrder } from './hindiTyping';
 
 const convertKey = (converter, key, shiftKey = false, text = '', cursor = text.length) => {
   const event = {
@@ -76,5 +76,47 @@ describe('HindiTypingConverter fixed keyboard layouts', () => {
       key !== key.toLowerCase()
     );
     expect(result.char).toBe('');
+  });
+});
+
+describe('normalizeDevanagariOrder', () => {
+  test('moves short i-matra onto the consonant typed before it', () => {
+    expect(normalizeDevanagariOrder('िकताब')).toBe('किताब');
+    expect(normalizeDevanagariOrder('िमत्र')).toBe('मित्र');
+    expect(normalizeDevanagariOrder('अिधक')).toBe('अधिक');
+    expect(normalizeDevanagariOrder('िक्त')).toBe('क्ति');
+    expect(normalizeDevanagariOrder('क्ित')).toBe('क्ति');
+  });
+
+  test('leaves Unicode order and long matras unchanged', () => {
+    expect(normalizeDevanagariOrder('किताब')).toBe('किताब');
+    expect(normalizeDevanagariOrder('का की कू के कु')).toBe('का की कू के कु');
+  });
+
+  test('joins a half letter when a space sits on the halant', () => {
+    expect(normalizeDevanagariOrder('क ् त')).toBe('क्त');
+    expect(normalizeDevanagariOrder('ज\n्\nञान')).toBe('ज्ञान');
+  });
+
+  test('joins अ and a following matra into one vowel', () => {
+    expect(normalizeDevanagariOrder('अा')).toBe('आ');
+    expect(normalizeDevanagariOrder('अी')).toBe('ई');
+    expect(normalizeDevanagariOrder('का')).toBe('का');
+    expect(normalizeDevanagariOrder('अिधक')).toBe('अधिक');
+  });
+
+  test('typing v then f puts the long i-matra on the right of अ', () => {
+    expect(normalizeDevanagariOrder('अि', true)).toBe('अी');
+    expect(normalizeDevanagariOrder('अित', true)).toBe('अति');
+    expect(normalizeDevanagariOrder('िक', true)).toBe('कि');
+  });
+
+  test('typing v f / k joins the half letter and puts the short i-matra on ध', () => {
+    expect(normalizeDevanagariOrder('ध्ा')).toBe('ध');
+    expect(normalizeDevanagariOrder('अिध्ा', true)).toBe('अधि');
+    expect(normalizeDevanagariOrder('अीध्ा', true)).toBe('अधि');
+    expect(normalizeDevanagariOrder('अिध्ाक', true)).toBe('अधिक');
+    expect(normalizeDevanagariOrder('अी', true)).toBe('ई');
+    expect(normalizeDevanagariOrder('क्त')).toBe('क्त');
   });
 });

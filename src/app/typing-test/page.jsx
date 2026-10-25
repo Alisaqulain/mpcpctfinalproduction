@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { getLessonById, getLessonContent } from "@/lib/learningData";
 import { calculateCPCTMetricsFromText } from "@/lib/cpctFormulas";
 import { useHindiTyping } from "@/hooks/useHindiTyping";
+import { normalizeDevanagariOrder } from "@/lib/hindiTyping";
 import ReplaceNavLink from "@/components/common/ReplaceNavLink";
 
 function TypingTestForm() {
@@ -41,6 +42,7 @@ function TypingTestForm() {
   
   // Detect if Hindi typing is required
   const isHindiTyping = language === "hindi";
+  const passageText = isHindiTyping ? normalizeDevanagariOrder(content) : content;
   
   // Determine Hindi layout from subLanguage
   const hindiLayout = subLanguage && (
@@ -230,7 +232,7 @@ function TypingTestForm() {
             
             // Calculate CPCT metrics
             const timeInMinutes = (endTimeStamp - startTime) / 60000;
-            const cpctMetrics = calculateCPCTMetricsFromText(userInput || "", content, timeInMinutes);
+            const cpctMetrics = calculateCPCTMetricsFromText(userInput || "", passageText, timeInMinutes);
             setWpm(Math.round(cpctMetrics.nwpm)); // Display NWPM
             setAccuracy(Math.round(cpctMetrics.accuracy)); // Display CPCT Accuracy
             
@@ -319,14 +321,14 @@ function TypingTestForm() {
     // Check for errors
     const newErrors = [];
     for (let i = 0; i < value.length; i++) {
-      if (value[i] !== content[i]) {
+      if (value[i] !== passageText[i]) {
         newErrors.push(i);
       }
     }
     setErrors(newErrors);
 
     // Check if completed (only if not time-based)
-    if (value.length === content.length && timeRemaining > 0) {
+    if (value.length === passageText.length && timeRemaining > 0) {
       const endTimeStamp = Date.now();
       setEndTime(endTimeStamp);
       setIsCompleted(true);
@@ -452,9 +454,12 @@ function TypingTestForm() {
   };
 
   const renderContent = () => {
-    if (!content) return null;
+    if (!passageText) return null;
+    if (isHindiTyping) {
+      return <span lang="hi" className="hindi-text">{passageText}</span>;
+    }
 
-    return content.split("").map((char, index) => {
+    return passageText.split("").map((char, index) => {
       let className = "text-gray-800";
       
       if (index < userInput.length) {
@@ -549,7 +554,7 @@ function TypingTestForm() {
               </div>
               
               <div className="bg-gray-100 p-6 rounded-lg mb-4">
-                <div className="text-lg leading-relaxed font-mono">
+                <div className={`text-lg leading-relaxed${isHindiTyping ? " hindi-text" : " font-mono"}`} lang={isHindiTyping ? "hi" : undefined}>
                   {renderContent()}
                 </div>
               </div>
@@ -564,7 +569,7 @@ function TypingTestForm() {
                 placeholder={isHindiTyping ? `Start typing in Hindi (${hindiLayout === 'inscript' ? 'InScript' : 'Remington'} layout)...` : "Start typing here..."}
                 lang={isHindiTyping ? "hi" : undefined}
                 inputMode={isHindiTyping ? "text" : undefined}
-                className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-lg"
+                className={`w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg${isHindiTyping ? " hindi-text" : " font-mono"}`}
                 rows="4"
                 disabled={isCompleted}
               />

@@ -1,12 +1,15 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import Link from "next/link";
 import jsPDF from "jspdf";
 import LearningReChart from "@/components/result/LearningReChart";
+import useFitResultFrame from "@/components/result/useFitResultFrame";
 import { DEFAULT_PROFILE_AVATAR } from "@/lib/userProfile";
 
 export default function DynamicResultCertificate({ data }) {
+  const pageRef = useRef(null);
+  useFitResultFrame(pageRef, Boolean(data));
   if (!data) return null;
 
   const {
@@ -120,8 +123,8 @@ export default function DynamicResultCertificate({ data }) {
   };
 
   return (
-    <div className="px-2 sm:px-0 pb-6">
-      <div className="max-w-4xl mx-auto shadow-xl text-sm font-sans bg-white my-3 sm:my-5">
+    <div ref={pageRef} className="result-fit-page px-2 sm:px-0 pb-6">
+      <div className="result-fit-card w-full max-w-4xl mx-auto shadow-xl text-sm font-sans bg-white my-3 sm:my-5">
         <div className="border border-[#290c52]">
           <div
             className="w-full px-2 sm:px-4 py-2 border"
